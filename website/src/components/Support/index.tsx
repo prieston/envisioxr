@@ -9,7 +9,7 @@ export default function Support() {
                 <div className="relative mb-12 max-w-[500px] pt-6 md:mb-14 lg:pt-16">
                   <span className="title !left-0 !translate-x-0">SUPPORT</span>
                   <h2 className="mb-5 font-heading text-3xl font-semibold text-dark dark:text-white sm:text-4xl md:text-[50px] md:leading-[60px]">
-                    Need Assistance? We're Here to Help
+                    Need Assistance? We&apos;re Here to Help
                   </h2>
                   <p className="text-base text-dark-text">
                     Have a question or need support? Our team is ready to assist
