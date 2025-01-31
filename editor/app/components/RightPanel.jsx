@@ -1,34 +1,107 @@
-import React from "react";
+// src/components/RightPanel.jsx
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { Box, Typography, TextField, Button } from "@mui/material";
 import useSceneStore from "../hooks/useSceneStore";
-import { showToast } from "../utils/toastUtils";
 
 const RightPanel = () => {
-  const selectedObject = useSceneStore((state) => state.selectedObject);
+  const selectedObservation = useSceneStore((state) => state.selectedObservation);
+  const updateObservationPoint = useSceneStore((state) => state.updateObservationPoint);
+  const deleteObservationPoint = useSceneStore((state) => state.deleteObservationPoint);
+
+  // 🔹 Local state for input fields to avoid direct Zustand modification
+  const [localTitle, setLocalTitle] = useState("");
+  const [localDescription, setLocalDescription] = useState("");
+
+
+
+  // 🔹 Sync local state when an observation point is selected
+  useEffect(() => {
+    if (selectedObservation) {
+      setLocalTitle(selectedObservation.title || "");
+      setLocalDescription(selectedObservation.description || "");
+    }
+  }, [selectedObservation]);
+
+  // 🔹 Handle saving changes to Zustand when the user stops typing
+  const handleTitleChange = (e) => {
+    setLocalTitle(e.target.value);
+    updateObservationPoint(selectedObservation.id, { title: e.target.value });
+  };
+
+  const handleDescriptionChange = (e) => {
+    setLocalDescription(e.target.value);
+    updateObservationPoint(selectedObservation.id, { description: e.target.value });
+  };
+
+  if (!selectedObservation) {
+    return (
+      <Box
+        sx={{
+          width: "300px",
+          height: "100%",
+          backgroundColor: "background.paper",
+          color: "text.primary",
+          padding: 2,
+          borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
+        }}
+      >
+        <Typography>Select an observation point to edit</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box
       sx={{
-        width: "300px", // Fixed width for Right Panel
+        width: "300px",
         height: "100%",
         backgroundColor: "background.paper",
-        borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
         color: "text.primary",
         padding: 2,
+        borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
       }}
     >
-      {selectedObject ? (
-        <>
-          <Typography variant="h6">Edit Object</Typography>
-          <TextField label="Object Name" fullWidth margin="normal" value={selectedObject.name} disabled />
-          <TextField label="Description" multiline rows={4} fullWidth margin="normal" />
-          <Button variant="contained" color="primary" onClick={() => showToast("Save action not yet implemented.")}>
-            Save
-          </Button>
-        </>
-      ) : (
-        <Typography>Select an object to edit</Typography>
-      )}
+      <Typography variant="h6">Edit Observation</Typography>
+
+      <TextField
+        label="Title"
+        fullWidth
+        margin="normal"
+        value={localTitle}
+        onChange={handleTitleChange}
+      />
+
+      <TextField
+        label="Description"
+        multiline
+        rows={4}
+        fullWidth
+        margin="normal"
+        value={localDescription}
+        onChange={handleDescriptionChange}
+      />
+
+      <Button
+        variant="contained"
+        color="primary"
+        fullWidth
+        sx={{ marginTop: 2 }}
+        onClick={() => useSceneStore.getState().setCapturingPOV(true)}
+      >
+        Capture Camera POV
+      </Button>
+
+      <Button
+        variant="contained"
+        color="error"
+        fullWidth
+        sx={{ marginTop: 2 }}
+        onClick={() => deleteObservationPoint(selectedObservation.id)}
+      >
+        Delete
+      </Button>
     </Box>
   );
 };

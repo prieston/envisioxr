@@ -1,12 +1,23 @@
-// src/components/canvas/Scene.jsx
 "use client";
 
-import React, { useRef, useEffect } from "react";
-import { Canvas } from "@react-three/fiber";
-import { Preload, Grid, OrbitControls, TransformControls, useGLTF } from "@react-three/drei";
+import React, { useRef, useEffect, Suspense } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import { Preload, Grid, OrbitControls, TransformControls, useGLTF, Sphere, Html, useProgress } from "@react-three/drei";
 import useSceneStore from "@/hooks/useSceneStore";
 import * as THREE from "three";
+import ObservationPoint from "./ObservationPoint";
 
+// ✅ Loader Component (Prevents Scene Flashing)
+const Loader = () => {
+  const { progress } = useProgress();
+  return (
+    <Html center>
+      <div style={{ color: "white" }}>Loading... {Math.round(progress)}%</div>
+    </Html>
+  );
+};
+
+// ✅ Model Component (Prevents Scene Flashing)
 const Model = ({ id, url, position, scale, rotation, selected, onSelect }) => {
   const { scene } = useGLTF(url);
   const modelRef = useRef();
@@ -23,26 +34,81 @@ const Model = ({ id, url, position, scale, rotation, selected, onSelect }) => {
   }, [selected]);
 
   return (
-    <primitive
-      object={scene}
-      ref={modelRef}
-      position={position}
-      scale={scale}
-      rotation={rotation}
-      onClick={(e) => {
-        e.stopPropagation(); // Prevents deselecting when clicking the model
-        onSelect(id, modelRef.current);
-      }}
-    />
+    <Suspense fallback={null}>
+      <primitive
+        object={scene}
+        ref={modelRef}
+        position={position}
+        scale={scale}
+        rotation={rotation}
+        onClick={(e) => {
+          e.stopPropagation(); // Prevents deselecting when clicking the model
+          onSelect(id, modelRef.current);
+        }}
+      />
+    </Suspense>
   );
 };
 
+
+
+// ✅ Separate Component to Use `useThree()`
+const ObservationPointHandler = () => {
+  const { camera, controls } = useThree();
+  const addingObservation = useSceneStore((state) => state.addingObservation);
+  const addObservationPoint = useSceneStore((state) => state.addObservationPoint);
+
+  useEffect(() => {
+    if (addingObservation && camera && controls) {
+      console.log("Adding Observation Point at:", camera.position.toArray());
+
+      // ✅ Add the observation point with camera position and target
+      addObservationPoint(camera.position, controls.target);
+    }
+  }, [addingObservation, camera, controls, addObservationPoint]);
+
+  return null;
+};
+const CameraPOVCaptureHandler = ({ orbitControlsRef }) => {
+  const { camera } = useThree();
+  const capturingPOV = useSceneStore((state) => state.capturingPOV);
+  const selectedObservation = useSceneStore((state) => state.selectedObservation);
+  const updateObservationPoint = useSceneStore((state) => state.updateObservationPoint);
+  const setCapturingPOV = useSceneStore((state) => state.setCapturingPOV);
+
+  useEffect(() => {
+    if (capturingPOV && selectedObservation) {
+      if (!orbitControlsRef.current) {
+        console.warn("OrbitControls reference is null, cannot capture target.");
+        return;
+      }
+
+      const newPosition = JSON.parse(JSON.stringify(camera.position.toArray())); // ✅ Capture position as a static snapshot
+      const newTarget = JSON.parse(JSON.stringify(orbitControlsRef.current.target.toArray())); // ✅ Capture target as a static snapshot
+      console.info("new target",newTarget)
+      updateObservationPoint(selectedObservation.id, {
+        position: newPosition,
+        target: newTarget, // ✅ Ensures static direction
+      });
+
+      setCapturingPOV(false);
+    }
+  }, [capturingPOV, selectedObservation, camera, updateObservationPoint, setCapturingPOV]);
+
+  return null;
+};
+
+
+// ✅ Main Scene Component
 export default function Scene({ ...props }) {
   const objects = useSceneStore((state) => state.objects);
+  const observationPoints = useSceneStore((state) => state.observationPoints);
   const selectedObject = useSceneStore((state) => state.selectedObject);
+  const selectedObservation = useSceneStore((state) => state.selectedObservation);
   const transformMode = useSceneStore((state) => state.transformMode);
   const selectObject = useSceneStore((state) => state.selectObject);
   const deselectObject = useSceneStore((state) => state.deselectObject);
+  const selectObservationPoint = useSceneStore((state) => state.selectObservationPoint);
   const setModelPosition = useSceneStore((state) => state.setModelPosition);
   const setModelRotation = useSceneStore((state) => state.setModelRotation);
   const setModelScale = useSceneStore((state) => state.setModelScale);
@@ -50,14 +116,14 @@ export default function Scene({ ...props }) {
   const transformControlsRef = useRef();
   const orbitControlsRef = useRef();
 
-  // Disable OrbitControls when an object is selected
+  // ✅ Disable OrbitControls when an object is selected
   useEffect(() => {
     if (orbitControlsRef.current) {
       orbitControlsRef.current.enabled = !selectedObject;
     }
   }, [selectedObject]);
 
-  // Handle TransformControls object movement
+  // ✅ Handle TransformControls object movement
   useEffect(() => {
     if (transformControlsRef.current && selectedObject) {
       const handleObjectChange = () => {
@@ -80,6 +146,7 @@ export default function Scene({ ...props }) {
     }
   }, [selectedObject, setModelPosition, setModelRotation, setModelScale, transformMode]);
 
+  console.info("thepoints",observationPoints)
   return (
     <Canvas
       {...props}
@@ -89,43 +156,65 @@ export default function Scene({ ...props }) {
       {/* OrbitControls (Disabled when an object is selected) */}
       <OrbitControls ref={orbitControlsRef} />
 
-      {/* Grid */}
-      <Grid
-        position={[0, 0, 0]}
-        args={[20, 20]}
-        cellSize={1}
-        cellThickness={0.5}
-        sectionSize={5}
-        sectionThickness={1}
-        fadeDistance={100}
-        sectionColor={[1, 1, 1]}
-        cellColor={[0.5, 0.5, 0.5]}
-      />
-
-      {/* Scene Lighting */}
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[5, 5, 5]} castShadow />
-
-      {/* Render All Models */}
-      {objects.map((obj) => (
-        <Model
-          key={obj.id}
-          id={obj.id}
-          url={obj.url}
-          position={obj.position}
-          scale={obj.scale}
-          rotation={obj.rotation}
-          selected={selectedObject?.id === obj.id}
-          onSelect={selectObject}
+      {/* ✅ Wrap everything in Suspense to prevent Scene Flashing */}
+      <Suspense fallback={<Loader />}>
+        {/* Grid (Preserved when loading models) */}
+        <Grid
+          position={[0, 0, 0]}
+          args={[20, 20]}
+          cellSize={1}
+          cellThickness={0.5}
+          sectionSize={5}
+          sectionThickness={1}
+          fadeDistance={100}
+          sectionColor={[1, 1, 1]}
+          cellColor={[0.5, 0.5, 0.5]}
+          renderOrder={-1} // ✅ Ensures grid renders before models
         />
-      ))}
 
-      {/* Transform Controls (Mode: Move, Rotate, Scale) */}
-      {selectedObject && selectedObject.ref && (
-        <TransformControls ref={transformControlsRef} object={selectedObject.ref} mode={transformMode} />
-      )}
+        {/* Scene Lighting */}
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[5, 5, 5]} castShadow />
 
-      <Preload all />
+        {/* Render All Models */}
+        {objects.map((obj) => (
+          <Model
+            key={obj.id}
+            id={obj.id}
+            url={obj.url}
+            position={obj.position}
+            scale={obj.scale}
+            rotation={obj.rotation}
+            selected={selectedObject?.id === obj.id}
+            onSelect={selectObject}
+          />
+        ))}
+
+        {/* Render Observation Points (Highlighted when selected) */}
+        {observationPoints.map((point) => (
+          <ObservationPoint
+            key={point.id}
+            id={point.id}
+            position={point.position}
+            target={point.target}
+            selected={selectedObservation?.id === point.id}
+            onSelect={selectObservationPoint}
+          />
+        ))}
+
+        {/* Transform Controls (Move, Rotate, Scale) */}
+        {selectedObject && selectedObject.ref && (
+          <TransformControls ref={transformControlsRef} object={selectedObject.ref} mode={transformMode} />
+        )}
+
+        {/* ✅ Observation Point Handler inside Canvas */}
+        <ObservationPointHandler />
+
+        <CameraPOVCaptureHandler orbitControlsRef={orbitControlsRef} />
+
+        {/* ✅ Preload all models */}
+        <Preload all />
+      </Suspense>
     </Canvas>
   );
 }
