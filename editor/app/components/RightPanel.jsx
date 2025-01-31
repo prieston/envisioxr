@@ -1,6 +1,3 @@
-// app/components/RightPanel.jsx
-"use client";
-
 import React from "react";
 import { Box, Typography, TextField, Button } from "@mui/material";
 import useSceneStore from "../hooks/useSceneStore";
@@ -12,26 +9,24 @@ const RightPanel = () => {
   return (
     <Box
       sx={{
-        width: 300,
+        width: "300px", // Fixed width for Right Panel
+        height: "100%",
         backgroundColor: "background.paper",
+        color: "text.primary",
         padding: 2,
-        borderLeft: "1px solid rgba(255,255,255,0.1)", // Subtle border
       }}
     >
       {selectedObject ? (
         <>
-          <Typography variant="h6" sx={{ color: "text.primary", mb: 2 }}>
-            Edit Object
-          </Typography>
+          <Typography variant="h6">Edit Object</Typography>
           <TextField label="Object Name" fullWidth margin="normal" value={selectedObject.name} disabled />
           <TextField label="Description" multiline rows={4} fullWidth margin="normal" />
-
           <Button variant="contained" color="primary" onClick={() => showToast("Save action not yet implemented.")}>
             Save
           </Button>
         </>
       ) : (
-        <Typography sx={{ color: "text.secondary" }}>Select an object to edit</Typography>
+        <Typography>Select an object to edit</Typography>
       )}
     </Box>
   );

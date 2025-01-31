@@ -2,31 +2,23 @@
 "use client";
 
 import React from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Grid } from "@react-three/drei"; // Import Grid from drei
-import useSceneStore from "../hooks/useSceneStore";
+import dynamic from "next/dynamic";
+
+const Scene = dynamic(() => import("@/components/canvas/Scene"), { ssr: false });
 
 const SceneCanvas = () => {
-  const objects = useSceneStore((state) => state.objects);
-  const selectObject = useSceneStore((state) => state.selectObject);
-
   return (
-    <Canvas camera={{ position: [0, 2, 5] }}>
-      {/* Lights */}
-      <ambientLight intensity={0.5} />
-      <OrbitControls />
-
-      {/* Grid Helper */}
-      <Grid args={[10, 10]} cellColor={"gray"} sectionColor={"white"} fadeDistance={10} />
-
-      {/* Objects in the scene */}
-      {objects.map((obj, index) => (
-        <mesh key={index} position={obj.position} onClick={() => selectObject(obj.id)}>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial color="blue" />
-        </mesh>
-      ))}
-    </Canvas>
+    <div
+      style={{
+        width: "100%",
+        height: "100%", // Takes full height of its container
+        display: "flex",
+        flexGrow: 1,
+        overflow: "hidden",
+      }}
+    >
+      <Scene />
+    </div>
   );
 };
 
