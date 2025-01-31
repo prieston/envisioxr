@@ -11,6 +11,7 @@ const LeftPanel = () => {
       sx={{
         width: "250px", // Fixed width like before
         height: "100%", // Full height
+        borderRight: "1px solid rgba(255, 255, 255, 0.1)",
         backgroundColor: "background.paper", // Ensure it matches theme
         color: "text.primary",
         display: "flex",
