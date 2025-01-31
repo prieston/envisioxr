@@ -18,20 +18,7 @@ export default function Hero() {
                 The Future of Digital Showcasing
               </span>
               <h1 className="mb-5 font-heading text-2xl font-semibold dark:text-white sm:text-4xl md:text-[50px] md:leading-[60px]">
-                Bring Your World to Life with{" "}
-                <Typewriter
-                  words={[
-                    "3D Presentations",
-                    "Immersive Virtual Tours",
-                    "Interactive XR Experiences",
-                  ]}
-                  cursor
-                  loop={0}
-                  cursorStyle="|"
-                  typeSpeed={70}
-                  deleteSpeed={50}
-                  delaySpeed={1000}
-                />
+                Your World, Reimagined.
               </h1>
               <p className="mb-12 text-base text-dark-text">
                 EnvisioXR transforms the way you present and experience spaces.
