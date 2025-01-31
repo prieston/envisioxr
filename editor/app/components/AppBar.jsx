@@ -2,22 +2,28 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Toolbar, Typography, IconButton, Button } from "@mui/material";
+import { Box, Toolbar, Typography, IconButton, Button, Tooltip, Divider } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import UndoIcon from "@mui/icons-material/Undo";
 import RedoIcon from "@mui/icons-material/Redo";
+import MoveIcon from "@mui/icons-material/OpenWith";
+import RotateIcon from "@mui/icons-material/RotateRight";
+import ScaleIcon from "@mui/icons-material/ZoomOutMap";
 import Image from "next/image";
 import { showToast } from "../utils/toastUtils";
 import AddModelDialog from "./AddModelDialog";
+import useSceneStore from "../hooks/useSceneStore";
 
 const AdminAppBar = () => {
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const transformMode = useSceneStore((state) => state.transformMode);
+  const setTransformMode = useSceneStore((state) => state.setTransformMode);
+  const selectedObject = useSceneStore((state) => state.selectedObject);
 
   return (
     <Box
       sx={{
         width: "100%",
-        height: "60px",
         backgroundColor: "background.paper",
         color: "text.primary",
         display: "flex",
@@ -38,17 +44,66 @@ const AdminAppBar = () => {
         Add Model
       </Button>
 
-      {/* Right Section: Actions */}
-      <Toolbar sx={{ display: "flex", gap: 1 }}>
-        <IconButton color="inherit" onClick={() => showToast("Save action not yet implemented.")}>
-          <SaveIcon />
-        </IconButton>
-        <IconButton color="inherit">
-          <UndoIcon />
-        </IconButton>
-        <IconButton color="inherit">
-          <RedoIcon />
-        </IconButton>
+      {/* Right Section: Transform Controls & Actions */}
+      <Toolbar sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        {/* Transform Controls (Only available when a model is selected) */}
+        <Tooltip title="Move">
+          <span>
+            <IconButton
+              color={transformMode === "translate" ? "primary" : "inherit"}
+              onClick={() => setTransformMode("translate")}
+              disabled={!selectedObject}
+            >
+              <MoveIcon />
+            </IconButton>
+          </span>
+        </Tooltip>
+
+        <Tooltip title="Rotate">
+          <span>
+            <IconButton
+              color={transformMode === "rotate" ? "primary" : "inherit"}
+              onClick={() => setTransformMode("rotate")}
+              disabled={!selectedObject}
+            >
+              <RotateIcon />
+            </IconButton>
+          </span>
+        </Tooltip>
+
+        <Tooltip title="Scale">
+          <span>
+            <IconButton
+              color={transformMode === "scale" ? "primary" : "inherit"}
+              onClick={() => setTransformMode("scale")}
+              disabled={!selectedObject}
+            >
+              <ScaleIcon />
+            </IconButton>
+          </span>
+        </Tooltip>
+
+        {/* Divider between Transform Controls & Other Actions */}
+        <Divider orientation="vertical" flexItem sx={{ mx: 1, borderColor: "rgba(255, 255, 255, 0.3)" }} />
+
+        {/* Other Actions */}
+        <Tooltip title="Save">
+          <IconButton color="inherit" onClick={() => showToast("Save action not yet implemented.")}>
+            <SaveIcon />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Undo">
+          <IconButton color="inherit">
+            <UndoIcon />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Redo">
+          <IconButton color="inherit">
+            <RedoIcon />
+          </IconButton>
+        </Tooltip>
       </Toolbar>
 
       {/* Add Model Dialog */}
