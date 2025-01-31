@@ -13,14 +13,14 @@ const theme = createTheme({
       main: "#ff4f4f", // Vivid red accent
     },
     background: {
-      default: "#0e0e0e", // Deep black for overall background
-      paper: "#1a1a1a", // Same color for all panels
+      default: "#121212", // 🔥 Set the full background to #121212
+      paper: "#121212", // Panels background (slightly lighter)
     },
     text: {
-      primary: "#ffffff", // White text
-      secondary: "#b0b0b0", // Light grey
+      primary: "#ffffff",
+      secondary: "#b0b0b0",
     },
-    divider: "rgba(255, 255, 255, 0.1)", // Subtle dividers
+    divider: "rgba(255, 255, 255, 0.1)",
   },
   typography: {
     fontFamily: `"Inter", "Roboto", "Arial", sans-serif`,

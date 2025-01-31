@@ -12,6 +12,7 @@ const RightPanel = () => {
         width: "300px", // Fixed width for Right Panel
         height: "100%",
         backgroundColor: "background.paper",
+        borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
         color: "text.primary",
         padding: 2,
       }}
