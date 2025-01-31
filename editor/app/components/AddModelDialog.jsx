@@ -18,14 +18,20 @@ const AddModelDialog = ({ open, onClose }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const addModel = useSceneStore((state) => state.addModel);
 
-  // Handle stock model selection
+  // ✅ Handle stock model selection (Ensuring Default Position & Scale)
   const handleStockModelSelect = (model) => {
-    addModel({ name: model.name, url: model.url });
+    addModel({
+      name: model.name,
+      url: model.url,
+      position: [0, 0, 0], // Default position in scene
+      scale: [1, 1, 1], // Default scale
+      rotation: [0, 0, 0], // Default rotation
+    });
     showToast(`Added ${model.name} to scene.`);
     onClose();
   };
 
-  // Handle file drop (currently not implemented)
+  // ✅ Handle file drop (currently not implemented)
   const { getRootProps, getInputProps } = useDropzone({
     accept: ".glb",
     multiple: false,
