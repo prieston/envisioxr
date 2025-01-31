@@ -1,16 +1,25 @@
 // src/components/canvas/Scene.jsx
 "use client";
 
+import React from "react";
 import { Canvas } from "@react-three/fiber";
-import { Preload, Grid, OrbitControls } from "@react-three/drei"; // Import OrbitControls for camera
-import { r3f } from "@/helpers/global";
+import { Preload, Grid, OrbitControls, useGLTF } from "@react-three/drei";
+import useSceneStore from "@/hooks/useSceneStore";
 import * as THREE from "three";
 
+// Load and render models from Zustand
+const Model = ({ url, position }) => {
+  const { scene } = useGLTF(url);
+  return <primitive object={scene} position={position} />;
+};
+
 export default function Scene({ ...props }) {
+  const objects = useSceneStore((state) => state.objects);
+
   return (
     <Canvas
       {...props}
-      camera={{ position: [0, 5, 10], fov: 50 }} // Adjust camera position
+      camera={{ position: [0, 5, 10], fov: 50 }}
       onCreated={(state) => (state.gl.toneMapping = THREE.AgXToneMapping)}
     >
       {/* OrbitControls to move the camera */}
@@ -18,19 +27,26 @@ export default function Scene({ ...props }) {
 
       {/* Fix Grid Centering */}
       <Grid
-        position={[0, 0, 0]} // Ensure it's at the center
-        args={[20, 20]} // [size, divisions] - Increase size if needed
+        position={[0, 0, 0]}
+        args={[20, 20]}
         cellSize={1}
         cellThickness={0.5}
         sectionSize={5}
         sectionThickness={1}
-        fadeDistance={100} // Ensure fading doesn't hide it
-        sectionColor={[1, 1, 1]} // White lines
-        cellColor={[0.5, 0.5, 0.5]} // Lighter gray minor grid
+        fadeDistance={100}
+        sectionColor={[1, 1, 1]}
+        cellColor={[0.5, 0.5, 0.5]}
       />
 
-      {/* Scene Objects */}
-      <r3f.Out />
+      {/* Scene Lighting */}
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[5, 5, 5]} castShadow />
+
+      {/* Render All Models from Zustand */}
+      {objects.map((obj, index) => (
+        <Model key={index} url={obj.url} position={[0, 0, 0]} />
+      ))}
+
       <Preload all />
     </Canvas>
   );
