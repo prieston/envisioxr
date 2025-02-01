@@ -4,9 +4,12 @@
 import React from "react";
 import dynamic from "next/dynamic";
 
-const Scene = dynamic(() => import("@/components/canvas/Scene"), { ssr: false });
+// Import your Scene dynamically (with SSR disabled)
+const Scene = dynamic(() => import("@/components/canvas/Scene"), {
+  ssr: false,
+});
 
-const SceneCanvas = () => {
+const SceneCanvas = ({ initialSceneData, onSceneDataChange, projectId }) => {
   return (
     <div
       style={{
@@ -17,7 +20,11 @@ const SceneCanvas = () => {
         overflow: "hidden",
       }}
     >
-      <Scene />
+      <Scene
+        initialSceneData={initialSceneData}
+        onSceneDataChange={onSceneDataChange}
+        projectId={projectId}
+      />
     </div>
   );
 };

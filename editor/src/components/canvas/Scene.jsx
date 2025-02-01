@@ -7,8 +7,6 @@ import {
   Grid,
   OrbitControls,
   TransformControls,
-  useGLTF,
-  Sphere,
   Html,
   useProgress,
 } from "@react-three/drei";
@@ -18,7 +16,7 @@ import ObservationPoint from "./ObservationPoint";
 import { useSpring } from "@react-spring/three";
 import Model from "./Model";
 
-// ✅ Loader Component (Prevents Scene Flashing)
+// Loader Component
 const Loader = () => {
   const { progress } = useProgress();
   return (
@@ -28,11 +26,13 @@ const Loader = () => {
   );
 };
 
-// ✅ ObservationPointHandler Component
+// ObservationPointHandler Component
 const ObservationPointHandler = () => {
   const { camera, controls } = useThree();
   const addingObservation = useSceneStore((state) => state.addingObservation);
-  const addObservationPoint = useSceneStore((state) => state.addObservationPoint);
+  const addObservationPoint = useSceneStore(
+    (state) => state.addObservationPoint
+  );
 
   useEffect(() => {
     if (addingObservation && camera && controls) {
@@ -43,12 +43,16 @@ const ObservationPointHandler = () => {
   return null;
 };
 
-// ✅ CameraPOVCaptureHandler Component (unchanged)
+// CameraPOVCaptureHandler Component
 const CameraPOVCaptureHandler = ({ orbitControlsRef }) => {
   const { camera } = useThree();
   const capturingPOV = useSceneStore((state) => state.capturingPOV);
-  const selectedObservation = useSceneStore((state) => state.selectedObservation);
-  const updateObservationPoint = useSceneStore((state) => state.updateObservationPoint);
+  const selectedObservation = useSceneStore(
+    (state) => state.selectedObservation
+  );
+  const updateObservationPoint = useSceneStore(
+    (state) => state.updateObservationPoint
+  );
   const setCapturingPOV = useSceneStore((state) => state.setCapturingPOV);
 
   useEffect(() => {
@@ -59,7 +63,9 @@ const CameraPOVCaptureHandler = ({ orbitControlsRef }) => {
       }
 
       const newPosition = JSON.parse(JSON.stringify(camera.position.toArray()));
-      const newTarget = JSON.parse(JSON.stringify(orbitControlsRef.current.target.toArray()));
+      const newTarget = JSON.parse(
+        JSON.stringify(orbitControlsRef.current.target.toArray())
+      );
       console.info("new target", newTarget);
       updateObservationPoint(selectedObservation.id, {
         position: newPosition,
@@ -67,22 +73,24 @@ const CameraPOVCaptureHandler = ({ orbitControlsRef }) => {
       });
       setCapturingPOV(false);
     }
-  }, [capturingPOV, selectedObservation, camera, updateObservationPoint, setCapturingPOV]);
+  }, [
+    capturingPOV,
+    selectedObservation,
+    camera,
+    updateObservationPoint,
+    setCapturingPOV,
+  ]);
 
   return null;
 };
 
-/**
- * New Child Component for Camera Animation using react-spring.
- * This component is rendered inside Canvas so that it can use useThree.
- */
+// CameraSpringController Component
 const CameraSpringController = ({ orbitControlsRef }) => {
   const { camera } = useThree();
   const previewMode = useSceneStore((state) => state.previewMode);
   const previewIndex = useSceneStore((state) => state.previewIndex);
   const observationPoints = useSceneStore((state) => state.observationPoints);
 
-  // Create a spring for the camera's position and OrbitControls target.
   const [spring, api] = useSpring(() => ({
     cameraPosition: camera.position.toArray(),
     target: orbitControlsRef.current
@@ -91,7 +99,6 @@ const CameraSpringController = ({ orbitControlsRef }) => {
     config: { mass: 1, tension: 170, friction: 26 },
   }));
 
-  // When preview mode is active and the observation changes, update the spring.
   useEffect(() => {
     if (previewMode && observationPoints.length > 0) {
       const currentPoint = observationPoints[previewIndex];
@@ -104,9 +111,7 @@ const CameraSpringController = ({ orbitControlsRef }) => {
     }
   }, [previewMode, previewIndex, observationPoints, api]);
 
-  // On every frame, update the camera and controls with the animated values.
   useFrame(() => {
-    // Always get the latest previewMode value.
     const previewMode = useSceneStore.getState().previewMode;
     if (previewMode && orbitControlsRef.current) {
       camera.position.set(...spring.cameraPosition.get());
@@ -117,27 +122,56 @@ const CameraSpringController = ({ orbitControlsRef }) => {
   return null;
 };
 
-// ✅ Main Scene Component
-export default function Scene({ ...props }) {
+// Main Scene Component
+export default function Scene({
+  initialSceneData,
+  onSceneDataChange,
+  projectId,
+}) {
+  // Retrieve store state and actions
   const objects = useSceneStore((state) => state.objects);
   const observationPoints = useSceneStore((state) => state.observationPoints);
   const selectedObject = useSceneStore((state) => state.selectedObject);
-  const selectedObservation = useSceneStore((state) => state.selectedObservation);
+  const selectedObservation = useSceneStore(
+    (state) => state.selectedObservation
+  );
   const transformMode = useSceneStore((state) => state.transformMode);
   const selectObject = useSceneStore((state) => state.selectObject);
   const deselectObject = useSceneStore((state) => state.deselectObject);
-  const selectObservationPoint = useSceneStore((state) => state.selectObservationPoint);
+  const selectObservationPoint = useSceneStore(
+    (state) => state.selectObservationPoint
+  );
   const setModelPosition = useSceneStore((state) => state.setModelPosition);
   const setModelRotation = useSceneStore((state) => state.setModelRotation);
   const setModelScale = useSceneStore((state) => state.setModelScale);
+  const setObjects = useSceneStore((state) => state.setObjects);
+  const setObservationPoints = useSceneStore(
+    (state) => state.setObservationPoints
+  );
 
   const transformControlsRef = useRef();
   const orbitControlsRef = useRef();
+  const initialSceneDataInitialized = useRef(false);
 
-  // Disable OrbitControls when an object is selected or (if you want) during preview mode.
+  // Initialize the store from initialSceneData only once
+  useEffect(() => {
+    if (initialSceneData && !initialSceneDataInitialized.current) {
+      setObjects(initialSceneData.objects || []);
+      setObservationPoints(initialSceneData.observationPoints || []);
+      initialSceneDataInitialized.current = true;
+    }
+  }, [initialSceneData, setObjects, setObservationPoints]);
+
+  // Propagate store changes upward
+  useEffect(() => {
+    if (onSceneDataChange) {
+      onSceneDataChange({ objects, observationPoints });
+    }
+  }, [objects, observationPoints, onSceneDataChange]);
+
+  // Disable OrbitControls when an object is selected.
   useEffect(() => {
     if (orbitControlsRef.current) {
-      // For example, disable controls if an object is selected.
       orbitControlsRef.current.enabled = !selectedObject;
     }
   }, [selectedObject]);
@@ -157,30 +191,36 @@ export default function Scene({ ...props }) {
         }
       };
 
-      transformControlsRef.current.addEventListener("objectChange", handleObjectChange);
+      transformControlsRef.current.addEventListener(
+        "objectChange",
+        handleObjectChange
+      );
 
       return () => {
-        transformControlsRef.current.removeEventListener("objectChange", handleObjectChange);
+        transformControlsRef.current.removeEventListener(
+          "objectChange",
+          handleObjectChange
+        );
       };
     }
-  }, [selectedObject, setModelPosition, setModelRotation, setModelScale, transformMode]);
+  }, [
+    selectedObject,
+    setModelPosition,
+    setModelRotation,
+    setModelScale,
+    transformMode,
+  ]);
 
-  console.info("thepoints", observationPoints);
+  console.info("Observation points:", observationPoints);
 
   return (
     <Canvas
-      {...props}
       camera={{ position: [0, 5, 10], fov: 50 }}
-      onPointerMissed={() => deselectObject()} // Deselect when clicking empty space.
+      onPointerMissed={() => deselectObject()}
     >
-      {/* OrbitControls (and pass the ref for camera animation) */}
       <OrbitControls ref={orbitControlsRef} />
-
-      {/* Insert our CameraSpringController inside Canvas */}
       <CameraSpringController orbitControlsRef={orbitControlsRef} />
-
       <Suspense fallback={<Loader />}>
-        {/* Grid (Preserved when loading models) */}
         <Grid
           position={[0, 0, 0]}
           args={[20, 20]}
@@ -191,20 +231,17 @@ export default function Scene({ ...props }) {
           fadeDistance={100}
           sectionColor={[1, 1, 1]}
           cellColor={[0.5, 0.5, 0.5]}
-          renderOrder={-1} // Ensures grid renders before models.
+          renderOrder={-1}
         />
-
-        {/* Scene Lighting */}
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 5, 5]} castShadow />
 
-        {/* Render All Models */}
         {objects.map((obj) => (
-            <Model
+          <Model
             key={obj.id}
             id={obj.id}
             url={obj.url}
-            type={obj.type}  // Pass the type here!
+            type={obj.type}
             position={obj.position}
             scale={obj.scale}
             rotation={obj.rotation}
@@ -213,7 +250,6 @@ export default function Scene({ ...props }) {
           />
         ))}
 
-        {/* Render Observation Points (Highlighted when selected) */}
         {observationPoints.map((point) => (
           <ObservationPoint
             key={point.id}
@@ -225,7 +261,6 @@ export default function Scene({ ...props }) {
           />
         ))}
 
-        {/* Transform Controls (Move, Rotate, Scale) */}
         {selectedObject && selectedObject.ref && (
           <TransformControls
             ref={transformControlsRef}
@@ -234,12 +269,8 @@ export default function Scene({ ...props }) {
           />
         )}
 
-        {/* Observation Point Handler inside Canvas */}
         <ObservationPointHandler />
-
         <CameraPOVCaptureHandler orbitControlsRef={orbitControlsRef} />
-
-        {/* Preload all models */}
         <Preload all />
       </Suspense>
     </Canvas>
