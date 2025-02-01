@@ -20,11 +20,14 @@ export const authOptions: NextAuthOptions = {
     sessionToken: {
       name: "next-auth.session-token",
       options: {
-        domain: "localhost",
+        domain:
+          process.env.NODE_ENV === "production"
+            ? ".envisioxr.com" // ✅ Works for `envisioxr.com`, `www.envisioxr.com`, and `app.envisioxr.com`
+            : "localhost", // ✅ Works for `localhost:3000` and `localhost:3001`
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production", // ✅ Secure in production
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // ✅ "none" for cross-domain, "lax" for localhost
       },
     },
   },
