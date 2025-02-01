@@ -47,7 +47,12 @@ export default async function RootLayout({ children }) {
   const session = await getSessionFromAuthApp();
 
   if (!session) {
-    redirect("http://localhost:3000/auth/signin");
+    const baseUrl =
+      process.env.NODE_ENV === "development"
+        ? "http://localhost:3000" // Local Auth App
+        : "https://envisioxr.com"; // Production Auth App
+
+    redirect(`${baseUrl}/auth/signin`);
   }
 
   return (
