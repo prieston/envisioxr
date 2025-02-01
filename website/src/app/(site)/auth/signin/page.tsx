@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Signin from "@/components/Auth/Signin";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"; // ✅ Correct import
+import { authOptions } from "@/lib/authOptions";
 
 const siteName = process.env.SITE_NAME;
 
