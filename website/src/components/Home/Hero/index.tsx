@@ -18,7 +18,7 @@ export default function Hero() {
                 The Future of Digital Showcasing
               </span>
               <h1 className="mb-5 font-heading text-2xl font-semibold dark:text-white sm:text-4xl md:text-[50px] md:leading-[60px]">
-                Your World, Reimagined.
+                Transforming Ideas into Immersive Experiences.
               </h1>
               <p className="mb-12 text-base text-dark-text">
                 EnvisioXR transforms the way you present and experience spaces.
@@ -48,7 +48,7 @@ export default function Hero() {
                     </svg>
                   </span>
                 </a>
-                <a
+                {/* <a
                   href="#about"
                   className="inline-flex items-center rounded px-8 py-[14px] font-heading text-base text-dark hover:text-primary dark:text-white dark:hover:text-primary"
                 >
@@ -63,7 +63,7 @@ export default function Hero() {
                     </svg>
                   </span>
                   Learn More
-                </a>
+                </a> */}
               </div>
             </div>
           </div>

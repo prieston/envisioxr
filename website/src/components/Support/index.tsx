@@ -99,7 +99,7 @@ export default function Support() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-[780px] pt-[130px]">
+        {/* <div className="mx-auto max-w-[780px] pt-[130px]">
           <form action="https://formbold.com/s/unique_form_id" method="POST">
             <div className="-mx-4 flex flex-wrap">
               <div className="w-full px-4 sm:w-1/2">
@@ -161,7 +161,7 @@ export default function Support() {
               </div>
             </div>
           </form>
-        </div>
+        </div> */}
       </div>
     </section>
   );
