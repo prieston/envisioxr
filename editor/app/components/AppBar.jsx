@@ -2,7 +2,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Toolbar, Typography, IconButton, Button, Tooltip, Divider } from "@mui/material";
+import {
+  Box,
+  Toolbar,
+  Typography,
+  IconButton,
+  Button,
+  Tooltip,
+  Divider,
+} from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import UndoIcon from "@mui/icons-material/Undo";
 import RedoIcon from "@mui/icons-material/Redo";
@@ -30,11 +38,32 @@ const AdminAppBar = () => {
   const exitPreview = useSceneStore((state) => state.exitPreview);
   const nextObservation = useSceneStore((state) => state.nextObservation);
 
-
   const previewIndex = useSceneStore((state) => state.previewIndex);
   const observationPoints = useSceneStore((state) => state.observationPoints);
   const prevObservation = useSceneStore((state) => state.prevObservation);
 
+  const selectObservationPoint = useSceneStore(
+    (state) => state.selectObservationPoint
+  );
+  const handlePrev = () => {
+    prevObservation(); // update preview index in the store
+    // Select the observation corresponding to the new index
+    const newIndex = Math.max(previewIndex - 1, 0);
+    const newObservation = observationPoints[newIndex];
+    if (newObservation) {
+      selectObservationPoint(newObservation.id);
+    }
+  };
+
+  const handleNext = () => {
+    nextObservation(); // update preview index in the store
+    // Select the observation corresponding to the new index
+    const newIndex = Math.min(previewIndex + 1, observationPoints.length - 1);
+    const newObservation = observationPoints[newIndex];
+    if (newObservation) {
+      selectObservationPoint(newObservation.id);
+    }
+  };
   return (
     <Box
       sx={{
@@ -50,20 +79,33 @@ const AdminAppBar = () => {
     >
       {/* Left Section: Logo */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Image src="/images/logo/logo-dark.svg" alt="EnvisioXR Logo" width={120} height={40} />
+        <Image
+          src="/images/logo/logo-dark.svg"
+          alt="EnvisioXR Logo"
+          width={120}
+          height={40}
+        />
         <Typography variant="h6">Admin Panel</Typography>
       </Box>
 
       {/* Center Section: Add Model & Preview Toggle */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         {!previewMode && (
-          <Button variant="contained" color="primary" onClick={() => setDialogOpen(true)}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setDialogOpen(true)}
+          >
             Add Model
           </Button>
         )}
 
         {/* ✅ Toggle Preview Mode */}
-        <Button variant="contained" color="secondary" onClick={previewMode ? exitPreview : startPreview}>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={previewMode ? exitPreview : startPreview}
+        >
           {previewMode ? (
             <>
               <VisibilityOffIcon sx={{ mr: 1 }} /> Exit Preview
@@ -118,11 +160,18 @@ const AdminAppBar = () => {
             </Tooltip>
 
             {/* Divider between Transform Controls & Other Actions */}
-            <Divider orientation="vertical" flexItem sx={{ mx: 1, borderColor: "rgba(255, 255, 255, 0.3)" }} />
+            <Divider
+              orientation="vertical"
+              flexItem
+              sx={{ mx: 1, borderColor: "rgba(255, 255, 255, 0.3)" }}
+            />
 
             {/* Other Actions */}
             <Tooltip title="Save">
-              <IconButton color="inherit" onClick={() => showToast("Save action not yet implemented.")}>
+              <IconButton
+                color="inherit"
+                onClick={() => showToast("Save action not yet implemented.")}
+              >
                 <SaveIcon />
               </IconButton>
             </Tooltip>
@@ -141,36 +190,39 @@ const AdminAppBar = () => {
           </>
         ) : (
           <>
-          {/* ✅ Preview Navigation Buttons */}
-          <Tooltip title="Previous Observation">
-            <span>
-              <IconButton
-                color="inherit"
-                onClick={prevObservation}
-                disabled={previewIndex === 0}
-              >
-                <NavigateBeforeIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
+            {/* ✅ Preview Navigation Buttons */}
+            <Tooltip title="Previous Observation">
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={handlePrev}
+                  disabled={previewIndex === 0}
+                >
+                  <NavigateBeforeIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
 
-          <Tooltip title="Next Observation">
-            <span>
-              <IconButton
-                color="inherit"
-                onClick={nextObservation}
-                disabled={previewIndex >= observationPoints.length - 1}
-              >
-                <NavigateNextIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
-        </>
+            <Tooltip title="Next Observation">
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={handleNext}
+                  disabled={previewIndex >= observationPoints.length - 1}
+                >
+                  <NavigateNextIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </>
         )}
       </Toolbar>
 
       {/* Add Model Dialog */}
-      <AddModelDialog open={isDialogOpen} onClose={() => setDialogOpen(false)} />
+      <AddModelDialog
+        open={isDialogOpen}
+        onClose={() => setDialogOpen(false)}
+      />
     </Box>
   );
 };
