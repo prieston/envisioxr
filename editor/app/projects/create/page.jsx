@@ -25,8 +25,6 @@ const CreateProjectPage = () => {
       if (!res.ok) {
         throw new Error("Failed to create project");
       }
-      const data = await res.json();
-      console.log("Project saved:", data.project);
       router.push("/dashboard");
     } catch (error) {
       console.error("Error saving project:", error);
