@@ -8,14 +8,25 @@ import useModelLoader from "./useModelLoader";
 
 const CLICK_THRESHOLD = 5;
 
-const Model = ({ id, url, type = "glb", position, scale, rotation, selected, onSelect }) => {
+const Model = ({
+  id,
+  url,
+  type = "glb",
+  position,
+  scale,
+  rotation,
+  selected,
+  onSelect,
+}) => {
   const modelData = useModelLoader(url, type);
-  // For glTF, the model is usually in modelData.scene. For 3dm, it might be the object itself.
   const object = modelData.scene || modelData;
-
   const modelRef = useRef();
   const pointerDown = useRef(null);
 
+  // Instead of calling getState() directly, subscribe to previewMode via the hook.
+  const previewMode = useSceneStore((state) => state.previewMode);
+
+  // Highlight mesh if selected.
   useEffect(() => {
     if (modelRef.current) {
       modelRef.current.traverse((child) => {
@@ -28,6 +39,13 @@ const Model = ({ id, url, type = "glb", position, scale, rotation, selected, onS
     }
   }, [selected]);
 
+  // Effect to update scale manually when the scale prop changes.
+  useEffect(() => {
+    if (modelRef.current && scale) {
+      modelRef.current.scale.set(...scale);
+    }
+  }, [scale]);
+
   const handlePointerDown = (e) => {
     e.stopPropagation();
     pointerDown.current = { x: e.clientX, y: e.clientY };
@@ -39,7 +57,8 @@ const Model = ({ id, url, type = "glb", position, scale, rotation, selected, onS
     const dx = e.clientX - pointerDown.current.x;
     const dy = e.clientY - pointerDown.current.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance < CLICK_THRESHOLD && !useSceneStore.getState().previewMode) {
+    // Now using the previewMode variable from the hook
+    if (distance < CLICK_THRESHOLD && !previewMode) {
       onSelect(id, modelRef.current);
     }
     pointerDown.current = null;
@@ -51,8 +70,8 @@ const Model = ({ id, url, type = "glb", position, scale, rotation, selected, onS
         object={object}
         ref={modelRef}
         position={position}
-        scale={scale}
         rotation={rotation}
+        // Remove the scale prop if you’re manually controlling it in the effect
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       />
