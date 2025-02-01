@@ -1,9 +1,11 @@
+// app/layout.jsx
 import "@/global.css";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import theme from "@/theme";
-import AdminLayout from "@/components/AdminLayout";
-import { cookies } from "next/headers"; // ✅ Read cookies for authentication
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import ClientProvider from "./ClientProvider";
+import { ToastContainer } from "react-toastify";
 
 export const metadata = {
   title: "EnvisioXR | App",
@@ -13,49 +15,50 @@ export const metadata = {
   },
 };
 
-// ✅ Function to fetch session from the authentication app
 async function getSessionFromAuthApp() {
-  const baseUrl =process.env.NEXT_PUBLIC_WEBSITE_URL
+  const baseUrl =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000" // Local Auth App
+      : "https://envisioxr.com"; // Production Auth App
 
   try {
     const response = await fetch(`${baseUrl}/api/auth/session`, {
       headers: {
-        Cookie: cookies().toString(), // Pass user's cookies for authentication
+        Cookie: cookies().toString(),
       },
       credentials: "include",
     });
 
-    if (!response.ok) throw new Error(`Session request failed: ${response.status}`);
+    if (!response.ok)
+      throw new Error(`Session request failed: ${response.status}`);
 
     const session = await response.json();
-
-    // ✅ Ensure session is valid
     if (!session || Object.keys(session).length === 0) {
       throw new Error("No valid session found");
     }
-
     return session;
   } catch (error) {
     console.error("Error fetching session:", error.message);
-    return null; // Ensure null is returned if session is invalid
+    return null;
   }
 }
 
 export default async function RootLayout({ children }) {
-  const session = await getSessionFromAuthApp(); // ✅ Fetch session
+  const session = await getSessionFromAuthApp();
 
   if (!session) {
-    console.warn("No session found, redirecting to login..."); // Debugging output
-    redirect("http://localhost:3000/auth/signin"); // ✅ Redirect to login if no session
+    redirect("http://localhost:3000/auth/signin");
   }
 
   return (
-    <html lang="en" className="antialiased">
+    <html lang="en">
       <head />
       <body>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <AdminLayout>{children}</AdminLayout>
+          {/* Wrap children in ClientProvider (which includes our AuthProvider) */}
+          <ClientProvider>{children}</ClientProvider>
+          <ToastContainer position="bottom-right" autoClose={3000} />
         </ThemeProvider>
       </body>
     </html>
