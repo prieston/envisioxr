@@ -15,10 +15,7 @@ export const metadata = {
 
 // ✅ Function to fetch session from the authentication app
 async function getSessionFromAuthApp() {
-  const baseUrl =
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000" // Local Auth App
-      : "https://envisioxr.com"; // Production Auth App
+  const baseUrl =process.env.NEXT_PUBLIC_WEBSITE_URL
 
   try {
     const response = await fetch(`${baseUrl}/api/auth/session`, {
