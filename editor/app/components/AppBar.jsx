@@ -13,12 +13,27 @@ import Image from "next/image";
 import { showToast } from "../utils/toastUtils";
 import AddModelDialog from "./AddModelDialog";
 import useSceneStore from "../hooks/useSceneStore";
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 const AdminAppBar = () => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const transformMode = useSceneStore((state) => state.transformMode);
   const setTransformMode = useSceneStore((state) => state.setTransformMode);
   const selectedObject = useSceneStore((state) => state.selectedObject);
+
+  // ✅ Preview mode state and navigation
+  const previewMode = useSceneStore((state) => state.previewMode);
+  const startPreview = useSceneStore((state) => state.startPreview);
+  const exitPreview = useSceneStore((state) => state.exitPreview);
+  const nextObservation = useSceneStore((state) => state.nextObservation);
+
+
+  const previewIndex = useSceneStore((state) => state.previewIndex);
+  const observationPoints = useSceneStore((state) => state.observationPoints);
+  const prevObservation = useSceneStore((state) => state.prevObservation);
 
   return (
     <Box
@@ -39,71 +54,119 @@ const AdminAppBar = () => {
         <Typography variant="h6">Admin Panel</Typography>
       </Box>
 
-      {/* Center Section: Add Model Button */}
-      <Button variant="contained" color="primary" onClick={() => setDialogOpen(true)}>
-        Add Model
-      </Button>
+      {/* Center Section: Add Model & Preview Toggle */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        {!previewMode && (
+          <Button variant="contained" color="primary" onClick={() => setDialogOpen(true)}>
+            Add Model
+          </Button>
+        )}
 
-      {/* Right Section: Transform Controls & Actions */}
+        {/* ✅ Toggle Preview Mode */}
+        <Button variant="contained" color="secondary" onClick={previewMode ? exitPreview : startPreview}>
+          {previewMode ? (
+            <>
+              <VisibilityOffIcon sx={{ mr: 1 }} /> Exit Preview
+            </>
+          ) : (
+            <>
+              <VisibilityIcon sx={{ mr: 1 }} /> Preview
+            </>
+          )}
+        </Button>
+      </Box>
+
+      {/* Right Section: Transform Controls & Preview Navigation */}
       <Toolbar sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        {/* Transform Controls (Only available when a model is selected) */}
-        <Tooltip title="Move">
-          <span>
-            <IconButton
-              color={transformMode === "translate" ? "primary" : "inherit"}
-              onClick={() => setTransformMode("translate")}
-              disabled={!selectedObject}
-            >
-              <MoveIcon />
-            </IconButton>
-          </span>
-        </Tooltip>
+        {!previewMode ? (
+          <>
+            {/* Transform Controls (Only available when a model is selected) */}
+            <Tooltip title="Move">
+              <span>
+                <IconButton
+                  color={transformMode === "translate" ? "primary" : "inherit"}
+                  onClick={() => setTransformMode("translate")}
+                  disabled={!selectedObject}
+                >
+                  <MoveIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
 
-        <Tooltip title="Rotate">
-          <span>
-            <IconButton
-              color={transformMode === "rotate" ? "primary" : "inherit"}
-              onClick={() => setTransformMode("rotate")}
-              disabled={!selectedObject}
-            >
-              <RotateIcon />
-            </IconButton>
-          </span>
-        </Tooltip>
+            <Tooltip title="Rotate">
+              <span>
+                <IconButton
+                  color={transformMode === "rotate" ? "primary" : "inherit"}
+                  onClick={() => setTransformMode("rotate")}
+                  disabled={!selectedObject}
+                >
+                  <RotateIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
 
-        <Tooltip title="Scale">
-          <span>
-            <IconButton
-              color={transformMode === "scale" ? "primary" : "inherit"}
-              onClick={() => setTransformMode("scale")}
-              disabled={!selectedObject}
-            >
-              <ScaleIcon />
-            </IconButton>
-          </span>
-        </Tooltip>
+            <Tooltip title="Scale">
+              <span>
+                <IconButton
+                  color={transformMode === "scale" ? "primary" : "inherit"}
+                  onClick={() => setTransformMode("scale")}
+                  disabled={!selectedObject}
+                >
+                  <ScaleIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
 
-        {/* Divider between Transform Controls & Other Actions */}
-        <Divider orientation="vertical" flexItem sx={{ mx: 1, borderColor: "rgba(255, 255, 255, 0.3)" }} />
+            {/* Divider between Transform Controls & Other Actions */}
+            <Divider orientation="vertical" flexItem sx={{ mx: 1, borderColor: "rgba(255, 255, 255, 0.3)" }} />
 
-        {/* Other Actions */}
-        <Tooltip title="Save">
-          <IconButton color="inherit" onClick={() => showToast("Save action not yet implemented.")}>
-            <SaveIcon />
-          </IconButton>
-        </Tooltip>
+            {/* Other Actions */}
+            <Tooltip title="Save">
+              <IconButton color="inherit" onClick={() => showToast("Save action not yet implemented.")}>
+                <SaveIcon />
+              </IconButton>
+            </Tooltip>
 
-        <Tooltip title="Undo">
-          <IconButton color="inherit">
-            <UndoIcon />
-          </IconButton>
-        </Tooltip>
+            <Tooltip title="Undo">
+              <IconButton color="inherit">
+                <UndoIcon />
+              </IconButton>
+            </Tooltip>
 
-        <Tooltip title="Redo">
-          <IconButton color="inherit">
-            <RedoIcon />
-          </IconButton>
-        </Tooltip>
+            <Tooltip title="Redo">
+              <IconButton color="inherit">
+                <RedoIcon />
+              </IconButton>
+            </Tooltip>
+          </>
+        ) : (
+          <>
+          {/* ✅ Preview Navigation Buttons */}
+          <Tooltip title="Previous Observation">
+            <span>
+              <IconButton
+                color="inherit"
+                onClick={prevObservation}
+                disabled={previewIndex === 0}
+              >
+                <NavigateBeforeIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+
+          <Tooltip title="Next Observation">
+            <span>
+              <IconButton
+                color="inherit"
+                onClick={nextObservation}
+                disabled={previewIndex >= observationPoints.length - 1}
+              >
+                <NavigateNextIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </>
+        )}
       </Toolbar>
 
       {/* Add Model Dialog */}
