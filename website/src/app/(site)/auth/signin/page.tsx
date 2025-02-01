@@ -1,17 +1,25 @@
-import Signin from "@/components/Auth/Signin";
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
+import Signin from "@/components/Auth/Signin";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"; // ✅ Correct import
 
 const siteName = process.env.SITE_NAME;
 
 export const metadata: Metadata = {
   title: `Signin Page | ${siteName}`,
-  description: "This is Signin page description",
+  description: "This is the Signin page description",
 };
 
-export default function SigninPage() {
-  return (
-    <>
-      <Signin />
-    </>
-  );
+export default async function SigninPage() {
+  const session = await getServerSession(authOptions); // ✅ Use server-side session check
+
+  console.log("Server Session Data:", session); // ✅ Logs session on server
+
+  // ✅ Redirect signed-in users to home
+  if (session) {
+    redirect("/");
+  }
+
+  return <Signin />;
 }

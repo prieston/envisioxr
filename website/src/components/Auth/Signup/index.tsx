@@ -137,8 +137,14 @@ export default function Signup() {
                       Sign up with Google{" "}
                     </span>
                   </button>
-                  {/* <button className="flex h-[50px] w-[50px] dark:text-white items-center justify-center rounded border dark:border-transparent dark:bg-[#2C3443]">
-                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <button className="flex h-[50px] w-[50px] items-center justify-center rounded border dark:border-transparent dark:bg-[#2C3443] dark:text-white">
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 22 22"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
                       <path
                         fillRule="evenodd"
                         clipRule="evenodd"
@@ -148,13 +154,19 @@ export default function Signup() {
                     </svg>
                   </button>
                   <button className="flex h-[50px] w-[50px] items-center justify-center rounded border dark:border-transparent dark:bg-[#2C3443]">
-                    <svg width="12" height="22" viewBox="0 0 12 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg
+                      width="12"
+                      height="22"
+                      viewBox="0 0 12 22"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
                       <path
                         d="M7.7 12.65H10.45L11.55 8.25H7.7V6.05C7.7 4.917 7.7 3.85 9.9 3.85H11.55V0.154C11.1914 0.1067 9.8373 0 8.4073 0C5.4208 0 3.3 1.8227 3.3 5.17V8.25H0V12.65H3.3V22H7.7V12.65Z"
                         fill="#1877F2"
                       />
                     </svg>
-                  </button> */}
+                  </button>
                   <button
                     onClick={() => signIn("github")}
                     className="flex h-[50px] w-[50px] items-center justify-center rounded-md border dark:border-transparent dark:bg-[#2C3443]"
