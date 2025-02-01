@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -16,15 +16,18 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  CircularProgress,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import AdminAppBar from "@/components/AppBar";
 import InfoIcon from "@mui/icons-material/Info";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
-// Simulated hook for fetching projects. Replace with your actual API fetching logic.
+// Replace this with your actual API fetching hook if needed.
 const useProjects = () => {
   const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -34,23 +37,26 @@ const useProjects = () => {
         setProjects(data.projects);
       } catch (error) {
         console.error("Error fetching projects:", error);
+      } finally {
+        setLoadingProjects(false);
       }
     };
     fetchProjects();
   }, []);
-  return { projects, setProjects };
+  return { projects, setProjects, loadingProjects };
 };
 
 const DashboardPage = () => {
   const router = useRouter();
-  const { projects, setProjects } = useProjects();
+  const { projects, setProjects, loadingProjects } = useProjects();
   const [showInfo, setShowInfo] = useState(true);
+  const [infoLoaded, setInfoLoaded] = useState(false);
 
+  // Load the user's info preference from localStorage before showing/hiding the info box.
   useEffect(() => {
     const infoDismissed = localStorage.getItem("dashboardInfoDismissed");
-    if (infoDismissed === "true") {
-      setShowInfo(false);
-    }
+    setShowInfo(infoDismissed !== "true");
+    setInfoLoaded(true);
   }, []);
 
   const handleDismissInfo = () => {
@@ -78,6 +84,7 @@ const DashboardPage = () => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+    setMenuProjectId(null);
   };
 
   // --- Delete Confirmation Dialog State ---
@@ -93,13 +100,11 @@ const DashboardPage = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    debugger;
     try {
       const res = await fetch(`/api/projects/${menuProjectId}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete project");
-      // Optionally remove the project from the local state:
       setProjects((prevProjects) =>
         prevProjects.filter((project) => project.id !== menuProjectId)
       );
@@ -110,10 +115,25 @@ const DashboardPage = () => {
   };
 
   const handleEdit = () => {
-    // For editing, navigate to an edit page (e.g. /projects/[projectId]/edit)
     router.push(`/projects/${menuProjectId}/edit`);
     handleMenuClose();
   };
+
+  // Only render once both projects and localStorage info are loaded.
+  if (loadingProjects || !infoLoaded) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <>
@@ -127,6 +147,7 @@ const DashboardPage = () => {
               borderRadius: 1,
               marginBottom: 3,
               border: "1px solid rgba(255, 255, 255, 0.1)",
+              backgroundColor: "#f5f5f5",
             }}
           >
             <Typography variant="h6">
@@ -175,7 +196,6 @@ const DashboardPage = () => {
                 >
                   Go To Builder
                 </Button>
-                {/* Three dots menu for edit/delete */}
                 <IconButton
                   onClick={(e) => handleMenuOpen(e, project.id)}
                   sx={{ position: "absolute", top: 4, right: 4 }}
