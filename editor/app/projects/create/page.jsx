@@ -14,6 +14,7 @@ const CreateProjectPage = () => {
   const handleSave = async () => {
     try {
       const res = await fetch("/api/projects", {
+        credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -31,7 +31,9 @@ const useProjects = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await fetch("/api/projects");
+        const res = await fetch(`/api/projects/${projectId}`, {
+          credentials: "include",
+        });
         if (!res.ok) throw new Error("Failed to fetch projects");
         const data = await res.json();
         setProjects(data.projects);
@@ -102,6 +104,7 @@ const DashboardPage = () => {
     try {
       const res = await fetch(`/api/projects/${menuProjectId}`, {
         method: "DELETE",
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to delete project");
       setProjects((prevProjects) =>
