@@ -84,7 +84,6 @@ const DashboardPage = () => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-    setMenuProjectId(null);
   };
 
   // --- Delete Confirmation Dialog State ---
