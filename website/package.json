@@ -45,10 +45,10 @@
     "autoprefixer": "^10.4.20",
     "uuid": "^9.0.1",
     "prisma": "^5.22.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@tailwindcss/typography": "^0.5.10"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.10",
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.14",
