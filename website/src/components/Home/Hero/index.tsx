@@ -29,10 +29,10 @@ export default function Hero() {
               </p>
               <div className="flex flex-wrap items-center justify-center lg:justify-start">
                 <a
-                  href="https://app.envisioxr.com"
+                  href={process.env.NEXT_PUBLIC_APP_URL || "#"}
                   className="inline-flex items-center rounded bg-primary px-6 py-[10px] font-heading text-base text-white hover:bg-opacity-90 md:px-8 md:py-[14px]"
                 >
-                  Start Your Experience
+                  Start Creating Experiences
                   <span className="pl-3">
                     <svg
                       width="16"
