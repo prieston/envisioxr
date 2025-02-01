@@ -15,6 +15,8 @@ const useSceneStore = create((set) => ({
   previewMode: false,
   previewIndex: 0,
 
+  setTransformMode: (mode) => set({ transformMode: mode }),
+
   addModel: (model) =>
     set((state) => ({
       objects: [...state.objects, { id: state.objects.length, position: [0, 0, 0], ...model }],
@@ -33,6 +35,24 @@ const useSceneStore = create((set) => ({
         obj.id === id ? { ...obj, position: newPosition.toArray() } : obj
       ),
     })),
+
+    setModelRotation: (id, newRotation) =>
+      set((state) => ({
+        objects: state.objects.map((obj) =>
+          obj.id === id
+            ? { ...obj, rotation: [newRotation.x, newRotation.y, newRotation.z] }
+            : obj
+        ),
+      })),
+
+    setModelScale: (id, newScale) =>
+      set((state) => ({
+        objects: state.objects.map((obj) =>
+          obj.id === id
+            ? { ...obj, scale: [newScale.x, newScale.y, newScale.z] }
+            : obj
+        ),
+      })),
 
   // ✅ Observation Points
   addObservationPoint: () =>

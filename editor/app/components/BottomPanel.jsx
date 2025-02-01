@@ -11,20 +11,27 @@ const BottomPanel = () => {
   const selectedObservation = useSceneStore((state) => state.selectedObservation);
   const selectObservationPoint = useSceneStore((state) => state.selectObservationPoint);
   const addObservationPoint = useSceneStore((state) => state.addObservationPoint);
+  const previewMode = useSceneStore((state) => state.previewMode);
 
   return (
     <Box
-      sx={{
-        width: "100%",
-        height: "120px",
-        backgroundColor: "background.paper",
-        padding: 2,
-        display: "flex",
-        alignItems: "center",
-        overflowX: "auto",
-        borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-      }}
-    >
+    sx={{
+      width: "100%",
+      height: "120px",
+      backgroundColor: "background.paper",
+      padding: 2,
+      display: "flex",
+      alignItems: "center",
+      overflowX: "auto",
+      borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+      pointerEvents: previewMode ? "none" : "auto", // Disables interaction in preview mode
+      opacity: previewMode ? 0.5 : 1,             // Reduces opacity to signal disabled state
+      cursor: previewMode ? "not-allowed" : "auto", // Changes the cursor when disabled
+      // Optionally, add a grayscale filter for an even more "disabled" effect:
+      filter: previewMode ? "grayscale(100%)" : "none",
+      transition: "opacity 0.3s ease, filter 0.3s ease", // Smooth transition when state changes
+      userSelect: "none", // Prevent text selection
+    }}>
       {/* Add New Observation Button */}
       <Card
         sx={{
