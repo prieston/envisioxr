@@ -1,8 +1,13 @@
-// app/projects/[projectId]/edit/page.jsx
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Box, TextField, Button, Typography } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import AdminAppBar from "@/components/AppBar";
 
@@ -39,7 +44,6 @@ const EditProjectPage = () => {
   const handleSave = async () => {
     try {
       const res = await fetch(`/api/projects/${projectId}`, {
-        // Notice the URL change here
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, description }),
@@ -49,18 +53,29 @@ const EditProjectPage = () => {
       }
       const data = await res.json();
       console.log("Project updated:", data.project);
-      // Redirect back to the dashboard or builder as needed
       router.push("/dashboard");
     } catch (error) {
       console.error("Error saving project details:", error);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <>
-      {/* Simple AppBar for the edit page */}
       <AdminAppBar mode="simple" />
       <Box sx={{ padding: 3 }}>
         <Typography variant="h5" gutterBottom>
