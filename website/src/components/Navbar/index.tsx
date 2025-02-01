@@ -145,7 +145,7 @@ export default function Navbar() {
                 </ul>
               </nav>
             </div>
-            <div className="absolute bottom-0 left-0 flex w-full items-center justify-between space-x-5 self-end p-5 lg:static lg:w-auto lg:self-center lg:p-0">
+            {/* <div className="absolute bottom-0 left-0 flex w-full items-center justify-between space-x-5 self-end p-5 lg:static lg:w-auto lg:self-center lg:p-0">
               {session ? (
                 <>
                   <p className="whitespace-nowrap text-dark-text dark:text-white">
@@ -175,12 +175,12 @@ export default function Navbar() {
                   </Link>
                 </>
               )}
-            </div>
+            </div> */}
           </div>
 
           <div className="absolute right-5 top-1/2 z-50 flex -translate-y-1/2 items-center lg:static lg:ml-4 lg:translate-y-0 xl:ml-6">
             <div className="flex items-center justify-end">
-              <button
+              {/* <button
                 onClick={() => setSearchModalOpen(true)}
                 className="hidden h-10 w-10 items-center justify-center rounded-full text-dark-text dark:text-white sm:flex"
               >
@@ -208,7 +208,7 @@ export default function Navbar() {
                     </clipPath>
                   </defs>
                 </svg>
-              </button>
+              </button> */}
 
               <div className="relative flex h-10 w-10 items-center justify-center">
                 <ThemeToggler />

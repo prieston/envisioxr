@@ -74,7 +74,7 @@ export default function CallToAction() {
             <div className="w-full px-4 lg:w-1/3">
               <div className="text-center lg:text-right">
                 <a
-                  href="#"
+                  href="app.envisioxr.com"
                   className="inline-flex items-center rounded bg-primary px-8 py-[14px] font-heading text-base text-white hover:bg-opacity-90"
                 >
                   Get Started Now
