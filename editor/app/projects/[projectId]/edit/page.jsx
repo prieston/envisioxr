@@ -22,7 +22,9 @@ const EditProjectPage = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const res = await fetch(`/api/projects/${projectId}`);
+        const res = await fetch(`/api/projects/${projectId}`, {
+          credentials: "include",
+        });
         if (!res.ok) {
           throw new Error("Failed to fetch project");
         }
@@ -44,6 +46,7 @@ const EditProjectPage = () => {
   const handleSave = async () => {
     try {
       const res = await fetch(`/api/projects/${projectId}`, {
+        credentials: "include",
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, description }),
