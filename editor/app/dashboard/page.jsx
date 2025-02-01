@@ -147,7 +147,6 @@ const DashboardPage = () => {
               borderRadius: 1,
               marginBottom: 3,
               border: "1px solid rgba(255, 255, 255, 0.1)",
-              backgroundColor: "#f5f5f5",
             }}
           >
             <Typography variant="h6">
