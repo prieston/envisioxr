@@ -11,6 +11,10 @@ const useSceneStore = create((set) => ({
   addingObservation: false,
   transformMode: "translate",
 
+  // ✅ NEW: Preview State
+  previewMode: false,
+  previewIndex: 0,
+
   addModel: (model) =>
     set((state) => ({
       objects: [...state.objects, { id: state.objects.length, position: [0, 0, 0], ...model }],
@@ -30,7 +34,7 @@ const useSceneStore = create((set) => ({
       ),
     })),
 
-  // ✅ Add observation point WITHOUT capturing camera position
+  // ✅ Observation Points
   addObservationPoint: () =>
     set((state) => ({
       observationPoints: [
@@ -39,8 +43,8 @@ const useSceneStore = create((set) => ({
           id: state.observationPoints.length,
           title: `Observation Point ${state.observationPoints.length + 1}`,
           description: "",
-          position: null, // Position is set later
-          target: null,   // Target is set later
+          position: null, // To be set when capturing POV
+          target: null,   // To be set when capturing POV
         },
       ],
     })),
@@ -63,9 +67,27 @@ const useSceneStore = create((set) => ({
       selectedObservation: null,
     })),
 
-  // ✅ Capture camera POV trigger
+  // ✅ POV Capture
   capturingPOV: false,
   setCapturingPOV: (value) => set({ capturingPOV: value }),
+
+  // ✅ Preview Mode Actions
+  startPreview: () =>
+    set((state) => ({
+      previewMode: true,
+      previewIndex: 0, // Start at the first observation point
+    })),
+  exitPreview: () => set({ previewMode: false }),
+  nextObservation: () =>
+    set((state) => {
+      const nextIndex = Math.min(state.previewIndex + 1, state.observationPoints.length - 1);
+      return { previewIndex: nextIndex };
+    }),
+  prevObservation: () =>
+    set((state) => {
+      const prevIndex = Math.max(state.previewIndex - 1, 0);
+      return { previewIndex: prevIndex };
+    }),
 }));
 
 export default useSceneStore;

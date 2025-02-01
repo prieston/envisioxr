@@ -9,7 +9,6 @@ const LeftPanel = () => {
   const objects = useSceneStore((state) => state.objects);
   const selectedObject = useSceneStore((state) => state.selectedObject);
   const selectObject = useSceneStore((state) => state.selectObject);
-
   return (
     <Box
       sx={{
@@ -26,7 +25,7 @@ const LeftPanel = () => {
           <ListItem
             button
             key={index}
-            onClick={() => selectObject(obj.id)}
+            onClick={() => selectObject(selectedObject?.id == obj.id ? null : obj.id)}
             sx={{
               cursor: "pointer", // ✅ Ensures items show a pointer cursor
               borderRadius: 1,
