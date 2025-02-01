@@ -4,27 +4,46 @@
 import { create } from "zustand";
 
 const useSceneStore = create((set) => ({
+  // Scene data
   objects: [],
-  selectedObject: null,
   observationPoints: [],
-  selectedObservation: null,
-  addingObservation: false,
-  transformMode: "translate",
 
-  // ✅ NEW: Preview State
+  // Selected items
+  selectedObject: null,
+  selectedObservation: null,
+
+  // State flags
+  addingObservation: false,
+  capturingPOV: false,
   previewMode: false,
   previewIndex: 0,
 
+  // Transform mode (translate, rotate, scale)
+  transformMode: "translate",
+
+  // Actions for updating transform mode
   setTransformMode: (mode) => set({ transformMode: mode }),
+
+  // Actions for scene objects (models)
+  setObjects: (newObjects) => set({ objects: newObjects }),
 
   addModel: (model) =>
     set((state) => ({
-      objects: [...state.objects, { id: state.objects.length, position: [0, 0, 0], ...model }],
+      objects: [
+        ...state.objects,
+        {
+          id: state.objects.length, // Consider using a UUID in production
+          position: [0, 0, 0],
+          ...model,
+        },
+      ],
     })),
 
   selectObject: (id, ref) =>
     set((state) => ({
-      selectedObject: state.objects.find((obj) => obj.id === id) ? { ...state.objects.find((obj) => obj.id === id), ref } : null,
+      selectedObject: state.objects.find((obj) => obj.id === id)
+        ? { ...state.objects.find((obj) => obj.id === id), ref }
+        : null,
     })),
 
   deselectObject: () => set({ selectedObject: null }),
@@ -36,31 +55,33 @@ const useSceneStore = create((set) => ({
       ),
     })),
 
-    setModelRotation: (id, newRotation) =>
-      set((state) => ({
-        objects: state.objects.map((obj) =>
-          obj.id === id
-            ? { ...obj, rotation: [newRotation.x, newRotation.y, newRotation.z] }
-            : obj
-        ),
-      })),
+  setModelRotation: (id, newRotation) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
+        obj.id === id
+          ? { ...obj, rotation: [newRotation.x, newRotation.y, newRotation.z] }
+          : obj
+      ),
+    })),
 
-    setModelScale: (id, newScale) =>
-      set((state) => ({
-        objects: state.objects.map((obj) =>
-          obj.id === id
-            ? { ...obj, scale: [newScale.x, newScale.y, newScale.z] }
-            : obj
-        ),
-      })),
+  setModelScale: (id, newScale) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
+        obj.id === id
+          ? { ...obj, scale: [newScale.x, newScale.y, newScale.z] }
+          : obj
+      ),
+    })),
 
-  // ✅ Observation Points
+  // Actions for observation points
+  setObservationPoints: (newPoints) => set({ observationPoints: newPoints }),
+
   addObservationPoint: () =>
     set((state) => ({
       observationPoints: [
         ...state.observationPoints,
         {
-          id: state.observationPoints.length,
+          id: state.observationPoints.length, // Again, consider a proper unique id generator
           title: `Observation Point ${state.observationPoints.length + 1}`,
           description: "",
           position: null, // To be set when capturing POV
@@ -87,11 +108,10 @@ const useSceneStore = create((set) => ({
       selectedObservation: null,
     })),
 
-  // ✅ POV Capture
-  capturingPOV: false,
+  // POV Capture
   setCapturingPOV: (value) => set({ capturingPOV: value }),
 
-  // ✅ Preview Mode Actions
+  // Preview Mode Actions
   startPreview: () =>
     set((state) => ({
       previewMode: true,
@@ -107,6 +127,20 @@ const useSceneStore = create((set) => ({
     set((state) => {
       const prevIndex = Math.max(state.previewIndex - 1, 0);
       return { previewIndex: prevIndex };
+    }),
+
+  // NEW: Reset the scene state to default values.
+  resetScene: () =>
+    set({
+      objects: [],
+      observationPoints: [],
+      selectedObject: null,
+      selectedObservation: null,
+      addingObservation: false,
+      capturingPOV: false,
+      previewMode: false,
+      previewIndex: 0,
+      transformMode: "translate",
     }),
 }));
 
