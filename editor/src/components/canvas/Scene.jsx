@@ -16,6 +16,7 @@ import useSceneStore from "@/hooks/useSceneStore";
 import * as THREE from "three";
 import ObservationPoint from "./ObservationPoint";
 import { useSpring } from "@react-spring/three";
+import Model from "./Model";
 
 // ✅ Loader Component (Prevents Scene Flashing)
 const Loader = () => {
@@ -26,64 +27,6 @@ const Loader = () => {
     </Html>
   );
 };
-
-// ✅ Model Component
-const Model = ({ id, url, position, scale, rotation, selected, onSelect }) => {
-  const { scene } = useGLTF(url);
-  const modelRef = useRef();
-  // Ref to store pointer down position
-  const pointerDown = useRef(null);
-  // A small movement threshold (in pixels) to distinguish a click from a drag
-  const CLICK_THRESHOLD = 5;
-
-  // Apply selection highlighting
-  useEffect(() => {
-    if (modelRef.current) {
-      modelRef.current.traverse((child) => {
-        if (child.isMesh) {
-          child.material.emissive = selected
-            ? new THREE.Color(0x00ffff)
-            : new THREE.Color(0x000000);
-        }
-      });
-    }
-  }, [selected]);
-
-  // Save pointer position on pointer down.
-  const handlePointerDown = (e) => {
-    e.stopPropagation();
-    pointerDown.current = { x: e.clientX, y: e.clientY };
-  };
-
-  // On pointer up, compare positions and select if within threshold.
-  const handlePointerUp = (e) => {
-    e.stopPropagation();
-    if (!pointerDown.current) return;
-    const dx = e.clientX - pointerDown.current.x;
-    const dy = e.clientY - pointerDown.current.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    // Only treat as click if movement is small and not in preview mode.
-    if (distance < CLICK_THRESHOLD && !useSceneStore.getState().previewMode) {
-      onSelect(id, modelRef.current);
-    }
-    pointerDown.current = null;
-  };
-
-  return (
-    <Suspense fallback={null}>
-      <primitive
-        object={scene}
-        ref={modelRef}
-        position={position}
-        scale={scale}
-        rotation={rotation}
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-      />
-    </Suspense>
-  );
-};
-
 
 // ✅ ObservationPointHandler Component
 const ObservationPointHandler = () => {
@@ -257,10 +200,11 @@ export default function Scene({ ...props }) {
 
         {/* Render All Models */}
         {objects.map((obj) => (
-          <Model
+            <Model
             key={obj.id}
             id={obj.id}
             url={obj.url}
+            type={obj.type}  // Pass the type here!
             position={obj.position}
             scale={obj.scale}
             rotation={obj.rotation}

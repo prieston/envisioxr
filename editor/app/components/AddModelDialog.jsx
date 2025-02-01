@@ -11,6 +11,12 @@ const stockModels = [
   {
     name: "House",
     url: "https://prieston-prod.fra1.cdn.digitaloceanspaces.com/general/house.glb",
+    type: "glb",
+  },
+  {
+    name: "CNC",
+    url: "https://prieston-prod.fra1.cdn.digitaloceanspaces.com/general/cnc%201.3dm",
+    type: "3dm",
   },
 ];
 
@@ -23,13 +29,15 @@ const AddModelDialog = ({ open, onClose }) => {
     addModel({
       name: model.name,
       url: model.url,
+      type: model.type, // Pass the type (e.g., "3dm" or "glb")
       position: [0, 0, 0], // Default position in scene
-      scale: [1, 1, 1], // Default scale
+      scale: [1, 1, 1],    // Default scale
       rotation: [0, 0, 0], // Default rotation
     });
     showToast(`Added ${model.name} to scene.`);
     onClose();
   };
+
 
   // ✅ Handle file drop (currently not implemented)
   const { getRootProps, getInputProps } = useDropzone({

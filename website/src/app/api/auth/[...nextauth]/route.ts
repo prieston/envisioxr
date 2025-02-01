@@ -6,7 +6,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = { // ✅ Explicitly export authOptions
   pages: {
     signIn: "/auth/signin",
   },
@@ -15,43 +15,45 @@ const authOptions: NextAuthOptions = {
   },
   adapter: PrismaAdapter(prisma),
   secret: process.env.SECRET,
+
+  cookies: {
+    sessionToken: {
+      name: "next-auth.session-token",
+      options: {
+        domain: "localhost",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        sameSite: "lax",
+      },
+    },
+  },
+
   providers: [
     CredentialsProvider({
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "text", placeholder: "jsmith" },
         password: { label: "Password", type: "password" },
-        username: {
-          label: "Username",
-          type: "text",
-          placeholder: "John Smith",
-        },
       },
       async authorize(credentials) {
-        // check to see if email and password is there
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Please enter an email and password");
         }
 
-        // check to see if user exists
         const user = await prisma.user.findUnique({
-          where: {
-            email: credentials?.email,
-          },
+          where: { email: credentials.email },
         });
 
-        // if no user was found
         if (!user || !user?.password) {
           throw new Error("No user found");
         }
 
-        // check to see if password matches
         const passwordMatch = await bcrypt.compare(
           credentials.password,
-          user.password,
+          user.password
         );
 
-        // if password does not match
         if (!passwordMatch) {
           throw new Error("Incorrect password");
         }
@@ -71,7 +73,25 @@ const authOptions: NextAuthOptions = {
     }),
   ],
 
-  // debug: process.env.NODE_ENV === "development",
+  callbacks: {
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.sub as string;
+      }
+      return session;
+    },
+
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+
+    async redirect({ url, baseUrl }) {
+      return url.startsWith(baseUrl) ? url : baseUrl;
+    },
+  },
 };
 
 const handler = NextAuth(authOptions);
