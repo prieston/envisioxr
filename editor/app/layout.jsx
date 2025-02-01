@@ -15,12 +15,7 @@ export const metadata = {
   },
 };
 
-async function getSessionFromAuthApp() {
-  const baseUrl =
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000" // Local Auth App
-      : "https://envisioxr.com"; // Production Auth App
-
+async function getSessionFromAuthApp(baseUrl) {
   try {
     const response = await fetch(`${baseUrl}/api/auth/session`, {
       headers: {
@@ -44,14 +39,9 @@ async function getSessionFromAuthApp() {
 }
 
 export default async function RootLayout({ children }) {
-  const session = await getSessionFromAuthApp();
-
+  const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
+  const session = await getSessionFromAuthApp(baseUrl);
   if (!session) {
-    const baseUrl =
-      process.env.NODE_ENV === "development"
-        ? "http://localhost:3000" // Local Auth App
-        : "https://envisioxr.com"; // Production Auth App
-
     redirect(`${baseUrl}/auth/signin`);
   }
 
