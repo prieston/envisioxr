@@ -29,7 +29,7 @@ export default function Hero() {
               </p>
               <div className="flex flex-wrap items-center justify-center lg:justify-start">
                 <a
-                  href="htpps://app.envisioxr.com"
+                  href="https://app.envisioxr.com"
                   className="inline-flex items-center rounded bg-primary px-6 py-[10px] font-heading text-base text-white hover:bg-opacity-90 md:px-8 md:py-[14px]"
                 >
                   Start Your Experience
