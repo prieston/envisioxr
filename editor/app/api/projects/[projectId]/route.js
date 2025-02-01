@@ -88,7 +88,6 @@ export async function PUT(request, { params }) {
       where: { id: projectId },
     });
     if (!project || project.userId !== userId) {
-      console.log("the data is", project);
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
     const updatedProject = await prisma.project.update({

@@ -28,7 +28,6 @@ async function getSessionFromAuthApp(baseUrl) {
       throw new Error(`Session request failed: ${response.status}`);
 
     const session = await response.json();
-    console.log("Session fetched:", session);
 
     if (!session || Object.keys(session).length === 0) {
       throw new Error("No valid session found");

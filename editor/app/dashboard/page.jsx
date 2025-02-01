@@ -31,7 +31,7 @@ const useProjects = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await fetch(`/api/projects/${projectId}`, {
+        const res = await fetch(`/api/projects`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch projects");

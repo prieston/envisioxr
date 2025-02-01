@@ -68,7 +68,6 @@ const BuilderPage = () => {
       });
       if (!res.ok) throw new Error("Failed to save scene data");
       const data = await res.json();
-      console.log("Scene data saved:", data.project);
       // Optionally, show a success notification here.
     } catch (error) {
       console.error("Error saving scene data:", error);
