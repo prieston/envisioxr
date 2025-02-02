@@ -2,7 +2,7 @@
 import prisma from '@/prisma';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/authOptions';
+import { authOptions } from '@//authOptions';
 
 export async function GET(request) {
   // No dynamic parameter here—this is the collection route.
