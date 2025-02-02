@@ -22,7 +22,9 @@ const BuilderPage = () => {
   useEffect(() => {
     const fetchSceneData = async () => {
       try {
-        const res = await fetch(`/api/projects/${projectId}`);
+        const res = await fetch(`/api/projects/${projectId}`, {
+          credentials: "include",
+        });
         if (!res.ok) throw new Error("Failed to fetch project data");
         const data = await res.json();
         setSceneData(
@@ -48,6 +50,7 @@ const BuilderPage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sceneData }),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to save scene data");
       const data = await res.json();
@@ -64,6 +67,7 @@ const BuilderPage = () => {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ publish: true }),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to publish project");
       const data = await res.json();
