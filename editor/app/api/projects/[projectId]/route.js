@@ -99,3 +99,32 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function PATCH(request, { params }) {
+  const { projectId } = params;
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user || !session.user.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const userId = session.user.id;
+
+  try {
+    const body = await request.json();
+    // For example, expect a field publish: true
+    if (body.publish) {
+      const updatedProject = await prisma.project.update({
+        where: { id: projectId },
+        data: {
+          isPublished: true,
+          // Optionally, generate a published URL here. For simplicity, we can use the project id.
+          publishedUrl: `/publish/${projectId}`,
+        },
+      });
+      return NextResponse.json({ project: updatedProject });
+    } else {
+      return NextResponse.json({ error: "No publish action provided" }, { status: 400 });
+    }
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
