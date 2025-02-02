@@ -7,7 +7,7 @@ const PreviewScene = ({ initialSceneData }) => {
     <div
       style={{
         width: "100%",
-        height: "100%", // Takes full height of its container
+        height: "100%",
         display: "flex",
         flexGrow: 1,
         overflow: "hidden",
