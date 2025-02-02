@@ -7,7 +7,7 @@ import LeftPanel from "./LeftPanel";
 import RightPanel from "./RightPanel";
 import BottomPanel from "./BottomPanel";
 
-const AdminLayout = ({ children, onSave }) => {
+const AdminLayout = ({ children, onSave, onPublish }) => {
   return (
     <Box
       sx={{
@@ -18,7 +18,7 @@ const AdminLayout = ({ children, onSave }) => {
       }}
     >
       {/* App Bar with the onSave prop */}
-      <AdminAppBar mode="builder" onSave={onSave} />
+      <AdminAppBar mode="builder" onSave={onSave} onPublish={onPublish} />
 
       {/* Main Content: Left Panel | Builder (Scene) | Right Panel */}
       <Box sx={{ display: "flex", flexGrow: 1, overflow: "hidden" }}>

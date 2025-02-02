@@ -1,35 +1,37 @@
-import { useRef, useEffect } from "react";
-import * as THREE from "three";
+"use client";
 
-// ✅ Observation Point with Arrow (Without Temporary Direction)
-const ObservationPoint = ({ id, position, target, selected, onSelect }) => {
-  const arrowRef = useRef();
+import React from "react";
+import useSceneStore from "@/hooks/useSceneStore";
 
-  useEffect(() => {
-    if (!position || !target || !arrowRef.current) return;
+const ObservationPoint = ({
+  id,
+  position,
+  target,
+  selected,
+  onSelect,
+  previewMode: previewModeProp,
+}) => {
+  // Use the passed prop if provided; otherwise, subscribe to the store.
+  const previewMode =
+    typeof previewModeProp !== "undefined"
+      ? previewModeProp
+      : useSceneStore((state) => state.previewMode);
 
-    const from = new THREE.Vector3(...position);
-    const to = new THREE.Vector3(...target);
-    const direction = to.clone().sub(from).normalize();
-
-    arrowRef.current.setDirection(direction);
-    arrowRef.current.position.set(...position);
-  }, [position, target]);
+  if (previewMode) {
+    return null;
+  }
 
   return (
-    <primitive
-      object={new THREE.ArrowHelper(
-        new THREE.Vector3().subVectors(new THREE.Vector3(...(target || [0,0,1])), new THREE.Vector3(...(position || [0,0,0]))).normalize(), // ✅ Compute directly
-        new THREE.Vector3(...(position || [0,0,0])), // ✅ Set correct position from the start
-        1, // Arrow length
-        selected ? 0xff0000 : 0xffff00 // Color: Red if selected, Yellow otherwise
-      )}
-      ref={arrowRef}
+    <mesh
+      position={position}
       onClick={(e) => {
         e.stopPropagation();
         onSelect(id);
       }}
-    />
+    >
+      <coneGeometry args={[0.5, 1, 16]} />
+      <meshBasicMaterial color={selected ? "cyan" : "orange"} />
+    </mesh>
   );
 };
 

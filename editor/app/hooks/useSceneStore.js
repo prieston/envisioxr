@@ -17,6 +17,7 @@ const useSceneStore = create((set) => ({
   capturingPOV: false,
   previewMode: false,
   previewIndex: 0,
+  setPreviewMode: (value) => set({ previewMode: value }),
 
   // Transform mode (translate, rotate, scale)
   transformMode: "translate",

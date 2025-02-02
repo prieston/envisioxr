@@ -5,29 +5,33 @@ import React, { useState } from "react";
 import {
   Box,
   Toolbar,
-  Typography,
   IconButton,
   Button,
   Tooltip,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
-// import UndoIcon from "@mui/icons-material/Undo";
-// import RedoIcon from "@mui/icons-material/Redo";
 import MoveIcon from "@mui/icons-material/OpenWith";
 import RotateIcon from "@mui/icons-material/RotateRight";
 import ScaleIcon from "@mui/icons-material/ZoomOutMap";
-import { showToast } from "../utils/toastUtils";
-import AddModelDialog from "./AddModelDialog";
-import useSceneStore from "../hooks/useSceneStore";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import PublishIcon from "@mui/icons-material/Publish";
+import { showToast } from "../utils/toastUtils";
+import AddModelDialog from "./AddModelDialog";
+import useSceneStore from "../hooks/useSceneStore";
 import LogoHeader from "./LogoHeader";
 
-const AdminAppBar = ({ mode = "builder", onSave }) => {
+const AdminAppBar = ({ mode = "builder", onSave, onPublish }) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const [openPublishDialog, setOpenPublishDialog] = useState(false);
   const transformMode = useSceneStore((state) => state.transformMode);
   const setTransformMode = useSceneStore((state) => state.setTransformMode);
   const selectedObject = useSceneStore((state) => state.selectedObject);
@@ -62,6 +66,31 @@ const AdminAppBar = ({ mode = "builder", onSave }) => {
     }
   };
 
+  // Publish modal handlers
+  const handlePublishClick = () => {
+    setOpenPublishDialog(true);
+  };
+
+  const handlePublishCancel = () => {
+    setOpenPublishDialog(false);
+  };
+
+  const handlePublishConfirm = async () => {
+    try {
+      if (onPublish) {
+        await onPublish();
+        showToast("World published successfully!");
+      } else {
+        showToast("Publish action not yet implemented.");
+      }
+    } catch (error) {
+      console.error("Error publishing world:", error);
+      showToast("Error publishing world.");
+    } finally {
+      setOpenPublishDialog(false);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -91,7 +120,6 @@ const AdminAppBar = ({ mode = "builder", onSave }) => {
                 Add Model
               </Button>
             )}
-
             {/* Toggle Preview Mode */}
             <Button
               variant="contained"
@@ -110,7 +138,7 @@ const AdminAppBar = ({ mode = "builder", onSave }) => {
             </Button>
           </Box>
 
-          {/* Right Section: Transform Controls, Save, and Navigation */}
+          {/* Right Section: Transform Controls, Save, Publish, and Navigation */}
           <Toolbar sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {!previewMode ? (
               <>
@@ -164,7 +192,6 @@ const AdminAppBar = ({ mode = "builder", onSave }) => {
                   <IconButton
                     color="inherit"
                     onClick={async () => {
-                      debugger; // eslint-disable-line
                       if (onSave) {
                         await onSave()
                           .then(() => showToast("Saved!"))
@@ -178,17 +205,12 @@ const AdminAppBar = ({ mode = "builder", onSave }) => {
                   </IconButton>
                 </Tooltip>
 
-                {/* <Tooltip title="Undo">
-                  <IconButton color="inherit">
-                    <UndoIcon />
+                {/* Publish Button */}
+                <Tooltip title="Publish">
+                  <IconButton color="inherit" onClick={handlePublishClick}>
+                    <PublishIcon />
                   </IconButton>
                 </Tooltip>
-
-                <Tooltip title="Redo">
-                  <IconButton color="inherit">
-                    <RedoIcon />
-                  </IconButton>
-                </Tooltip> */}
               </>
             ) : (
               <>
@@ -225,6 +247,23 @@ const AdminAppBar = ({ mode = "builder", onSave }) => {
             open={isDialogOpen}
             onClose={() => setDialogOpen(false)}
           />
+
+          {/* Publish Confirmation Dialog */}
+          <Dialog open={openPublishDialog} onClose={handlePublishCancel}>
+            <DialogTitle>Publish World</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Are you sure you want to publish this world? It will be publicly
+                available.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handlePublishCancel}>Cancel</Button>
+              <Button onClick={handlePublishConfirm} color="primary">
+                Publish
+              </Button>
+            </DialogActions>
+          </Dialog>
         </>
       )}
     </Box>
