@@ -6,19 +6,38 @@ import { authOptions } from '@/authOptions';
 
 export async function GET(request, { params }) {
   const { projectId } = params;
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Try to get the session, but if it fails, that's fine.
+  let session = null;
+  try {
+    session = await getServerSession(authOptions);
+  } catch (error) {
+    // If fetching the session fails, we simply treat it as no session.
+    session = null;
   }
-  const userId = session.user.id;
 
   try {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
-    if (!project || project.userId !== userId) {
+
+    if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
+
+    // If the project is published, return it regardless of session.
+    if (project.isPublished) {
+      return NextResponse.json({ project });
+    }
+
+    // For unpublished projects, require a valid session and that the project belongs to the user.
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (project.userId !== session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     return NextResponse.json({ project });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
