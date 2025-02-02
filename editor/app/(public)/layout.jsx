@@ -1,9 +1,8 @@
-// app/(public)/layout.jsx (Note: Do NOT use "use client" here)
 import "@/global.css";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import theme from "@/theme";
-import { ToastContainer } from "react-toastify";
 import ClientProvider from "@/ClientProvider";
+import { ToastContainer } from "react-toastify";
 
 export const metadata = {
   title: "EnvisioXR | Public Preview",

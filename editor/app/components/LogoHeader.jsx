@@ -19,7 +19,6 @@ export default function LogoHeader() {
           width={120}
           height={40}
         />
-        <Typography variant="h6">Admin Panel</Typography>
       </Box>
     </Link>
   );
