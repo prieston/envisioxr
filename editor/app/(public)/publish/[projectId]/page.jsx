@@ -12,6 +12,8 @@ import {
   Toolbar,
   useMediaQuery,
   useTheme,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -42,6 +44,7 @@ const PublishedScenePage = () => {
 
   // Destructure necessary state and actions from the store.
   const {
+    previewMode,
     setPreviewMode,
     setObservationPoints,
     selectObservationPoint,
@@ -80,7 +83,7 @@ const PublishedScenePage = () => {
     fetchProject();
   }, [projectId]);
 
-  // Update the store with observation points and select the first one when the project loads.
+  // When project data loads, update the store's observation points and select the first one.
   useEffect(() => {
     if (
       project &&
@@ -93,7 +96,7 @@ const PublishedScenePage = () => {
     }
   }, [project, setObservationPoints, selectObservationPoint]);
 
-  // Update selected observation when previewIndex changes.
+  // When previewIndex changes, update the selected observation.
   useEffect(() => {
     if (
       observationPoints &&
@@ -105,7 +108,7 @@ const PublishedScenePage = () => {
     }
   }, [previewIndex, observationPoints, selectObservationPoint]);
 
-  // Determine the current observation for display.
+  // Use the selected observation for display.
   const currentObservation =
     selectedObservation ||
     (observationPoints && observationPoints.length > 0
@@ -137,7 +140,7 @@ const PublishedScenePage = () => {
     );
   }
 
-  // For mobile, adjust the scene height when the bottom drawer is closed.
+  // For mobile, adjust the scene height so it doesn't render under the bottom bar.
   const sceneContainerHeight = isMobile
     ? `calc(100vh - ${TOP_APPBAR_HEIGHT + BOTTOM_BAR_HEIGHT}px)`
     : "100%";
@@ -159,19 +162,33 @@ const PublishedScenePage = () => {
           {currentObservation?.description || "No description provided."}
         </Typography>
       </Box>
+      {/* Mobile toggle for free navigation / preview mode */}
+      <Box sx={{ mt: 2 }}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={previewMode}
+              onChange={(e) => setPreviewMode(e.target.checked)}
+              color="primary"
+            />
+          }
+          label={previewMode ? "Preview Mode" : "Free Navigation"}
+        />
+      </Box>
     </Box>
   );
 
   if (isMobile) {
     return (
       <>
-        {/* Top AppBar with Logo */}
+        {/* Mobile Top AppBar */}
         <AppBar
           position="fixed"
           sx={{
             top: 0,
             backgroundColor: theme.palette.background.paper,
             backgroundImage: "none",
+            boxShadow: "none",
             color: theme.palette.text.primary,
           }}
         >
@@ -188,10 +205,13 @@ const PublishedScenePage = () => {
             position: "relative",
           }}
         >
-          <PreviewScene initialSceneData={project.sceneData} />
+          <PreviewScene
+            initialSceneData={project.sceneData}
+            renderObservationPoints={false}
+          />
         </Box>
 
-        {/* Bottom Navigation Bar */}
+        {/* Mobile Bottom Navigation Bar */}
         <Box
           sx={{
             position: "fixed",
@@ -234,42 +254,18 @@ const PublishedScenePage = () => {
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
           PaperProps={{
-            sx: { boxShadow: "none", mb: "64px" }, // Adds 64px margin-bottom so the drawer opens above the bottom bar
+            sx: { boxShadow: "none", mb: `${BOTTOM_BAR_HEIGHT}px` },
           }}
           ModalProps={{
-            BackdropProps: { invisible: true }, // Prevents backdrop darkening
+            BackdropProps: { invisible: true },
           }}
         >
-          <Box sx={{ p: 2, maxHeight: "50vh", overflow: "auto" }}>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Typography variant="h6">{project.title}</Typography>
-              <IconButton onClick={() => setDrawerOpen(false)}>
-                <CloseIcon />
-              </IconButton>
-            </Box>
-            <Typography variant="body1" gutterBottom>
-              {project.description}
-            </Typography>
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1">
-                {currentObservation?.title || "Untitled"}
-              </Typography>
-              <Typography variant="body2">
-                {currentObservation?.description || "No description provided."}
-              </Typography>
-            </Box>
-          </Box>
+          {mobileDetails}
         </Drawer>
       </>
     );
   } else {
-    // Desktop view: Left sidebar with details.
+    // Desktop view: Left sidebar with details and free navigation toggle.
     return (
       <Box sx={{ display: "flex", height: "100vh" }}>
         <Box
@@ -278,36 +274,25 @@ const PublishedScenePage = () => {
             backgroundColor: theme.palette.background.paper,
             p: 2,
             borderRight: "1px solid rgba(0,0,0,0.1)",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <LogoHeader sx={{ mb: 2 }} />
-          <Typography variant="h4" gutterBottom>
-            {project.title}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            {project.description}
-          </Typography>
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Observation Point Details
-            </Typography>
-            {currentObservation ? (
-              <>
-                <Typography variant="subtitle1">
-                  {currentObservation.title || "Untitled"}
-                </Typography>
-                <Typography variant="body2">
-                  {currentObservation.description || "No description provided."}
-                </Typography>
-              </>
-            ) : (
-              <Typography variant="body2">
-                No observation point selected.
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={previewMode}
+                onChange={(e) => setPreviewMode(e.target.checked)}
+                color="primary"
+              />
+            }
+            label={previewMode ? "Preview Mode" : "Free Navigation"}
+            sx={{ mb: 2 }}
+          />
+          <Box sx={{ display: "flex", gap: 1 }}>
             <Button
+              sx={{ flex: 1 }}
               variant="outlined"
               onClick={prevObservation}
               disabled={previewIndex === 0}
@@ -315,6 +300,7 @@ const PublishedScenePage = () => {
               Previous
             </Button>
             <Button
+              sx={{ flex: 1 }}
               variant="outlined"
               onClick={nextObservation}
               disabled={
@@ -325,9 +311,45 @@ const PublishedScenePage = () => {
               Next
             </Button>
           </Box>
+          <Box sx={{ overflow: "auto", height: "100%" }}>
+            <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
+              {project.title}
+            </Typography>
+            <Typography variant="body1" gutterBottom>
+              {project.description}
+            </Typography>
+            {/* add an horizontal separation line bellow from mui */}
+            <Box
+              sx={{
+                borderBottom: "1px solid rgba(159, 159, 159, 0.1)",
+                mb: 2,
+              }}
+            />
+
+            <Box sx={{ mt: 1 }}>
+              {currentObservation ? (
+                <>
+                  <Typography variant="h6" gutterBottom>
+                    {currentObservation.title || "Untitled"}
+                  </Typography>
+                  <Typography variant="body2">
+                    {currentObservation.description ||
+                      "No description provided."}
+                  </Typography>
+                </>
+              ) : (
+                <Typography variant="body2">
+                  No observation point selected.
+                </Typography>
+              )}
+            </Box>
+          </Box>
         </Box>
         <Box sx={{ flexGrow: 1, position: "relative" }}>
-          <PreviewScene initialSceneData={project.sceneData} />
+          <PreviewScene
+            initialSceneData={project.sceneData}
+            renderObservationPoints={false}
+          />
         </Box>
       </Box>
     );

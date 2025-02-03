@@ -126,7 +126,7 @@ const CameraSpringController = ({ orbitControlsRef }) => {
 export default function Scene({
   initialSceneData,
   onSceneDataChange,
-  projectId,
+  renderObservationPoints,
 }) {
   // Retrieve store state and actions
   const objects = useSceneStore((state) => state.objects);
@@ -258,6 +258,7 @@ export default function Scene({
             target={point.target}
             selected={selectedObservation?.id === point.id}
             onSelect={selectObservationPoint}
+            renderObservationPoints={renderObservationPoints}
           />
         ))}
 
