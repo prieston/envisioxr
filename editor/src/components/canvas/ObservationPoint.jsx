@@ -11,6 +11,7 @@ const ObservationPoint = ({
   selected,
   onSelect,
   previewMode: previewModeProp,
+  renderObservationPoints = true,
 }) => {
   // If a previewMode prop is provided, use it; otherwise, subscribe to the global store.
   const previewMode =
@@ -32,7 +33,7 @@ const ObservationPoint = ({
   }, [position, target]);
 
   // In preview mode, do not render the arrow.
-  if (previewMode) {
+  if (previewMode || !renderObservationPoints) {
     return null;
   }
 
