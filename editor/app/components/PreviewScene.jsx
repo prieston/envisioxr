@@ -2,7 +2,7 @@
 import React from "react";
 import Scene from "@/components/canvas/Scene";
 
-const PreviewScene = ({ initialSceneData }) => {
+const PreviewScene = ({ initialSceneData, renderObservationPoints = true }) => {
   return (
     <div
       style={{
@@ -13,7 +13,10 @@ const PreviewScene = ({ initialSceneData }) => {
         overflow: "hidden",
       }}
     >
-      <Scene initialSceneData={initialSceneData} />
+      <Scene
+        initialSceneData={initialSceneData}
+        renderObservationPoints={renderObservationPoints}
+      />
     </div>
   );
 };
