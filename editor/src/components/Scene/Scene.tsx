@@ -15,11 +15,13 @@ import CameraPOVCaptureHandler from "./CameraPOVCaptureHandler";
 import CameraSpringController from "./CameraSpringController";
 import Model from "../Model";
 import ObservationPoint from "../ObservationPoint";
+import XRWrapper from "./XRWrapper";
 
 export default function Scene({
   initialSceneData,
   onSceneDataChange,
   renderObservationPoints,
+  enableXR = false,
 }) {
   // Retrieve store state and actions
   const objects = useSceneStore((state) => state.objects);
@@ -110,65 +112,63 @@ export default function Scene({
       camera={{ position: [0, 5, 10], fov: 50 }}
       onPointerMissed={() => deselectObject()}
     >
-      <OrbitControls ref={orbitControlsRef} />
-      <CameraSpringController orbitControlsRef={orbitControlsRef} />
-      <Suspense fallback={<Loader />}>
-        <Grid
-          position={[0, 0, 0]}
-          args={[20, 20]}
-          cellSize={1}
-          cellThickness={0.5}
-          sectionSize={5}
-          sectionThickness={1}
-          fadeDistance={100}
-          sectionColor="white"
-          cellColor="gray"
-          renderOrder={-1}
-        />
-        {/* @ts-ignore-next-line */}
-        <ambientLight intensity={0.5} />
-        {/* @ts-ignore-next-line */}
-        <directionalLight position={[5, 5, 5]} castShadow />
-
-        {objects.map((obj) => (
-          <Model
-            key={obj.id}
-            id={obj.id}
-            url={obj.url}
-            type={obj.type}
-            position={obj.position}
-            scale={obj.scale}
-            rotation={obj.rotation}
-            selected={selectedObject?.id === obj.id}
-            onSelect={selectObject}
+      <XRWrapper enabled={enableXR} orbitControlsRef={orbitControlsRef}>
+        <Suspense fallback={<Loader />}>
+          <Grid
+            position={[0, 0, 0]}
+            args={[20, 20]}
+            cellSize={1}
+            cellThickness={0.5}
+            sectionSize={5}
+            sectionThickness={1}
+            fadeDistance={100}
+            sectionColor="white"
+            cellColor="gray"
+            renderOrder={-1}
           />
-        ))}
+          {/* @ts-ignore-next-line */}
+          <ambientLight intensity={0.5} />
+          {/* @ts-ignore-next-line */}
+          <directionalLight position={[5, 5, 5]} castShadow />
 
-        {observationPoints.map((point) => (
-          <ObservationPoint
-            key={point.id}
-            id={point.id}
-            position={point.position}
-            target={point.target}
-            selected={selectedObservation?.id === point.id}
-            onSelect={selectObservationPoint}
-            previewMode={previewMode}
-            renderObservationPoints={renderObservationPoints}
-          />
-        ))}
+          {objects.map((obj) => (
+            <Model
+              key={obj.id}
+              id={obj.id}
+              url={obj.url}
+              type={obj.type}
+              position={obj.position}
+              scale={obj.scale}
+              rotation={obj.rotation}
+              selected={selectedObject?.id === obj.id}
+              onSelect={previewMode || enableXR ? null : selectObject}
+            />
+          ))}
 
-        {selectedObject && selectedObject.ref && (
-          <TransformControls
-            ref={transformControlsRef}
-            object={selectedObject.ref}
-            mode={transformMode}
-          />
-        )}
+          {observationPoints.map((point) => (
+            <ObservationPoint
+              key={point.id}
+              id={point.id}
+              position={point.position}
+              target={point.target}
+              selected={selectedObservation?.id === point.id}
+              onSelect={previewMode || enableXR ? null : selectObservationPoint}
+              previewMode={previewMode}
+              renderObservationPoints={renderObservationPoints}
+            />
+          ))}
 
-        <ObservationPointHandler />
-        <CameraPOVCaptureHandler orbitControlsRef={orbitControlsRef} />
-        <Preload all />
-      </Suspense>
+          {selectedObject && selectedObject.ref && (
+            <TransformControls
+              ref={transformControlsRef}
+              object={selectedObject.ref}
+              mode={transformMode}
+            />
+          )}
+
+          <Preload all />
+        </Suspense>
+      </XRWrapper>
     </Canvas>
   );
 }

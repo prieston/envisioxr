@@ -6,10 +6,12 @@ const PreviewScene = ({
   initialSceneData,
   renderObservationPoints = true,
   onSceneDataChange,
+  enableXR = false,
 }: {
   initialSceneData: any;
   renderObservationPoints?: boolean;
   onSceneDataChange?: any;
+  enableXR?: boolean;
 }) => {
   return (
     <div
@@ -25,6 +27,7 @@ const PreviewScene = ({
         initialSceneData={initialSceneData}
         renderObservationPoints={renderObservationPoints}
         onSceneDataChange={onSceneDataChange}
+        enableXR={enableXR}
       />
     </div>
   );
