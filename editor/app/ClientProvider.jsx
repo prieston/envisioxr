@@ -1,4 +1,3 @@
-// app/ClientProvider.jsx
 "use client";
 
 import { AuthProvider } from "./context/AuthContext";

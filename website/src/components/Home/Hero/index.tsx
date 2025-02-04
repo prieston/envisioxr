@@ -1,9 +1,24 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Typewriter } from "react-simple-typewriter";
 
 export default function Hero() {
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+  interface OpenVideoModalEvent
+    extends React.MouseEvent<HTMLAnchorElement, MouseEvent> {}
+
+  const openVideoModal = (e: OpenVideoModalEvent): void => {
+    e.preventDefault();
+    setIsVideoOpen(true);
+  };
+
+  const closeVideoModal = () => {
+    setIsVideoOpen(false);
+  };
+
   return (
     <section
       id="home"
@@ -23,9 +38,9 @@ export default function Hero() {
               <p className="mb-12 text-base text-dark-text">
                 EnvisioXR transforms the way you present and experience spaces.
                 Showcase products, infrastructure, museums, or heritage sites
-                with **stunning 3D presentations** or guide audiences through
-                **fully immersive virtual tours**—all accessible from any
-                device.
+                with <strong>stunning 3D presentations</strong> or guide
+                audiences through <strong>fully immersive virtual tours</strong>
+                —all accessible from any device.
               </p>
               <div className="flex flex-wrap items-center justify-center lg:justify-start">
                 <a
@@ -48,8 +63,9 @@ export default function Hero() {
                     </svg>
                   </span>
                 </a>
-                {/* <a
-                  href="#about"
+                <a
+                  href="#"
+                  onClick={openVideoModal}
                   className="inline-flex items-center rounded px-8 py-[14px] font-heading text-base text-dark hover:text-primary dark:text-white dark:hover:text-primary"
                 >
                   <span className="pr-3">
@@ -63,7 +79,7 @@ export default function Hero() {
                     </svg>
                   </span>
                   Learn More
-                </a> */}
+                </a>
               </div>
             </div>
           </div>
@@ -90,6 +106,30 @@ export default function Hero() {
           </div>
         </div>
       </div>
+
+      {/* Video Modal Popup */}
+      {isVideoOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+          <div className="relative mx-4 w-full max-w-3xl">
+            {/* Close Button */}
+            <button
+              onClick={closeVideoModal}
+              className="absolute right-4 top-4 z-10 text-3xl text-white"
+            >
+              &times;
+            </button>
+            <video
+              className="w-full rounded shadow-lg"
+              src="https://prieston-prod.fra1.cdn.digitaloceanspaces.com/general/promo-vid.mp4"
+              controls
+              autoPlay
+              playsInline
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

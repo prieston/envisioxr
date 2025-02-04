@@ -28,6 +28,7 @@
     "@react-spring/three": "^9.7.5",
     "@react-three/drei": "^9.92.7",
     "@react-three/fiber": "^8.15.12",
+    "@react-three/xr": "^6.6.2",
     "glsl-random": "^0.0.5",
     "next": "^14.0.4",
     "next-auth": "^4.24.11",
