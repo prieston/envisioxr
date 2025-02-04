@@ -1,4 +1,3 @@
-// app/layout.jsx
 import "@/global.css";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import theme from "@/theme";

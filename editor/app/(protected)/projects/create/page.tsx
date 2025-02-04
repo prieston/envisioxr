@@ -1,4 +1,3 @@
-// app/projects/create/page.jsx
 "use client";
 
 import React, { useState } from "react";

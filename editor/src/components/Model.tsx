@@ -1,4 +1,3 @@
-// src/components/Model.jsx
 "use client";
 
 import React, { useRef, useEffect, Suspense } from "react";
