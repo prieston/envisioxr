@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import AdminLayout from "@/components/Builder/AdminLayout";
 import SceneCanvas from "@/components/Builder/SceneCanvas";
 import useSceneStore from "@/hooks/useSceneStore";
@@ -77,7 +77,19 @@ const BuilderPage = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
 
   return (
     <AdminLayout onSave={handleSave} onPublish={handlePublish}>
