@@ -1,8 +1,12 @@
 "use client";
 import React from "react";
-import Scene from "@/components/canvas/Scene";
+import Scene from "@/components/Scene/Scene";
 
-const PreviewScene = ({ initialSceneData, renderObservationPoints = true }) => {
+const PreviewScene = ({
+  initialSceneData,
+  renderObservationPoints = true,
+  onSceneDataChange,
+}) => {
   return (
     <div
       style={{
@@ -16,6 +20,7 @@ const PreviewScene = ({ initialSceneData, renderObservationPoints = true }) => {
       <Scene
         initialSceneData={initialSceneData}
         renderObservationPoints={renderObservationPoints}
+        onSceneDataChange={onSceneDataChange}
       />
     </div>
   );

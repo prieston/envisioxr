@@ -25,11 +25,19 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import PublishIcon from "@mui/icons-material/Publish";
 import { showToast } from "../utils/toastUtils";
-import AddModelDialog from "./AddModelDialog";
+import AddModelDialog from "./AppBar/AddModelDialog";
 import useSceneStore from "../hooks/useSceneStore";
-import LogoHeader from "./LogoHeader";
+import LogoHeader from "./AppBar/LogoHeader";
 
-const AdminAppBar = ({ mode = "builder", onSave, onPublish }) => {
+const AdminAppBar = ({
+  mode = "builder",
+  onSave,
+  onPublish,
+}: {
+  mode: string;
+  onSave?: () => Promise<void>;
+  onPublish?: () => Promise<void>;
+}) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
   const transformMode = useSceneStore((state) => state.transformMode);

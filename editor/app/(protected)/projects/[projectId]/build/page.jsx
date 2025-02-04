@@ -4,8 +4,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Box } from "@mui/material";
-import AdminLayout from "@/components/AdminLayout";
-import SceneCanvas from "@/components/SceneCanvas";
+import AdminLayout from "@/components/Builder/AdminLayout";
+import SceneCanvas from "@/components/Builder/SceneCanvas";
 import useSceneStore from "@/hooks/useSceneStore";
 
 const BuilderPage = () => {

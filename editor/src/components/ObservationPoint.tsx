@@ -19,7 +19,7 @@ const ObservationPoint = ({
       ? previewModeProp
       : useSceneStore((state) => state.previewMode);
 
-  const arrowRef = useRef();
+  const arrowRef = useRef(null);
 
   useEffect(() => {
     if (!position || !target || !arrowRef.current) return;
@@ -38,27 +38,30 @@ const ObservationPoint = ({
   }
 
   return (
-    <primitive
-      object={
-        new THREE.ArrowHelper(
-          // Compute direction using the target and position
-          new THREE.Vector3()
-            .subVectors(
-              new THREE.Vector3(...(target || [0, 0, 1])),
-              new THREE.Vector3(...(position || [0, 0, 0]))
-            )
-            .normalize(),
-          new THREE.Vector3(...(position || [0, 0, 0])),
-          1, // Length of the arrow; adjust as needed
-          selected ? 0xff0000 : 0xffff00 // Color: red if selected, yellow otherwise
-        )
-      }
-      ref={arrowRef}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(id);
-      }}
-    />
+    <>
+      {/* @ts-ignore-next-line */}
+      <primitive
+        object={
+          new THREE.ArrowHelper(
+            // Compute direction using the target and position
+            new THREE.Vector3()
+              .subVectors(
+                new THREE.Vector3(...(target || [0, 0, 1])),
+                new THREE.Vector3(...(position || [0, 0, 0]))
+              )
+              .normalize(),
+            new THREE.Vector3(...(position || [0, 0, 0])),
+            1, // Length of the arrow; adjust as needed
+            selected ? 0xff0000 : 0xffff00 // Color: red if selected, yellow otherwise
+          )
+        }
+        ref={arrowRef}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect(id);
+        }}
+      />
+    </>
   );
 };
 

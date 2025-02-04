@@ -18,7 +18,7 @@ import {
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import useSceneStore from "@/hooks/useSceneStore";
-import LogoHeader from "@/components/LogoHeader";
+import LogoHeader from "@/components/AppBar/LogoHeader";
 import InfoIcon from "@mui/icons-material/Info";
 import CloseIcon from "@mui/icons-material/Close";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";

@@ -13,8 +13,8 @@ import {
   Typography,
 } from "@mui/material";
 import { useDropzone } from "react-dropzone";
-import { showToast } from "../utils/toastUtils";
-import useSceneStore from "../hooks/useSceneStore";
+import { showToast } from "../../utils/toastUtils";
+import useSceneStore from "../../hooks/useSceneStore";
 
 const stockModels = [
   {
@@ -49,7 +49,7 @@ const AddModelDialog = ({ open, onClose }) => {
 
   // ✅ Handle file drop (currently not implemented)
   const { getRootProps, getInputProps } = useDropzone({
-    accept: ".glb",
+    accept: { "model/gltf-binary": [".glb"] },
     multiple: false,
     onDrop: (acceptedFiles) => {
       if (acceptedFiles.length > 0) {
