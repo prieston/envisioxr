@@ -40,7 +40,10 @@ export default function SinglePricing({ price }: any) {
           <h3 className="mb-2 font-heading text-3xl font-medium text-dark dark:text-white">
             {price?.nickname}
           </h3>
-          <p className="pb-10 text-base text-dark-text">
+          <p
+            className="pb-10 pt-10 text-base text-dark-text"
+            style={{ height: "150px" }}
+          >
             {price?.nickname === "Starter"
               ? "Essential features for individuals and small businesses looking to showcase in 3D."
               : price?.nickname === "Professional"
