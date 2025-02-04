@@ -76,7 +76,7 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
             />
           }
           label={previewMode ? "Preview Mode" : "Free Navigation"}
-          sx={{ marginBottom: 16 }}
+          sx={{ marginBottom: 2 }}
         />
         <ButtonGroupContainer>
           <Button
@@ -99,14 +99,14 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
           </Button>
         </ButtonGroupContainer>
         <SidebarContent>
-          <Typography variant="h4" gutterBottom sx={{ marginTop: 16 }}>
+          <Typography variant="h4" gutterBottom sx={{ marginTop: 2 }}>
             {project.title}
           </Typography>
           <Typography variant="body1" gutterBottom>
             {project.description}
           </Typography>
           <Separator />
-          <div style={{ marginTop: 8 }}>
+          <div style={{ marginTop: 2 }}>
             {currentObservation ? (
               <>
                 <Typography variant="h6" gutterBottom>
