@@ -278,7 +278,7 @@ const PublishedScenePage = () => {
             flexDirection: "column",
           }}
         >
-          <LogoHeader sx={{ mb: 2 }} />
+          <LogoHeader />
           <FormControlLabel
             control={
               <Switch

@@ -1,9 +1,58 @@
-// app/hooks/useSceneStore.js
-"use client";
-
+import { Vector3 } from "three"; // Assuming you are using three.js for Vector3
 import { create } from "zustand";
 
-const useSceneStore = create((set) => ({
+interface Model {
+  id: number;
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: [number, number, number];
+  [key: string]: any; // For any additional properties
+}
+
+interface ObservationPoint {
+  id: number;
+  title: string;
+  description: string;
+  position: Vector3 | null;
+  target: Vector3 | null;
+}
+
+interface SceneState {
+  objects: Model[];
+  observationPoints: ObservationPoint[];
+  selectedObject: Model | null;
+  selectedObservation: ObservationPoint | null;
+  addingObservation: boolean;
+  capturingPOV: boolean;
+  previewMode: boolean;
+  previewIndex: number;
+  transformMode: "translate" | "rotate" | "scale";
+  setPreviewMode: (value: boolean) => void;
+  setTransformMode: (mode: "translate" | "rotate" | "scale") => void;
+  setObjects: (newObjects: Model[]) => void;
+  addModel: (model: Partial<Model>) => void;
+  selectObject: (id: number, ref: any) => void;
+  deselectObject: () => void;
+  setModelPosition: (id: number, newPosition: Vector3) => void;
+  setModelRotation: (id: number, newRotation: Vector3) => void;
+  setModelScale: (id: number, newScale: Vector3) => void;
+  setObservationPoints: (newPoints: ObservationPoint[]) => void;
+  addObservationPoint: () => void;
+  selectObservationPoint: (id: number) => void;
+  updateObservationPoint: (
+    id: number,
+    updates: Partial<ObservationPoint>
+  ) => void;
+  deleteObservationPoint: (id: number) => void;
+  setCapturingPOV: (value: boolean) => void;
+  startPreview: () => void;
+  exitPreview: () => void;
+  nextObservation: () => void;
+  prevObservation: () => void;
+  resetScene: () => void;
+}
+
+const useSceneStore = create<SceneState>((set) => ({
   // Scene data
   objects: [],
   observationPoints: [],
@@ -86,14 +135,15 @@ const useSceneStore = create((set) => ({
           title: `Observation Point ${state.observationPoints.length + 1}`,
           description: "",
           position: null, // To be set when capturing POV
-          target: null,   // To be set when capturing POV
+          target: null, // To be set when capturing POV
         },
       ],
     })),
 
   selectObservationPoint: (id) =>
     set((state) => ({
-      selectedObservation: state.observationPoints.find((point) => point.id === id) || null,
+      selectedObservation:
+        state.observationPoints.find((point) => point.id === id) || null,
     })),
 
   updateObservationPoint: (id, updates) =>
@@ -105,7 +155,9 @@ const useSceneStore = create((set) => ({
 
   deleteObservationPoint: (id) =>
     set((state) => ({
-      observationPoints: state.observationPoints.filter((point) => point.id !== id),
+      observationPoints: state.observationPoints.filter(
+        (point) => point.id !== id
+      ),
       selectedObservation: null,
     })),
 
@@ -121,7 +173,10 @@ const useSceneStore = create((set) => ({
   exitPreview: () => set({ previewMode: false }),
   nextObservation: () =>
     set((state) => {
-      const nextIndex = Math.min(state.previewIndex + 1, state.observationPoints.length - 1);
+      const nextIndex = Math.min(
+        state.previewIndex + 1,
+        state.observationPoints.length - 1
+      );
       return { previewIndex: nextIndex };
     }),
   prevObservation: () =>
