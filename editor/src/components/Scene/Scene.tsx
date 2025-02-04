@@ -101,6 +101,9 @@ export default function Scene({
 
   return (
     <Canvas
+      shadows
+      // @ts-ignore-next-line
+      gl={{ physicallyCorrectLights: true }}
       camera={{
         position: [10, 10, 10],
         fov: 50,
@@ -126,7 +129,16 @@ export default function Scene({
           {/* @ts-ignore-next-line */}
           <ambientLight intensity={0.5} />
           {/* @ts-ignore-next-line */}
-          <directionalLight position={[5, 5, 5]} castShadow />
+          <directionalLight
+            position={[10, 10, 10]}
+            castShadow
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+            shadow-camera-left={-10}
+            shadow-camera-right={10}
+            shadow-camera-top={10}
+            shadow-camera-bottom={-10}
+          />
 
           {objects.map((obj) => (
             <Model
