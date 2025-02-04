@@ -17,7 +17,7 @@ const ObservationPointHandler = () => {
 
   useEffect(() => {
     if (addingObservation && camera && controls) {
-      addObservationPoint(camera.position, controls.target);
+      addObservationPoint();
     }
   }, [addingObservation, camera, controls, addObservationPoint]);
 
