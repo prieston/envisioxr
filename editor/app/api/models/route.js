@@ -19,13 +19,6 @@ const stockModels = [
   },
 ];
 
-// Disable the default body parser.
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 // GET: List both stock models and user's uploaded assets.
 export async function GET(request) {
   const session = await getServerSession(authOptions);
