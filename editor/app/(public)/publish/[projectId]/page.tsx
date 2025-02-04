@@ -208,6 +208,7 @@ const PublishedScenePage = () => {
           <PreviewScene
             initialSceneData={project.sceneData}
             renderObservationPoints={false}
+            enableXR={false}
           />
         </Box>
 
@@ -349,6 +350,7 @@ const PublishedScenePage = () => {
           <PreviewScene
             initialSceneData={project.sceneData}
             renderObservationPoints={false}
+            enableXR={false}
           />
         </Box>
       </Box>
