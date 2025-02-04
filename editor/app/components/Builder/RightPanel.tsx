@@ -1,9 +1,39 @@
-// src/components/RightPanel.jsx
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Box, Typography, TextField, Button } from "@mui/material";
-import useSceneStore from "../hooks/useSceneStore";
+import { styled } from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import useSceneStore from "../../hooks/useSceneStore";
+
+// Styled container for the RightPanel with conditional styles based on previewMode
+interface RightPanelContainerProps {
+  previewMode: boolean;
+}
+
+const RightPanelContainer = styled(Box)<RightPanelContainerProps>(
+  ({ theme, previewMode }) => ({
+    width: "300px",
+    height: "100%",
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+    padding: theme.spacing(2),
+    borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
+    userSelect: "none",
+    pointerEvents: previewMode ? "none" : "auto",
+    opacity: previewMode ? 0.5 : 1,
+    cursor: previewMode ? "not-allowed" : "default",
+    filter: previewMode ? "grayscale(100%)" : "none",
+    transition: "opacity 0.3s ease, filter 0.3s ease",
+  })
+);
+
+// Styled Button for actions with consistent margin-top spacing
+const ActionButton = styled(Button)(({ theme }) => ({
+  marginTop: theme.spacing(2),
+}));
 
 const RightPanel = () => {
   const selectedObservation = useSceneStore(
@@ -17,11 +47,9 @@ const RightPanel = () => {
   );
   const previewMode = useSceneStore((state) => state.previewMode);
 
-  // 🔹 Local state for input fields to avoid direct Zustand modification
   const [localTitle, setLocalTitle] = useState("");
   const [localDescription, setLocalDescription] = useState("");
 
-  // 🔹 Sync local state when an observation point is selected
   useEffect(() => {
     if (selectedObservation) {
       setLocalTitle(selectedObservation.title || "");
@@ -29,7 +57,6 @@ const RightPanel = () => {
     }
   }, [selectedObservation]);
 
-  // 🔹 Handle saving changes to Zustand when the user stops typing
   const handleTitleChange = (e) => {
     setLocalTitle(e.target.value);
     updateObservationPoint(selectedObservation.id, { title: e.target.value });
@@ -42,42 +69,20 @@ const RightPanel = () => {
     });
   };
 
+  const handleCapturePOV = () => {
+    useSceneStore.getState().setCapturingPOV(true);
+  };
+
   if (!selectedObservation) {
     return (
-      <Box
-        sx={{
-          width: "300px",
-          height: "100%",
-          backgroundColor: "background.paper",
-          color: "text.primary",
-          padding: 2,
-          borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
-        }}
-      >
+      <RightPanelContainer previewMode={previewMode}>
         <Typography>Select an observation point to edit</Typography>
-      </Box>
+      </RightPanelContainer>
     );
   }
 
   return (
-    <Box
-      sx={{
-        width: "300px",
-        height: "100%",
-        backgroundColor: "background.paper",
-        color: "text.primary",
-        padding: 2,
-        borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
-        userSelect: "none", // Prevent text selection
-
-        // Disabled look & feel when the condition is active
-        pointerEvents: previewMode ? "none" : "auto", // Disable interactivity when previewMode is true
-        opacity: previewMode ? 0.5 : 1, // Dim the panel for a disabled appearance
-        cursor: previewMode ? "not-allowed" : "default", // Change cursor to indicate non-interactivity
-        filter: previewMode ? "grayscale(100%)" : "none", // Optionally add a grayscale effect
-        transition: "opacity 0.3s ease, filter 0.3s ease", // Smooth transition when state changes
-      }}
-    >
+    <RightPanelContainer previewMode={previewMode}>
       <Typography variant="h6">Edit Observation</Typography>
 
       <TextField
@@ -98,26 +103,24 @@ const RightPanel = () => {
         onChange={handleDescriptionChange}
       />
 
-      <Button
+      <ActionButton
         variant="contained"
         color="primary"
         fullWidth
-        sx={{ marginTop: 2 }}
-        onClick={() => useSceneStore.getState().setCapturingPOV(true)}
+        onClick={handleCapturePOV}
       >
         Capture Camera POV
-      </Button>
+      </ActionButton>
 
-      <Button
+      <ActionButton
         variant="contained"
         color="error"
         fullWidth
-        sx={{ marginTop: 2 }}
         onClick={() => deleteObservationPoint(selectedObservation.id)}
       >
         Delete
-      </Button>
-    </Box>
+      </ActionButton>
+    </RightPanelContainer>
   );
 };
 

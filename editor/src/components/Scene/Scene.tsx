@@ -1,128 +1,21 @@
 "use client";
 
 import React, { useRef, useEffect, Suspense } from "react";
-import { Canvas, useThree, useFrame } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import {
-  Preload,
-  Grid,
   OrbitControls,
   TransformControls,
-  Html,
-  useProgress,
+  Grid,
+  Preload,
 } from "@react-three/drei";
 import useSceneStore from "@/hooks/useSceneStore";
-import * as THREE from "three";
-import ObservationPoint from "./ObservationPoint";
-import { useSpring } from "@react-spring/three";
-import Model from "./Model";
+import Loader from "./Loader";
+import ObservationPointHandler from "./ObservationPointHandler";
+import CameraPOVCaptureHandler from "./CameraPOVCaptureHandler";
+import CameraSpringController from "./CameraSpringController";
+import Model from "../Model";
+import ObservationPoint from "../ObservationPoint";
 
-// Loader Component
-const Loader = () => {
-  const { progress } = useProgress();
-  return (
-    <Html center>
-      <div style={{ color: "white" }}>Loading... {Math.round(progress)}%</div>
-    </Html>
-  );
-};
-
-// ObservationPointHandler Component
-const ObservationPointHandler = () => {
-  const { camera, controls } = useThree();
-  const addingObservation = useSceneStore((state) => state.addingObservation);
-  const addObservationPoint = useSceneStore(
-    (state) => state.addObservationPoint
-  );
-
-  useEffect(() => {
-    if (addingObservation && camera && controls) {
-      addObservationPoint(camera.position, controls.target);
-    }
-  }, [addingObservation, camera, controls, addObservationPoint]);
-
-  return null;
-};
-
-// CameraPOVCaptureHandler Component
-const CameraPOVCaptureHandler = ({ orbitControlsRef }) => {
-  const { camera } = useThree();
-  const capturingPOV = useSceneStore((state) => state.capturingPOV);
-  const selectedObservation = useSceneStore(
-    (state) => state.selectedObservation
-  );
-  const updateObservationPoint = useSceneStore(
-    (state) => state.updateObservationPoint
-  );
-  const setCapturingPOV = useSceneStore((state) => state.setCapturingPOV);
-
-  useEffect(() => {
-    if (capturingPOV && selectedObservation) {
-      if (!orbitControlsRef.current) {
-        console.warn("OrbitControls reference is null, cannot capture target.");
-        return;
-      }
-
-      const newPosition = JSON.parse(JSON.stringify(camera.position.toArray()));
-      const newTarget = JSON.parse(
-        JSON.stringify(orbitControlsRef.current.target.toArray())
-      );
-      console.info("new target", newTarget);
-      updateObservationPoint(selectedObservation.id, {
-        position: newPosition,
-        target: newTarget,
-      });
-      setCapturingPOV(false);
-    }
-  }, [
-    capturingPOV,
-    selectedObservation,
-    camera,
-    updateObservationPoint,
-    setCapturingPOV,
-  ]);
-
-  return null;
-};
-
-// CameraSpringController Component
-const CameraSpringController = ({ orbitControlsRef }) => {
-  const { camera } = useThree();
-  const previewMode = useSceneStore((state) => state.previewMode);
-  const previewIndex = useSceneStore((state) => state.previewIndex);
-  const observationPoints = useSceneStore((state) => state.observationPoints);
-
-  const [spring, api] = useSpring(() => ({
-    cameraPosition: camera.position.toArray(),
-    target: orbitControlsRef.current
-      ? orbitControlsRef.current.target.toArray()
-      : [0, 0, 0],
-    config: { mass: 1, tension: 170, friction: 26 },
-  }));
-
-  useEffect(() => {
-    if (previewMode && observationPoints.length > 0) {
-      const currentPoint = observationPoints[previewIndex];
-      if (currentPoint && currentPoint.position && currentPoint.target) {
-        api.start({
-          cameraPosition: currentPoint.position,
-          target: currentPoint.target,
-        });
-      }
-    }
-  }, [previewMode, previewIndex, observationPoints, api]);
-
-  useFrame(() => {
-    const previewMode = useSceneStore.getState().previewMode;
-    if (previewMode && orbitControlsRef.current) {
-      camera.position.set(...spring.cameraPosition.get());
-      orbitControlsRef.current.target.set(...spring.target.get());
-      orbitControlsRef.current.update();
-    }
-  });
-  return null;
-};
-
-// Main Scene Component
 export default function Scene({
   initialSceneData,
   onSceneDataChange,
@@ -132,6 +25,7 @@ export default function Scene({
   const objects = useSceneStore((state) => state.objects);
   const observationPoints = useSceneStore((state) => state.observationPoints);
   const selectedObject = useSceneStore((state) => state.selectedObject);
+  const previewMode = useSceneStore((state) => state.previewMode);
   const selectedObservation = useSceneStore(
     (state) => state.selectedObservation
   );
@@ -149,8 +43,8 @@ export default function Scene({
     (state) => state.setObservationPoints
   );
 
-  const transformControlsRef = useRef();
-  const orbitControlsRef = useRef();
+  const transformControlsRef = useRef(null);
+  const orbitControlsRef = useRef(null);
   const initialSceneDataInitialized = useRef(false);
 
   // Initialize the store from initialSceneData only once
@@ -211,8 +105,6 @@ export default function Scene({
     transformMode,
   ]);
 
-  console.info("Observation points:", observationPoints);
-
   return (
     <Canvas
       camera={{ position: [0, 5, 10], fov: 50 }}
@@ -229,11 +121,13 @@ export default function Scene({
           sectionSize={5}
           sectionThickness={1}
           fadeDistance={100}
-          sectionColor={[1, 1, 1]}
-          cellColor={[0.5, 0.5, 0.5]}
+          sectionColor="white"
+          cellColor="gray"
           renderOrder={-1}
         />
+        {/* @ts-ignore-next-line */}
         <ambientLight intensity={0.5} />
+        {/* @ts-ignore-next-line */}
         <directionalLight position={[5, 5, 5]} castShadow />
 
         {objects.map((obj) => (
@@ -258,6 +152,7 @@ export default function Scene({
             target={point.target}
             selected={selectedObservation?.id === point.id}
             onSelect={selectObservationPoint}
+            previewMode={previewMode}
             renderObservationPoints={renderObservationPoints}
           />
         ))}

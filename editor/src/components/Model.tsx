@@ -20,7 +20,7 @@ const Model = ({
 }) => {
   const modelData = useModelLoader(url, type);
   const object = modelData.scene || modelData;
-  const modelRef = useRef();
+  const modelRef = useRef(null);
   const pointerDown = useRef(null);
 
   // Instead of calling getState() directly, subscribe to previewMode via the hook.
@@ -66,6 +66,7 @@ const Model = ({
 
   return (
     <Suspense fallback={null}>
+      {/* @ts-ignore-next-line */}
       <primitive
         object={object}
         ref={modelRef}
