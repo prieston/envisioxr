@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import { ToastContainer } from "react-toastify";
 import ClientProvider from "@/ClientProvider";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "EnvisioXR | App",
   description: "This is my cool app.",
