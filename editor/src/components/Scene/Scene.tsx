@@ -104,8 +104,8 @@ export default function Scene({
       camera={{
         position: [10, 10, 10],
         fov: 50,
-        near: 100,
-        far: 100000,
+        near: 0.1,
+        far: 1000,
       }}
       onPointerMissed={() => deselectObject()}
     >
