@@ -127,17 +127,25 @@ export default function Scene({
             renderOrder={-1}
           />
           {/* @ts-ignore-next-line */}
-          <ambientLight intensity={0.5} />
+          <ambientLight intensity={1} />
           {/* @ts-ignore-next-line */}
           <directionalLight
             position={[10, 10, 10]}
             castShadow
+            intensity={1}
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
             shadow-camera-left={-10}
             shadow-camera-right={10}
             shadow-camera-top={10}
             shadow-camera-bottom={-10}
+          />
+          {/* @ts-ignore-next-line */}
+          <hemisphereLight
+            skyColor={"#ffffff"}
+            groundColor={"#444444"}
+            intensity={1}
+            position={[0, 50, 0]}
           />
 
           {objects.map((obj) => (
