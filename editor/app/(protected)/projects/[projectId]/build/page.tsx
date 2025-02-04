@@ -1,4 +1,3 @@
-// app/project/[projectId]/build/page.jsx
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
