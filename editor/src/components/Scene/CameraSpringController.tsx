@@ -24,7 +24,7 @@ const CameraSpringController = ({ orbitControlsRef }) => {
       const currentPoint = observationPoints[previewIndex];
       if (currentPoint && currentPoint.position && currentPoint.target) {
         api.start({
-          cameraPosition: currentPoint.position,
+          cameraPosition: currentPoint.position.toArray(),
           target: currentPoint.target,
         });
       }
