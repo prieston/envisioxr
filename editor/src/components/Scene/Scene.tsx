@@ -101,7 +101,12 @@ export default function Scene({
 
   return (
     <Canvas
-      camera={{ position: [0, 5, 10], fov: 50 }}
+      camera={{
+        position: [10000, 10000, 10000],
+        fov: 50,
+        near: 100,
+        far: 100000,
+      }}
       onPointerMissed={() => deselectObject()}
     >
       <XRWrapper enabled={enableXR} orbitControlsRef={orbitControlsRef}>
