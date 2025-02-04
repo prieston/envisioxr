@@ -6,6 +6,10 @@ const PreviewScene = ({
   initialSceneData,
   renderObservationPoints = true,
   onSceneDataChange,
+}: {
+  initialSceneData: any;
+  renderObservationPoints?: boolean;
+  onSceneDataChange?: any;
 }) => {
   return (
     <div
