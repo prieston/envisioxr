@@ -1,4 +1,3 @@
-// app/components/SceneCanvas.jsx
 "use client";
 
 import React from "react";
