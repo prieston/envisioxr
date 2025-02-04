@@ -5,11 +5,15 @@ import React from "react";
 import dynamic from "next/dynamic";
 
 // Import your Scene dynamically (with SSR disabled)
-const Scene = dynamic(() => import("@/components/canvas/Scene"), {
+const Scene = dynamic(() => import("@/components/Scene/Scene"), {
   ssr: false,
 });
 
-const SceneCanvas = ({ initialSceneData, onSceneDataChange, projectId }) => {
+const SceneCanvas = ({
+  initialSceneData,
+  onSceneDataChange,
+  renderObservationPoints,
+}) => {
   return (
     <div
       style={{
@@ -23,7 +27,7 @@ const SceneCanvas = ({ initialSceneData, onSceneDataChange, projectId }) => {
       <Scene
         initialSceneData={initialSceneData}
         onSceneDataChange={onSceneDataChange}
-        projectId={projectId}
+        renderObservationPoints={renderObservationPoints}
       />
     </div>
   );
