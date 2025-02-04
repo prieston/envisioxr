@@ -2,17 +2,9 @@
 
 import React, { useRef, useEffect, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import {
-  OrbitControls,
-  TransformControls,
-  Grid,
-  Preload,
-} from "@react-three/drei";
+import { TransformControls, Grid, Preload } from "@react-three/drei";
 import useSceneStore from "@/hooks/useSceneStore";
 import Loader from "./Loader";
-import ObservationPointHandler from "./ObservationPointHandler";
-import CameraPOVCaptureHandler from "./CameraPOVCaptureHandler";
-import CameraSpringController from "./CameraSpringController";
 import Model from "../Model";
 import ObservationPoint from "../ObservationPoint";
 import XRWrapper from "./XRWrapper";
