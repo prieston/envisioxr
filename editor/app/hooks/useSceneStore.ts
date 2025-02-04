@@ -31,7 +31,7 @@ interface SceneState {
   setTransformMode: (mode: "translate" | "rotate" | "scale") => void;
   setObjects: (newObjects: Model[]) => void;
   addModel: (model: Partial<Model>) => void;
-  selectObject: (id: number, ref: any) => void;
+  selectObject: (id: number) => void;
   deselectObject: () => void;
   setModelPosition: (id: number, newPosition: Vector3) => void;
   setModelRotation: (id: number, newRotation: Vector3) => void;
@@ -89,10 +89,10 @@ const useSceneStore = create<SceneState>((set) => ({
       ],
     })),
 
-  selectObject: (id, ref) =>
+  selectObject: (id) =>
     set((state) => ({
       selectedObject: state.objects.find((obj) => obj.id === id)
-        ? { ...state.objects.find((obj) => obj.id === id), ref }
+        ? { ...state.objects.find((obj) => obj.id === id) }
         : null,
     })),
 
