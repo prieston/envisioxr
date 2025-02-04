@@ -86,7 +86,7 @@ const BuilderPage = () => {
         <SceneCanvas
           initialSceneData={sceneData}
           onSceneDataChange={handleSceneDataChange}
-          projectId={projectId}
+          renderObservationPoints={true}
         />
       </Box>
     </AdminLayout>
