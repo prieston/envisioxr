@@ -1,5 +1,6 @@
 import { Vector3 } from "three"; // Assuming you are using three.js for Vector3
 import { create } from "zustand";
+import * as THREE from "three";
 
 interface Model {
   id: number;
@@ -31,7 +32,7 @@ interface SceneState {
   setTransformMode: (mode: "translate" | "rotate" | "scale") => void;
   setObjects: (newObjects: Model[]) => void;
   addModel: (model: Partial<Model>) => void;
-  selectObject: (id: number) => void;
+  selectObject: (id: number, ref: THREE.Object3D | null) => void;
   deselectObject: () => void;
   setModelPosition: (id: number, newPosition: Vector3) => void;
   setModelRotation: (id: number, newRotation: Vector3) => void;
@@ -89,10 +90,10 @@ const useSceneStore = create<SceneState>((set) => ({
       ],
     })),
 
-  selectObject: (id) =>
+  selectObject: (id, ref) =>
     set((state) => ({
       selectedObject: state.objects.find((obj) => obj.id === id)
-        ? { ...state.objects.find((obj) => obj.id === id) }
+        ? { ...state.objects.find((obj) => obj.id === id), ref }
         : null,
     })),
 
