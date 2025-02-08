@@ -64,7 +64,10 @@ const LeftPanel = () => {
             key={index}
             selectedItem={selectedObject?.id === obj.id}
             onClick={() =>
-              selectObject(selectedObject?.id === obj.id ? null : obj.id)
+              selectObject(
+                selectedObject?.id === obj.id ? null : obj.id,
+                obj.ref
+              )
             }
           >
             <ListItemText primary={obj.name} />
