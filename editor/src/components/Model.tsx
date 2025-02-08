@@ -35,7 +35,7 @@ const Model = ({
   const previewMode = useSceneStore((state) => state.previewMode);
   // Update the model: set shadow properties and adjust emissive color if selected.
   useEffect(() => {
-    if (modelRef.current && previewMode) {
+    if (modelRef.current) {
       modelRef.current.traverse((child) => {
         if (child.isMesh) {
           // Enable shadows on each mesh.
