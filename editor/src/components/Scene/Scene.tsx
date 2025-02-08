@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { TransformControls, Grid, Preload } from "@react-three/drei";
+import { TransformControls, Grid, Preload, Sky } from "@react-three/drei";
 import useSceneStore from "@/hooks/useSceneStore";
 import Loader from "./Loader";
 import Model from "../Model";
@@ -128,6 +128,13 @@ export default function Scene({
     >
       <XRWrapper enabled={enableXR} orbitControlsRef={orbitControlsRef}>
         <Suspense fallback={<Loader />}>
+          {/* Sky providing a blue sky background */}
+          <Sky
+            distance={450000}
+            sunPosition={[10, 20, 10]}
+            inclination={0.49}
+            azimuth={0.25}
+          />
           <Grid
             position={[0, 0, 0]}
             args={[20, 20]}
@@ -144,7 +151,19 @@ export default function Scene({
           <ambientLight intensity={1} />
           {/* @ts-ignore-next-line */}
           <directionalLight
-            position={[10, 10, 10]}
+            position={[10, 10, 0]}
+            castShadow
+            intensity={1}
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+            shadow-camera-left={-10}
+            shadow-camera-right={10}
+            shadow-camera-top={10}
+            shadow-camera-bottom={-10}
+          />
+          {/* @ts-ignore-next-line */}
+          <directionalLight
+            position={[0, 10, 0]}
             castShadow
             intensity={1}
             shadow-mapSize-width={1024}
@@ -199,14 +218,14 @@ export default function Scene({
 
           {/* <EffectComposer>
             <Bloom
-              intensity={0.4}
-              luminanceThreshold={0.1}
+              intensity={0.3} // Reduced intensity
+              luminanceThreshold={0.15} // Slightly higher threshold to reduce bloom on less-bright areas
               luminanceSmoothing={0.05}
             />
             <SSAO
-              samples={32}
-              radius={0.1}
-              intensity={1.5}
+              samples={16} // Reduced sample count
+              radius={0.05} // Smaller radius for a subtler effect
+              intensity={1.0} // Reduced intensity to lower graininess
               worldDistanceThreshold={1.0}
               worldDistanceFalloff={1.0}
               worldProximityThreshold={1.0}
@@ -218,13 +237,13 @@ export default function Scene({
               bokehScale={2}
             />
             <ChromaticAberration
-              offset={new Vector2(0.001, 0.001)}
+              offset={new Vector2(0.0005, 0.0005)} // Lowered offset
               blendFunction={BlendFunction.NORMAL}
               radialModulation={false}
               modulationOffset={0}
             />
-            <HueSaturation saturation={0.05} hue={0.0} />
-            <Vignette eskil={false} offset={0.1} darkness={0.8} />
+            <HueSaturation saturation={0.03} hue={0.0} />{" "}
+            <Vignette eskil={false} offset={0.1} darkness={0.7} />{" "}
           </EffectComposer> */}
 
           <Preload all />
