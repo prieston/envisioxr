@@ -30,6 +30,7 @@
     "@react-spring/three": "^9.7.5",
     "@react-three/drei": "^9.92.7",
     "@react-three/fiber": "^8.15.12",
+    "@react-three/postprocessing": "^2.19.1",
     "@react-three/xr": "^6.6.2",
     "formidable": "^3.5.2",
     "glsl-random": "^0.0.5",

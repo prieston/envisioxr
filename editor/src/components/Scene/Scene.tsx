@@ -9,6 +9,20 @@ import Model from "../Model";
 import ObservationPoint from "../ObservationPoint";
 import XRWrapper from "./XRWrapper";
 
+import {
+  EffectComposer,
+  Bloom,
+  SSAO,
+  DepthOfField,
+  ChromaticAberration,
+  Noise,
+  Vignette,
+  HueSaturation,
+} from "@react-three/postprocessing";
+import { NormalPass, BlendFunction } from "postprocessing"; // Import NormalPass from "postprocessing"
+
+import { Vector2, ACESFilmicToneMapping } from "three";
+
 export default function Scene({
   initialSceneData,
   onSceneDataChange,
@@ -182,6 +196,36 @@ export default function Scene({
               mode={transformMode}
             />
           )}
+
+          {/* <EffectComposer>
+            <Bloom
+              intensity={0.4}
+              luminanceThreshold={0.1}
+              luminanceSmoothing={0.05}
+            />
+            <SSAO
+              samples={32}
+              radius={0.1}
+              intensity={1.5}
+              worldDistanceThreshold={1.0}
+              worldDistanceFalloff={1.0}
+              worldProximityThreshold={1.0}
+              worldProximityFalloff={1.0}
+            />
+            <DepthOfField
+              focusDistance={0.02}
+              focalLength={0.02}
+              bokehScale={2}
+            />
+            <ChromaticAberration
+              offset={new Vector2(0.001, 0.001)}
+              blendFunction={BlendFunction.NORMAL}
+              radialModulation={false}
+              modulationOffset={0}
+            />
+            <HueSaturation saturation={0.05} hue={0.0} />
+            <Vignette eskil={false} offset={0.1} darkness={0.8} />
+          </EffectComposer> */}
 
           <Preload all />
         </Suspense>
