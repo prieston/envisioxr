@@ -115,7 +115,7 @@ export default function Scene({
 
   return (
     <Canvas
-      shadows
+      // shadows
       // @ts-ignore-next-line
       gl={{ physicallyCorrectLights: true }}
       camera={{
