@@ -34,18 +34,18 @@ const Model = ({
   // Subscribe to previewMode from the store.
   const previewMode = useSceneStore((state) => state.previewMode);
   // Update the model: set shadow properties and adjust emissive color if selected.
-  useEffect(() => {
-    if (modelRef.current) {
-      modelRef.current.traverse((child) => {
-        if (child.isMesh) {
-          // Enable shadows on each mesh.
-          child.castShadow = true;
-          child.receiveShadow = true;
-          // Update emissive color when not in preview mode.
-        }
-      });
-    }
-  }, [previewMode]);
+  // useEffect(() => {
+  //   if (modelRef.current) {
+  //     modelRef.current.traverse((child) => {
+  //       if (child.isMesh) {
+  //         // Enable shadows on each mesh.
+  //         child.castShadow = true;
+  //         child.receiveShadow = true;
+  //         // Update emissive color when not in preview mode.
+  //       }
+  //     });
+  //   }
+  // }, [previewMode]);
 
   // Update the model: set shadow properties and adjust emissive color if selected.
   useEffect(() => {
