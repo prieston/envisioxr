@@ -1,9 +1,10 @@
 import { Vector3 } from "three"; // Assuming you are using three.js for Vector3
 import { create } from "zustand";
 import * as THREE from "three";
+import { v4 as uuidv4 } from 'uuid';
 
 interface Model {
-  id: number;
+  id: string;
   position: [number, number, number];
   rotation?: [number, number, number];
   scale?: [number, number, number];
@@ -32,11 +33,12 @@ interface SceneState {
   setTransformMode: (mode: "translate" | "rotate" | "scale") => void;
   setObjects: (newObjects: Model[]) => void;
   addModel: (model: Partial<Model>) => void;
-  selectObject: (id: number, ref: THREE.Object3D | null) => void;
+  selectObject: (id: string, ref: THREE.Object3D | null) => void;
+  removeObject: (id: string) => void; // New removal function
   deselectObject: () => void;
-  setModelPosition: (id: number, newPosition: Vector3) => void;
-  setModelRotation: (id: number, newRotation: Vector3) => void;
-  setModelScale: (id: number, newScale: Vector3) => void;
+  setModelPosition: (id: string, newPosition: Vector3) => void;
+  setModelRotation: (id: string, newRotation: Vector3) => void;
+  setModelScale: (id: string, newScale: Vector3) => void;
   setObservationPoints: (newPoints: ObservationPoint[]) => void;
   addObservationPoint: () => void;
   selectObservationPoint: (id: number) => void;
@@ -83,19 +85,30 @@ const useSceneStore = create<SceneState>((set) => ({
       objects: [
         ...state.objects,
         {
-          id: state.objects.length, // Consider using a UUID in production
+          id: uuidv4(),
           position: [0, 0, 0],
           ...model,
         },
       ],
     })),
-
-  selectObject: (id, ref) =>
+  // Add this in the object actions section of your store:
+  removeObject: (id: string) =>
     set((state) => ({
+      objects: state.objects.filter((obj) => obj.id !== id),
+      selectedObject:
+        state.selectedObject && state.selectedObject.id === id
+          ? null
+          : state.selectedObject,
+    })),
+  selectObject: (id, ref) =>
+  {
+    console.info("selectObject", id, ref)
+    return   set((state) => ({
       selectedObject: state.objects.find((obj) => obj.id === id)
         ? { ...state.objects.find((obj) => obj.id === id), ref }
         : null,
-    })),
+    }))
+  },
 
   deselectObject: () => set({ selectedObject: null }),
 
