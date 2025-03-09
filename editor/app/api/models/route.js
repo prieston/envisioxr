@@ -81,9 +81,9 @@ export async function POST(request) {
   }
   const userId = session.user.id;
   try {
-    // Expecting a JSON body with key, originalFilename, and fileType.
+    // Expecting a JSON body with key, originalFilename, fileType, and thumbnail.
     const body = await request.json();
-    const { key, originalFilename, fileType } = body;
+    const { key, originalFilename, fileType, thumbnail } = body;
     if (!key || !originalFilename || !fileType) {
       return NextResponse.json({ error: "Missing file data" }, { status: 400 });
     }
@@ -95,10 +95,12 @@ export async function POST(request) {
         fileUrl,
         originalFilename,
         fileType,
+        thumbnail: thumbnail || null,
       },
     });
     return NextResponse.json({ asset });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -152,6 +154,7 @@ export async function DELETE(request) {
     });
     return NextResponse.json({ message: "Asset deleted successfully" });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
