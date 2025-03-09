@@ -10,10 +10,19 @@ import {
   Box,
   Button,
   Typography,
+  TextField,
+  Tooltip,
+  Card,
+  CardMedia,
+  CardContent,
+  CardActions,
+  CircularProgress,
+  LinearProgress,
 } from "@mui/material";
 import { useDropzone } from "react-dropzone";
 import { showToast } from "../../utils/toastUtils";
 import useSceneStore from "../../hooks/useSceneStore";
+import ModelPreview from "../ModelPreview";
 
 const stockModels = [
   {
@@ -31,15 +40,21 @@ const stockModels = [
 const AddModelDialog = ({ open, onClose }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [userAssets, setUserAssets] = useState([]);
+  const [previewFile, setPreviewFile] = useState(null); // Model file from dropzone
+  const [previewUrl, setPreviewUrl] = useState(null); // Object URL for preview
+  const [screenshot, setScreenshot] = useState(null); // Captured thumbnail data URL
+  const [friendlyName, setFriendlyName] = useState(""); // User-provided friendly name
+  const [uploading, setUploading] = useState(false); // Upload spinner state
+  const [uploadProgress, setUploadProgress] = useState(0); // Upload progress percentage
+  const [deletingAssetId, setDeletingAssetId] = useState(null); // Currently deleting asset id
   const addModel = useSceneStore((state) => state.addModel);
 
-  // When the dialog opens, fetch the user's uploaded models.
+  // Fetch user's uploaded models when dialog opens.
   useEffect(() => {
     if (open) {
       fetch("/api/models")
         .then((res) => res.json())
         .then((data) => {
-          // Assuming the API returns { stockModels, assets }
           setUserAssets(data.assets || []);
         })
         .catch((err) => {
@@ -49,22 +64,23 @@ const AddModelDialog = ({ open, onClose }) => {
     }
   }, [open]);
 
-  // Common handler for selecting a model.
+  // Handler for selecting a model (stock or uploaded).
   const handleModelSelect = (model) => {
+    console.log("model to add",model)
     addModel({
       name: model.name,
       url: model.url,
-      type: model.type, // e.g., "glb"
+      type: model.type,
       position: [0, 0, 0],
       scale: [1, 1, 1],
       rotation: [0, 0, 0],
     });
-    showToast(`Added ${model.name} to scene.`);
     onClose();
   };
 
-  // Delete model handler – calls DELETE endpoint and updates local state.
+  // Delete model handler.
   const handleDeleteModel = async (assetId) => {
+    setDeletingAssetId(assetId);
     try {
       const res = await fetch("/api/models", {
         method: "DELETE",
@@ -73,7 +89,6 @@ const AddModelDialog = ({ open, onClose }) => {
       });
       if (res.ok) {
         showToast("Asset deleted successfully.");
-        // Update local state by removing the deleted asset.
         setUserAssets((prev) => prev.filter((asset) => asset.id !== assetId));
       } else {
         showToast("Failed to delete asset.");
@@ -81,76 +96,148 @@ const AddModelDialog = ({ open, onClose }) => {
     } catch (error) {
       console.error("Delete error:", error);
       showToast("An error occurred during deletion.");
+    } finally {
+      setDeletingAssetId(null);
     }
   };
 
-  // Handle file drop for uploads using a signed URL workflow.
+  // Handle file drop.
   const { getRootProps, getInputProps } = useDropzone({
     accept: { "model/gltf-binary": [".glb"] },
     multiple: false,
-    onDrop: async (acceptedFiles) => {
+    onDrop: (acceptedFiles) => {
       if (acceptedFiles.length > 0) {
         const file = acceptedFiles[0];
-
-        try {
-          // Step 1: Request a signed URL via a PATCH call.
-          const patchRes = await fetch("/api/models", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              fileName: file.name,
-              fileType: file.type,
-            }),
-          });
-          if (!patchRes.ok) {
-            showToast("Failed to get signed URL.");
-            return;
-          }
-          const { signedUrl, key } = await patchRes.json();
-
-          // Step 2: Upload the file directly to DigitalOcean Spaces using the signed URL.
-          const putRes = await fetch(signedUrl, {
-            method: "PUT",
-            headers: {
-              "Content-Type": file.type,
-              "x-amz-acl": "public-read", // Include the ACL header
-            },
-            body: file,
-          });
-          if (!putRes.ok) {
-            showToast("File upload failed.");
-            return;
-          }
-
-          // Step 3: Inform your backend to create a database record for the asset.
-          const postRes = await fetch("/api/models", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              key,
-              originalFilename: file.name,
-              fileType: "glb", // Or you can use file.type if needed.
-            }),
-          });
-          if (!postRes.ok) {
-            showToast("Failed to record the uploaded file.");
-            return;
-          }
-          const postData = await postRes.json();
-          showToast(`Uploaded ${file.name} successfully.`);
-          // Step 4: Add the newly uploaded model to the scene.
-          handleModelSelect({
-            name: file.name,
-            url: postData.asset.fileUrl,
-            type: "glb",
-          });
-        } catch (error) {
-          console.error("Upload error:", error);
-          showToast("An error occurred during upload.");
-        }
+        const objectUrl = URL.createObjectURL(file);
+        setPreviewFile(file);
+        setPreviewUrl(objectUrl);
+        setScreenshot(null); // Reset previous thumbnail.
       }
     },
   });
+
+  // Convert a data URL to a Blob.
+  const dataURLtoBlob = (dataurl) => {
+    const arr = dataurl.split(",");
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  };
+
+  // Helper function to upload a file using a signed URL with progress.
+  const uploadFileWithProgress = async (
+    file: File | Blob,
+    fileName: string,
+    fileType: string,
+    onProgress: (progress: number) => void
+  ): Promise<{ key: string; publicUrl: string }> => {
+    // Step 1: Get a signed URL.
+    const patchRes = await fetch("/api/models", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileName, fileType }),
+    });
+    if (!patchRes.ok) {
+      throw new Error(`Failed to get signed URL for ${fileName}`);
+    }
+    const { signedUrl, key } = await patchRes.json();
+
+    // Step 2: Upload using XMLHttpRequest for progress tracking.
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", signedUrl);
+      xhr.setRequestHeader("Content-Type", fileType);
+      xhr.setRequestHeader("x-amz-acl", "public-read");
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) {
+          const percentCompleted = Math.round((event.loaded / event.total) * 100);
+          onProgress(percentCompleted);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const endpoint = process.env.NEXT_PUBLIC_DO_SPACES_ENDPOINT;
+          const bucket = process.env.NEXT_PUBLIC_DO_SPACES_BUCKET;
+          const publicUrl = `${endpoint}/${bucket}/${key}`;
+          resolve({ key, publicUrl });
+        } else {
+          reject(new Error("Upload failed with status " + xhr.status));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("File upload failed (XHR error)"));
+      xhr.send(file);
+    });
+  };
+
+  // Handle confirmation: upload model file and thumbnail, then record asset.
+  const handleConfirmUpload = async () => {
+    if (!previewFile || !screenshot || !friendlyName) return;
+    setUploading(true);
+    setUploadProgress(0);
+    try {
+      // Upload the model file with progress.
+      const modelUpload = await uploadFileWithProgress(
+        previewFile,
+        previewFile.name,
+        previewFile.type,
+        setUploadProgress
+      );
+      // Upload the thumbnail.
+      const thumbnailBlob = dataURLtoBlob(screenshot);
+      const thumbnailFileName = friendlyName + "-thumbnail.png";
+      const thumbnailUpload = await uploadFileWithProgress(
+        thumbnailBlob,
+        thumbnailFileName,
+        "image/png",
+        null
+      ) as { key: string; publicUrl: string };
+
+      // Create the database record including the thumbnail URL.
+      const postRes = await fetch("/api/models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key: modelUpload.key,
+          originalFilename: friendlyName,
+          fileType: previewFile.type,
+          thumbnail: thumbnailUpload.publicUrl,
+        }),
+      });
+      if (!postRes.ok) {
+        showToast("Failed to record the uploaded file.");
+        return;
+      }
+      const postData = await postRes.json();
+      showToast(`Uploaded ${friendlyName} successfully.`);
+      handleModelSelect({
+        name: friendlyName,
+        url: postData.asset.fileUrl,
+        type: previewFile.type,
+      });
+      // Clear state.
+      setPreviewFile(null);
+      setPreviewUrl(null);
+      setScreenshot(null);
+      setFriendlyName("");
+    } catch (error) {
+      console.error("Upload error:", error);
+      showToast("An error occurred during upload.");
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  // Disable confirm if no thumbnail, friendly name, or if uploading.
+  const isConfirmDisabled = !screenshot || !friendlyName || uploading;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -168,14 +255,7 @@ const AddModelDialog = ({ open, onClose }) => {
 
         {/* Stock Models Tab */}
         {tabIndex === 0 && (
-          <Box
-            sx={{
-              padding: 2,
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-            }}
-          >
+          <Box sx={{ padding: 2, display: "flex", flexDirection: "column", gap: 2 }}>
             {stockModels.map((model, index) => (
               <Button
                 key={index}
@@ -189,45 +269,54 @@ const AddModelDialog = ({ open, onClose }) => {
           </Box>
         )}
 
-        {/* My Models Tab */}
+        {/* My Models Tab as Card Items */}
         {tabIndex === 1 && (
-          <Box
-            sx={{
-              padding: 2,
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-            }}
-          >
+          <Box sx={{ padding: 2, display: "flex", flexWrap: "wrap", gap: 2 }}>
             {userAssets.length === 0 ? (
               <Typography>No uploaded models found.</Typography>
             ) : (
               userAssets.map((model, index) => (
-                <Box
-                  key={index}
-                  sx={{ display: "flex", gap: 1, alignItems: "center" }}
-                >
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={() =>
-                      handleModelSelect({
-                        name: model.originalFilename,
-                        url: model.fileUrl,
-                        type: model.fileType,
-                      })
-                    }
-                  >
-                    Add {model.originalFilename}
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => handleDeleteModel(model.id)}
-                  >
-                    Delete
-                  </Button>
-                </Box>
+                <Card key={index} sx={{ width: 250 }}>
+                  {model.thumbnail && (
+                    <CardMedia
+                      component="img"
+                      height="140"
+                      image={model.thumbnail}
+                      alt={model.originalFilename}
+                    />
+                  )}
+                  <CardContent>
+                    <Typography variant="h6">{model.originalFilename}</Typography>
+                  </CardContent>
+                  <CardActions>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() =>
+                        handleModelSelect({
+                          name: model.originalFilename,
+                          url: model.fileUrl,
+                          type: model.fileType,
+                        })
+                      }
+                    >
+                      Add Model
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleDeleteModel(model.id)}
+                      disabled={deletingAssetId === model.id}
+                    >
+                      {deletingAssetId === model.id ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : (
+                        "Delete"
+                      )}
+                    </Button>
+                  </CardActions>
+                </Card>
               ))
             )}
           </Box>
@@ -235,19 +324,62 @@ const AddModelDialog = ({ open, onClose }) => {
 
         {/* Upload Tab */}
         {tabIndex === 2 && (
-          <Box
-            sx={{
-              padding: 2,
-              border: "2px dashed #aaa",
-              textAlign: "center",
-              cursor: "pointer",
-            }}
-            {...getRootProps()}
-          >
-            <input {...getInputProps()} />
-            <Typography>
-              Drag & drop a .glb file here, or click to select a file
-            </Typography>
+          <Box sx={{ padding: 2 }}>
+            {previewUrl ? (
+              <>
+                <ModelPreview
+                  fileUrl={previewUrl}
+                  type="glb"
+                  onScreenshotCaptured={setScreenshot}
+                />
+                <TextField
+                  label="Friendly Name"
+                  fullWidth
+                  value={friendlyName}
+                  onChange={(e) => setFriendlyName(e.target.value)}
+                  sx={{ my: 2 }}
+                />
+                {uploading && (
+                  <Box sx={{ my: 2 }}>
+                    <LinearProgress variant="determinate" value={uploadProgress} />
+                    <Typography variant="caption" display="block" align="center">
+                      {uploadProgress}% uploaded
+                    </Typography>
+                  </Box>
+                )}
+                <Tooltip title={isConfirmDisabled ? "Capture thumbnail and enter a friendly name first" : ""}>
+                  <span>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      disabled={isConfirmDisabled}
+                      onClick={handleConfirmUpload}
+                    >
+                      {uploading ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : (
+                        "Confirm Upload"
+                      )}
+                    </Button>
+                  </span>
+                </Tooltip>
+              </>
+            ) : (
+              <Box
+                sx={{
+                  padding: 2,
+                  border: "2px dashed #aaa",
+                  textAlign: "center",
+                  cursor: "pointer",
+                }}
+                {...getRootProps()}
+              >
+                <input {...getInputProps()} />
+                <Typography>
+                  Drag & drop a .glb file here, or click to select a file
+                </Typography>
+              </Box>
+            )}
           </Box>
         )}
       </DialogContent>
