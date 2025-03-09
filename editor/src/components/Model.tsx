@@ -53,8 +53,25 @@ const Model = ({
 
   // Subscribe to previewMode from the store.
   const previewMode = useSceneStore((state) => state.previewMode);
+  // Get the updateModelRef function from the store.
+  const updateModelRef = useSceneStore((state) => state.updateModelRef);
 
-  // Update emissive color if selected.
+  // Update the model: set shadow properties and adjust emissive color if selected.
+  // (Preserved commented-out code below.)
+  // useEffect(() => {
+  //   if (modelRef.current) {
+  //     modelRef.current.traverse((child) => {
+  //       if (child.isMesh) {
+  //         // Enable shadows on each mesh.
+  //         child.castShadow = true;
+  //         child.receiveShadow = true;
+  //         // Update emissive color when not in preview mode.
+  //       }
+  //     });
+  //   }
+  // }, [previewMode]);
+
+  // Update the model: adjust emissive color if selected.
   useEffect(() => {
     if (modelRef.current && !previewMode) {
       modelRef.current.traverse((child) => {
@@ -76,6 +93,14 @@ const Model = ({
       modelRef.current.scale.set(...scale);
     }
   }, [scale]);
+
+  // **New useEffect to update the model's reference in the store on mount.**
+  useEffect(() => {
+    if (modelRef.current) {
+      // Update the store with the model's ref.
+      updateModelRef(id, modelRef.current);
+    }
+  }, [id, updateModelRef]);
 
   const handlePointerDown = (e: any) => {
     e.stopPropagation();

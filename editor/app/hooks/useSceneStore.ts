@@ -35,6 +35,7 @@ interface SceneState {
   addModel: (model: Partial<Model>) => void;
   selectObject: (id: string, ref: THREE.Object3D | null) => void;
   removeObject: (id: string) => void; // New removal function
+  updateModelRef: (id: string, ref: THREE.Object3D | null) => void;
   deselectObject: () => void;
   setModelPosition: (id: string, newPosition: Vector3) => void;
   setModelRotation: (id: string, newRotation: Vector3) => void;
@@ -109,6 +110,12 @@ const useSceneStore = create<SceneState>((set) => ({
         : null,
     }))
   },
+  updateModelRef: (id: string, ref: THREE.Object3D | null) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
+        obj.id === id ? { ...obj, ref } : obj
+      ),
+    })),
 
   deselectObject: () => set({ selectedObject: null }),
 

@@ -117,6 +117,7 @@ const LeftPanel = () => {
         <List>
           {objects.map((obj) => (
             <ObjectListItem
+              className="object-list-item"
               key={obj.id}
               selectedItem={selectedObject?.id === obj.id}
               onClick={() =>
