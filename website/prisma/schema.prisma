@@ -40,18 +40,19 @@ model Session {
 }
 
 model User {
-  id                    String    @id @default(cuid())
+  id                    String        @id @default(cuid())
   name                  String?
-  email                 String?   @unique
+  email                 String?       @unique
   emailVerified         DateTime?
   image                 String?
   password              String?
-  passwordResetToken    String?   @unique
+  passwordResetToken    String?       @unique
   passwordResetTokenExp DateTime?
   accounts              Account[]
   sessions              Session[]
-  projects              Project[] // New relation: one-to-many with Project
-  assets                Asset[] // New relation: one-to-many with Asset
+  projects              Project[]
+  assets                Asset[]
+  subscription          Subscription? // One-to-one relation with Subscription
 }
 
 model VerificationToken {
@@ -62,10 +63,6 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
-
-///
-/// NEW MODELS
-///
 
 model Project {
   id           String   @id @default(cuid())
@@ -94,9 +91,22 @@ model Asset {
   fileUrl          String // URL to the file in your cloud storage
   fileType         String // e.g., "glb", "3dm", "jpg", etc.
   originalFilename String
+  thumbnail        String? // NEW: URL for the captured thumbnail image
   createdAt        DateTime @default(now())
 
   // Relations:
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+}
+
+// Subscription model to track user subscriptions via Stripe
+model Subscription {
+  id        String    @id @default(cuid())
+  stripeId  String    @unique
+  planId    String
+  status    String
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
