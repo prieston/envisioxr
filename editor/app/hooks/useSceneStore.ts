@@ -103,7 +103,6 @@ const useSceneStore = create<SceneState>((set) => ({
     })),
   selectObject: (id, ref) =>
   {
-    console.info("selectObject", id, ref)
     return   set((state) => ({
       selectedObject: state.objects.find((obj) => obj.id === id)
         ? { ...state.objects.find((obj) => obj.id === id), ref }
