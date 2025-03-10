@@ -23,7 +23,6 @@ const CameraSpringController = ({ orbitControlsRef }) => {
     if (previewMode && observationPoints.length > 0) {
       const currentPoint = observationPoints[previewIndex];
       if (currentPoint && currentPoint.position && currentPoint.target) {
-        console.info("sdf");
         api.start({
           // @ts-ignore-next-line
           cameraPosition: currentPoint.position,

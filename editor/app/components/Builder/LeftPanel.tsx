@@ -94,7 +94,6 @@ const LeftPanel = () => {
   // Confirm deletion: log and remove object.
   const confirmDelete = () => {
     if (deleteTargetId) {
-      console.log("Deleting object with id:", deleteTargetId);
       removeObject(deleteTargetId);
     } else {
       console.log("No object id to delete.");
@@ -110,7 +109,6 @@ const LeftPanel = () => {
     setDeleteTargetId(null);
   };
 
-  console.info(objects)
   return (
     <>
       <LeftPanelContainer previewMode={previewMode}>

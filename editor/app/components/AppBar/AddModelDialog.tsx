@@ -66,7 +66,6 @@ const AddModelDialog = ({ open, onClose }) => {
 
   // Handler for selecting a model (stock or uploaded).
   const handleModelSelect = (model) => {
-    console.log("model to add",model)
     addModel({
       name: model.name,
       url: model.url,

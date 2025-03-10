@@ -45,20 +45,30 @@ const BuilderPage = () => {
 
   const handleSave = async () => {
     try {
+      // Sanitize sceneData by removing non-serializable properties (like 'ref')
+      const sanitizeSceneData = (data: any) => {
+        return {
+          ...data,
+          objects: data.objects.map(({ ref, ...rest }: any) => rest),
+        };
+      };
+
+      const sanitizedSceneData = sanitizeSceneData(sceneData);
+
       const res = await fetch(`/api/projects/${projectId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sceneData }),
+        body: JSON.stringify({ sceneData: sanitizedSceneData }),
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to save scene data");
       const data = await res.json();
-      console.log("Scene data saved:", data.project);
-      // Optionally show a toast notification
+      // Optionally, show a toast notification
     } catch (error) {
       console.error("Error saving scene data:", error);
     }
   };
+
 
   const handlePublish = async () => {
     try {
@@ -70,7 +80,6 @@ const BuilderPage = () => {
       });
       if (!res.ok) throw new Error("Failed to publish project");
       const data = await res.json();
-      console.log("Project published:", data.project);
       router.push(`/publish/${projectId}`);
     } catch (error) {
       console.error("Error publishing project:", error);

@@ -25,7 +25,6 @@ const CameraPOVCaptureHandler = ({ orbitControlsRef }) => {
       const newTarget = JSON.parse(
         JSON.stringify(orbitControlsRef.current.target.toArray())
       );
-      console.info("new target", newTarget);
       updateObservationPoint(selectedObservation.id, {
         position: newPosition,
         target: newTarget,

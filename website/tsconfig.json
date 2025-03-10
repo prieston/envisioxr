@@ -24,7 +24,8 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ]
+      ],
+      "@prisma": ["../packages/prisma"]
     },
     "target": "ES2017"
   },
