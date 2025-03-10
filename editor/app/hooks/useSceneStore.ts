@@ -1,7 +1,7 @@
 import { Vector3 } from "three"; // Assuming you are using three.js for Vector3
 import { create } from "zustand";
 import * as THREE from "three";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 interface Model {
   id: string;
@@ -101,13 +101,12 @@ const useSceneStore = create<SceneState>((set) => ({
           ? null
           : state.selectedObject,
     })),
-  selectObject: (id, ref) =>
-  {
-    return   set((state) => ({
+  selectObject: (id, ref) => {
+    return set((state) => ({
       selectedObject: state.objects.find((obj) => obj.id === id)
         ? { ...state.objects.find((obj) => obj.id === id), ref }
         : null,
-    }))
+    }));
   },
   updateModelRef: (id: string, ref: THREE.Object3D | null) =>
     set((state) => ({
@@ -147,18 +146,22 @@ const useSceneStore = create<SceneState>((set) => ({
   setObservationPoints: (newPoints) => set({ observationPoints: newPoints }),
 
   addObservationPoint: () =>
-    set((state) => ({
-      observationPoints: [
-        ...state.observationPoints,
-        {
-          id: state.observationPoints.length, // Again, consider a proper unique id generator
-          title: `Observation Point ${state.observationPoints.length + 1}`,
-          description: "",
-          position: null, // To be set when capturing POV
-          target: null, // To be set when capturing POV
-        },
-      ],
-    })),
+    set((state) => {
+      const newId = state.observationPoints.length; // simple unique id, consider using uuid if needed
+      const newPoint = {
+        id: newId,
+        title: `Observation Point ${newId + 1}`,
+        description: "",
+        position: null, // to be updated later
+        target: null, // to be updated later
+      };
+      return {
+        observationPoints: [...state.observationPoints, newPoint],
+        // Automatically select the newly added point:
+        selectedObservation: newPoint,
+        previewIndex: state.observationPoints.length, // new index is the last element
+      };
+    }),
 
   selectObservationPoint: (id) =>
     set((state) => ({
