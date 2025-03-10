@@ -69,7 +69,6 @@ const BuilderPage = () => {
     }
   };
 
-
   const handlePublish = async () => {
     try {
       const res = await fetch(`/api/projects/${projectId}`, {
@@ -80,7 +79,7 @@ const BuilderPage = () => {
       });
       if (!res.ok) throw new Error("Failed to publish project");
       const data = await res.json();
-      router.push(`/publish/${projectId}`);
+      window.open(`/publish/${projectId}`, "_blank");
     } catch (error) {
       console.error("Error publishing project:", error);
     }
