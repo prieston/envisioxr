@@ -12,6 +12,7 @@
   "scripts": {
     "lint": "next lint --fix --dir app",
     "dev": "next dev",
+    "prebuild": "npx prisma generate --schema=../packages/prisma/schema.prisma",
     "build": "next build",
     "analyze": "ANALYZE=true next build",
     "start": "next start",
