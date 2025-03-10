@@ -63,6 +63,7 @@ export async function POST(request, { params }) {
     });
     return NextResponse.json({ project: updatedProject });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
