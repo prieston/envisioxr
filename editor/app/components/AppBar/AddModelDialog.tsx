@@ -155,7 +155,9 @@ const AddModelDialog = ({ open, onClose }) => {
 
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable && onProgress) {
-          const percentCompleted = Math.round((event.loaded / event.total) * 100);
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
           onProgress(percentCompleted);
         }
       };
@@ -192,12 +194,12 @@ const AddModelDialog = ({ open, onClose }) => {
       // Upload the thumbnail.
       const thumbnailBlob = dataURLtoBlob(screenshot);
       const thumbnailFileName = friendlyName + "-thumbnail.png";
-      const thumbnailUpload = await uploadFileWithProgress(
+      const thumbnailUpload = (await uploadFileWithProgress(
         thumbnailBlob,
         thumbnailFileName,
         "image/png",
         null
-      ) as { key: string; publicUrl: string };
+      )) as { key: string; publicUrl: string };
 
       // Create the database record including the thumbnail URL.
       const postRes = await fetch("/api/models", {
@@ -254,7 +256,14 @@ const AddModelDialog = ({ open, onClose }) => {
 
         {/* Stock Models Tab */}
         {tabIndex === 0 && (
-          <Box sx={{ padding: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box
+            sx={{
+              padding: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
             {stockModels.map((model, index) => (
               <Button
                 key={index}
@@ -278,6 +287,7 @@ const AddModelDialog = ({ open, onClose }) => {
                 <Card key={index} sx={{ width: 250 }}>
                   {model.thumbnail && (
                     <CardMedia
+                      style={{ background: "white" }}
                       component="img"
                       height="140"
                       image={model.thumbnail}
@@ -285,7 +295,9 @@ const AddModelDialog = ({ open, onClose }) => {
                     />
                   )}
                   <CardContent>
-                    <Typography variant="h6">{model.originalFilename}</Typography>
+                    <Typography variant="h6">
+                      {model.originalFilename}
+                    </Typography>
                   </CardContent>
                   <CardActions>
                     <Button
@@ -340,13 +352,26 @@ const AddModelDialog = ({ open, onClose }) => {
                 />
                 {uploading && (
                   <Box sx={{ my: 2 }}>
-                    <LinearProgress variant="determinate" value={uploadProgress} />
-                    <Typography variant="caption" display="block" align="center">
+                    <LinearProgress
+                      variant="determinate"
+                      value={uploadProgress}
+                    />
+                    <Typography
+                      variant="caption"
+                      display="block"
+                      align="center"
+                    >
                       {uploadProgress}% uploaded
                     </Typography>
                   </Box>
                 )}
-                <Tooltip title={isConfirmDisabled ? "Capture thumbnail and enter a friendly name first" : ""}>
+                <Tooltip
+                  title={
+                    isConfirmDisabled
+                      ? "Capture thumbnail and enter a friendly name first"
+                      : ""
+                  }
+                >
                   <span>
                     <Button
                       variant="contained"
