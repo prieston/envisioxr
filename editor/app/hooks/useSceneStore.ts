@@ -29,6 +29,7 @@ interface SceneState {
   previewMode: boolean;
   previewIndex: number;
   transformMode: "translate" | "rotate" | "scale";
+  orbitControlsRef: any | null;
   setPreviewMode: (value: boolean) => void;
   setTransformMode: (mode: "translate" | "rotate" | "scale") => void;
   setObjects: (newObjects: Model[]) => void;
@@ -54,12 +55,14 @@ interface SceneState {
   nextObservation: () => void;
   prevObservation: () => void;
   resetScene: () => void;
+  setOrbitControlsRef: (ref: any) => void;
 }
 
 const useSceneStore = create<SceneState>((set) => ({
   // Scene data
   objects: [],
   observationPoints: [],
+  orbitControlsRef: null,
 
   // Selected items
   selectedObject: null,
@@ -227,10 +230,22 @@ const useSceneStore = create<SceneState>((set) => ({
     }),
 
   selectObservationPoint: (id) =>
-    set((state) => ({
-      selectedObservation:
-        state.observationPoints.find((point) => point.id === id) || null,
-    })),
+    set((state) => {
+      const selectedPoint = state.observationPoints.find(
+        (point) => point.id === id
+      );
+      if (
+        selectedPoint &&
+        selectedPoint.target &&
+        state.orbitControlsRef?.current
+      ) {
+        state.orbitControlsRef.current.target.set(...selectedPoint.target);
+        state.orbitControlsRef.current.update();
+      }
+      return {
+        selectedObservation: selectedPoint || null,
+      };
+    }),
 
   updateObservationPoint: (id, updates) => {
     console.log("Updating observation point:", { id, updates });
@@ -285,7 +300,11 @@ const useSceneStore = create<SceneState>((set) => ({
       previewMode: false,
       previewIndex: 0,
       transformMode: "translate",
+      orbitControlsRef: null,
     }),
+
+  // Set orbit controls reference
+  setOrbitControlsRef: (ref) => set({ orbitControlsRef: ref }),
 }));
 
 export default useSceneStore;
