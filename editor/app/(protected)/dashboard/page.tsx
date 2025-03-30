@@ -11,12 +11,12 @@ import {
 import { useRouter } from "next/navigation";
 import InfoIcon from "@mui/icons-material/Info";
 import useProjects from "@/app/hooks/useProjects";
-import AdminAppBar from "@/app/components/AppBar";
 import CreateProjectCard from "@/app/components/Dashboard/CreateProjectCard";
 import ProjectCard from "@/app/components/Dashboard/ProjectCard";
 import OptionsMenu from "@/app/components/Dashboard/OptionsMenu";
 import DeleteConfirmationDialog from "@/app/components/Dashboard/DeleteConfirmationDialog";
 import InfoBox from "@/app/components/Dashboard/InfoBox";
+import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 
 const DashboardPage = () => {
   const router = useRouter();
@@ -111,7 +111,7 @@ const DashboardPage = () => {
     <>
       <AdminAppBar mode="simple" />
 
-      <Box sx={{ padding: 5 }}>
+      <Box sx={{ padding: 5, marginTop: "64px" }}>
         {showInfo && <InfoBox onDismiss={handleDismissInfo} />}
 
         <Box

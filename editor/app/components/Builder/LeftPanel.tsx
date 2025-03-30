@@ -15,6 +15,7 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { MoreVert } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
+import Typography from "@mui/material/Typography";
 
 // Container for the left panel with conditional styling based on previewMode
 interface LeftPanelContainerProps {
@@ -24,18 +25,28 @@ interface LeftPanelContainerProps {
 const LeftPanelContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== "previewMode",
 })<LeftPanelContainerProps>(({ theme, previewMode }) => ({
-  width: "250px",
+  width: "280px",
   height: "100%",
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: "#121212",
   color: theme.palette.text.primary,
   padding: theme.spacing(2),
-  borderRight: "1px solid rgba(255, 255, 255, 0.1)",
+  borderRight: "1px solid rgba(255, 255, 255, 0.08)",
   userSelect: "none",
   pointerEvents: previewMode ? "none" : "auto",
   opacity: previewMode ? 0.5 : 1,
   cursor: previewMode ? "not-allowed" : "default",
   filter: previewMode ? "grayscale(100%)" : "none",
-  transition: "opacity 0.3s ease, filter 0.3s ease",
+  transition: "all 0.3s ease",
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: "1px",
+    background:
+      "linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), transparent)",
+  },
 }));
 
 // Styled ListItem for objects, using a prop (selectedItem) to determine styles
@@ -46,20 +57,57 @@ interface ObjectListItemProps {
 const ObjectListItem = styled(ListItem)<ObjectListItemProps>(
   ({ theme, selectedItem }) => ({
     cursor: "pointer",
-    borderRadius: theme.shape.borderRadius,
+    borderRadius: 12,
     marginBottom: theme.spacing(1),
-    backgroundColor: selectedItem ? theme.palette.primary.main : "transparent",
-    color: selectedItem ? "white" : "inherit",
+    backgroundColor: selectedItem
+      ? "rgba(255, 255, 255, 0.08)"
+      : "rgba(255, 255, 255, 0.05)",
+    color: selectedItem ? theme.palette.text.primary : "inherit",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    padding: theme.spacing(1.5),
+    transition: "all 0.2s ease",
+    border: selectedItem
+      ? "1px solid rgba(255, 255, 255, 0.2)"
+      : "1px solid rgba(255, 255, 255, 0.05)",
     "&:hover": {
-      backgroundColor: selectedItem
-        ? theme.palette.primary.dark
-        : "rgba(255, 255, 255, 0.1)",
+      backgroundColor: "rgba(255, 255, 255, 0.08)",
+      transform: "translateX(4px)",
+      border: "1px solid rgba(255, 255, 255, 0.2)",
     },
   })
 );
+
+const StyledList = styled(List)(({ theme }) => ({
+  padding: theme.spacing(1),
+}));
+
+const StyledListItemText = styled(ListItemText)(({ theme }) => ({
+  "& .MuiListItemText-primary": {
+    fontSize: "0.9rem",
+    fontWeight: 500,
+  },
+  "& .MuiListItemText-secondary": {
+    fontSize: "0.8rem",
+    color: theme.palette.text.secondary,
+  },
+}));
+
+const StyledIconButton = styled(IconButton)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  "&:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    color: theme.palette.text.primary,
+  },
+}));
+
+const PanelTitle = styled(Typography)(({ theme }) => ({
+  fontSize: "1rem",
+  fontWeight: 500,
+  marginBottom: theme.spacing(2),
+  color: theme.palette.text.primary,
+}));
 
 const LeftPanel = () => {
   const objects = useSceneStore((state) => state.objects);
@@ -115,10 +163,10 @@ const LeftPanel = () => {
   return (
     <>
       <LeftPanelContainer previewMode={previewMode}>
-        <List>
+        <PanelTitle>Scene Objects</PanelTitle>
+        <StyledList>
           {objects.map((obj) => (
             <ObjectListItem
-              className="object-list-item"
               key={obj.id}
               selectedItem={selectedObject?.id === obj.id}
               onClick={() =>
@@ -128,18 +176,21 @@ const LeftPanel = () => {
                 )
               }
             >
-              <ListItemText primary={obj.name} />
+              <StyledListItemText
+                primary={obj.name}
+                secondary={obj.type || "Model"}
+              />
               {!previewMode && (
-                <IconButton
+                <StyledIconButton
                   size="small"
                   onClick={(e) => handleMenuOpen(e, obj.id)}
                 >
                   <MoreVert />
-                </IconButton>
+                </StyledIconButton>
               )}
             </ObjectListItem>
           ))}
-        </List>
+        </StyledList>
       </LeftPanelContainer>
 
       {/* Menu for options */}
