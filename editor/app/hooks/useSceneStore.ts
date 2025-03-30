@@ -15,8 +15,8 @@ interface ObservationPoint {
   id: number;
   title: string;
   description: string;
-  position: Vector3 | null;
-  target: Vector3 | null;
+  position: [number, number, number] | null;
+  target: [number, number, number] | null;
 }
 
 interface SceneState {
@@ -34,7 +34,7 @@ interface SceneState {
   setObjects: (newObjects: Model[]) => void;
   addModel: (model: Partial<Model>) => void;
   selectObject: (id: string, ref: THREE.Object3D | null) => void;
-  removeObject: (id: string) => void; // New removal function
+  removeObject: (id: string) => void;
   updateModelRef: (id: string, ref: THREE.Object3D | null) => void;
   deselectObject: () => void;
   setModelPosition: (id: string, newPosition: Vector3) => void;
@@ -79,71 +79,134 @@ const useSceneStore = create<SceneState>((set) => ({
   setTransformMode: (mode) => set({ transformMode: mode }),
 
   // Actions for scene objects (models)
-  setObjects: (newObjects) => set({ objects: newObjects }),
+  setObjects: (newObjects) => {
+    console.log("Setting objects:", newObjects);
+    set({ objects: newObjects });
+  },
 
   addModel: (model) =>
-    set((state) => ({
-      objects: [
-        ...state.objects,
-        {
-          id: uuidv4(),
-          position: [0, 0, 0],
-          ...model,
-        },
-      ],
-    })),
-  // Add this in the object actions section of your store:
+    set((state) => {
+      const newModel = {
+        id: uuidv4(),
+        name: model.name || "",
+        url: model.url || "",
+        type: model.type || "model",
+        position: model.position || [0, 0, 0],
+        rotation: model.rotation || [0, 0, 0],
+        scale: model.scale || [1, 1, 1],
+      };
+
+      console.log("Adding new model:", newModel);
+      const updatedObjects = [...state.objects, newModel];
+      console.log("Updated objects array:", updatedObjects);
+      return { objects: updatedObjects };
+    }),
+
   removeObject: (id: string) =>
-    set((state) => ({
-      objects: state.objects.filter((obj) => obj.id !== id),
-      selectedObject:
-        state.selectedObject && state.selectedObject.id === id
-          ? null
-          : state.selectedObject,
-    })),
+    set((state) => {
+      console.log("Removing object:", id);
+      const updatedObjects = state.objects.filter((obj) => obj.id !== id);
+      console.log("Updated objects after removal:", updatedObjects);
+      return {
+        objects: updatedObjects,
+        selectedObject:
+          state.selectedObject && state.selectedObject.id === id
+            ? null
+            : state.selectedObject,
+      };
+    }),
+
   selectObject: (id, ref) => {
-    return set((state) => ({
-      selectedObject: state.objects.find((obj) => obj.id === id)
+    console.log("Selecting object:", { id, ref });
+    return set((state) => {
+      const selectedObject = state.objects.find((obj) => obj.id === id)
         ? { ...state.objects.find((obj) => obj.id === id), ref }
-        : null,
-    }));
+        : null;
+      console.log("Selected object:", selectedObject);
+      return { selectedObject };
+    });
   },
-  updateModelRef: (id: string, ref: THREE.Object3D | null) =>
-    set((state) => ({
-      objects: state.objects.map((obj) =>
+
+  updateModelRef: (id: string, ref: THREE.Object3D | null) => {
+    console.log("Updating model ref:", { id, ref });
+    return set((state) => {
+      const updatedObjects = state.objects.map((obj) =>
         obj.id === id ? { ...obj, ref } : obj
-      ),
-    })),
+      );
+      console.log("Updated objects with ref:", updatedObjects);
+      return { objects: updatedObjects };
+    });
+  },
 
   deselectObject: () => set({ selectedObject: null }),
 
   setModelPosition: (id, newPosition) =>
-    set((state) => ({
-      objects: state.objects.map((obj) =>
-        obj.id === id ? { ...obj, position: newPosition.toArray() } : obj
-      ),
-    })),
+    set((state) => {
+      console.log("Setting model position:", {
+        id,
+        position: newPosition.toArray(),
+      });
+      const updatedObjects = state.objects.map((obj) =>
+        obj.id === id
+          ? {
+              ...obj,
+              position: newPosition.toArray() as [number, number, number],
+            }
+          : obj
+      );
+      console.log("Updated objects with position:", updatedObjects);
+      return { objects: updatedObjects };
+    }),
 
   setModelRotation: (id, newRotation) =>
-    set((state) => ({
-      objects: state.objects.map((obj) =>
+    set((state) => {
+      console.log("Setting model rotation:", {
+        id,
+        rotation: [newRotation.x, newRotation.y, newRotation.z],
+      });
+      const updatedObjects = state.objects.map((obj) =>
         obj.id === id
-          ? { ...obj, rotation: [newRotation.x, newRotation.y, newRotation.z] }
+          ? {
+              ...obj,
+              rotation: [newRotation.x, newRotation.y, newRotation.z] as [
+                number,
+                number,
+                number,
+              ],
+            }
           : obj
-      ),
-    })),
+      );
+      console.log("Updated objects with rotation:", updatedObjects);
+      return { objects: updatedObjects };
+    }),
 
   setModelScale: (id, newScale) =>
-    set((state) => ({
-      objects: state.objects.map((obj) =>
+    set((state) => {
+      console.log("Setting model scale:", {
+        id,
+        scale: [newScale.x, newScale.y, newScale.z],
+      });
+      const updatedObjects = state.objects.map((obj) =>
         obj.id === id
-          ? { ...obj, scale: [newScale.x, newScale.y, newScale.z] }
+          ? {
+              ...obj,
+              scale: [newScale.x, newScale.y, newScale.z] as [
+                number,
+                number,
+                number,
+              ],
+            }
           : obj
-      ),
-    })),
+      );
+      console.log("Updated objects with scale:", updatedObjects);
+      return { objects: updatedObjects };
+    }),
 
   // Actions for observation points
-  setObservationPoints: (newPoints) => set({ observationPoints: newPoints }),
+  setObservationPoints: (newPoints) => {
+    console.log("Setting observation points:", newPoints);
+    set({ observationPoints: newPoints });
+  },
 
   addObservationPoint: () =>
     set((state) => {
@@ -169,12 +232,14 @@ const useSceneStore = create<SceneState>((set) => ({
         state.observationPoints.find((point) => point.id === id) || null,
     })),
 
-  updateObservationPoint: (id, updates) =>
-    set((state) => ({
+  updateObservationPoint: (id, updates) => {
+    console.log("Updating observation point:", { id, updates });
+    return set((state) => ({
       observationPoints: state.observationPoints.map((point) =>
         point.id === id ? { ...point, ...updates } : point
       ),
-    })),
+    }));
+  },
 
   deleteObservationPoint: (id) =>
     set((state) => ({
