@@ -1,14 +1,23 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-import prisma from "./prisma";
+import { prisma } from "./prisma";
+import { AuthOptions } from "next-auth";
+import { JWT } from "next-auth/jwt";
 
-export const authOptions = {
+interface UserSession {
+  id: string;
+  name?: string;
+  email?: string;
+  image?: string;
+}
+
+export const authOptions: AuthOptions = {
   pages: {
     signIn: "/auth/signin",
   },
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
   },
   adapter: PrismaAdapter(prisma),
   secret: process.env.SECRET,
@@ -44,7 +53,7 @@ export const authOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub;
+        (session.user as UserSession).id = token.sub as string;
       }
       return session;
     },

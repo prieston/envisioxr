@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, Suspense, useMemo } from "react";
 import * as THREE from "three";
-import useSceneStore from "@/hooks/useSceneStore";
+import useSceneStore from "../../app/hooks/useSceneStore";
 import useModelLoader from "./useModelLoader";
 
 const CLICK_THRESHOLD = 5;

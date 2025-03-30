@@ -1,7 +1,7 @@
 import "@/global.css";
 import { ThemeProvider, CssBaseline } from "@mui/material";
-import theme from "@/theme";
-import ClientProvider from "@/ClientProvider";
+import theme from "@/lib/theme";
+import ClientProvider from "@/lib/ClientProvider";
 import { ToastContainer } from "react-toastify";
 
 export const metadata = {

@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
-import useSceneStore from "@/hooks/useSceneStore";
+import useSceneStore from "../../app/hooks/useSceneStore";
 
 const ObservationPoint = ({
   id,

@@ -3,15 +3,28 @@
 import React from "react";
 import dynamic from "next/dynamic";
 
+interface SceneProps {
+  initialSceneData: any;
+  onSceneDataChange?: (data: any) => void;
+  renderObservationPoints?: boolean;
+  enableXR?: boolean;
+}
+
 // Import your Scene dynamically (with SSR disabled)
-const Scene = dynamic(() => import("@/components/Scene/Scene"), {
+const Scene = dynamic<SceneProps>(() => import("@/components/Scene/Scene"), {
   ssr: false,
 });
 
-const SceneCanvas = ({
+interface SceneCanvasProps {
+  initialSceneData: any;
+  onSceneDataChange?: (data: any) => void;
+  renderObservationPoints?: boolean;
+}
+
+const SceneCanvas: React.FC<SceneCanvasProps> = ({
   initialSceneData,
   onSceneDataChange,
-  renderObservationPoints,
+  renderObservationPoints = true,
 }) => {
   return (
     <div

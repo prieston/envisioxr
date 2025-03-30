@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { useThree } from "@react-three/fiber";
-import useSceneStore from "@/hooks/useSceneStore";
+import useSceneStore from "../../../app/hooks/useSceneStore";
 
 const CameraPOVCaptureHandler = ({ orbitControlsRef }) => {
   const { camera } = useThree();
