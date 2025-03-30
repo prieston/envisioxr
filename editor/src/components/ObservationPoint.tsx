@@ -33,7 +33,7 @@ const ObservationPoint = ({
   }, [position, target]);
 
   // In preview mode, do not render the arrow.
-  if (previewMode || !renderObservationPoints) {
+  if (previewMode || !renderObservationPoints || !position || !target) {
     return null;
   }
 
@@ -46,11 +46,11 @@ const ObservationPoint = ({
             // Compute direction using the target and position
             new THREE.Vector3()
               .subVectors(
-                new THREE.Vector3(...(target || [0, 0, 1])),
-                new THREE.Vector3(...(position || [0, 0, 0]))
+                new THREE.Vector3(...target),
+                new THREE.Vector3(...position)
               )
               .normalize(),
-            new THREE.Vector3(...(position || [0, 0, 0])),
+            new THREE.Vector3(...position),
             1, // Length of the arrow; adjust as needed
             selected ? 0xff0000 : 0xffff00 // Color: red if selected, yellow otherwise
           )
