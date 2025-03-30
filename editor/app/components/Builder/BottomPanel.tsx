@@ -1,15 +1,17 @@
 "use client";
 
 import React from "react";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
 import AddIcon from "@mui/icons-material/Add";
-import useSceneStore from "../../hooks/useSceneStore";
+import useSceneStore from "@/app/hooks/useSceneStore";
 
 // Container for the entire bottom panel
 interface BottomPanelContainerProps {
@@ -43,10 +45,19 @@ const AddObservationCard = styled(Card)(({ theme }) => ({
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer",
-  border: "1px dashed rgba(255, 255, 255, 0.5)",
+  background: "rgba(30, 41, 59, 0.7)",
+  backdropFilter: "blur(10px)",
+  border: "2px dashed rgba(99, 102, 241, 0.3)",
+  boxShadow:
+    "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+  transition: "all 0.3s ease-in-out",
   marginRight: theme.spacing(2),
   "&:hover": {
-    border: "1px solid white",
+    transform: "translateY(-2px)",
+    boxShadow:
+      "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+    border: "2px dashed rgba(99, 102, 241, 0.5)",
+    backgroundColor: "rgba(99, 102, 241, 0.05)",
   },
 }));
 
@@ -55,6 +66,13 @@ const CenteredCardContent = styled(CardContent)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
+  gap: theme.spacing(1),
+  padding: theme.spacing(1.5),
+  height: "100%",
+  justifyContent: "center",
+  "&:last-child": {
+    paddingBottom: theme.spacing(1.5),
+  },
 }));
 
 // Card for individual observation points
@@ -62,7 +80,7 @@ interface ObservationCardProps {
   selected: boolean;
 }
 
-const ObservationCard = styled(Card)<ObservationCardProps>(
+const StyledObservationCard = styled(Card)<ObservationCardProps>(
   ({ theme, selected }) => ({
     minWidth: 150,
     height: 80,
@@ -71,18 +89,66 @@ const ObservationCard = styled(Card)<ObservationCardProps>(
     justifyContent: "center",
     marginRight: theme.spacing(2),
     cursor: "pointer",
-    backgroundColor: selected
-      ? theme.palette.primary.dark
-      : theme.palette.background.paper,
-    color: selected ? "white" : theme.palette.text.primary,
-    border: selected ? "2px solid white" : "1px solid rgba(255, 255, 255, 0.1)",
+    background: selected ? "rgba(99, 102, 241, 0.15)" : "rgba(30, 41, 59, 0.7)",
+    backdropFilter: "blur(10px)",
+    border: selected
+      ? "2px solid rgba(99, 102, 241, 0.5)"
+      : "1px solid rgba(255, 255, 255, 0.1)",
+    boxShadow: selected
+      ? "0 4px 12px -1px rgba(99, 102, 241, 0.2), 0 2px 4px -1px rgba(99, 102, 241, 0.1)"
+      : "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    transition: "all 0.3s ease-in-out",
     "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow:
+        "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+      border: selected
+        ? "2px solid rgba(99, 102, 241, 0.7)"
+        : "1px solid rgba(255, 255, 255, 0.2)",
       backgroundColor: selected
-        ? theme.palette.primary.dark
-        : theme.palette.action.hover,
+        ? "rgba(99, 102, 241, 0.2)"
+        : "rgba(30, 41, 59, 0.8)",
     },
   })
 );
+
+const ObservationTitle = styled(Typography)(({ theme }) => ({
+  fontWeight: 600,
+  fontSize: "0.875rem",
+  textAlign: "center",
+  background: "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+}));
+
+const ObservationDescription = styled(Typography)(({ theme }) => ({
+  fontSize: "0.75rem",
+  color: theme.palette.text.secondary,
+  textAlign: "center",
+  display: "-webkit-box",
+  WebkitLineClamp: 1,
+  WebkitBoxOrient: "vertical",
+  overflow: "hidden",
+}));
+
+const AddIconWrapper = styled(Box)(({ theme }) => ({
+  width: 32,
+  height: 32,
+  minWidth: 32,
+  minHeight: 32,
+  borderRadius: "50%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(99, 102, 241, 0.1)",
+  color: theme.palette.primary.main,
+  transition: "all 0.3s ease-in-out",
+  flexShrink: 0,
+  "&:hover": {
+    backgroundColor: "rgba(99, 102, 241, 0.2)",
+    transform: "scale(1.1)",
+  },
+}));
 
 const BottomPanel = () => {
   const observationPoints = useSceneStore((state) => state.observationPoints);
@@ -99,33 +165,39 @@ const BottomPanel = () => {
 
   return (
     <BottomPanelContainer previewMode={previewMode}>
-      {/* Add New Observation Button */}
       <AddObservationCard onClick={addObservationPoint}>
         <CenteredCardContent>
-          <Tooltip title="Add Observation Point">
-            <IconButton color="primary">
-              <AddIcon />
-            </IconButton>
-          </Tooltip>
-          <Typography variant="caption">Add Point</Typography>
+          <AddIconWrapper>
+            <AddIcon sx={{ fontSize: 24 }} />
+          </AddIconWrapper>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.secondary",
+              textAlign: "center",
+            }}
+          >
+            Add Observation
+          </Typography>
         </CenteredCardContent>
       </AddObservationCard>
 
-      {/* List of Observation Points */}
-      {observationPoints.map((point) => {
-        const isSelected = selectedObservation?.id === point.id;
-        return (
-          <ObservationCard
-            key={point.id}
-            selected={isSelected}
-            onClick={() => selectObservationPoint(point.id)}
-          >
-            <CardContent>
-              <Typography variant="body2">{point.title}</Typography>
-            </CardContent>
-          </ObservationCard>
-        );
-      })}
+      {observationPoints.map((observation) => (
+        <StyledObservationCard
+          key={observation.id}
+          selected={selectedObservation?.id === observation.id}
+          onClick={() => selectObservationPoint(observation.id)}
+        >
+          <CenteredCardContent>
+            <ObservationTitle>
+              {observation.title || "Untitled"}
+            </ObservationTitle>
+            <ObservationDescription>
+              {observation.description || "No description"}
+            </ObservationDescription>
+          </CenteredCardContent>
+        </StyledObservationCard>
+      ))}
     </BottomPanelContainer>
   );
 };
