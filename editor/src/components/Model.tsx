@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useRef, useEffect, Suspense, useMemo } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
+import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import useSceneStore from "../../app/hooks/useSceneStore";
 import useModelLoader from "./useModelLoader";
+import { useModelSelection } from "./hooks/useModelSelection";
+import { useModelMaterials } from "./hooks/useModelMaterials";
 
 const CLICK_THRESHOLD = 5;
 
@@ -11,11 +14,11 @@ interface ModelProps {
   id: string;
   url: string;
   type?: string;
-  position: [number, number, number];
-  scale: [number, number, number];
-  rotation: [number, number, number];
-  selected: boolean;
-  onSelect: (id: string, object: THREE.Object3D) => void;
+  position?: [number, number, number];
+  scale?: [number, number, number];
+  rotation?: [number, number, number];
+  selected?: boolean;
+  onSelect?: (id: string, object: THREE.Object3D) => void;
 }
 
 const Model = ({
@@ -49,91 +52,61 @@ const Model = ({
   }, [originalObject]);
 
   const modelRef = useRef<THREE.Object3D | null>(null);
-  const pointerDown = useRef<{ x: number; y: number } | null>(null);
-
-  // Subscribe to previewMode from the store.
   const previewMode = useSceneStore((state) => state.previewMode);
-  // Get the updateModelRef function from the store.
   const updateModelRef = useSceneStore((state) => state.updateModelRef);
+  const setModelPosition = useSceneStore((state) => state.setModelPosition);
+  const setModelRotation = useSceneStore((state) => state.setModelRotation);
+  const setModelScale = useSceneStore((state) => state.setModelScale);
 
-  // Update the model: set shadow properties and adjust emissive color if selected.
-  // (Preserved commented-out code below.)
-  // useEffect(() => {
-  //   if (modelRef.current) {
-  //     modelRef.current.traverse((child) => {
-  //       if (child.isMesh) {
-  //         // Enable shadows on each mesh.
-  //         child.castShadow = true;
-  //         child.receiveShadow = true;
-  //         // Update emissive color when not in preview mode.
-  //       }
-  //     });
-  //   }
-  // }, [previewMode]);
+  // Use custom hooks for model functionality
+  const { handlePointerDown, handlePointerUp } = useModelSelection({
+    id,
+    onSelect,
+    previewMode,
+  });
 
-  // Update the model: adjust emissive color if selected.
-  useEffect(() => {
-    if (modelRef.current && !previewMode) {
-      modelRef.current.traverse((child) => {
-        // @ts-ignore-next-line
-        if (child.isMesh && child.material) {
-          // Set emissive to highlight color if selected, otherwise reset to black.
-          // @ts-ignore-next-line
-          child.material.emissive = selected
-            ? new THREE.Color(0x00ffff)
-            : new THREE.Color(0x000000);
-        }
-      });
-    }
-  }, [selected, previewMode]);
+  useModelMaterials({
+    modelRef,
+    selected,
+    previewMode,
+  });
 
-  // Update scale manually when the scale prop changes.
-  useEffect(() => {
-    if (modelRef.current && scale) {
-      modelRef.current.scale.set(...scale);
-    }
-  }, [scale]);
-
-  // **New useEffect to update the model's reference in the store on mount.**
+  // Update model properties when they change
   useEffect(() => {
     if (modelRef.current) {
-      // Update the store with the model's ref.
+      // Update position
+      if (position) {
+        modelRef.current.position.set(...position);
+      }
+      // Update rotation
+      if (rotation) {
+        modelRef.current.rotation.set(...rotation);
+      }
+      // Update scale
+      if (scale) {
+        modelRef.current.scale.set(...scale);
+      }
+    }
+  }, [position, rotation, scale]);
+
+  // Update model ref in store
+  useEffect(() => {
+    if (modelRef.current) {
       updateModelRef(id, modelRef.current);
     }
   }, [id, updateModelRef]);
 
-  const handlePointerDown = (e: any) => {
-    e.stopPropagation();
-    pointerDown.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handlePointerUp = (e: any) => {
-    e.stopPropagation();
-    if (!pointerDown.current) return;
-    const dx = e.clientX - pointerDown.current.x;
-    const dy = e.clientY - pointerDown.current.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance < CLICK_THRESHOLD && !previewMode) {
-      onSelect(id, modelRef.current!);
-    }
-    pointerDown.current = null;
-  };
-
-  // If cloned object is not ready, render nothing.
-  if (!clonedObject) return null;
+  if (!clonedObject) {
+    return null;
+  }
 
   return (
-    <Suspense fallback={null}>
-      {/* @ts-ignore-next-line */}
-      <primitive
-        object={clonedObject}
-        ref={modelRef}
-        position={position}
-        rotation={rotation}
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-      />
-    </Suspense>
+    <primitive
+      object={clonedObject}
+      ref={modelRef}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+    />
   );
 };
 

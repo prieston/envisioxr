@@ -163,11 +163,14 @@ const BuilderActions = ({ onSave, onPublish }) => {
           <Tooltip title="Save">
             <IconButton
               color="inherit"
-              onClick={async () => {
+              onClick={() => {
                 if (onSave) {
-                  await onSave()
+                  onSave()
                     .then(() => showToast("Saved!"))
-                    .catch(() => showToast("Error saving."));
+                    .catch((error) => {
+                      console.error("Error saving:", error);
+                      showToast(error.message || "Error saving.");
+                    });
                 } else {
                   showToast("Save action not yet implemented.");
                 }

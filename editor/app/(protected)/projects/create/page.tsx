@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Box, TextField, Button, Typography } from "@mui/material";
 import { useRouter } from "next/navigation";
-import AdminAppBar from "@/components/AppBar";
+import AdminAppBar from "@/app/components/AppBar";
 
 const CreateProjectPage = () => {
   const router = useRouter();

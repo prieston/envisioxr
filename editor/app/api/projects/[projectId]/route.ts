@@ -74,12 +74,29 @@ export async function POST(request: NextRequest, { params }: ProjectParams) {
   const userId = session.user.id;
 
   try {
+    // First verify project ownership
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+    if (!project || project.userId !== userId) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
     const body = await request.json();
     const { sceneData } = body;
+
+    if (!sceneData) {
+      return NextResponse.json(
+        { error: "Scene data is required" },
+        { status: 400 }
+      );
+    }
+
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
       data: {
         sceneData,
+        updatedAt: new Date(),
       },
     });
     return NextResponse.json({ project: updatedProject });

@@ -10,6 +10,8 @@ import {
 } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import AdminAppBar from "@/app/components/AppBar";
+import { showToast } from "@/app/utils/toastUtils";
+import { ToastContainer } from "react-toastify";
 
 const EditProjectPage = () => {
   const { projectId } = useParams();
@@ -51,13 +53,18 @@ const EditProjectPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, description }),
       });
+
       if (!res.ok) {
-        throw new Error("Failed to update project");
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to update project");
       }
+
       const data = await res.json();
+      showToast("Project saved successfully!");
       router.push("/dashboard");
     } catch (error) {
       console.error("Error saving project details:", error);
+      showToast(error.message || "Error saving project");
     }
   };
 
@@ -106,6 +113,7 @@ const EditProjectPage = () => {
           </Button>
         </Box>
       </Box>
+      <ToastContainer />
     </>
   );
 };

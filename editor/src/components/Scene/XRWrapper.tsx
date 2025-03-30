@@ -1,21 +1,27 @@
+"use client";
+
 import React from "react";
 import { XR, createXRStore } from "@react-three/xr";
-import CameraSpringController from "./CameraSpringController";
-import ObservationPointHandler from "./ObservationPointHandler";
-import CameraPOVCaptureHandler from "./CameraPOVCaptureHandler";
 import { OrbitControls } from "@react-three/drei";
+import {
+  CameraSpringController,
+  ObservationPointHandler,
+  CameraPOVCaptureHandler,
+} from ".";
 
 // Create an XR store for XR usage
 const xrStore = createXRStore();
-// A simple XRWrapper that conditionally wraps children in an <XR> element.
-const XRWrapper = ({
-  enabled,
-  children,
-  orbitControlsRef,
-}: {
+
+interface XRWrapperProps {
   enabled: boolean;
   children: React.ReactNode;
   orbitControlsRef: React.RefObject<any>;
+}
+
+const XRWrapper: React.FC<XRWrapperProps> = ({
+  enabled,
+  children,
+  orbitControlsRef,
 }) => {
   return (
     <>

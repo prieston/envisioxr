@@ -1,6 +1,6 @@
 "use client";
-import PreviewScene from "@/components/PreviewScene";
-import useSceneStore from "@/hooks/useSceneStore";
+import PreviewScene from "@/app/components/PreviewScene";
+import useSceneStore from "@/app/hooks/useSceneStore";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";

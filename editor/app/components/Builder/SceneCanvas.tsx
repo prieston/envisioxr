@@ -11,9 +11,12 @@ interface SceneProps {
 }
 
 // Import your Scene dynamically (with SSR disabled)
-const Scene = dynamic<SceneProps>(() => import("@/components/Scene/Scene"), {
-  ssr: false,
-});
+const Scene = dynamic<SceneProps>(
+  () => import("../../../src/components/Scene/Scene"),
+  {
+    ssr: false,
+  }
+);
 
 interface SceneCanvasProps {
   initialSceneData: any;

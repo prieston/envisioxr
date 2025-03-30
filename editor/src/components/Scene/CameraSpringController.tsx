@@ -23,21 +23,39 @@ const CameraSpringController = ({ orbitControlsRef }) => {
     if (previewMode && observationPoints.length > 0) {
       const currentPoint = observationPoints[previewIndex];
       if (currentPoint && currentPoint.position && currentPoint.target) {
+        // Ensure we have valid arrays for position and target
+        const position = Array.isArray(currentPoint.position)
+          ? currentPoint.position
+          : [0, 0, 0];
+        const target = Array.isArray(currentPoint.target)
+          ? currentPoint.target
+          : [0, 0, 0];
+
+        // Start the camera transition
         api.start({
-          // @ts-ignore-next-line
-          cameraPosition: currentPoint.position,
-          target: currentPoint.target,
+          cameraPosition: position,
+          target: target,
         });
+
+        // Update the orbit controls target immediately
+        if (orbitControlsRef.current) {
+          orbitControlsRef.current.target.set(...target);
+          orbitControlsRef.current.update();
+        }
       }
     }
-  }, [previewMode, previewIndex, observationPoints, api]);
+  }, [previewMode, previewIndex, observationPoints, api, orbitControlsRef]);
 
   useFrame(() => {
-    const previewModeState = useSceneStore.getState().previewMode;
-    if (previewModeState && orbitControlsRef.current) {
-      camera.position.set(...spring.cameraPosition.get());
-      orbitControlsRef.current.target.set(...spring.target.get());
-      orbitControlsRef.current.update();
+    if (previewMode && orbitControlsRef.current) {
+      const position = spring.cameraPosition.get();
+      const target = spring.target.get();
+
+      if (Array.isArray(position) && Array.isArray(target)) {
+        camera.position.set(...position);
+        orbitControlsRef.current.target.set(...target);
+        orbitControlsRef.current.update();
+      }
     }
   });
 
