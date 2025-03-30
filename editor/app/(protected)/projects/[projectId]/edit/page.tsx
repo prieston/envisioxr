@@ -9,7 +9,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
-import AdminAppBar from "@/components/AppBar";
+import AdminAppBar from "@/app/components/AppBar";
 
 const EditProjectPage = () => {
   const { projectId } = useParams();

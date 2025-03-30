@@ -3,9 +3,9 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Box, CircularProgress } from "@mui/material";
-import AdminLayout from "@/components/Builder/AdminLayout";
-import SceneCanvas from "@/components/Builder/SceneCanvas";
-import useSceneStore from "@/hooks/useSceneStore";
+import AdminLayout from "@/app/components/Builder/AdminLayout";
+import SceneCanvas from "@/app/components/Builder/SceneCanvas";
+import useSceneStore from "@/app/hooks/useSceneStore";
 
 const BuilderPage = () => {
   const { projectId } = useParams();

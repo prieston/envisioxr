@@ -21,22 +21,22 @@ interface LeftPanelContainerProps {
   previewMode: boolean;
 }
 
-const LeftPanelContainer = styled(Box)<LeftPanelContainerProps>(
-  ({ theme, previewMode }) => ({
-    width: "250px",
-    height: "100%",
-    backgroundColor: theme.palette.background.paper,
-    color: theme.palette.text.primary,
-    padding: theme.spacing(2),
-    borderRight: "1px solid rgba(255, 255, 255, 0.1)",
-    userSelect: "none",
-    pointerEvents: previewMode ? "none" : "auto",
-    opacity: previewMode ? 0.5 : 1,
-    cursor: previewMode ? "not-allowed" : "default",
-    filter: previewMode ? "grayscale(100%)" : "none",
-    transition: "opacity 0.3s ease, filter 0.3s ease",
-  })
-);
+const LeftPanelContainer = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "previewMode",
+})<LeftPanelContainerProps>(({ theme, previewMode }) => ({
+  width: "250px",
+  height: "100%",
+  backgroundColor: theme.palette.background.paper,
+  color: theme.palette.text.primary,
+  padding: theme.spacing(2),
+  borderRight: "1px solid rgba(255, 255, 255, 0.1)",
+  userSelect: "none",
+  pointerEvents: previewMode ? "none" : "auto",
+  opacity: previewMode ? 0.5 : 1,
+  cursor: previewMode ? "not-allowed" : "default",
+  filter: previewMode ? "grayscale(100%)" : "none",
+  transition: "opacity 0.3s ease, filter 0.3s ease",
+}));
 
 // Styled ListItem for objects, using a prop (selectedItem) to determine styles
 interface ObjectListItemProps {
@@ -74,7 +74,10 @@ const LeftPanel = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Open menu on three-dots click and store target id
-  const handleMenuOpen = (e: React.MouseEvent<HTMLButtonElement>, objectId: string) => {
+  const handleMenuOpen = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    objectId: string
+  ) => {
     e.stopPropagation();
     setMenuAnchor(e.currentTarget);
     setDeleteTargetId(objectId);
@@ -150,9 +153,7 @@ const LeftPanel = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={cancelDelete}>
-        <DialogTitle>
-          Are you sure you want to delete this object?
-        </DialogTitle>
+        <DialogTitle>Are you sure you want to delete this object?</DialogTitle>
         <DialogActions>
           <Button onClick={cancelDelete} color="primary">
             Cancel

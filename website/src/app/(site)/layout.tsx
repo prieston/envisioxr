@@ -17,27 +17,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <NextTopLoader
-          color="#006BFF"
-          crawlSpeed={300}
-          showSpinner={false}
-          shadow="none"
-        />
-        <ThemeProvider
-          enableSystem={false}
-          attribute="class"
-          defaultTheme="dark"
-        >
-          <AuthProvider>
-            <ToasterContext />
-            <Navbar />
-            {children}
-            <Footer />
-          </AuthProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+    <div suppressHydrationWarning>
+      <NextTopLoader
+        color="#006BFF"
+        crawlSpeed={300}
+        showSpinner={false}
+        shadow="none"
+      />
+      <ThemeProvider enableSystem={false} attribute="class" defaultTheme="dark">
+        <AuthProvider>
+          <ToasterContext />
+          <Navbar />
+          {children}
+          <Footer />
+        </AuthProvider>
+      </ThemeProvider>
+    </div>
   );
 }

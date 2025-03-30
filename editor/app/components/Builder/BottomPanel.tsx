@@ -16,24 +16,24 @@ interface BottomPanelContainerProps {
   previewMode: boolean;
 }
 
-const BottomPanelContainer = styled(Box)<BottomPanelContainerProps>(
-  ({ theme, previewMode }) => ({
-    width: "100%",
-    height: "120px",
-    backgroundColor: theme.palette.background.paper,
-    padding: theme.spacing(2),
-    display: "flex",
-    alignItems: "center",
-    overflowX: "auto",
-    borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-    pointerEvents: previewMode ? "none" : "auto",
-    opacity: previewMode ? 0.5 : 1,
-    cursor: previewMode ? "not-allowed" : "auto",
-    filter: previewMode ? "grayscale(100%)" : "none",
-    transition: "opacity 0.3s ease, filter 0.3s ease",
-    userSelect: "none",
-  })
-);
+const BottomPanelContainer = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "previewMode",
+})<BottomPanelContainerProps>(({ theme, previewMode }) => ({
+  width: "100%",
+  height: "120px",
+  backgroundColor: theme.palette.background.paper,
+  padding: theme.spacing(2),
+  display: "flex",
+  alignItems: "center",
+  overflowX: "auto",
+  borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+  pointerEvents: previewMode ? "none" : "auto",
+  opacity: previewMode ? 0.5 : 1,
+  cursor: previewMode ? "not-allowed" : "auto",
+  filter: previewMode ? "grayscale(100%)" : "none",
+  transition: "opacity 0.3s ease, filter 0.3s ease",
+  userSelect: "none",
+}));
 
 // Card for the "Add New Observation" button
 const AddObservationCard = styled(Card)(({ theme }) => ({

@@ -1,16 +1,32 @@
-// app/api/projects/[projectId]/route.js
-import prisma from '@/prisma';
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/authOptions';
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/authOptions";
+import { NextRequest } from "next/server";
+import { Session } from "next-auth";
 
-export async function GET(request, { params }) {
+interface UserSession extends Session {
+  user: {
+    id: string;
+    name?: string;
+    email?: string;
+    image?: string;
+  };
+}
+
+interface ProjectParams {
+  params: {
+    projectId: string;
+  };
+}
+
+export async function GET(request: NextRequest, { params }: ProjectParams) {
   const { projectId } = params;
 
   // Try to get the session, but if it fails, that's fine.
-  let session = null;
+  let session: UserSession | null = null;
   try {
-    session = await getServerSession(authOptions);
+    session = (await getServerSession(authOptions)) as UserSession;
   } catch (error) {
     // If fetching the session fails, we simply treat it as no session.
     session = null;
@@ -40,13 +56,18 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({ project });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Internal Server Error",
+      },
+      { status: 500 }
+    );
   }
 }
 
-export async function POST(request, { params }) {
+export async function POST(request: NextRequest, { params }: ProjectParams) {
   const { projectId } = params;
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as UserSession;
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -64,13 +85,18 @@ export async function POST(request, { params }) {
     return NextResponse.json({ project: updatedProject });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Internal Server Error",
+      },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(request, { params }) {
+export async function DELETE(request: NextRequest, { params }: ProjectParams) {
   const { projectId } = params;
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as UserSession;
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -88,13 +114,18 @@ export async function DELETE(request, { params }) {
     });
     return NextResponse.json({ message: "Project deleted successfully" });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Internal Server Error",
+      },
+      { status: 500 }
+    );
   }
 }
 
-export async function PUT(request, { params }) {
+export async function PUT(request: NextRequest, { params }: ProjectParams) {
   const { projectId } = params;
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as UserSession;
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -116,13 +147,18 @@ export async function PUT(request, { params }) {
     });
     return NextResponse.json({ project: updatedProject });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Internal Server Error",
+      },
+      { status: 500 }
+    );
   }
 }
 
-export async function PATCH(request, { params }) {
+export async function PATCH(request: NextRequest, { params }: ProjectParams) {
   const { projectId } = params;
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as UserSession;
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -142,9 +178,17 @@ export async function PATCH(request, { params }) {
       });
       return NextResponse.json({ project: updatedProject });
     } else {
-      return NextResponse.json({ error: "No publish action provided" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No publish action provided" },
+        { status: 400 }
+      );
     }
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Internal Server Error",
+      },
+      { status: 500 }
+    );
   }
 }

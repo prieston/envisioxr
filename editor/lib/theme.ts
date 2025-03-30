@@ -1,9 +1,8 @@
-// app/theme.js
 "use client";
 
-import { createTheme } from "@mui/material/styles";
+import { createTheme, Theme } from "@mui/material/styles";
 
-const theme = createTheme({
+const theme: Theme = createTheme({
   palette: {
     mode: "dark",
     primary: {

@@ -13,9 +13,9 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "plugins": [{ "name": "next" }],
-    "baseUrl": "./",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*", "app/*", "lib/*"],
+      "@/*": ["./src/*"],
       "@prisma": ["../packages/prisma"]
     },
   },

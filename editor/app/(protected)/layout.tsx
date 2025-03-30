@@ -1,10 +1,10 @@
 import "@/global.css";
 import { ThemeProvider, CssBaseline } from "@mui/material";
-import theme from "@/theme";
+import theme from "@/lib/theme";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ToastContainer } from "react-toastify";
-import ClientProvider from "@/ClientProvider";
+import ClientProvider from "@/lib/ClientProvider";
 
 export const dynamic = "force-dynamic";
 

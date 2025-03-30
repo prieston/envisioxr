@@ -1,0 +1,33 @@
+{
+  "name": "envisioxr",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "website",
+    "editor",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"pnpm dev:website\" \"pnpm dev:editor\"",
+    "dev:website": "cd website && pnpm dev",
+    "dev:editor": "cd editor && pnpm dev",
+    "build:website": "cd website && pnpm build",
+    "build:editor": "cd editor && pnpm build",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "prisma:generate": "cd packages/prisma && pnpm generate"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  }
+}

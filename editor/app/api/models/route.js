@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/authOptions";
+import { authOptions } from "@/lib/authOptions";
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import prisma from "@/prisma";
+import { prisma } from "@/lib/prisma";
 
 // Hard-coded stock models.
 const stockModels = [
