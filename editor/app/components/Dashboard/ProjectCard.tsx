@@ -14,7 +14,7 @@ import { styled } from "@mui/material/styles";
 const GlassCard = styled(Card)(({ theme }) => ({
   width: 300,
   position: "relative",
-  background: "rgba(30, 41, 59, 0.7)",
+  background: "#1e1e1e",
   backdropFilter: "blur(10px)",
   border: "1px solid rgba(255, 255, 255, 0.1)",
   boxShadow:
@@ -31,9 +31,7 @@ const GlassCard = styled(Card)(({ theme }) => ({
 const CardTitle = styled(Typography)(({ theme }) => ({
   fontWeight: 600,
   marginBottom: theme.spacing(1),
-  background: "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
+  color: theme.palette.text.primary,
 }));
 
 const CardDescription = styled(Typography)(({ theme }) => ({
@@ -45,11 +43,11 @@ const CardDescription = styled(Typography)(({ theme }) => ({
 }));
 
 const ActionButton = styled(Button)(({ theme }) => ({
-  color: theme.palette.primary.main,
-  borderColor: "rgba(99, 102, 241, 0.2)",
+  color: theme.palette.text.primary,
+  borderColor: "rgba(255, 255, 255, 0.1)",
   "&:hover": {
-    borderColor: theme.palette.primary.main,
-    backgroundColor: "rgba(99, 102, 241, 0.1)",
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
 }));
 

@@ -9,7 +9,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
-import AdminAppBar from "@/app/components/AppBar";
+import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 import { showToast } from "@/app/utils/toastUtils";
 import { ToastContainer } from "react-toastify";
 
@@ -86,7 +86,7 @@ const EditProjectPage = () => {
   return (
     <>
       <AdminAppBar mode="simple" />
-      <Box sx={{ padding: 3 }}>
+      <Box sx={{ padding: 3, marginTop: "64px" }}>
         <Typography variant="h5" gutterBottom>
           Edit Project
         </Typography>

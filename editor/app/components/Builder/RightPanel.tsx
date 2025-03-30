@@ -16,23 +16,80 @@ interface RightPanelContainerProps {
 const RightPanelContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== "previewMode",
 })<RightPanelContainerProps>(({ theme, previewMode }) => ({
-  width: "300px",
+  width: "280px",
   height: "100%",
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: "#121212",
   color: theme.palette.text.primary,
   padding: theme.spacing(2),
-  borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
+  borderLeft: "1px solid rgba(255, 255, 255, 0.08)",
   userSelect: "none",
   pointerEvents: previewMode ? "none" : "auto",
   opacity: previewMode ? 0.5 : 1,
   cursor: previewMode ? "not-allowed" : "default",
   filter: previewMode ? "grayscale(100%)" : "none",
-  transition: "opacity 0.3s ease, filter 0.3s ease",
+  transition: "all 0.3s ease",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: "1px",
+    background:
+      "linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), transparent)",
+  },
 }));
 
-// Styled Button for actions with consistent margin-top spacing
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    "& fieldset": {
+      borderColor: "rgba(255, 255, 255, 0.1)",
+    },
+    "&:hover fieldset": {
+      borderColor: "rgba(255, 255, 255, 0.2)",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "rgba(255, 255, 255, 0.3)",
+    },
+    "& input": {
+      color: theme.palette.text.primary,
+    },
+  },
+  "& .MuiInputLabel-root": {
+    color: theme.palette.text.secondary,
+    "&.Mui-focused": {
+      color: theme.palette.text.primary,
+    },
+  },
+  marginBottom: theme.spacing(2),
+}));
+
 const ActionButton = styled(Button)(({ theme }) => ({
   marginTop: theme.spacing(2),
+  backgroundColor: "rgba(255, 255, 255, 0.05)",
+  color: theme.palette.text.primary,
+  border: "1px solid rgba(255, 255, 255, 0.1)",
+  "&:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+  },
+  "&.delete": {
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
+    border: "1px solid rgba(239, 68, 68, 0.2)",
+    color: "rgba(239, 68, 68, 0.9)",
+    "&:hover": {
+      backgroundColor: "rgba(239, 68, 68, 0.15)",
+      border: "1px solid rgba(239, 68, 68, 0.3)",
+    },
+  },
+}));
+
+const PanelTitle = styled(Typography)(({ theme }) => ({
+  fontSize: "1rem",
+  fontWeight: 500,
+  marginBottom: theme.spacing(2),
+  color: theme.palette.text.primary,
 }));
 
 const RightPanel = () => {
@@ -76,49 +133,41 @@ const RightPanel = () => {
   if (!selectedObservation) {
     return (
       <RightPanelContainer previewMode={previewMode}>
-        <Typography>Select an observation point to edit</Typography>
+        <PanelTitle>Select an observation point to edit</PanelTitle>
       </RightPanelContainer>
     );
   }
 
   return (
     <RightPanelContainer previewMode={previewMode}>
-      <Typography variant="h6">Edit Observation</Typography>
+      <PanelTitle>Edit Observation</PanelTitle>
 
-      <TextField
+      <StyledTextField
         label="Title"
         fullWidth
-        margin="normal"
         value={localTitle}
         onChange={handleTitleChange}
       />
 
-      <TextField
+      <StyledTextField
         label="Description"
         multiline
         rows={4}
         fullWidth
-        margin="normal"
         value={localDescription}
         onChange={handleDescriptionChange}
       />
 
-      <ActionButton
-        variant="contained"
-        color="primary"
-        fullWidth
-        onClick={handleCapturePOV}
-      >
+      <ActionButton fullWidth onClick={handleCapturePOV}>
         Capture Camera POV
       </ActionButton>
 
       <ActionButton
-        variant="contained"
-        color="error"
         fullWidth
+        className="delete"
         onClick={() => deleteObservationPoint(selectedObservation.id)}
       >
-        Delete
+        Delete Observation
       </ActionButton>
     </RightPanelContainer>
   );

@@ -33,7 +33,7 @@ const theme: Theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: "#1a1a1a",
+          backgroundColor: "#121212",
           borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
         },
       },
@@ -41,7 +41,7 @@ const theme: Theme = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          backgroundColor: "#1a1a1a", // Ensures left & right panels match
+          backgroundColor: "#121212", // Ensures left & right panels match
         },
       },
     },
@@ -56,7 +56,7 @@ const theme: Theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: "#1a1a1a",
+          backgroundColor: "#121212",
           boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
           borderRadius: "12px",
         },
