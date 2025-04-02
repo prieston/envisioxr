@@ -2,19 +2,19 @@
 
 import React, { useState } from "react";
 import { Divider } from "@mui/material";
-import LogoHeader from "./LogoHeader";
-import useSceneStore from "@/app/hooks/useSceneStore";
+import LogoHeader from "./LogoHeader.tsx";
+import useSceneStore from "@/app/hooks/useSceneStore.ts";
 import {
   AppBarContainer,
   ToolbarContainer,
   LeftSection,
   RightSection,
-} from "./StyledComponents";
-import BuilderTools from "./BuilderTools";
-import NavigationButtons from "./NavigationButtons";
-import BuilderActions from "./BuilderActions";
-import AddModelDialog from "./AddModelDialog";
-import PublishDialog from "./PublishDialog";
+} from "./StyledComponents.tsx";
+import BuilderTools from "./BuilderTools.tsx";
+import NavigationButtons from "./NavigationButtons.tsx";
+import BuilderActions from "./BuilderActions.tsx";
+import AddModelDialog from "./AddModelDialog.tsx";
+import PublishDialog from "./PublishDialog.tsx";
 
 interface AdminAppBarProps {
   mode?: string;
@@ -38,6 +38,7 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
     nextObservation,
     prevObservation,
     addGoogleTiles,
+    addCesiumIonTiles,
   } = useSceneStore();
 
   const handleTransformModeChange = (
@@ -48,6 +49,10 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
 
   const handleAddTiles = (apiKey: string) => {
     addGoogleTiles(apiKey);
+  };
+
+  const handleAddCesiumIonTiles = () => {
+    addCesiumIonTiles();
   };
 
   return (
@@ -73,6 +78,7 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
               onTransformModeChange={handleTransformModeChange}
               onAddModel={() => setDialogOpen(true)}
               onAddTiles={handleAddTiles}
+              onAddCesiumIonTiles={handleAddCesiumIonTiles}
             />
           )}
 

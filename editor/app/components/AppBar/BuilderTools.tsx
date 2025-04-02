@@ -6,9 +6,10 @@ import {
   RotateRight as RotateRightIcon,
   AspectRatio as AspectRatioIcon,
   Map as MapIcon,
+  Terrain as TerrainIcon,
 } from "@mui/icons-material";
-import { MinimalButton, MinimalButtonActive } from "./StyledComponents";
-import AddTilesDialog from "./AddTilesDialog";
+import { MinimalButton, MinimalButtonActive } from "./StyledComponents.tsx";
+import AddTilesDialog from "./AddTilesDialog.tsx";
 
 interface BuilderToolsProps {
   previewMode: boolean;
@@ -17,6 +18,7 @@ interface BuilderToolsProps {
   onTransformModeChange: (mode: "translate" | "rotate" | "scale") => void;
   onAddModel: () => void;
   onAddTiles: (apiKey: string) => void;
+  onAddCesiumIonTiles: () => void;
 }
 
 const BuilderTools: React.FC<BuilderToolsProps> = ({
@@ -26,6 +28,7 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
   onTransformModeChange,
   onAddModel,
   onAddTiles,
+  onAddCesiumIonTiles,
 }) => {
   const [isAddTilesDialogOpen, setIsAddTilesDialogOpen] = useState(false);
 
@@ -54,6 +57,15 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
       >
         <MapIcon />
         <Typography variant="caption">Add Tiles</Typography>
+      </MinimalButton>
+
+      <MinimalButton
+        onClick={() => onAddCesiumIonTiles()}
+        disabled={previewMode}
+        className={previewMode ? "disabled" : ""}
+      >
+        <TerrainIcon />
+        <Typography variant="caption">Add Cesium Tiles</Typography>
       </MinimalButton>
 
       {selectedObject && !previewMode && (

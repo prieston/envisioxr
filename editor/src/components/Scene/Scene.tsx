@@ -2,7 +2,13 @@
 
 import React, { useRef, useEffect, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Grid, Sky, TransformControls } from "@react-three/drei";
+import {
+  OrbitControls,
+  Grid,
+  Sky,
+  TransformControls,
+  Html,
+} from "@react-three/drei";
 import useSceneStore from "../../../app/hooks/useSceneStore";
 import {
   SceneProps,
@@ -16,6 +22,29 @@ import {
   XRWrapper,
 } from ".";
 import Loader from "./Loader";
+import dynamic from "next/dynamic";
+
+// Create a dynamic import for the 3D Tiles components to ensure they're loaded client-side
+const TilesComponent = dynamic(
+  () => import("../../../app/components/TilesComponent"),
+  {
+    ssr: false,
+    loading: () => (
+      <Html center>
+        <div
+          style={{
+            color: "white",
+            background: "rgba(0,0,0,0.7)",
+            padding: "20px",
+            borderRadius: "10px",
+          }}
+        >
+          Loading 3D Tiles components...
+        </div>
+      </Html>
+    ),
+  }
+);
 
 export default function Scene({
   initialSceneData,
@@ -65,11 +94,15 @@ export default function Scene({
     <>
       <Canvas
         style={{ background: "#1a1a1a", width: "100%", height: "100%" }}
-        camera={{ position: [10, 10, 10], fov: 50 }}
+        camera={{ position: [10, 10, 10], fov: 50, far: 1e9 }}
         onPointerMissed={() => useSceneStore.getState().deselectObject()}
       >
         <Suspense fallback={null}>
           <XRWrapper enabled={enableXR} orbitControlsRef={orbitControlsRef}>
+            <TilesComponent
+              apiKey={process.env.NEXT_PUBLIC_CESIUM_ION_KEY || ""}
+            />
+
             {/* Basic scene elements */}
             <Sky
               distance={450000}

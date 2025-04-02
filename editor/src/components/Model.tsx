@@ -2,10 +2,25 @@
 
 import React, { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
-import useSceneStore from "../../app/hooks/useSceneStore";
-import useModelLoader from "./useModelLoader";
-import { useModelSelection } from "./hooks/useModelSelection";
-import { useModelMaterials } from "./hooks/useModelMaterials";
+import useSceneStore from "../../app/hooks/useSceneStore.ts";
+import dynamic from "next/dynamic";
+import useModelLoader from "./useModelLoader.tsx";
+import { useModelSelection } from "./hooks/useModelSelection.ts";
+import { useModelMaterials } from "./hooks/useModelMaterials.ts";
+
+// Dynamically import CesiumIonTiles to avoid SSR issues
+const CesiumIonTiles = dynamic(
+  () => import("../../app/components/CesiumIonTiles.tsx"),
+  {
+    ssr: false,
+  }
+) as React.ComponentType<{
+  apiKey: string;
+  assetId: string;
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: [number, number, number];
+}>;
 
 interface ModelProps {
   id: string;
@@ -16,6 +31,7 @@ interface ModelProps {
   rotation?: [number, number, number];
   selected?: boolean;
   onSelect?: (id: string, object: THREE.Object3D) => void;
+  assetId?: string;
 }
 
 const Model = ({
@@ -27,22 +43,35 @@ const Model = ({
   rotation,
   selected,
   onSelect,
+  assetId,
 }: ModelProps) => {
+  // If this is a Cesium Ion tiles model, render it differently
+  if (type === "tiles" && assetId) {
+    return (
+      <CesiumIonTiles
+        apiKey={process.env.NEXT_PUBLIC_CESIUM_ION_KEY || ""}
+        assetId={assetId}
+        position={position}
+        rotation={rotation}
+        scale={scale}
+      />
+    );
+  }
+
+  // For regular models, use the model loader
   const modelData = useModelLoader(url, type);
 
   if (!modelData) {
     return null;
   }
 
-  // @ts-expect-error modelData can have a scene property from GLTFLoader
-  const originalObject = modelData.scene || modelData;
+  const originalObject = (modelData as any).scene || modelData;
 
   // Clone the loaded object and ensure each mesh has its own material.
   const clonedObject = useMemo(() => {
     if (originalObject) {
       const clone = originalObject.clone(true);
-      clone.traverse((child) => {
-        // @ts-expect-error child can be a mesh with material
+      clone.traverse((child: any) => {
         if (child.isMesh && child.material) {
           // Clone material to avoid sharing between instances
           child.material = child.material.clone();
@@ -88,7 +117,7 @@ const Model = ({
     }
   }, [position, rotation, scale]);
 
-  // Update model ref in store
+  // Update the model ref in the store
   useEffect(() => {
     if (modelRef.current) {
       updateModelRef(id, modelRef.current);
