@@ -1,13 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Typography } from "@mui/material";
 import {
   Add as AddIcon,
   OpenWith as OpenWithIcon,
   RotateRight as RotateRightIcon,
   AspectRatio as AspectRatioIcon,
+  Map as MapIcon,
 } from "@mui/icons-material";
 import { MinimalButton, MinimalButtonActive } from "./StyledComponents";
-import AddModelDialog from "./AddModelDialog";
+import AddTilesDialog from "./AddTilesDialog";
 
 interface BuilderToolsProps {
   previewMode: boolean;
@@ -15,6 +16,7 @@ interface BuilderToolsProps {
   transformMode: "translate" | "rotate" | "scale";
   onTransformModeChange: (mode: "translate" | "rotate" | "scale") => void;
   onAddModel: () => void;
+  onAddTiles: (apiKey: string) => void;
 }
 
 const BuilderTools: React.FC<BuilderToolsProps> = ({
@@ -23,7 +25,10 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
   transformMode,
   onTransformModeChange,
   onAddModel,
+  onAddTiles,
 }) => {
+  const [isAddTilesDialogOpen, setIsAddTilesDialogOpen] = useState(false);
+
   return (
     <Box
       sx={{
@@ -40,6 +45,15 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
       >
         <AddIcon />
         <Typography variant="caption">Add</Typography>
+      </MinimalButton>
+
+      <MinimalButton
+        onClick={() => setIsAddTilesDialogOpen(true)}
+        disabled={previewMode}
+        className={previewMode ? "disabled" : ""}
+      >
+        <MapIcon />
+        <Typography variant="caption">Add Tiles</Typography>
       </MinimalButton>
 
       {selectedObject && !previewMode && (
@@ -67,6 +81,12 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
           </MinimalButtonActive>
         </>
       )}
+
+      <AddTilesDialog
+        open={isAddTilesDialogOpen}
+        onClose={() => setIsAddTilesDialogOpen(false)}
+        onAddTiles={onAddTiles}
+      />
     </Box>
   );
 };

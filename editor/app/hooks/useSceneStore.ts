@@ -8,6 +8,11 @@ interface Model {
   position: [number, number, number];
   rotation?: [number, number, number];
   scale?: [number, number, number];
+  name?: string;
+  url?: string;
+  type?: string;
+  apiKey?: string;
+  component?: string;
   [key: string]: any; // For any additional properties
 }
 
@@ -56,6 +61,7 @@ interface SceneState {
   prevObservation: () => void;
   resetScene: () => void;
   setOrbitControlsRef: (ref: any) => void;
+  addGoogleTiles: (apiKey: string) => void;
 }
 
 const useSceneStore = create<SceneState>((set) => ({
@@ -103,6 +109,21 @@ const useSceneStore = create<SceneState>((set) => ({
       const updatedObjects = [...state.objects, newModel];
       console.log("Updated objects array:", updatedObjects);
       return { objects: updatedObjects };
+    }),
+
+  addGoogleTiles: (apiKey) =>
+    set((_state) => {
+      const newModel: Model = {
+        id: uuidv4(),
+        name: "Google Photorealistic Tiles",
+        type: "tiles",
+        position: [0, 0, 0],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+        apiKey,
+        component: "TilesRenderer",
+      };
+      return { objects: [..._state.objects, newModel] };
     }),
 
   removeObject: (id: string) =>
@@ -269,7 +290,7 @@ const useSceneStore = create<SceneState>((set) => ({
 
   // Preview Mode Actions
   startPreview: () =>
-    set((state) => ({
+    set(() => ({
       previewMode: true,
       previewIndex: 0, // Start at the first observation point
     })),
