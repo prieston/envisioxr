@@ -12,6 +12,7 @@ interface Model {
   url?: string;
   type?: string;
   apiKey?: string;
+  assetId?: string;
   component?: string;
   [key: string]: any; // For any additional properties
 }
@@ -62,6 +63,7 @@ interface SceneState {
   resetScene: () => void;
   setOrbitControlsRef: (ref: any) => void;
   addGoogleTiles: (apiKey: string) => void;
+  addCesiumIonTiles: () => void;
 }
 
 const useSceneStore = create<SceneState>((set) => ({
@@ -103,6 +105,8 @@ const useSceneStore = create<SceneState>((set) => ({
         position: model.position || [0, 0, 0],
         rotation: model.rotation || [0, 0, 0],
         scale: model.scale || [1, 1, 1],
+        apiKey: model.apiKey,
+        assetId: model.assetId,
       };
 
       console.log("Adding new model:", newModel);
@@ -125,6 +129,26 @@ const useSceneStore = create<SceneState>((set) => ({
       };
       return { objects: [..._state.objects, newModel] };
     }),
+
+  addCesiumIonTiles: () => {
+    set((state) => {
+      const newModel: Model = {
+        id: `tiles-${Date.now()}`,
+        name: "Cesium Ion Tiles",
+        url: "https://assets.ion.cesium.com/1/",
+        type: "tiles",
+        position: [0, 0, 0],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+        assetId: "2275207", // Tokyo Tower asset ID
+      };
+
+      console.log("Adding new Cesium Ion tiles:", newModel);
+      return {
+        objects: [...state.objects, newModel],
+      };
+    });
+  },
 
   removeObject: (id: string) =>
     set((state) => {

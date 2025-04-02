@@ -15,9 +15,13 @@ import {
 } from "3d-tiles-renderer/plugins";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { MathUtils } from "three";
-// Define props type
-interface TilesComponentProps {
+
+interface CesiumIonTilesProps {
   apiKey: string;
+  assetId: string;
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: [number, number, number];
 }
 
 // Create a wrapper for TilesRenderer that extends Object3D
@@ -28,7 +32,6 @@ class TilesRendererWrapper extends THREE.Object3D {
     super();
     this.tilesRenderer = tilesRenderer;
     // Add the tiles renderer's group to this object
-    debugger; // eslint-disable-line
     if (tilesRenderer.group) {
       this.add(tilesRenderer.group);
     }
@@ -47,7 +50,13 @@ class TilesRendererWrapper extends THREE.Object3D {
   }
 }
 
-const TilesComponent: React.FC<TilesComponentProps> = ({ apiKey }) => {
+const CesiumIonTiles: React.FC<CesiumIonTilesProps> = ({
+  apiKey,
+  assetId,
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  scale = [1, 1, 1],
+}) => {
   const { camera, gl, scene } = useThree();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,7 +88,7 @@ const TilesComponent: React.FC<TilesComponentProps> = ({ apiKey }) => {
       tilesRenderer.registerPlugin(
         new CesiumIonAuthPlugin({
           apiToken: apiKey,
-          assetId: "2275207", // Tokyo Tower asset ID
+          assetId,
           autoRefreshToken: true,
         })
       );
@@ -110,6 +119,9 @@ const TilesComponent: React.FC<TilesComponentProps> = ({ apiKey }) => {
 
       // Create wrapper and add to scene
       const wrapper = new TilesRendererWrapper(tilesRenderer);
+      wrapper.position.set(...position);
+      wrapper.rotation.set(...rotation);
+      wrapper.scale.set(...scale);
       scene.add(wrapper);
       wrapperRef.current = wrapper;
 
@@ -150,7 +162,7 @@ const TilesComponent: React.FC<TilesComponentProps> = ({ apiKey }) => {
       setLoading(false);
       return () => {};
     }
-  }, [apiKey, camera, gl, scene]);
+  }, [apiKey, assetId, camera, gl, scene, position, rotation, scale]);
 
   return (
     <>
@@ -170,7 +182,7 @@ const TilesComponent: React.FC<TilesComponentProps> = ({ apiKey }) => {
       <directionalLight position={[1, 1, 1]} intensity={1} />
 
       {/* Status indicator */}
-      {/* <Html position={[0, 0, 0]} center>
+      <Html position={[0, 0, 0]} center>
         <div
           style={{
             background: "rgba(0,0,0,0.7)",
@@ -190,9 +202,9 @@ const TilesComponent: React.FC<TilesComponentProps> = ({ apiKey }) => {
           <br />
           <small>Viewing: Tokyo Tower (Cesium Ion 3D Tiles)</small>
         </div>
-      </Html> */}
+      </Html>
     </>
   );
 };
 
-export default TilesComponent;
+export default CesiumIonTiles;
