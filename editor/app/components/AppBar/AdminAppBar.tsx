@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Divider } from "@mui/material";
+import { Divider } from "@mui/material";
 import LogoHeader from "./LogoHeader";
 import useSceneStore from "@/app/hooks/useSceneStore";
 import {
@@ -37,12 +37,17 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
     selectedObject,
     nextObservation,
     prevObservation,
+    addGoogleTiles,
   } = useSceneStore();
 
   const handleTransformModeChange = (
     mode: "translate" | "rotate" | "scale"
   ) => {
     setTransformMode(mode);
+  };
+
+  const handleAddTiles = (apiKey: string) => {
+    addGoogleTiles(apiKey);
   };
 
   return (
@@ -67,6 +72,7 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
               transformMode={transformMode}
               onTransformModeChange={handleTransformModeChange}
               onAddModel={() => setDialogOpen(true)}
+              onAddTiles={handleAddTiles}
             />
           )}
 

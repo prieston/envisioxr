@@ -1,14 +1,11 @@
 "use client";
 
 import React, { useRef, useEffect, useMemo } from "react";
-import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import useSceneStore from "../../app/hooks/useSceneStore";
 import useModelLoader from "./useModelLoader";
 import { useModelSelection } from "./hooks/useModelSelection";
 import { useModelMaterials } from "./hooks/useModelMaterials";
-
-const CLICK_THRESHOLD = 5;
 
 interface ModelProps {
   id: string;
@@ -32,7 +29,12 @@ const Model = ({
   onSelect,
 }: ModelProps) => {
   const modelData = useModelLoader(url, type);
-  // @ts-ignore-next-line
+
+  if (!modelData) {
+    return null;
+  }
+
+  // @ts-expect-error modelData can have a scene property from GLTFLoader
   const originalObject = modelData.scene || modelData;
 
   // Clone the loaded object and ensure each mesh has its own material.
@@ -40,7 +42,7 @@ const Model = ({
     if (originalObject) {
       const clone = originalObject.clone(true);
       clone.traverse((child) => {
-        // @ts-ignore-next-line
+        // @ts-expect-error child can be a mesh with material
         if (child.isMesh && child.material) {
           // Clone material to avoid sharing between instances
           child.material = child.material.clone();
@@ -54,9 +56,6 @@ const Model = ({
   const modelRef = useRef<THREE.Object3D | null>(null);
   const previewMode = useSceneStore((state) => state.previewMode);
   const updateModelRef = useSceneStore((state) => state.updateModelRef);
-  const setModelPosition = useSceneStore((state) => state.setModelPosition);
-  const setModelRotation = useSceneStore((state) => state.setModelRotation);
-  const setModelScale = useSceneStore((state) => state.setModelScale);
 
   // Use custom hooks for model functionality
   const { handlePointerDown, handlePointerUp } = useModelSelection({
@@ -102,8 +101,8 @@ const Model = ({
 
   return (
     <primitive
-      object={clonedObject}
       ref={modelRef}
+      object={clonedObject}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
     />

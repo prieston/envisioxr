@@ -1,12 +1,23 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../../../lib/prisma.js";
+import { NextRequest } from "next/server";
+
+interface StockModel {
+  name: string;
+  url: string;
+  type: string;
+}
 
 // Hard-coded stock models.
-const stockModels = [
+const stockModels: StockModel[] = [
   {
     name: "House",
     url: "https://prieston-prod.fra1.cdn.digitaloceanspaces.com/general/house.glb",
@@ -20,7 +31,7 @@ const stockModels = [
 ];
 
 // GET: List both stock models and user's uploaded assets.
-export async function GET(request) {
+export async function GET(_request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -33,12 +44,15 @@ export async function GET(request) {
     });
     return NextResponse.json({ stockModels, assets });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }
 
 // PATCH: Generate a signed URL for uploading a file to DigitalOcean Spaces.
-export async function PATCH(request) {
+export async function PATCH(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -69,12 +83,15 @@ export async function PATCH(request) {
     const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
     return NextResponse.json({ signedUrl, key });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }
 
 // POST: Create a new Asset record once the file has been uploaded.
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -101,12 +118,15 @@ export async function POST(request) {
     return NextResponse.json({ asset });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }
 
 // DELETE: Remove an asset from DigitalOcean Spaces and the database.
-export async function DELETE(request) {
+export async function DELETE(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -155,6 +175,9 @@ export async function DELETE(request) {
     return NextResponse.json({ message: "Asset deleted successfully" });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }
