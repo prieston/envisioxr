@@ -102,6 +102,9 @@ const RightPanel: React.FC = () => {
     updateObservationPoint,
     deleteObservationPoint,
     setCapturingPOV,
+    viewMode,
+    controlSettings,
+    updateControlSettings,
   } = useSceneStore();
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -137,7 +140,74 @@ const RightPanel: React.FC = () => {
 
       {/* Properties Inspector Tab */}
       <TabPanel role="tabpanel" hidden={activeTab !== 0}>
-        {selectedObservation ? (
+        {viewMode === "settings" ? (
+          // Control Settings Panel
+          <PropertyGroup>
+            <Typography variant="subtitle1" gutterBottom>
+              Control Settings
+            </Typography>
+
+            <PropertyLabel>Car Speed</PropertyLabel>
+            <TextField
+              fullWidth
+              size="small"
+              type="number"
+              value={controlSettings.carSpeed}
+              onChange={(e) =>
+                updateControlSettings({ carSpeed: Number(e.target.value) })
+              }
+              sx={{ mb: 2 }}
+            />
+
+            <PropertyLabel>Walk Speed</PropertyLabel>
+            <TextField
+              fullWidth
+              size="small"
+              type="number"
+              value={controlSettings.walkSpeed}
+              onChange={(e) =>
+                updateControlSettings({ walkSpeed: Number(e.target.value) })
+              }
+              sx={{ mb: 2 }}
+            />
+
+            <PropertyLabel>Flight Speed</PropertyLabel>
+            <TextField
+              fullWidth
+              size="small"
+              type="number"
+              value={controlSettings.flightSpeed}
+              onChange={(e) =>
+                updateControlSettings({ flightSpeed: Number(e.target.value) })
+              }
+              sx={{ mb: 2 }}
+            />
+
+            <PropertyLabel>Turn Speed</PropertyLabel>
+            <TextField
+              fullWidth
+              size="small"
+              type="number"
+              value={controlSettings.turnSpeed}
+              onChange={(e) =>
+                updateControlSettings({ turnSpeed: Number(e.target.value) })
+              }
+              sx={{ mb: 2 }}
+            />
+
+            <PropertyLabel>Smoothness</PropertyLabel>
+            <TextField
+              fullWidth
+              size="small"
+              type="number"
+              value={controlSettings.smoothness}
+              onChange={(e) =>
+                updateControlSettings({ smoothness: Number(e.target.value) })
+              }
+              sx={{ mb: 2 }}
+            />
+          </PropertyGroup>
+        ) : selectedObservation ? (
           // Observation Point Properties
           <>
             <PropertyGroup>
