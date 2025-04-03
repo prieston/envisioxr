@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
-import { Html, Sphere } from "@react-three/drei";
+import { Sphere } from "@react-three/drei";
 import * as THREE from "three";
 
 // Import TilesRenderer
@@ -166,38 +166,9 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
         <meshStandardMaterial color="royalblue" opacity={0.1} transparent />
       </Sphere>
 
-      {/* Coordinate axes for reference */}
-      <axesHelper args={[10000]} />
-
-      {/* Debug grid */}
-      <gridHelper args={[20000, 20, 0xff0000, 0x00ff00]} />
-
       {/* Light sources */}
       <ambientLight intensity={0.5} />
       <directionalLight position={[1, 1, 1]} intensity={1} />
-
-      {/* Status indicator */}
-      {/* <Html position={[0, 0, 0]} center>
-        <div
-          style={{
-            background: "rgba(0,0,0,0.7)",
-            color: loading ? "white" : error ? "red" : "green",
-            padding: "10px",
-            borderRadius: "5px",
-            fontFamily: "Arial",
-            fontSize: "14px",
-            pointerEvents: "none",
-            width: "300px",
-            textAlign: "center",
-          }}
-        >
-          {error || status}
-          <br />
-          <small>Requests made: {requestsMade}</small>
-          <br />
-          <small>Viewing: Tokyo Tower (Cesium Ion 3D Tiles)</small>
-        </div>
-      </Html> */}
     </>
   );
 };

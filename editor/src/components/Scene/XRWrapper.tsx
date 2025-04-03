@@ -2,7 +2,6 @@
 
 import React from "react";
 import { XR, createXRStore } from "@react-three/xr";
-import { OrbitControls } from "@react-three/drei";
 import {
   CameraSpringController,
   ObservationPointHandler,
@@ -29,7 +28,6 @@ const XRWrapper: React.FC<XRWrapperProps> = ({
         <XR store={xrStore}>{children}</XR>
       ) : (
         <>
-          <OrbitControls ref={orbitControlsRef} />
           <CameraSpringController orbitControlsRef={orbitControlsRef} />
           <ObservationPointHandler />
           <CameraPOVCaptureHandler orbitControlsRef={orbitControlsRef} />

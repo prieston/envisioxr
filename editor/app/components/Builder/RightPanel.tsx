@@ -2,10 +2,27 @@
 
 import React, { useState, useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
+import {
+  Box,
+  Typography,
+  TextField,
+  Tabs,
+  Tab,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  IconButton,
+} from "@mui/material";
+import {
+  ViewInAr,
+  Image,
+  Style,
+  Folder,
+  CloudUpload,
+  Delete,
+} from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
 
 // Styled container for the RightPanel with conditional styles based on previewMode
@@ -28,147 +45,220 @@ const RightPanelContainer = styled(Box, {
   cursor: previewMode ? "not-allowed" : "default",
   filter: previewMode ? "grayscale(100%)" : "none",
   transition: "all 0.3s ease",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: "1px",
-    background:
-      "linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), transparent)",
-  },
 }));
 
-const StyledTextField = styled(TextField)(({ theme }) => ({
-  "& .MuiOutlinedInput-root": {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    "& fieldset": {
-      borderColor: "rgba(255, 255, 255, 0.1)",
-    },
-    "&:hover fieldset": {
-      borderColor: "rgba(255, 255, 255, 0.2)",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "rgba(255, 255, 255, 0.3)",
-    },
-    "& input": {
-      color: theme.palette.text.primary,
-    },
-  },
-  "& .MuiInputLabel-root": {
-    color: theme.palette.text.secondary,
-    "&.Mui-focused": {
-      color: theme.palette.text.primary,
-    },
-  },
+const TabPanel = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  height: "calc(100% - 48px)", // 48px is the height of the tabs
+  overflow: "auto",
+}));
+
+const PropertyGroup = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-const ActionButton = styled(Button)(({ theme }) => ({
-  marginTop: theme.spacing(2),
-  backgroundColor: "rgba(255, 255, 255, 0.05)",
-  color: theme.palette.text.primary,
-  border: "1px solid rgba(255, 255, 255, 0.1)",
+const PropertyLabel = styled(Typography)(({ theme }) => ({
+  fontSize: "0.875rem",
+  color: theme.palette.text.secondary,
+  marginBottom: theme.spacing(0.5),
+}));
+
+const AssetItem = styled(ListItem)(({ theme }) => ({
+  borderRadius: theme.shape.borderRadius,
+  marginBottom: theme.spacing(1),
   "&:hover": {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
-  "&.delete": {
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
-    border: "1px solid rgba(239, 68, 68, 0.2)",
-    color: "rgba(239, 68, 68, 0.9)",
-    "&:hover": {
-      backgroundColor: "rgba(239, 68, 68, 0.15)",
-      border: "1px solid rgba(239, 68, 68, 0.3)",
-    },
-  },
-}));
-
-const PanelTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "1rem",
-  fontWeight: 500,
-  marginBottom: theme.spacing(2),
-  color: theme.palette.text.primary,
 }));
 
 const RightPanel = () => {
-  const selectedObservation = useSceneStore(
-    (state) => state.selectedObservation
-  );
-  const updateObservationPoint = useSceneStore(
-    (state) => state.updateObservationPoint
-  );
-  const deleteObservationPoint = useSceneStore(
-    (state) => state.deleteObservationPoint
-  );
-  const previewMode = useSceneStore((state) => state.previewMode);
+  const [activeTab, setActiveTab] = useState(0);
+  const { selectedObject, updateObjectProperty, previewMode } = useSceneStore();
 
-  const [localTitle, setLocalTitle] = useState("");
-  const [localDescription, setLocalDescription] = useState("");
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
 
-  useEffect(() => {
-    if (selectedObservation) {
-      setLocalTitle(selectedObservation.title || "");
-      setLocalDescription(selectedObservation.description || "");
+  const handlePropertyChange = (property, value) => {
+    if (selectedObject) {
+      updateObjectProperty(selectedObject.id, property, value);
     }
-  }, [selectedObservation]);
-
-  const handleTitleChange = (e) => {
-    setLocalTitle(e.target.value);
-    updateObservationPoint(selectedObservation.id, { title: e.target.value });
   };
-
-  const handleDescriptionChange = (e) => {
-    setLocalDescription(e.target.value);
-    updateObservationPoint(selectedObservation.id, {
-      description: e.target.value,
-    });
-  };
-
-  const handleCapturePOV = () => {
-    useSceneStore.getState().setCapturingPOV(true);
-  };
-
-  if (!selectedObservation) {
-    return (
-      <RightPanelContainer previewMode={previewMode}>
-        <PanelTitle>Select an observation point to edit</PanelTitle>
-      </RightPanelContainer>
-    );
-  }
 
   return (
     <RightPanelContainer previewMode={previewMode}>
-      <PanelTitle>Edit Observation</PanelTitle>
-
-      <StyledTextField
-        label="Title"
-        fullWidth
-        value={localTitle}
-        onChange={handleTitleChange}
-      />
-
-      <StyledTextField
-        label="Description"
-        multiline
-        rows={4}
-        fullWidth
-        value={localDescription}
-        onChange={handleDescriptionChange}
-      />
-
-      <ActionButton fullWidth onClick={handleCapturePOV}>
-        Capture Camera POV
-      </ActionButton>
-
-      <ActionButton
-        fullWidth
-        className="delete"
-        onClick={() => deleteObservationPoint(selectedObservation.id)}
+      <Tabs
+        value={activeTab}
+        onChange={handleTabChange}
+        variant="fullWidth"
+        sx={{ borderBottom: 1, borderColor: "divider" }}
       >
-        Delete Observation
-      </ActionButton>
+        <Tab label="Properties" />
+        <Tab label="Assets" />
+      </Tabs>
+
+      {/* Properties Inspector Tab */}
+      <TabPanel role="tabpanel" hidden={activeTab !== 0}>
+        {selectedObject ? (
+          <>
+            <PropertyGroup>
+              <Typography variant="subtitle1" gutterBottom>
+                Transform
+              </Typography>
+              <PropertyLabel>Position</PropertyLabel>
+              <Box display="flex" gap={1}>
+                <TextField
+                  size="small"
+                  label="X"
+                  type="number"
+                  value={selectedObject.position?.x || 0}
+                  onChange={(e) =>
+                    handlePropertyChange("position.x", Number(e.target.value))
+                  }
+                />
+                <TextField
+                  size="small"
+                  label="Y"
+                  type="number"
+                  value={selectedObject.position?.y || 0}
+                  onChange={(e) =>
+                    handlePropertyChange("position.y", Number(e.target.value))
+                  }
+                />
+                <TextField
+                  size="small"
+                  label="Z"
+                  type="number"
+                  value={selectedObject.position?.z || 0}
+                  onChange={(e) =>
+                    handlePropertyChange("position.z", Number(e.target.value))
+                  }
+                />
+              </Box>
+
+              <PropertyLabel>Rotation</PropertyLabel>
+              <Box display="flex" gap={1}>
+                <TextField
+                  size="small"
+                  label="X"
+                  type="number"
+                  value={selectedObject.rotation?.x || 0}
+                  onChange={(e) =>
+                    handlePropertyChange("rotation.x", Number(e.target.value))
+                  }
+                />
+                <TextField
+                  size="small"
+                  label="Y"
+                  type="number"
+                  value={selectedObject.rotation?.y || 0}
+                  onChange={(e) =>
+                    handlePropertyChange("rotation.y", Number(e.target.value))
+                  }
+                />
+                <TextField
+                  size="small"
+                  label="Z"
+                  type="number"
+                  value={selectedObject.rotation?.z || 0}
+                  onChange={(e) =>
+                    handlePropertyChange("rotation.z", Number(e.target.value))
+                  }
+                />
+              </Box>
+
+              <PropertyLabel>Scale</PropertyLabel>
+              <Box display="flex" gap={1}>
+                <TextField
+                  size="small"
+                  label="X"
+                  type="number"
+                  value={selectedObject.scale?.x || 1}
+                  onChange={(e) =>
+                    handlePropertyChange("scale.x", Number(e.target.value))
+                  }
+                />
+                <TextField
+                  size="small"
+                  label="Y"
+                  type="number"
+                  value={selectedObject.scale?.y || 1}
+                  onChange={(e) =>
+                    handlePropertyChange("scale.y", Number(e.target.value))
+                  }
+                />
+                <TextField
+                  size="small"
+                  label="Z"
+                  type="number"
+                  value={selectedObject.scale?.z || 1}
+                  onChange={(e) =>
+                    handlePropertyChange("scale.z", Number(e.target.value))
+                  }
+                />
+              </Box>
+            </PropertyGroup>
+
+            <Divider sx={{ my: 2 }} />
+
+            <PropertyGroup>
+              <Typography variant="subtitle1" gutterBottom>
+                Material
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                label="Color"
+                type="color"
+                value={selectedObject.material?.color || "#ffffff"}
+                onChange={(e) =>
+                  handlePropertyChange("material.color", e.target.value)
+                }
+              />
+            </PropertyGroup>
+          </>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            Select an object to view its properties
+          </Typography>
+        )}
+      </TabPanel>
+
+      {/* Asset Library Tab */}
+      <TabPanel role="tabpanel" hidden={activeTab !== 1}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+        >
+          <Typography variant="subtitle1">Asset Library</Typography>
+          <IconButton color="primary" size="small">
+            <CloudUpload />
+          </IconButton>
+        </Box>
+
+        <List>
+          <AssetItem button>
+            <ListItemIcon>
+              <ViewInAr />
+            </ListItemIcon>
+            <ListItemText primary="3D Models" secondary="12 items" />
+          </AssetItem>
+          <AssetItem button>
+            <ListItemIcon>
+              <Image />
+            </ListItemIcon>
+            <ListItemText primary="Textures" secondary="8 items" />
+          </AssetItem>
+          <AssetItem button>
+            <ListItemIcon>
+              <Style />
+            </ListItemIcon>
+            <ListItemText primary="Materials" secondary="5 items" />
+          </AssetItem>
+        </List>
+      </TabPanel>
     </RightPanelContainer>
   );
 };

@@ -1,9 +1,28 @@
 "use client";
 
 import React from "react";
-import { Box, Card, CardContent, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  IconButton,
+  Tooltip,
+  Divider,
+  Button,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
-import AddIcon from "@mui/icons-material/Add";
+import {
+  AddCircleOutline as AddIcon,
+  PlayArrow,
+  Stop,
+  NavigateBefore,
+  NavigateNext,
+  Camera,
+  ViewInAr,
+  Person,
+  ThreeSixty,
+} from "@mui/icons-material";
 import useSceneStore from "@/app/hooks/useSceneStore";
 
 // Container for the entire bottom panel
@@ -20,7 +39,7 @@ const BottomPanelContainer = styled(Box, {
   padding: theme.spacing(2),
   display: "flex",
   alignItems: "center",
-  overflowX: "auto",
+  gap: theme.spacing(2),
   borderTop: "1px solid rgba(255, 255, 255, 0.1)",
   pointerEvents: previewMode ? "none" : "auto",
   opacity: previewMode ? 0.5 : 1,
@@ -30,163 +49,170 @@ const BottomPanelContainer = styled(Box, {
   userSelect: "none",
 }));
 
-// Card for the "Add New Observation" button
-const AddObservationCard = styled(Card)(({ theme }) => ({
+const ControlSection = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(1),
+}));
+
+const ViewModeButton = styled(Button)(({ theme }) => ({
+  minWidth: "auto",
+  padding: theme.spacing(1),
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: "rgba(255, 255, 255, 0.05)",
+  "&:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+  "&.active": {
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.primary.contrastText,
+  },
+}));
+
+const ObservationCard = styled(Card)(({ theme }) => ({
   minWidth: 150,
   height: 80,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer",
-  background: "#1e1e1e",
+  background: "rgba(255, 255, 255, 0.05)",
   backdropFilter: "blur(10px)",
-  border: "2px dashed rgba(255, 255, 255, 0.1)",
-  boxShadow:
-    "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-  transition: "all 0.3s ease-in-out",
-  marginRight: theme.spacing(2),
+  border: "1px solid rgba(255, 255, 255, 0.1)",
+  transition: "all 0.2s ease",
   "&:hover": {
     transform: "translateY(-2px)",
-    boxShadow:
-      "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-    border: "2px dashed rgba(255, 255, 255, 0.2)",
-    backgroundColor: "#1e1e1e",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+  },
+  "&.selected": {
+    border: `2px solid ${theme.palette.primary.main}`,
+    backgroundColor: "rgba(76, 95, 213, 0.1)",
   },
 }));
 
-// CardContent for centering content inside cards
-const CenteredCardContent = styled(CardContent)(({ theme }) => ({
+const ObservationScroll = styled(Box)(({ theme }) => ({
   display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: theme.spacing(1),
-  padding: theme.spacing(1.5),
-  height: "100%",
-  justifyContent: "center",
-  "&:last-child": {
-    paddingBottom: theme.spacing(1.5),
+  gap: theme.spacing(2),
+  overflowX: "auto",
+  padding: theme.spacing(1),
+  "&::-webkit-scrollbar": {
+    height: "6px",
   },
-}));
-
-// Card for individual observation points
-interface ObservationCardProps {
-  selected: boolean;
-}
-
-const StyledObservationCard = styled(Card)<ObservationCardProps>(
-  ({ theme, selected }) => ({
-    minWidth: 150,
-    height: 80,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: theme.spacing(2),
-    cursor: "pointer",
-    background: "#1e1e1e",
-    backdropFilter: "blur(10px)",
-    border: selected
-      ? "2px solid rgba(255, 255, 255, 0.3)"
-      : "1px solid rgba(255, 255, 255, 0.1)",
-    boxShadow: selected
-      ? "0 4px 12px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)"
-      : "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-    transition: "all 0.3s ease-in-out",
+  "&::-webkit-scrollbar-track": {
+    background: "rgba(255, 255, 255, 0.05)",
+    borderRadius: "3px",
+  },
+  "&::-webkit-scrollbar-thumb": {
+    background: "rgba(255, 255, 255, 0.2)",
+    borderRadius: "3px",
     "&:hover": {
-      transform: "translateY(-2px)",
-      boxShadow:
-        "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-      border: selected
-        ? "2px solid rgba(255, 255, 255, 0.4)"
-        : "1px solid rgba(255, 255, 255, 0.2)",
-      backgroundColor: "#1e1e1e",
+      background: "rgba(255, 255, 255, 0.3)",
     },
-  })
-);
-
-const ObservationTitle = styled(Typography)(({ theme }) => ({
-  fontWeight: 600,
-  fontSize: "0.875rem",
-  textAlign: "center",
-  color: theme.palette.text.primary,
-}));
-
-const ObservationDescription = styled(Typography)(({ theme }) => ({
-  fontSize: "0.75rem",
-  color: theme.palette.text.secondary,
-  textAlign: "center",
-  display: "-webkit-box",
-  WebkitLineClamp: 1,
-  WebkitBoxOrient: "vertical",
-  overflow: "hidden",
-}));
-
-const AddIconWrapper = styled(Box)(({ theme }) => ({
-  width: 32,
-  height: 32,
-  minWidth: 32,
-  minHeight: 32,
-  borderRadius: "50%",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  backgroundColor: "rgba(255, 255, 255, 0.05)",
-  color: theme.palette.text.primary,
-  transition: "all 0.3s ease-in-out",
-  flexShrink: 0,
-  "&:hover": {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    transform: "scale(1.1)",
   },
 }));
 
 const BottomPanel = () => {
-  const observationPoints = useSceneStore((state) => state.observationPoints);
-  const selectedObservation = useSceneStore(
-    (state) => state.selectedObservation
-  );
-  const selectObservationPoint = useSceneStore(
-    (state) => state.selectObservationPoint
-  );
-  const addObservationPoint = useSceneStore(
-    (state) => state.addObservationPoint
-  );
-  const previewMode = useSceneStore((state) => state.previewMode);
+  const {
+    previewMode,
+    observationPoints,
+    selectedObservation,
+    addObservationPoint,
+    selectObservation,
+    viewMode,
+    setViewMode,
+    isPlaying,
+    togglePlayback,
+  } = useSceneStore();
 
   return (
     <BottomPanelContainer previewMode={previewMode}>
-      <AddObservationCard onClick={addObservationPoint}>
-        <CenteredCardContent>
-          <AddIconWrapper>
-            <AddIcon sx={{ fontSize: 24 }} />
-          </AddIconWrapper>
-          <Typography
-            variant="body2"
+      {/* View Mode Controls */}
+      <ControlSection>
+        <Tooltip title="Orbit Controls">
+          <ViewModeButton
+            className={viewMode === "orbit" ? "active" : ""}
+            onClick={() => setViewMode("orbit")}
+          >
+            <ThreeSixty />
+          </ViewModeButton>
+        </Tooltip>
+        <Tooltip title="First Person">
+          <ViewModeButton
+            className={viewMode === "firstPerson" ? "active" : ""}
+            onClick={() => setViewMode("firstPerson")}
+          >
+            <Person />
+          </ViewModeButton>
+        </Tooltip>
+        <Tooltip title="Third Person">
+          <ViewModeButton
+            className={viewMode === "thirdPerson" ? "active" : ""}
+            onClick={() => setViewMode("thirdPerson")}
+          >
+            <ViewInAr />
+          </ViewModeButton>
+        </Tooltip>
+      </ControlSection>
+
+      <Divider orientation="vertical" flexItem />
+
+      {/* Playback Controls */}
+      <ControlSection>
+        <Tooltip title="Previous Point">
+          <IconButton size="small">
+            <NavigateBefore />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={isPlaying ? "Stop" : "Play"}>
+          <IconButton size="small" onClick={togglePlayback}>
+            {isPlaying ? <Stop /> : <PlayArrow />}
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Next Point">
+          <IconButton size="small">
+            <NavigateNext />
+          </IconButton>
+        </Tooltip>
+      </ControlSection>
+
+      <Divider orientation="vertical" flexItem />
+
+      {/* Observation Points */}
+      <ObservationScroll>
+        {observationPoints.map((point) => (
+          <ObservationCard
+            key={point.id}
+            className={selectedObservation?.id === point.id ? "selected" : ""}
+            onClick={() => selectObservation(point.id)}
+          >
+            <CardContent>
+              <Typography variant="subtitle2" noWrap>
+                {point.title || "Untitled"}
+              </Typography>
+            </CardContent>
+          </ObservationCard>
+        ))}
+        <ObservationCard
+          onClick={addObservationPoint}
+          sx={{
+            border: "2px dashed rgba(255, 255, 255, 0.2)",
+            backgroundColor: "transparent",
+          }}
+        >
+          <CardContent
             sx={{
-              color: "text.secondary",
-              textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1,
             }}
           >
-            Add Observation
-          </Typography>
-        </CenteredCardContent>
-      </AddObservationCard>
-
-      {observationPoints.map((observation) => (
-        <StyledObservationCard
-          key={observation.id}
-          selected={selectedObservation?.id === observation.id}
-          onClick={() => selectObservationPoint(observation.id)}
-        >
-          <CenteredCardContent>
-            <ObservationTitle>
-              {observation.title || "Untitled"}
-            </ObservationTitle>
-            <ObservationDescription>
-              {observation.description || "No description"}
-            </ObservationDescription>
-          </CenteredCardContent>
-        </StyledObservationCard>
-      ))}
+            <AddIcon />
+            <Typography variant="caption">Add Point</Typography>
+          </CardContent>
+        </ObservationCard>
+      </ObservationScroll>
     </BottomPanelContainer>
   );
 };
