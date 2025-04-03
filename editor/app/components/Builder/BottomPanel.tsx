@@ -20,7 +20,7 @@ import {
   NavigateNext,
   Camera,
   ViewInAr,
-  Person,
+  Flight,
   ThreeSixty,
 } from "@mui/icons-material";
 import useSceneStore from "@/app/hooks/useSceneStore";
@@ -41,12 +41,46 @@ const BottomPanelContainer = styled(Box, {
   alignItems: "center",
   gap: theme.spacing(2),
   borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+  userSelect: "none",
+}));
+
+const ViewModeSection = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "previewMode",
+})<{ previewMode: boolean }>(({ theme, previewMode }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(1),
   pointerEvents: previewMode ? "none" : "auto",
   opacity: previewMode ? 0.5 : 1,
-  cursor: previewMode ? "not-allowed" : "auto",
   filter: previewMode ? "grayscale(100%)" : "none",
   transition: "opacity 0.3s ease, filter 0.3s ease",
-  userSelect: "none",
+}));
+
+const ObservationSection = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "previewMode",
+})<{ previewMode: boolean }>(({ theme, previewMode }) => ({
+  display: "flex",
+  gap: theme.spacing(2),
+  overflowX: "auto",
+  padding: theme.spacing(1),
+  pointerEvents: previewMode ? "none" : "auto",
+  opacity: previewMode ? 0.5 : 1,
+  filter: previewMode ? "grayscale(100%)" : "none",
+  transition: "opacity 0.3s ease, filter 0.3s ease",
+  "&::-webkit-scrollbar": {
+    height: "6px",
+  },
+  "&::-webkit-scrollbar-track": {
+    background: "rgba(255, 255, 255, 0.05)",
+    borderRadius: "3px",
+  },
+  "&::-webkit-scrollbar-thumb": {
+    background: "rgba(255, 255, 255, 0.2)",
+    borderRadius: "3px",
+    "&:hover": {
+      background: "rgba(255, 255, 255, 0.3)",
+    },
+  },
 }));
 
 const ControlSection = styled(Box)(({ theme }) => ({
@@ -91,27 +125,6 @@ const ObservationCard = styled(Card)(({ theme }) => ({
   },
 }));
 
-const ObservationScroll = styled(Box)(({ theme }) => ({
-  display: "flex",
-  gap: theme.spacing(2),
-  overflowX: "auto",
-  padding: theme.spacing(1),
-  "&::-webkit-scrollbar": {
-    height: "6px",
-  },
-  "&::-webkit-scrollbar-track": {
-    background: "rgba(255, 255, 255, 0.05)",
-    borderRadius: "3px",
-  },
-  "&::-webkit-scrollbar-thumb": {
-    background: "rgba(255, 255, 255, 0.2)",
-    borderRadius: "3px",
-    "&:hover": {
-      background: "rgba(255, 255, 255, 0.3)",
-    },
-  },
-}));
-
 const BottomPanel = () => {
   const {
     previewMode,
@@ -123,12 +136,38 @@ const BottomPanel = () => {
     setViewMode,
     isPlaying,
     togglePlayback,
+    setPreviewMode,
+    nextObservation,
+    prevObservation,
+    previewIndex,
+    setPreviewIndex,
   } = useSceneStore();
+
+  const handlePlayback = () => {
+    togglePlayback();
+    setPreviewMode(!isPlaying);
+  };
+
+  const handleObservationClick = (point: any, index: number) => {
+    selectObservation(point.id);
+    setPreviewIndex(index);
+
+    // Temporarily enable preview mode to trigger camera movement
+    if (!previewMode) {
+      setPreviewMode(true);
+      // Disable preview mode after camera movement (about 500ms)
+      setTimeout(() => setPreviewMode(false), 500);
+    }
+  };
+
+  const hasNextPoint =
+    previewMode && previewIndex < observationPoints.length - 1;
+  const hasPrevPoint = previewMode && previewIndex > 0;
 
   return (
     <BottomPanelContainer previewMode={previewMode}>
       {/* View Mode Controls */}
-      <ControlSection>
+      <ViewModeSection previewMode={previewMode}>
         <Tooltip title="Orbit Controls">
           <ViewModeButton
             className={viewMode === "orbit" ? "active" : ""}
@@ -142,7 +181,7 @@ const BottomPanel = () => {
             className={viewMode === "firstPerson" ? "active" : ""}
             onClick={() => setViewMode("firstPerson")}
           >
-            <Person />
+            <Flight />
           </ViewModeButton>
         </Tooltip>
         <Tooltip title="Third Person">
@@ -153,38 +192,59 @@ const BottomPanel = () => {
             <ViewInAr />
           </ViewModeButton>
         </Tooltip>
-      </ControlSection>
+      </ViewModeSection>
 
       <Divider orientation="vertical" flexItem />
 
-      {/* Playback Controls */}
+      {/* Playback Controls - Always enabled */}
       <ControlSection>
         <Tooltip title="Previous Point">
-          <IconButton size="small">
-            <NavigateBefore />
-          </IconButton>
+          <span>
+            <IconButton
+              size="small"
+              onClick={prevObservation}
+              disabled={!hasPrevPoint}
+            >
+              <NavigateBefore />
+            </IconButton>
+          </span>
         </Tooltip>
         <Tooltip title={isPlaying ? "Stop" : "Play"}>
-          <IconButton size="small" onClick={togglePlayback}>
+          <IconButton
+            size="small"
+            onClick={handlePlayback}
+            disabled={observationPoints.length === 0}
+          >
             {isPlaying ? <Stop /> : <PlayArrow />}
           </IconButton>
         </Tooltip>
         <Tooltip title="Next Point">
-          <IconButton size="small">
-            <NavigateNext />
-          </IconButton>
+          <span>
+            <IconButton
+              size="small"
+              onClick={nextObservation}
+              disabled={!hasNextPoint}
+            >
+              <NavigateNext />
+            </IconButton>
+          </span>
         </Tooltip>
       </ControlSection>
 
       <Divider orientation="vertical" flexItem />
 
       {/* Observation Points */}
-      <ObservationScroll>
-        {observationPoints.map((point) => (
+      <ObservationSection previewMode={previewMode}>
+        {observationPoints.map((point, index) => (
           <ObservationCard
             key={point.id}
-            className={selectedObservation?.id === point.id ? "selected" : ""}
-            onClick={() => selectObservation(point.id)}
+            className={
+              (previewMode && index === previewIndex) ||
+              (!previewMode && selectedObservation?.id === point.id)
+                ? "selected"
+                : ""
+            }
+            onClick={() => handleObservationClick(point, index)}
           >
             <CardContent>
               <Typography variant="subtitle2" noWrap>
@@ -212,7 +272,7 @@ const BottomPanel = () => {
             <Typography variant="caption">Add Point</Typography>
           </CardContent>
         </ObservationCard>
-      </ObservationScroll>
+      </ObservationSection>
     </BottomPanelContainer>
   );
 };

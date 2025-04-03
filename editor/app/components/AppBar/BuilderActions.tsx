@@ -2,25 +2,22 @@
 
 import React from "react";
 import { Typography } from "@mui/material";
-import {
-  Save as SaveIcon,
-  Publish as PublishIcon,
-  Visibility as VisibilityIcon,
-} from "@mui/icons-material";
+import { Save as SaveIcon, Publish as PublishIcon } from "@mui/icons-material";
 import { MinimalButton } from "./StyledComponents";
 import { showToast } from "@/app/utils/toastUtils";
+import useSceneStore from "@/app/hooks/useSceneStore";
 
 interface BuilderActionsProps {
   onSave?: () => Promise<void>;
   onPublish: () => void;
-  onPreview: () => void;
 }
 
 const BuilderActions: React.FC<BuilderActionsProps> = ({
   onSave,
   onPublish,
-  onPreview,
 }) => {
+  const { previewMode } = useSceneStore();
+
   return (
     <>
       <MinimalButton
@@ -33,17 +30,14 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
             showToast("Save action not yet implemented.");
           }
         }}
+        disabled={previewMode}
       >
         <SaveIcon />
         <Typography variant="caption">Save</Typography>
       </MinimalButton>
-      <MinimalButton onClick={onPublish}>
+      <MinimalButton onClick={onPublish} disabled={previewMode}>
         <PublishIcon />
         <Typography variant="caption">Publish</Typography>
-      </MinimalButton>
-      <MinimalButton onClick={onPreview}>
-        <VisibilityIcon />
-        <Typography variant="caption">Preview</Typography>
       </MinimalButton>
     </>
   );

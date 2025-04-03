@@ -1,24 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { Box, Typography } from "@mui/material";
 import {
-  Add as AddIcon,
   OpenWith as OpenWithIcon,
   RotateRight as RotateRightIcon,
   AspectRatio as AspectRatioIcon,
-  Map as MapIcon,
-  Terrain as TerrainIcon,
 } from "@mui/icons-material";
-import { MinimalButton, MinimalButtonActive } from "./StyledComponents.tsx";
-import AddTilesDialog from "./AddTilesDialog.tsx";
+import { MinimalButtonActive } from "./StyledComponents.tsx";
 
 interface BuilderToolsProps {
   previewMode: boolean;
   selectedObject: any;
   transformMode: "translate" | "rotate" | "scale";
   onTransformModeChange: (mode: "translate" | "rotate" | "scale") => void;
-  onAddModel: () => void;
-  onAddTiles: (apiKey: string) => void;
-  onAddCesiumIonTiles: () => void;
 }
 
 const BuilderTools: React.FC<BuilderToolsProps> = ({
@@ -26,12 +19,7 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
   selectedObject,
   transformMode,
   onTransformModeChange,
-  onAddModel,
-  onAddTiles,
-  onAddCesiumIonTiles,
 }) => {
-  const [isAddTilesDialogOpen, setIsAddTilesDialogOpen] = useState(false);
-
   return (
     <Box
       sx={{
@@ -41,24 +29,6 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
         gap: 1,
       }}
     >
-      <MinimalButton
-        onClick={onAddModel}
-        disabled={previewMode}
-        className={previewMode ? "disabled" : ""}
-      >
-        <AddIcon />
-        <Typography variant="caption">Add</Typography>
-      </MinimalButton>
-
-      <MinimalButton
-        onClick={() => onAddCesiumIonTiles()}
-        disabled={previewMode}
-        className={previewMode ? "disabled" : ""}
-      >
-        <TerrainIcon />
-        <Typography variant="caption">Tiles</Typography>
-      </MinimalButton>
-
       {selectedObject && !previewMode && (
         <>
           <MinimalButtonActive
@@ -84,12 +54,6 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
           </MinimalButtonActive>
         </>
       )}
-
-      <AddTilesDialog
-        open={isAddTilesDialogOpen}
-        onClose={() => setIsAddTilesDialogOpen(false)}
-        onAddTiles={onAddTiles}
-      />
     </Box>
   );
 };
