@@ -2,6 +2,16 @@
 import React from "react";
 import Scene from "../../src/components/Scene/Scene";
 
+interface SceneData {
+  objects?: any[];
+  observationPoints?: any[];
+  selectedAssetId?: string;
+  selectedLocation?: {
+    latitude: number;
+    longitude: number;
+  } | null;
+}
+
 const PreviewScene = ({
   initialSceneData,
   renderObservationPoints = true,
@@ -9,7 +19,7 @@ const PreviewScene = ({
   enableXR = false,
   isPublishMode = false,
 }: {
-  initialSceneData: any;
+  initialSceneData: SceneData;
   renderObservationPoints?: boolean;
   onSceneDataChange?: any;
   enableXR?: boolean;

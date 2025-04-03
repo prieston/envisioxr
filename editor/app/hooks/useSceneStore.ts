@@ -30,6 +30,11 @@ interface SceneState {
   observationPoints: ObservationPoint[];
   selectedObject: Model | null;
   selectedObservation: ObservationPoint | null;
+  selectedAssetId: string;
+  selectedLocation: {
+    latitude: number;
+    longitude: number;
+  } | null;
   addingObservation: boolean;
   capturingPOV: boolean;
   previewMode: boolean;
@@ -64,6 +69,10 @@ interface SceneState {
   setOrbitControlsRef: (ref: any) => void;
   addGoogleTiles: (apiKey: string) => void;
   addCesiumIonTiles: () => void;
+  setSelectedAssetId: (assetId: string) => void;
+  setSelectedLocation: (
+    location: { latitude: number; longitude: number } | null
+  ) => void;
 }
 
 const useSceneStore = create<SceneState>((set) => ({
@@ -71,6 +80,8 @@ const useSceneStore = create<SceneState>((set) => ({
   objects: [],
   observationPoints: [],
   orbitControlsRef: null,
+  selectedAssetId: "2275207", // Default to Tokyo Tower
+  selectedLocation: null,
 
   // Selected items
   selectedObject: null,
@@ -258,79 +269,78 @@ const useSceneStore = create<SceneState>((set) => ({
 
   addObservationPoint: () =>
     set((state) => {
-      const newId = state.observationPoints.length; // simple unique id, consider using uuid if needed
       const newPoint = {
-        id: newId,
-        title: `Observation Point ${newId + 1}`,
+        id: Date.now(),
+        title: "New Observation Point",
         description: "",
-        position: null, // to be updated later
-        target: null, // to be updated later
+        position: null,
+        target: null,
       };
+      console.log("Adding new observation point:", newPoint);
       return {
         observationPoints: [...state.observationPoints, newPoint],
-        // Automatically select the newly added point:
-        selectedObservation: newPoint,
-        previewIndex: state.observationPoints.length, // new index is the last element
       };
     }),
 
-  selectObservationPoint: (id) =>
-    set((state) => {
-      const selectedPoint = state.observationPoints.find(
+  selectObservationPoint: (id) => {
+    console.log("Selecting observation point:", id);
+    return set((state) => {
+      const selectedObservation = state.observationPoints.find(
         (point) => point.id === id
       );
-      if (
-        selectedPoint &&
-        selectedPoint.target &&
-        state.orbitControlsRef?.current
-      ) {
-        state.orbitControlsRef.current.target.set(...selectedPoint.target);
-        state.orbitControlsRef.current.update();
-      }
-      return {
-        selectedObservation: selectedPoint || null,
-      };
-    }),
-
-  updateObservationPoint: (id, updates) => {
-    console.log("Updating observation point:", { id, updates });
-    return set((state) => ({
-      observationPoints: state.observationPoints.map((point) =>
-        point.id === id ? { ...point, ...updates } : point
-      ),
-    }));
+      console.log("Selected observation point:", selectedObservation);
+      return { selectedObservation };
+    });
   },
 
+  updateObservationPoint: (id, updates) =>
+    set((state) => {
+      console.log("Updating observation point:", { id, updates });
+      const updatedPoints = state.observationPoints.map((point) =>
+        point.id === id ? { ...point, ...updates } : point
+      );
+      console.log("Updated observation points:", updatedPoints);
+      return { observationPoints: updatedPoints };
+    }),
+
   deleteObservationPoint: (id) =>
-    set((state) => ({
-      observationPoints: state.observationPoints.filter(
+    set((state) => {
+      console.log("Deleting observation point:", id);
+      const updatedPoints = state.observationPoints.filter(
         (point) => point.id !== id
-      ),
-      selectedObservation: null,
-    })),
+      );
+      console.log("Updated observation points after deletion:", updatedPoints);
+      return {
+        observationPoints: updatedPoints,
+        selectedObservation:
+          state.selectedObservation && state.selectedObservation.id === id
+            ? null
+            : state.selectedObservation,
+      };
+    }),
 
   // POV Capture
   setCapturingPOV: (value) => set({ capturingPOV: value }),
 
   // Preview Mode Actions
-  startPreview: () =>
-    set(() => ({
-      previewMode: true,
-      previewIndex: 0, // Start at the first observation point
-    })),
-  exitPreview: () => set({ previewMode: false }),
+  startPreview: () => set({ previewMode: true, previewIndex: 0 }),
+  exitPreview: () => set({ previewMode: false, previewIndex: 0 }),
   nextObservation: () =>
     set((state) => {
-      const nextIndex = Math.min(
-        state.previewIndex + 1,
-        state.observationPoints.length - 1
-      );
-      return { previewIndex: nextIndex };
+      if (
+        state.observationPoints.length > 0 &&
+        state.previewIndex < state.observationPoints.length - 1
+      ) {
+        return { previewIndex: state.previewIndex + 1 };
+      }
+      return state;
     }),
   prevObservation: () =>
     set((state) => {
-      const prevIndex = Math.max(state.previewIndex - 1, 0);
-      return { previewIndex: prevIndex };
+      if (state.observationPoints.length > 0 && state.previewIndex > 0) {
+        return { previewIndex: state.previewIndex - 1 };
+      }
+      return state;
     }),
 
   // NEW: Reset the scene state to default values.
@@ -340,16 +350,18 @@ const useSceneStore = create<SceneState>((set) => ({
       observationPoints: [],
       selectedObject: null,
       selectedObservation: null,
-      addingObservation: false,
-      capturingPOV: false,
+      selectedAssetId: "2275207",
+      selectedLocation: null,
       previewMode: false,
       previewIndex: 0,
-      transformMode: "translate",
-      orbitControlsRef: null,
     }),
 
   // Set orbit controls reference
   setOrbitControlsRef: (ref) => set({ orbitControlsRef: ref }),
+
+  setSelectedAssetId: (assetId) => set({ selectedAssetId: assetId }),
+
+  setSelectedLocation: (location) => set({ selectedLocation: location }),
 }));
 
 export default useSceneStore;
