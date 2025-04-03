@@ -51,21 +51,12 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
       </MinimalButton>
 
       <MinimalButton
-        onClick={() => setIsAddTilesDialogOpen(true)}
-        disabled={previewMode}
-        className={previewMode ? "disabled" : ""}
-      >
-        <MapIcon />
-        <Typography variant="caption">Add Tiles</Typography>
-      </MinimalButton>
-
-      <MinimalButton
         onClick={() => onAddCesiumIonTiles()}
         disabled={previewMode}
         className={previewMode ? "disabled" : ""}
       >
         <TerrainIcon />
-        <Typography variant="caption">Add Cesium Tiles</Typography>
+        <Typography variant="caption">Tiles</Typography>
       </MinimalButton>
 
       {selectedObject && !previewMode && (
