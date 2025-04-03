@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, Suspense, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Grid, Sky, Html } from "@react-three/drei";
+import { Physics } from "@react-three/rapier";
 import useSceneStore from "../../../app/hooks/useSceneStore";
 import {
   SceneProps,
@@ -193,7 +194,12 @@ export default function Scene({
               selectedObject={selectedObject}
               transformControlsRef={transformControlsRef}
             />
-            <SceneViewModeController orbitControlsRef={orbitControlsRef} />
+
+            {/* Physics and Controls */}
+            <Physics gravity={[0, -9.81, 0]} debug={false}>
+              <SceneViewModeController orbitControlsRef={orbitControlsRef} />
+            </Physics>
+
             <CameraSpringController orbitControlsRef={orbitControlsRef} />
             <CameraPOVCaptureHandler orbitControlsRef={orbitControlsRef} />
             <ObservationPointHandler />

@@ -11,9 +11,7 @@ import {
   RightSection,
 } from "./StyledComponents.tsx";
 import BuilderTools from "./BuilderTools.tsx";
-import NavigationButtons from "./NavigationButtons.tsx";
 import BuilderActions from "./BuilderActions.tsx";
-import AddModelDialog from "./AddModelDialog.tsx";
 import PublishDialog from "./PublishDialog.tsx";
 
 interface AdminAppBarProps {
@@ -27,32 +25,13 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
   onSave,
   onPublish,
 }) => {
-  const [isDialogOpen, setDialogOpen] = useState(false);
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
-  const {
-    previewMode,
-    setPreviewMode,
-    transformMode,
-    setTransformMode,
-    selectedObject,
-    nextObservation,
-    prevObservation,
-    addGoogleTiles,
-    addCesiumIonTiles,
-  } = useSceneStore();
+  const { transformMode, setTransformMode, selectedObject } = useSceneStore();
 
   const handleTransformModeChange = (
     mode: "translate" | "rotate" | "scale"
   ) => {
     setTransformMode(mode);
-  };
-
-  const handleAddTiles = (apiKey: string) => {
-    addGoogleTiles(apiKey);
-  };
-
-  const handleAddCesiumIonTiles = () => {
-    addCesiumIonTiles();
   };
 
   return (
@@ -72,42 +51,23 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
 
           {mode === "builder" && (
             <BuilderTools
-              previewMode={previewMode}
+              previewMode={false}
               selectedObject={selectedObject}
               transformMode={transformMode}
               onTransformModeChange={handleTransformModeChange}
-              onAddModel={() => setDialogOpen(true)}
-              onAddTiles={handleAddTiles}
-              onAddCesiumIonTiles={handleAddCesiumIonTiles}
             />
           )}
 
           <RightSection>
-            {mode === "builder" ? (
-              previewMode ? (
-                <NavigationButtons
-                  prevObservation={prevObservation}
-                  nextObservation={nextObservation}
-                  onExitPreview={() => setPreviewMode(false)}
-                  hasPrevObservation={true}
-                  hasNextObservation={true}
-                />
-              ) : (
-                <BuilderActions
-                  onSave={onSave}
-                  onPublish={() => setOpenPublishDialog(true)}
-                  onPreview={() => setPreviewMode(true)}
-                />
-              )
-            ) : null}
+            {mode === "builder" && (
+              <BuilderActions
+                onSave={onSave}
+                onPublish={() => setOpenPublishDialog(true)}
+              />
+            )}
           </RightSection>
         </ToolbarContainer>
       </AppBarContainer>
-
-      <AddModelDialog
-        open={isDialogOpen}
-        onClose={() => setDialogOpen(false)}
-      />
 
       <PublishDialog
         open={openPublishDialog}

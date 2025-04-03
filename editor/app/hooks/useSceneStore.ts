@@ -29,6 +29,8 @@ interface ObservationPoint {
   target: [number, number, number] | null;
 }
 
+export type ViewMode = "orbit" | "firstPerson" | "thirdPerson" | "flight";
+
 interface SceneState {
   // Scene Objects
   objects: Model[];
@@ -48,11 +50,12 @@ interface SceneState {
   showTiles: boolean;
 
   // View Mode
-  viewMode: "orbit" | "firstPerson" | "thirdPerson";
+  viewMode: ViewMode;
 
   // Playback State
   isPlaying: boolean;
   playbackSpeed: number;
+  setPreviewIndex: (index: number) => void;
 
   // UI State
   addingObservation: boolean;
@@ -69,11 +72,12 @@ interface SceneState {
   setShowTiles: (show: boolean) => void;
 
   // View Mode Actions
-  setViewMode: (mode: "orbit" | "firstPerson" | "thirdPerson") => void;
+  setViewMode: (mode: ViewMode) => void;
 
   // Playback Actions
   togglePlayback: () => void;
   setPlaybackSpeed: (speed: number) => void;
+  setPreviewIndex: (index: number) => void;
 
   // Scene Object Actions
   setPreviewMode: (value: boolean) => void;
@@ -137,12 +141,12 @@ const useSceneStore = create<SceneState>((set) => ({
   // Playback Initial State
   isPlaying: false,
   playbackSpeed: 1,
+  previewIndex: 0,
 
   // UI Initial State
   addingObservation: false,
   capturingPOV: false,
   previewMode: false,
-  previewIndex: 0,
   transformMode: "translate",
 
   // Environment Actions
@@ -158,6 +162,7 @@ const useSceneStore = create<SceneState>((set) => ({
   // Playback Actions
   togglePlayback: () => set((state) => ({ isPlaying: !state.isPlaying })),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
+  setPreviewIndex: (index) => set({ previewIndex: index }),
 
   // Scene Object Actions
   setPreviewMode: (value) => set({ previewMode: value }),

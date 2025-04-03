@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
 import {
   Box,
@@ -14,20 +14,40 @@ import {
   ListItemText,
   ListItemIcon,
   IconButton,
+  Button,
 } from "@mui/material";
 import {
   ViewInAr,
   Image,
   Style,
-  Folder,
   CloudUpload,
-  Delete,
+  Camera,
 } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
 
 // Styled container for the RightPanel with conditional styles based on previewMode
 interface RightPanelContainerProps {
   previewMode: boolean;
+}
+
+type Vector3Tuple = [number, number, number];
+
+interface Model {
+  id: string;
+  position: Vector3Tuple;
+  rotation?: Vector3Tuple;
+  scale?: Vector3Tuple;
+  material?: {
+    color: string;
+  };
+}
+
+interface ObservationPoint {
+  id: number;
+  title: string;
+  description: string;
+  position: Vector3Tuple | null;
+  target: Vector3Tuple | null;
 }
 
 const RightPanelContainer = styled(Box, {
@@ -69,19 +89,37 @@ const AssetItem = styled(ListItem)(({ theme }) => ({
   "&:hover": {
     backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
+  cursor: "pointer",
 }));
 
-const RightPanel = () => {
+const RightPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const { selectedObject, updateObjectProperty, previewMode } = useSceneStore();
+  const {
+    selectedObject,
+    updateObjectProperty,
+    previewMode,
+    selectedObservation,
+    updateObservationPoint,
+    deleteObservationPoint,
+    setCapturingPOV,
+  } = useSceneStore();
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
-  const handlePropertyChange = (property, value) => {
+  const handlePropertyChange = (property: string, value: number | string) => {
     if (selectedObject) {
       updateObjectProperty(selectedObject.id, property, value);
+    }
+  };
+
+  const handleObservationChange = (
+    property: string,
+    value: string | Vector3Tuple
+  ) => {
+    if (selectedObservation) {
+      updateObservationPoint(selectedObservation.id, { [property]: value });
     }
   };
 
@@ -99,7 +137,154 @@ const RightPanel = () => {
 
       {/* Properties Inspector Tab */}
       <TabPanel role="tabpanel" hidden={activeTab !== 0}>
-        {selectedObject ? (
+        {selectedObservation ? (
+          // Observation Point Properties
+          <>
+            <PropertyGroup>
+              <Typography variant="subtitle1" gutterBottom>
+                Observation Point Settings
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                label="Title"
+                value={selectedObservation.title || ""}
+                onChange={(e) =>
+                  handleObservationChange("title", e.target.value)
+                }
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                size="small"
+                label="Description"
+                multiline
+                rows={4}
+                value={selectedObservation.description || ""}
+                onChange={(e) =>
+                  handleObservationChange("description", e.target.value)
+                }
+                sx={{ mb: 2 }}
+              />
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={() => setCapturingPOV(true)}
+                startIcon={<Camera />}
+                sx={{ mb: 2 }}
+              >
+                Capture Camera Position
+              </Button>
+              {selectedObservation.position && (
+                <>
+                  <PropertyLabel>Position</PropertyLabel>
+                  <Box display="flex" gap={1}>
+                    <TextField
+                      size="small"
+                      label="X"
+                      type="number"
+                      value={selectedObservation.position[0]}
+                      onChange={(e) => {
+                        const newPosition: Vector3Tuple = [
+                          Number(e.target.value),
+                          selectedObservation.position![1],
+                          selectedObservation.position![2],
+                        ];
+                        handleObservationChange("position", newPosition);
+                      }}
+                    />
+                    <TextField
+                      size="small"
+                      label="Y"
+                      type="number"
+                      value={selectedObservation.position[1]}
+                      onChange={(e) => {
+                        const newPosition: Vector3Tuple = [
+                          selectedObservation.position![0],
+                          Number(e.target.value),
+                          selectedObservation.position![2],
+                        ];
+                        handleObservationChange("position", newPosition);
+                      }}
+                    />
+                    <TextField
+                      size="small"
+                      label="Z"
+                      type="number"
+                      value={selectedObservation.position[2]}
+                      onChange={(e) => {
+                        const newPosition: Vector3Tuple = [
+                          selectedObservation.position![0],
+                          selectedObservation.position![1],
+                          Number(e.target.value),
+                        ];
+                        handleObservationChange("position", newPosition);
+                      }}
+                    />
+                  </Box>
+                </>
+              )}
+              {selectedObservation.target && (
+                <>
+                  <PropertyLabel>Look At Target</PropertyLabel>
+                  <Box display="flex" gap={1}>
+                    <TextField
+                      size="small"
+                      label="X"
+                      type="number"
+                      value={selectedObservation.target[0]}
+                      onChange={(e) => {
+                        const newTarget: Vector3Tuple = [
+                          Number(e.target.value),
+                          selectedObservation.target![1],
+                          selectedObservation.target![2],
+                        ];
+                        handleObservationChange("target", newTarget);
+                      }}
+                    />
+                    <TextField
+                      size="small"
+                      label="Y"
+                      type="number"
+                      value={selectedObservation.target[1]}
+                      onChange={(e) => {
+                        const newTarget: Vector3Tuple = [
+                          selectedObservation.target![0],
+                          Number(e.target.value),
+                          selectedObservation.target![2],
+                        ];
+                        handleObservationChange("target", newTarget);
+                      }}
+                    />
+                    <TextField
+                      size="small"
+                      label="Z"
+                      type="number"
+                      value={selectedObservation.target[2]}
+                      onChange={(e) => {
+                        const newTarget: Vector3Tuple = [
+                          selectedObservation.target![0],
+                          selectedObservation.target![1],
+                          Number(e.target.value),
+                        ];
+                        handleObservationChange("target", newTarget);
+                      }}
+                    />
+                  </Box>
+                </>
+              )}
+              <Button
+                color="error"
+                onClick={() => deleteObservationPoint(selectedObservation.id)}
+                sx={{ mt: 2 }}
+              >
+                Delete Observation Point
+              </Button>
+            </PropertyGroup>
+          </>
+        ) : selectedObject ? (
+          // Object Properties
           <>
             <PropertyGroup>
               <Typography variant="subtitle1" gutterBottom>
@@ -111,27 +296,27 @@ const RightPanel = () => {
                   size="small"
                   label="X"
                   type="number"
-                  value={selectedObject.position?.x || 0}
+                  value={selectedObject.position[0]}
                   onChange={(e) =>
-                    handlePropertyChange("position.x", Number(e.target.value))
+                    handlePropertyChange("position.0", Number(e.target.value))
                   }
                 />
                 <TextField
                   size="small"
                   label="Y"
                   type="number"
-                  value={selectedObject.position?.y || 0}
+                  value={selectedObject.position[1]}
                   onChange={(e) =>
-                    handlePropertyChange("position.y", Number(e.target.value))
+                    handlePropertyChange("position.1", Number(e.target.value))
                   }
                 />
                 <TextField
                   size="small"
                   label="Z"
                   type="number"
-                  value={selectedObject.position?.z || 0}
+                  value={selectedObject.position[2]}
                   onChange={(e) =>
-                    handlePropertyChange("position.z", Number(e.target.value))
+                    handlePropertyChange("position.2", Number(e.target.value))
                   }
                 />
               </Box>
@@ -142,27 +327,27 @@ const RightPanel = () => {
                   size="small"
                   label="X"
                   type="number"
-                  value={selectedObject.rotation?.x || 0}
+                  value={selectedObject.rotation?.[0] || 0}
                   onChange={(e) =>
-                    handlePropertyChange("rotation.x", Number(e.target.value))
+                    handlePropertyChange("rotation.0", Number(e.target.value))
                   }
                 />
                 <TextField
                   size="small"
                   label="Y"
                   type="number"
-                  value={selectedObject.rotation?.y || 0}
+                  value={selectedObject.rotation?.[1] || 0}
                   onChange={(e) =>
-                    handlePropertyChange("rotation.y", Number(e.target.value))
+                    handlePropertyChange("rotation.1", Number(e.target.value))
                   }
                 />
                 <TextField
                   size="small"
                   label="Z"
                   type="number"
-                  value={selectedObject.rotation?.z || 0}
+                  value={selectedObject.rotation?.[2] || 0}
                   onChange={(e) =>
-                    handlePropertyChange("rotation.z", Number(e.target.value))
+                    handlePropertyChange("rotation.2", Number(e.target.value))
                   }
                 />
               </Box>
@@ -173,27 +358,27 @@ const RightPanel = () => {
                   size="small"
                   label="X"
                   type="number"
-                  value={selectedObject.scale?.x || 1}
+                  value={selectedObject.scale?.[0] || 1}
                   onChange={(e) =>
-                    handlePropertyChange("scale.x", Number(e.target.value))
+                    handlePropertyChange("scale.0", Number(e.target.value))
                   }
                 />
                 <TextField
                   size="small"
                   label="Y"
                   type="number"
-                  value={selectedObject.scale?.y || 1}
+                  value={selectedObject.scale?.[1] || 1}
                   onChange={(e) =>
-                    handlePropertyChange("scale.y", Number(e.target.value))
+                    handlePropertyChange("scale.1", Number(e.target.value))
                   }
                 />
                 <TextField
                   size="small"
                   label="Z"
                   type="number"
-                  value={selectedObject.scale?.z || 1}
+                  value={selectedObject.scale?.[2] || 1}
                   onChange={(e) =>
-                    handlePropertyChange("scale.z", Number(e.target.value))
+                    handlePropertyChange("scale.2", Number(e.target.value))
                   }
                 />
               </Box>
@@ -219,7 +404,7 @@ const RightPanel = () => {
           </>
         ) : (
           <Typography variant="body2" color="text.secondary">
-            Select an object to view its properties
+            Select an object or observation point to view its properties
           </Typography>
         )}
       </TabPanel>
@@ -239,19 +424,19 @@ const RightPanel = () => {
         </Box>
 
         <List>
-          <AssetItem button>
+          <AssetItem>
             <ListItemIcon>
               <ViewInAr />
             </ListItemIcon>
             <ListItemText primary="3D Models" secondary="12 items" />
           </AssetItem>
-          <AssetItem button>
+          <AssetItem>
             <ListItemIcon>
               <Image />
             </ListItemIcon>
             <ListItemText primary="Textures" secondary="8 items" />
           </AssetItem>
-          <AssetItem button>
+          <AssetItem>
             <ListItemIcon>
               <Style />
             </ListItemIcon>
