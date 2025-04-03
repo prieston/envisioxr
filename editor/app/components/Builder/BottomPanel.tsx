@@ -1,14 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  IconButton,
-  Tooltip,
-} from "@mui/material";
+import { Box, Card, CardContent, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import useSceneStore from "@/app/hooks/useSceneStore";

@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import {
   IconButton,
@@ -10,15 +9,9 @@ import {
   Typography,
   AppBar,
   Toolbar,
-  Box,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
-import InfoIcon from "@mui/icons-material/Info";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import LogoHeader from "../AppBar/LogoHeader";

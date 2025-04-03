@@ -7,8 +7,10 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { prisma } from "../../../lib/prisma.js";
 import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma.ts";
+import { Session } from "next-auth";
+import { doSpaces } from "@/lib/env";
 
 interface StockModel {
   name: string;
@@ -32,8 +34,8 @@ const stockModels: StockModel[] = [
 
 // GET: List both stock models and user's uploaded assets.
 export async function GET(_request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
+  const session = (await getServerSession(authOptions)) as Session;
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const userId = session.user.id;
@@ -53,8 +55,8 @@ export async function GET(_request: NextRequest) {
 
 // PATCH: Generate a signed URL for uploading a file to DigitalOcean Spaces.
 export async function PATCH(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
+  const session = (await getServerSession(authOptions)) as Session;
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
@@ -64,14 +66,14 @@ export async function PATCH(request: NextRequest) {
     }
     // Configure the S3 client for DigitalOcean Spaces.
     const s3 = new S3Client({
-      region: process.env.DO_SPACES_REGION,
-      endpoint: process.env.DO_SPACES_ENDPOINT, // e.g. "https://fra1.digitaloceanspaces.com"
+      region: doSpaces.region,
+      endpoint: doSpaces.endpoint,
       credentials: {
-        accessKeyId: process.env.DO_SPACES_KEY,
-        secretAccessKey: process.env.DO_SPACES_SECRET,
+        accessKeyId: doSpaces.key,
+        secretAccessKey: doSpaces.secret,
       },
     });
-    const bucketName = process.env.DO_SPACES_BUCKET;
+    const bucketName = doSpaces.bucket;
     const key = `models/${Date.now()}-${fileName}`;
     const command = new PutObjectCommand({
       Bucket: bucketName,
@@ -92,8 +94,8 @@ export async function PATCH(request: NextRequest) {
 
 // POST: Create a new Asset record once the file has been uploaded.
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
+  const session = (await getServerSession(authOptions)) as Session;
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const userId = session.user.id;
@@ -105,7 +107,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing file data" }, { status: 400 });
     }
     // Construct the public file URL from your DigitalOcean Spaces bucket.
-    const fileUrl = `${process.env.DO_SPACES_ENDPOINT}/${process.env.DO_SPACES_BUCKET}/${key}`;
+    const fileUrl = `${doSpaces.endpoint}/${doSpaces.bucket}/${key}`;
     const asset = await prisma.asset.create({
       data: {
         userId,
@@ -127,8 +129,8 @@ export async function POST(request: NextRequest) {
 
 // DELETE: Remove an asset from DigitalOcean Spaces and the database.
 export async function DELETE(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
+  const session = (await getServerSession(authOptions)) as Session;
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const userId = session.user.id;
@@ -149,17 +151,17 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
     // Determine the key from the asset's fileUrl.
-    const bucketName = process.env.DO_SPACES_BUCKET;
-    const endpoint = process.env.DO_SPACES_ENDPOINT;
+    const bucketName = doSpaces.bucket;
+    const endpoint = doSpaces.endpoint;
     const fileUrl = asset.fileUrl;
     const key = fileUrl.replace(`${endpoint}/${bucketName}/`, "");
     // Setup S3 client.
     const s3 = new S3Client({
-      region: process.env.DO_SPACES_REGION,
+      region: doSpaces.region,
       endpoint: endpoint,
       credentials: {
-        accessKeyId: process.env.DO_SPACES_KEY,
-        secretAccessKey: process.env.DO_SPACES_SECRET,
+        accessKeyId: doSpaces.key,
+        secretAccessKey: doSpaces.secret,
       },
     });
     // Delete the object from Spaces.
