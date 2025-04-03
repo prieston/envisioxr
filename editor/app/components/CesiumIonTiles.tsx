@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { Html, Sphere } from "@react-three/drei";
 import * as THREE from "three";
@@ -15,6 +15,13 @@ import {
 } from "3d-tiles-renderer/plugins";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { MathUtils } from "three";
+
+// Extend TilesRenderer type to include setLatLonToYUp
+declare module "3d-tiles-renderer" {
+  interface TilesRenderer {
+    setLatLonToYUp(latitude: number, longitude: number): void;
+  }
+}
 
 interface CesiumIonTilesProps {
   apiKey: string;
@@ -110,8 +117,6 @@ const CesiumIonTiles: React.FC<CesiumIonTilesProps> = ({
 
       tilesRendererRef.current = tilesRenderer;
 
-      console.log("Tiles renderer created with Cesium Ion");
-
       // Configure the renderer
       tilesRenderer.setCamera(camera);
       tilesRenderer.setResolutionFromRenderer(camera, gl);
@@ -127,7 +132,6 @@ const CesiumIonTiles: React.FC<CesiumIonTilesProps> = ({
 
       // Set up event listeners
       tilesRenderer.addEventListener("load", () => {
-        console.log("Tiles loaded successfully");
         setStatus("Tiles loaded successfully");
         setLoading(false);
       });

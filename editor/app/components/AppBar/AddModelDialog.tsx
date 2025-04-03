@@ -20,9 +20,10 @@ import {
   LinearProgress,
 } from "@mui/material";
 import { useDropzone } from "react-dropzone";
-import { showToast } from "../../utils/toastUtils";
-import useSceneStore from "../../hooks/useSceneStore";
+import useSceneStore from "@/app/hooks/useSceneStore";
+import { showToast } from "@/app/utils/toastUtils";
 import ModelPreview from "../ModelPreview";
+import { doSpaces } from "@/lib/env";
 
 const stockModels = [
   {
@@ -164,8 +165,8 @@ const AddModelDialog = ({ open, onClose }) => {
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          const endpoint = process.env.NEXT_PUBLIC_DO_SPACES_ENDPOINT;
-          const bucket = process.env.NEXT_PUBLIC_DO_SPACES_BUCKET;
+          const endpoint = doSpaces.publicEndpoint;
+          const bucket = doSpaces.publicBucket;
           const publicUrl = `${endpoint}/${bucket}/${key}`;
           resolve({ key, publicUrl });
         } else {

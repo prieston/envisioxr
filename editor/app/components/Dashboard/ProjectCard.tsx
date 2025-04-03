@@ -6,12 +6,11 @@ import {
   Typography,
   Button,
   IconButton,
-  Box,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { styled } from "@mui/material/styles";
 
-const GlassCard = styled(Card)(({ theme }) => ({
+const GlassCard = styled(Card)(() => ({
   width: 300,
   position: "relative",
   background: "#1e1e1e",

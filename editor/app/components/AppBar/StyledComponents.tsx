@@ -1,7 +1,7 @@
 import { styled } from "@mui/material/styles";
 import { AppBar, Toolbar, Box, Button } from "@mui/material";
 
-export const AppBarContainer = styled(AppBar)(({ theme }) => ({
+export const AppBarContainer = styled(AppBar)(() => ({
   backgroundColor: "#121212",
   backdropFilter: "blur(8px)",
   borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
@@ -27,7 +27,7 @@ export const AppBarContainer = styled(AppBar)(({ theme }) => ({
   },
 }));
 
-export const ToolbarContainer = styled(Toolbar)(({ theme }) => ({
+export const ToolbarContainer = styled(Toolbar)(() => ({
   minHeight: "64px !important",
   padding: "0 16px !important",
   display: "flex",
@@ -80,7 +80,7 @@ export const MinimalButtonActive = styled(MinimalButton)<{ active?: boolean }>(
   })
 );
 
-export const NavigationButton = styled(MinimalButton)(({ theme }) => ({
+export const NavigationButton = styled(MinimalButton)(() => ({
   minWidth: "64px",
   width: "64px",
 }));

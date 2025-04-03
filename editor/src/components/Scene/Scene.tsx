@@ -2,13 +2,7 @@
 
 import React, { useRef, useEffect, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import {
-  OrbitControls,
-  Grid,
-  Sky,
-  TransformControls,
-  Html,
-} from "@react-three/drei";
+import { Grid, Sky, Html } from "@react-three/drei";
 import useSceneStore from "../../../app/hooks/useSceneStore";
 import {
   SceneProps,
@@ -213,7 +207,7 @@ export default function Scene({
           </XRWrapper>
         </Suspense>
       </Canvas>
-      <LocationSearch onAssetSelect={handleAssetSelect} />
+      {!isPublishMode && <LocationSearch onAssetSelect={handleAssetSelect} />}
       <Loader />
     </>
   );
