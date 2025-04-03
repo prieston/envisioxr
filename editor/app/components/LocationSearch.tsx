@@ -172,11 +172,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onAssetSelect }) => {
       elevation={3}
       className="location-search-paper"
       sx={{
-        position: "absolute",
-        top: 20,
-        left: 20,
-        width: 300,
-        zIndex: 1000,
+        width: "100%",
         maxHeight: "80vh",
         overflow: "auto",
       }}
@@ -200,7 +196,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onAssetSelect }) => {
       )}
 
       {loading && (
-        <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
+        <Box sx={{ p: 2, display: "flex", justifyContent: "center" }}>
           <CircularProgress size={24} />
         </Box>
       )}
@@ -215,7 +211,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onAssetSelect }) => {
             >
               <ListItemText
                 primary={location.name}
-                secondary={`${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`}
+                secondary={`${location.latitude}, ${location.longitude}`}
               />
             </ListItem>
           ))}

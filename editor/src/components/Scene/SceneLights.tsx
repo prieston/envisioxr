@@ -2,16 +2,27 @@
 
 import React from "react";
 
-const SceneLights: React.FC = () => {
+interface SceneLightsProps {
+  ambientLightIntensity?: number;
+}
+
+const SceneLights: React.FC<SceneLightsProps> = ({
+  ambientLightIntensity = 0.5,
+}) => {
   return (
     <>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 5]} intensity={1} />
-      <directionalLight position={[-10, -10, -5]} intensity={0.5} />
-      <hemisphereLight
+      <ambientLight intensity={ambientLightIntensity} />
+      <directionalLight
+        position={[10, 10, 5]}
+        intensity={1}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+      />
+      <directionalLight
+        position={[-10, 10, -5]}
         intensity={0.5}
-        groundColor="#444444"
-        position={[0, 50, 0]}
+        castShadow
+        shadow-mapSize={[1024, 1024]}
       />
     </>
   );

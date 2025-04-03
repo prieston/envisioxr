@@ -1,4 +1,4 @@
-import { Vector3 } from "three"; // Assuming you are using three.js for Vector3
+import { Vector3 } from "three";
 import { create } from "zustand";
 import * as THREE from "three";
 import { v4 as uuidv4 } from "uuid";
@@ -14,7 +14,11 @@ interface Model {
   apiKey?: string;
   assetId?: string;
   component?: string;
-  [key: string]: any; // For any additional properties
+  material?: {
+    color?: string;
+    [key: string]: any;
+  };
+  [key: string]: any;
 }
 
 interface ObservationPoint {
@@ -26,6 +30,7 @@ interface ObservationPoint {
 }
 
 interface SceneState {
+  // Scene Objects
   objects: Model[];
   observationPoints: ObservationPoint[];
   selectedObject: Model | null;
@@ -35,26 +40,59 @@ interface SceneState {
     latitude: number;
     longitude: number;
   } | null;
+
+  // Environment Settings
+  gridEnabled: boolean;
+  ambientLightIntensity: number;
+  skyboxType: "default" | "hdri" | "gradient" | "none";
+  showTiles: boolean;
+
+  // View Mode
+  viewMode: "orbit" | "firstPerson" | "thirdPerson";
+
+  // Playback State
+  isPlaying: boolean;
+  playbackSpeed: number;
+
+  // UI State
   addingObservation: boolean;
   capturingPOV: boolean;
   previewMode: boolean;
   previewIndex: number;
   transformMode: "translate" | "rotate" | "scale";
   orbitControlsRef: any | null;
+
+  // Environment Actions
+  setGridEnabled: (enabled: boolean) => void;
+  setAmbientLightIntensity: (intensity: number) => void;
+  setSkyboxType: (type: "default" | "hdri" | "gradient" | "none") => void;
+  setShowTiles: (show: boolean) => void;
+
+  // View Mode Actions
+  setViewMode: (mode: "orbit" | "firstPerson" | "thirdPerson") => void;
+
+  // Playback Actions
+  togglePlayback: () => void;
+  setPlaybackSpeed: (speed: number) => void;
+
+  // Scene Object Actions
   setPreviewMode: (value: boolean) => void;
   setTransformMode: (mode: "translate" | "rotate" | "scale") => void;
   setObjects: (newObjects: Model[]) => void;
   addModel: (model: Partial<Model>) => void;
   selectObject: (id: string, ref: THREE.Object3D | null) => void;
   removeObject: (id: string) => void;
+  updateObjectProperty: (id: string, property: string, value: any) => void;
   updateModelRef: (id: string, ref: THREE.Object3D | null) => void;
   deselectObject: () => void;
   setModelPosition: (id: string, newPosition: Vector3) => void;
   setModelRotation: (id: string, newRotation: Vector3) => void;
   setModelScale: (id: string, newScale: Vector3) => void;
+
+  // Observation Point Actions
   setObservationPoints: (newPoints: ObservationPoint[]) => void;
   addObservationPoint: () => void;
-  selectObservationPoint: (id: number) => void;
+  selectObservation: (id: number) => void;
   updateObservationPoint: (
     id: number,
     updates: Partial<ObservationPoint>
@@ -65,6 +103,8 @@ interface SceneState {
   exitPreview: () => void;
   nextObservation: () => void;
   prevObservation: () => void;
+
+  // Other Actions
   resetScene: () => void;
   setOrbitControlsRef: (ref: any) => void;
   addGoogleTiles: (apiKey: string) => void;
@@ -76,35 +116,53 @@ interface SceneState {
 }
 
 const useSceneStore = create<SceneState>((set) => ({
-  // Scene data
+  // Initial State
   objects: [],
   observationPoints: [],
-  orbitControlsRef: null,
-  selectedAssetId: "2275207", // Default to Tokyo Tower
-  selectedLocation: null,
-
-  // Selected items
   selectedObject: null,
   selectedObservation: null,
+  selectedAssetId: "2275207",
+  selectedLocation: null,
+  orbitControlsRef: null,
 
-  // State flags
+  // Environment Settings Initial State
+  gridEnabled: true,
+  ambientLightIntensity: 0.5,
+  skyboxType: "default",
+  showTiles: false,
+
+  // View Mode Initial State
+  viewMode: "orbit",
+
+  // Playback Initial State
+  isPlaying: false,
+  playbackSpeed: 1,
+
+  // UI Initial State
   addingObservation: false,
   capturingPOV: false,
   previewMode: false,
   previewIndex: 0,
-  setPreviewMode: (value) => set({ previewMode: value }),
-
-  // Transform mode (translate, rotate, scale)
   transformMode: "translate",
 
-  // Actions for updating transform mode
-  setTransformMode: (mode) => set({ transformMode: mode }),
+  // Environment Actions
+  setGridEnabled: (enabled) => set({ gridEnabled: enabled }),
+  setAmbientLightIntensity: (intensity) =>
+    set({ ambientLightIntensity: intensity }),
+  setSkyboxType: (type) => set({ skyboxType: type }),
+  setShowTiles: (show) => set({ showTiles: show }),
 
-  // Actions for scene objects (models)
-  setObjects: (newObjects) => {
-    console.log("Setting objects:", newObjects);
-    set({ objects: newObjects });
-  },
+  // View Mode Actions
+  setViewMode: (mode) => set({ viewMode: mode }),
+
+  // Playback Actions
+  togglePlayback: () => set((state) => ({ isPlaying: !state.isPlaying })),
+  setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
+
+  // Scene Object Actions
+  setPreviewMode: (value) => set({ previewMode: value }),
+  setTransformMode: (mode) => set({ transformMode: mode }),
+  setObjects: (newObjects) => set({ objects: newObjects }),
 
   addModel: (model) =>
     set((state) => {
@@ -118,112 +176,61 @@ const useSceneStore = create<SceneState>((set) => ({
         scale: model.scale || [1, 1, 1],
         apiKey: model.apiKey,
         assetId: model.assetId,
+        material: model.material || { color: "#ffffff" },
       };
-
-      console.log("Adding new model:", newModel);
-      const updatedObjects = [...state.objects, newModel];
-      console.log("Updated objects array:", updatedObjects);
-      return { objects: updatedObjects };
+      return { objects: [...state.objects, newModel] };
     }),
 
-  addGoogleTiles: (apiKey) =>
-    set((_state) => {
-      const newModel: Model = {
-        id: uuidv4(),
-        name: "Google Photorealistic Tiles",
-        type: "tiles",
-        position: [0, 0, 0],
-        rotation: [0, 0, 0],
-        scale: [1, 1, 1],
-        apiKey,
-        component: "TilesRenderer",
-      };
-      return { objects: [..._state.objects, newModel] };
-    }),
-
-  addCesiumIonTiles: () => {
-    set((state) => {
-      const newModel: Model = {
-        id: `tiles-${Date.now()}`,
-        name: "Cesium Ion Tiles",
-        url: "https://assets.ion.cesium.com/1/",
-        type: "tiles",
-        position: [0, 0, 0],
-        rotation: [0, 0, 0],
-        scale: [1, 1, 1],
-        assetId: "2275207", // Tokyo Tower asset ID
-      };
-
-      console.log("Adding new Cesium Ion tiles:", newModel);
-      return {
-        objects: [...state.objects, newModel],
-      };
-    });
-  },
-
-  removeObject: (id: string) =>
-    set((state) => {
-      console.log("Removing object:", id);
-      const updatedObjects = state.objects.filter((obj) => obj.id !== id);
-      console.log("Updated objects after removal:", updatedObjects);
-      return {
-        objects: updatedObjects,
-        selectedObject:
-          state.selectedObject && state.selectedObject.id === id
-            ? null
-            : state.selectedObject,
-      };
-    }),
-
-  selectObject: (id, ref) => {
-    console.log("Selecting object:", { id, ref });
-    return set((state) => {
-      const selectedObject = state.objects.find((obj) => obj.id === id)
+  selectObject: (id, ref) =>
+    set((state) => ({
+      selectedObject: state.objects.find((obj) => obj.id === id)
         ? { ...state.objects.find((obj) => obj.id === id), ref }
-        : null;
-      console.log("Selected object:", selectedObject);
-      return { selectedObject };
-    });
-  },
+        : null,
+    })),
 
-  updateModelRef: (id: string, ref: THREE.Object3D | null) => {
-    console.log("Updating model ref:", { id, ref });
-    return set((state) => {
-      const updatedObjects = state.objects.map((obj) =>
+  removeObject: (id) =>
+    set((state) => ({
+      objects: state.objects.filter((obj) => obj.id !== id),
+      selectedObject:
+        state.selectedObject?.id === id ? null : state.selectedObject,
+    })),
+
+  updateObjectProperty: (id, property, value) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
+        obj.id === id
+          ? {
+              ...obj,
+              [property]: value,
+            }
+          : obj
+      ),
+    })),
+
+  updateModelRef: (id, ref) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
         obj.id === id ? { ...obj, ref } : obj
-      );
-      console.log("Updated objects with ref:", updatedObjects);
-      return { objects: updatedObjects };
-    });
-  },
+      ),
+    })),
 
   deselectObject: () => set({ selectedObject: null }),
 
   setModelPosition: (id, newPosition) =>
-    set((state) => {
-      console.log("Setting model position:", {
-        id,
-        position: newPosition.toArray(),
-      });
-      const updatedObjects = state.objects.map((obj) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
         obj.id === id
           ? {
               ...obj,
               position: newPosition.toArray() as [number, number, number],
             }
           : obj
-      );
-      console.log("Updated objects with position:", updatedObjects);
-      return { objects: updatedObjects };
-    }),
+      ),
+    })),
 
   setModelRotation: (id, newRotation) =>
-    set((state) => {
-      console.log("Setting model rotation:", {
-        id,
-        rotation: [newRotation.x, newRotation.y, newRotation.z],
-      });
-      const updatedObjects = state.objects.map((obj) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
         obj.id === id
           ? {
               ...obj,
@@ -234,18 +241,12 @@ const useSceneStore = create<SceneState>((set) => ({
               ],
             }
           : obj
-      );
-      console.log("Updated objects with rotation:", updatedObjects);
-      return { objects: updatedObjects };
-    }),
+      ),
+    })),
 
   setModelScale: (id, newScale) =>
-    set((state) => {
-      console.log("Setting model scale:", {
-        id,
-        scale: [newScale.x, newScale.y, newScale.z],
-      });
-      const updatedObjects = state.objects.map((obj) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
         obj.id === id
           ? {
               ...obj,
@@ -256,94 +257,69 @@ const useSceneStore = create<SceneState>((set) => ({
               ],
             }
           : obj
-      );
-      console.log("Updated objects with scale:", updatedObjects);
-      return { objects: updatedObjects };
-    }),
+      ),
+    })),
 
-  // Actions for observation points
-  setObservationPoints: (newPoints) => {
-    console.log("Setting observation points:", newPoints);
-    set({ observationPoints: newPoints });
-  },
+  // Observation Point Actions
+  setObservationPoints: (newPoints) => set({ observationPoints: newPoints }),
 
   addObservationPoint: () =>
-    set((state) => {
-      const newPoint = {
-        id: Date.now(),
-        title: "New Observation Point",
-        description: "",
-        position: null,
-        target: null,
-      };
-      console.log("Adding new observation point:", newPoint);
-      return {
-        observationPoints: [...state.observationPoints, newPoint],
-      };
-    }),
+    set((state) => ({
+      observationPoints: [
+        ...state.observationPoints,
+        {
+          id: Date.now(),
+          title: "New Observation Point",
+          description: "",
+          position: null,
+          target: null,
+        },
+      ],
+    })),
 
-  selectObservationPoint: (id) => {
-    console.log("Selecting observation point:", id);
-    return set((state) => {
-      const selectedObservation = state.observationPoints.find(
+  selectObservation: (id) =>
+    set((state) => ({
+      selectedObservation: state.observationPoints.find(
         (point) => point.id === id
-      );
-      console.log("Selected observation point:", selectedObservation);
-      return { selectedObservation };
-    });
-  },
+      ),
+    })),
 
   updateObservationPoint: (id, updates) =>
-    set((state) => {
-      console.log("Updating observation point:", { id, updates });
-      const updatedPoints = state.observationPoints.map((point) =>
+    set((state) => ({
+      observationPoints: state.observationPoints.map((point) =>
         point.id === id ? { ...point, ...updates } : point
-      );
-      console.log("Updated observation points:", updatedPoints);
-      return { observationPoints: updatedPoints };
-    }),
+      ),
+    })),
 
   deleteObservationPoint: (id) =>
-    set((state) => {
-      console.log("Deleting observation point:", id);
-      const updatedPoints = state.observationPoints.filter(
+    set((state) => ({
+      observationPoints: state.observationPoints.filter(
         (point) => point.id !== id
-      );
-      console.log("Updated observation points after deletion:", updatedPoints);
-      return {
-        observationPoints: updatedPoints,
-        selectedObservation:
-          state.selectedObservation && state.selectedObservation.id === id
-            ? null
-            : state.selectedObservation,
-      };
-    }),
+      ),
+      selectedObservation:
+        state.selectedObservation?.id === id ? null : state.selectedObservation,
+    })),
 
-  // POV Capture
   setCapturingPOV: (value) => set({ capturingPOV: value }),
 
-  // Preview Mode Actions
   startPreview: () => set({ previewMode: true, previewIndex: 0 }),
   exitPreview: () => set({ previewMode: false, previewIndex: 0 }),
-  nextObservation: () =>
-    set((state) => {
-      if (
-        state.observationPoints.length > 0 &&
-        state.previewIndex < state.observationPoints.length - 1
-      ) {
-        return { previewIndex: state.previewIndex + 1 };
-      }
-      return state;
-    }),
-  prevObservation: () =>
-    set((state) => {
-      if (state.observationPoints.length > 0 && state.previewIndex > 0) {
-        return { previewIndex: state.previewIndex - 1 };
-      }
-      return state;
-    }),
 
-  // NEW: Reset the scene state to default values.
+  nextObservation: () =>
+    set((state) => ({
+      previewIndex:
+        state.previewIndex < state.observationPoints.length - 1
+          ? state.previewIndex + 1
+          : state.previewIndex,
+    })),
+
+  prevObservation: () =>
+    set((state) => ({
+      previewIndex:
+        state.previewIndex > 0 ? state.previewIndex - 1 : state.previewIndex,
+    })),
+
+  // Other Actions
   resetScene: () =>
     set({
       objects: [],
@@ -354,13 +330,51 @@ const useSceneStore = create<SceneState>((set) => ({
       selectedLocation: null,
       previewMode: false,
       previewIndex: 0,
+      gridEnabled: true,
+      ambientLightIntensity: 0.5,
+      skyboxType: "default",
+      viewMode: "orbit",
+      isPlaying: false,
+      playbackSpeed: 1,
     }),
 
-  // Set orbit controls reference
   setOrbitControlsRef: (ref) => set({ orbitControlsRef: ref }),
 
-  setSelectedAssetId: (assetId) => set({ selectedAssetId: assetId }),
+  addGoogleTiles: (apiKey) =>
+    set((state) => ({
+      objects: [
+        ...state.objects,
+        {
+          id: uuidv4(),
+          name: "Google Photorealistic Tiles",
+          type: "tiles",
+          position: [0, 0, 0],
+          rotation: [0, 0, 0],
+          scale: [1, 1, 1],
+          apiKey,
+          component: "TilesRenderer",
+        },
+      ],
+    })),
 
+  addCesiumIonTiles: () =>
+    set((state) => ({
+      objects: [
+        ...state.objects,
+        {
+          id: uuidv4(),
+          name: "Cesium Ion Tiles",
+          url: "https://assets.ion.cesium.com/1/",
+          type: "tiles",
+          position: [0, 0, 0],
+          rotation: [0, 0, 0],
+          scale: [1, 1, 1],
+          assetId: "2275207",
+        },
+      ],
+    })),
+
+  setSelectedAssetId: (assetId) => set({ selectedAssetId: assetId }),
   setSelectedLocation: (location) => set({ selectedLocation: location }),
 }));
 
