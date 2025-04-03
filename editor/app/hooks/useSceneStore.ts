@@ -29,7 +29,15 @@ interface ObservationPoint {
   target: [number, number, number] | null;
 }
 
-export type ViewMode = "orbit" | "firstPerson" | "thirdPerson" | "flight";
+export type ViewMode =
+  | "orbit"
+  | "firstPerson"
+  | "thirdPerson"
+  | "flight"
+  | "thirdPersonFlight"
+  | "car"
+  | "thirdPersonCar"
+  | "settings";
 
 interface SceneState {
   // Scene Objects
@@ -116,6 +124,20 @@ interface SceneState {
   setSelectedAssetId: (assetId: string) => void;
   setSelectedLocation: (
     location: { latitude: number; longitude: number } | null
+  ) => void;
+
+  // Control Settings
+  controlSettings: {
+    carSpeed: number;
+    walkSpeed: number;
+    flightSpeed: number;
+    turnSpeed: number;
+    smoothness: number;
+  };
+
+  // Control Settings Actions
+  updateControlSettings: (
+    settings: Partial<SceneState["controlSettings"]>
   ) => void;
 }
 
@@ -381,6 +403,21 @@ const useSceneStore = create<SceneState>((set) => ({
 
   setSelectedAssetId: (assetId) => set({ selectedAssetId: assetId }),
   setSelectedLocation: (location) => set({ selectedLocation: location }),
+
+  // Control Settings Initial State
+  controlSettings: {
+    carSpeed: 15,
+    walkSpeed: 5,
+    flightSpeed: 10,
+    turnSpeed: 0.05,
+    smoothness: 0.05,
+  },
+
+  // Control Settings Actions
+  updateControlSettings: (settings) =>
+    set((state) => ({
+      controlSettings: { ...state.controlSettings, ...settings },
+    })),
 }));
 
 export default useSceneStore;
