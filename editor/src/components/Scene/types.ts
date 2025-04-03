@@ -1,13 +1,15 @@
-import * as THREE from "three";
-
 export interface Model {
   id: string;
-  url: string;
-  type?: string;
   position: [number, number, number];
-  scale: [number, number, number];
-  rotation: [number, number, number];
-  ref?: THREE.Object3D;
+  rotation?: [number, number, number];
+  scale?: [number, number, number];
+  name?: string;
+  url?: string;
+  type?: string;
+  apiKey?: string;
+  assetId?: string;
+  component?: string;
+  [key: string]: any; // For any additional properties
 }
 
 export interface ObservationPoint {
@@ -22,9 +24,22 @@ export interface SceneProps {
   initialSceneData?: {
     objects?: Model[];
     observationPoints?: ObservationPoint[];
+    selectedAssetId?: string;
+    selectedLocation?: {
+      latitude: number;
+      longitude: number;
+    } | null;
   };
   renderObservationPoints?: boolean;
-  onSceneDataChange?: (data: any) => void;
+  onSceneDataChange?: (data: {
+    objects: Model[];
+    observationPoints: ObservationPoint[];
+    selectedAssetId: string;
+    selectedLocation: {
+      latitude: number;
+      longitude: number;
+    } | null;
+  }) => void;
   enableXR?: boolean;
   isPublishMode?: boolean;
 }
@@ -33,6 +48,7 @@ export interface SceneObjectsProps {
   objects: Model[];
   previewMode: boolean;
   enableXR: boolean;
+  isPublishMode?: boolean;
 }
 
 export interface SceneObservationPointsProps {

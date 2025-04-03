@@ -10,8 +10,18 @@ import { showToast } from "../../../../../app/utils/toastUtils";
 import { toast } from "react-toastify";
 
 // Function to sanitize scene data before saving
-const sanitizeSceneData = (objects, observationPoints) => {
-  console.log("Sanitizing scene data:", { objects, observationPoints });
+const sanitizeSceneData = (
+  objects,
+  observationPoints,
+  selectedAssetId,
+  selectedLocation
+) => {
+  console.log("Sanitizing scene data:", {
+    objects,
+    observationPoints,
+    selectedAssetId,
+    selectedLocation,
+  });
 
   // Ensure we have valid arrays to work with
   const safeObjects = Array.isArray(objects) ? objects : [];
@@ -80,14 +90,26 @@ const sanitizeSceneData = (objects, observationPoints) => {
     })
     .filter(Boolean);
 
+  // Clean up selected location
+  const cleanSelectedLocation = selectedLocation
+    ? {
+        latitude: selectedLocation.latitude || 0,
+        longitude: selectedLocation.longitude || 0,
+      }
+    : null;
+
   console.log("Cleaned scene data:", {
     objects: cleanObjects,
     observationPoints: cleanObservationPoints,
+    selectedAssetId: selectedAssetId || "2275207",
+    selectedLocation: cleanSelectedLocation,
   });
 
   return {
     objects: cleanObjects,
     observationPoints: cleanObservationPoints,
+    selectedAssetId: selectedAssetId || "2275207",
+    selectedLocation: cleanSelectedLocation,
   };
 };
 
@@ -124,16 +146,29 @@ export default function BuilderPage() {
 
         // Initialize scene data from project
         if (data.project?.sceneData) {
-          const { objects, observationPoints } = data.project.sceneData;
+          const {
+            objects,
+            observationPoints,
+            selectedAssetId,
+            selectedLocation,
+          } = data.project.sceneData;
           console.log("Initializing scene data:", {
             objects,
             observationPoints,
+            selectedAssetId,
+            selectedLocation,
           });
           if (Array.isArray(objects)) {
             setObjects(objects);
           }
           if (Array.isArray(observationPoints)) {
             setObservationPoints(observationPoints);
+          }
+          if (selectedAssetId) {
+            useSceneStore.setState({ selectedAssetId });
+          }
+          if (selectedLocation) {
+            useSceneStore.setState({ selectedLocation });
           }
         }
       } catch (error) {
@@ -159,7 +194,9 @@ export default function BuilderPage() {
       // Sanitize the scene data
       const sceneData = sanitizeSceneData(
         storeState.objects,
-        storeState.observationPoints
+        storeState.observationPoints,
+        storeState.selectedAssetId,
+        storeState.selectedLocation
       );
       console.log("Sanitized scene data:", sceneData);
 

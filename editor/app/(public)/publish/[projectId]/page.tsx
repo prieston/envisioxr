@@ -74,6 +74,17 @@ const PublishedScenePage = () => {
             );
           }
         }
+
+        // Initialize selectedAssetId and selectedLocation
+        if (data.project.sceneData) {
+          const { selectedAssetId, selectedLocation } = data.project.sceneData;
+          if (selectedAssetId) {
+            useSceneStore.setState({ selectedAssetId });
+          }
+          if (selectedLocation) {
+            useSceneStore.setState({ selectedLocation });
+          }
+        }
       } catch (error) {
         console.error("Error fetching project:", error);
       } finally {

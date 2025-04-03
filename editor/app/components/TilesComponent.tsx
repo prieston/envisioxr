@@ -18,6 +18,9 @@ import { MathUtils } from "three";
 // Define props type
 interface TilesComponentProps {
   apiKey: string;
+  assetId?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 // Create a wrapper for TilesRenderer that extends Object3D
@@ -28,7 +31,6 @@ class TilesRendererWrapper extends THREE.Object3D {
     super();
     this.tilesRenderer = tilesRenderer;
     // Add the tiles renderer's group to this object
-    debugger; // eslint-disable-line
     if (tilesRenderer.group) {
       this.add(tilesRenderer.group);
     }
@@ -47,7 +49,12 @@ class TilesRendererWrapper extends THREE.Object3D {
   }
 }
 
-const TilesComponent: React.FC<TilesComponentProps> = ({ apiKey }) => {
+const TilesComponent: React.FC<TilesComponentProps> = ({
+  apiKey,
+  assetId = "2275207", // Default to Tokyo Tower if no assetId provided
+  latitude = 35.6586, // Default to Tokyo Tower coordinates
+  longitude = 139.7454,
+}) => {
   const { camera, gl, scene } = useThree();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,7 +86,7 @@ const TilesComponent: React.FC<TilesComponentProps> = ({ apiKey }) => {
       tilesRenderer.registerPlugin(
         new CesiumIonAuthPlugin({
           apiToken: apiKey,
-          assetId: "2275207", // Tokyo Tower asset ID
+          assetId: assetId,
           autoRefreshToken: true,
         })
       );
@@ -93,10 +100,10 @@ const TilesComponent: React.FC<TilesComponentProps> = ({ apiKey }) => {
         })
       );
 
-      // Set the location to Tokyo Tower coordinates
+      // Set the location to the provided coordinates
       tilesRenderer.setLatLonToYUp(
-        35.6586 * MathUtils.DEG2RAD,
-        139.7454 * MathUtils.DEG2RAD
+        latitude * MathUtils.DEG2RAD,
+        longitude * MathUtils.DEG2RAD
       );
 
       tilesRendererRef.current = tilesRenderer;
@@ -150,7 +157,7 @@ const TilesComponent: React.FC<TilesComponentProps> = ({ apiKey }) => {
       setLoading(false);
       return () => {};
     }
-  }, [apiKey, camera, gl, scene]);
+  }, [apiKey, camera, gl, scene, assetId, latitude, longitude]);
 
   return (
     <>
