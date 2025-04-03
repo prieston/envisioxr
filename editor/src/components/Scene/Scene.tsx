@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, Suspense } from "react";
+import React, { useRef, useEffect, Suspense, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Grid, Sky, Html } from "@react-three/drei";
 import useSceneStore from "../../../app/hooks/useSceneStore";
@@ -18,6 +18,7 @@ import {
 import Loader from "./Loader";
 import dynamic from "next/dynamic";
 import LocationSearch from "../../../app/components/LocationSearch";
+import { isWebGPUAvailable, createWebGPUContext } from "../../../lib/webgpu";
 
 // Create a dynamic import for the 3D Tiles components to ensure they're loaded client-side
 const TilesComponent = dynamic(
@@ -48,6 +49,8 @@ export default function Scene({
   enableXR = false,
   isPublishMode = false,
 }: SceneProps) {
+  const [isWebGPU, setIsWebGPU] = useState(false);
+  const [showTiles, setShowTiles] = useState(false);
   const orbitControlsRef = useRef<any>(null);
   const transformControlsRef = useRef<any>(null);
   const objects = useSceneStore((state) => state.objects);
@@ -64,6 +67,11 @@ export default function Scene({
   const setSelectedLocation = useSceneStore(
     (state) => state.setSelectedLocation
   );
+
+  // Check WebGPU availability
+  useEffect(() => {
+    isWebGPUAvailable().then(setIsWebGPU);
+  }, []);
 
   // Initialize the store from initialSceneData
   useEffect(() => {
@@ -151,15 +159,21 @@ export default function Scene({
         style={{ background: "#1a1a1a", width: "100%", height: "100%" }}
         camera={{ position: [10, 10, 10], fov: 50, far: 1e9 }}
         onPointerMissed={() => useSceneStore.getState().deselectObject()}
+        gl={{
+          ...(isWebGPU && { backend: "webgpu" }),
+          ...createWebGPUContext(),
+        }}
       >
         <Suspense fallback={null}>
           <XRWrapper enabled={enableXR} orbitControlsRef={orbitControlsRef}>
-            <TilesComponent
-              apiKey={process.env.NEXT_PUBLIC_CESIUM_ION_KEY || ""}
-              assetId={selectedAssetId}
-              latitude={selectedLocation?.latitude}
-              longitude={selectedLocation?.longitude}
-            />
+            {showTiles && (
+              <TilesComponent
+                apiKey={process.env.NEXT_PUBLIC_CESIUM_ION_KEY || ""}
+                assetId={selectedAssetId}
+                latitude={selectedLocation?.latitude}
+                longitude={selectedLocation?.longitude}
+              />
+            )}
 
             {/* Basic scene elements */}
             <Sky
@@ -207,7 +221,27 @@ export default function Scene({
           </XRWrapper>
         </Suspense>
       </Canvas>
-      {!isPublishMode && <LocationSearch onAssetSelect={handleAssetSelect} />}
+      {!isPublishMode && (
+        <>
+          <LocationSearch onAssetSelect={handleAssetSelect} />
+          <button
+            onClick={() => setShowTiles(!showTiles)}
+            style={{
+              position: "absolute",
+              bottom: "20px",
+              right: "20px",
+              padding: "10px 20px",
+              background: "#2196f3",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            {showTiles ? "Hide Tiles" : "Show Tiles"}
+          </button>
+        </>
+      )}
       <Loader />
     </>
   );
