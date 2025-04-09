@@ -9,7 +9,7 @@ import useSceneStore from "@/app/hooks/useSceneStore";
 import MobileLayout from "@/app/components/PublishPage/MobileLayout";
 import DesktopLayout from "@/app/components/PublishPage/DesktopLayout";
 
-const LoadingContainer = styled("div")(({ theme }) => ({
+const LoadingContainer = styled("div")(() => ({
   height: "100vh",
   display: "flex",
   alignItems: "center",
@@ -34,10 +34,9 @@ const PublishedScenePage = () => {
     previewMode,
     setPreviewMode,
     setObservationPoints,
-    selectObservationPoint,
     observationPoints,
     previewIndex,
-    selectedObservation,
+    selectObservation,
     nextObservation,
     prevObservation,
   } = useSceneStore();
@@ -69,9 +68,7 @@ const PublishedScenePage = () => {
           setObservationPoints(data.project.sceneData.observationPoints);
           // Select the first observation point if available
           if (data.project.sceneData.observationPoints.length > 0) {
-            selectObservationPoint(
-              data.project.sceneData.observationPoints[0].id
-            );
+            selectObservation(data.project.sceneData.observationPoints[0].id);
           }
         }
 
@@ -79,7 +76,10 @@ const PublishedScenePage = () => {
         if (data.project.sceneData) {
           const { selectedAssetId, selectedLocation } = data.project.sceneData;
           if (selectedAssetId) {
-            useSceneStore.setState({ selectedAssetId });
+            useSceneStore.setState({
+              selectedAssetId,
+              showTiles: true,
+            });
           }
           if (selectedLocation) {
             useSceneStore.setState({ selectedLocation });
@@ -93,7 +93,7 @@ const PublishedScenePage = () => {
     };
 
     fetchProject();
-  }, [projectId, setObservationPoints, selectObservationPoint]);
+  }, [projectId, setObservationPoints, selectObservation]);
 
   if (loading) {
     return (

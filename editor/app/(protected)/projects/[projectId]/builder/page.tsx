@@ -16,13 +16,6 @@ const sanitizeSceneData = (
   selectedAssetId,
   selectedLocation
 ) => {
-  console.log("Sanitizing scene data:", {
-    objects,
-    observationPoints,
-    selectedAssetId,
-    selectedLocation,
-  });
-
   // Ensure we have valid arrays to work with
   const safeObjects = Array.isArray(objects) ? objects : [];
   const safeObservationPoints = Array.isArray(observationPoints)
@@ -36,7 +29,7 @@ const sanitizeSceneData = (
       if (!obj) return null;
 
       // Remove any circular references and undefined values
-      const { ref, ...rest } = obj;
+      const { ...rest } = obj;
       return {
         id: rest.id || "",
         name: rest.name || "",
@@ -120,17 +113,10 @@ export default function BuilderPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   // Get scene data and actions from store
-  const objects = useSceneStore((state) => state.objects);
-  const observationPoints = useSceneStore((state) => state.observationPoints);
   const setObjects = useSceneStore((state) => state.setObjects);
   const setObservationPoints = useSceneStore(
     (state) => state.setObservationPoints
   );
-
-  // Debug store state
-  useEffect(() => {
-    console.log("Current store state:", { objects, observationPoints });
-  }, [objects, observationPoints]);
 
   // Fetch project data and initialize scene on mount
   useEffect(() => {
@@ -141,7 +127,6 @@ export default function BuilderPage() {
         });
         if (!res.ok) throw new Error("Failed to fetch project");
         const data = await res.json();
-        console.log("Fetched project data:", data.project);
         setProject(data.project);
 
         // Initialize scene data from project
@@ -152,12 +137,7 @@ export default function BuilderPage() {
             selectedAssetId,
             selectedLocation,
           } = data.project.sceneData;
-          console.log("Initializing scene data:", {
-            objects,
-            observationPoints,
-            selectedAssetId,
-            selectedLocation,
-          });
+
           if (Array.isArray(objects)) {
             setObjects(objects);
           }
@@ -165,7 +145,10 @@ export default function BuilderPage() {
             setObservationPoints(observationPoints);
           }
           if (selectedAssetId) {
-            useSceneStore.setState({ selectedAssetId });
+            useSceneStore.setState({
+              selectedAssetId,
+              showTiles: true,
+            });
           }
           if (selectedLocation) {
             useSceneStore.setState({ selectedLocation });
@@ -184,12 +167,12 @@ export default function BuilderPage() {
 
   // Save handler
   const handleSave = async () => {
+    if (isSaving) return;
     try {
       setIsSaving(true);
 
       // Get the current state from the store
       const storeState = useSceneStore.getState();
-      console.log("Current store state:", storeState);
 
       // Sanitize the scene data
       const sceneData = sanitizeSceneData(
@@ -198,7 +181,6 @@ export default function BuilderPage() {
         storeState.selectedAssetId,
         storeState.selectedLocation
       );
-      console.log("Sanitized scene data:", sceneData);
 
       const response = await fetch(`/api/projects/${projectId}`, {
         method: "POST",
@@ -239,7 +221,7 @@ export default function BuilderPage() {
         throw new Error(errorData.error || "Failed to publish project");
       }
 
-      const data = await res.json();
+      await res.json();
       showToast("Project published successfully!");
 
       // Open the published world in a new window
