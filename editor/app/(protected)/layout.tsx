@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ToastContainer } from "react-toastify";
 import ClientProvider from "@/lib/ClientProvider";
-import { serverEnv } from "@/lib/env";
+import { serverEnv } from "@/lib/env/server";
 
 export const dynamic = "force-dynamic";
 

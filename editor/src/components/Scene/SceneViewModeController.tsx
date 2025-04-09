@@ -1222,7 +1222,7 @@ const SceneViewModeController: React.FC<SceneViewModeControllerProps> = ({
         enableDamping
         dampingFactor={0.05}
         minDistance={1}
-        maxDistance={1000}
+        maxDistance={10000000}
         enablePan={!previewMode}
         enableZoom={!previewMode}
         enableRotate={!previewMode}

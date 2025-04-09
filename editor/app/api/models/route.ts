@@ -10,7 +10,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma.ts";
 import { Session } from "next-auth";
-import { doSpaces } from "@/lib/env";
+import { serverEnv } from "@/lib/env/server";
 
 interface StockModel {
   name: string;
@@ -66,14 +66,14 @@ export async function PATCH(request: NextRequest) {
     }
     // Configure the S3 client for DigitalOcean Spaces.
     const s3 = new S3Client({
-      region: doSpaces.region,
-      endpoint: doSpaces.endpoint,
+      region: serverEnv.DO_SPACES_REGION,
+      endpoint: serverEnv.DO_SPACES_ENDPOINT,
       credentials: {
-        accessKeyId: doSpaces.key,
-        secretAccessKey: doSpaces.secret,
+        accessKeyId: serverEnv.DO_SPACES_KEY,
+        secretAccessKey: serverEnv.DO_SPACES_SECRET,
       },
     });
-    const bucketName = doSpaces.bucket;
+    const bucketName = serverEnv.DO_SPACES_BUCKET;
     const key = `models/${Date.now()}-${fileName}`;
     const command = new PutObjectCommand({
       Bucket: bucketName,
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing file data" }, { status: 400 });
     }
     // Construct the public file URL from your DigitalOcean Spaces bucket.
-    const fileUrl = `${doSpaces.endpoint}/${doSpaces.bucket}/${key}`;
+    const fileUrl = `${serverEnv.DO_SPACES_ENDPOINT}/${serverEnv.DO_SPACES_BUCKET}/${key}`;
     const asset = await prisma.asset.create({
       data: {
         userId,
@@ -151,17 +151,17 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
     // Determine the key from the asset's fileUrl.
-    const bucketName = doSpaces.bucket;
-    const endpoint = doSpaces.endpoint;
+    const bucketName = serverEnv.DO_SPACES_BUCKET;
+    const endpoint = serverEnv.DO_SPACES_ENDPOINT;
     const fileUrl = asset.fileUrl;
     const key = fileUrl.replace(`${endpoint}/${bucketName}/`, "");
     // Setup S3 client.
     const s3 = new S3Client({
-      region: doSpaces.region,
+      region: serverEnv.DO_SPACES_REGION,
       endpoint: endpoint,
       credentials: {
-        accessKeyId: doSpaces.key,
-        secretAccessKey: doSpaces.secret,
+        accessKeyId: serverEnv.DO_SPACES_KEY,
+        secretAccessKey: serverEnv.DO_SPACES_SECRET,
       },
     });
     // Delete the object from Spaces.

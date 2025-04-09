@@ -13,17 +13,11 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  IconButton,
   Button,
 } from "@mui/material";
-import {
-  ViewInAr,
-  Image,
-  Style,
-  CloudUpload,
-  Camera,
-} from "@mui/icons-material";
+import { ViewInAr, Camera } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
+import AddModelDialog from "../AppBar/AddModelDialog";
 
 // Styled container for the RightPanel with conditional styles based on previewMode
 interface RightPanelContainerProps {
@@ -94,6 +88,7 @@ const AssetItem = styled(ListItem)(({ theme }) => ({
 
 const RightPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
+  const [addModelDialogOpen, setAddModelDialogOpen] = useState(false);
   const {
     selectedObject,
     updateObjectProperty,
@@ -488,32 +483,25 @@ const RightPanel: React.FC = () => {
           mb={2}
         >
           <Typography variant="subtitle1">Asset Library</Typography>
-          <IconButton color="primary" size="small">
-            <CloudUpload />
-          </IconButton>
         </Box>
 
         <List>
-          <AssetItem>
+          <AssetItem onClick={() => setAddModelDialogOpen(true)}>
             <ListItemIcon>
               <ViewInAr />
             </ListItemIcon>
-            <ListItemText primary="3D Models" secondary="12 items" />
-          </AssetItem>
-          <AssetItem>
-            <ListItemIcon>
-              <Image />
-            </ListItemIcon>
-            <ListItemText primary="Textures" secondary="8 items" />
-          </AssetItem>
-          <AssetItem>
-            <ListItemIcon>
-              <Style />
-            </ListItemIcon>
-            <ListItemText primary="Materials" secondary="5 items" />
+            <ListItemText
+              primary="Add Model"
+              secondary="Upload or select from stock models"
+            />
           </AssetItem>
         </List>
       </TabPanel>
+
+      <AddModelDialog
+        open={addModelDialogOpen}
+        onClose={() => setAddModelDialogOpen(false)}
+      />
     </RightPanelContainer>
   );
 };
