@@ -23,7 +23,7 @@ import { useDropzone } from "react-dropzone";
 import useSceneStore from "@/app/hooks/useSceneStore";
 import { showToast } from "@/app/utils/toastUtils";
 import ModelPreview from "../ModelPreview";
-import { doSpaces } from "@/lib/env";
+import { clientEnv } from "@/lib/env/client";
 
 const stockModels = [
   {
@@ -165,8 +165,8 @@ const AddModelDialog = ({ open, onClose }) => {
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          const endpoint = doSpaces.publicEndpoint;
-          const bucket = doSpaces.publicBucket;
+          const endpoint = clientEnv.NEXT_PUBLIC_DO_SPACES_ENDPOINT;
+          const bucket = clientEnv.NEXT_PUBLIC_DO_SPACES_BUCKET;
           const publicUrl = `${endpoint}/${bucket}/${key}`;
           resolve({ key, publicUrl });
         } else {

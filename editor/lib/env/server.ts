@@ -1,11 +1,11 @@
 /**
- * Environment configuration with Zod validation
- * This file centralizes all environment variables and provides type safety
+ * Server environment configuration with Zod validation
+ * This file centralizes all server-side environment variables and provides type safety.
  */
 import { z } from "zod";
 
-// Define the environment schema with Zod
-const envSchema = z.object({
+// Define the environment schema for variables used on the server
+const serverEnvSchema = z.object({
   // Database
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   SHADOW_DATABASE_URL: z.string().min(1, "SHADOW_DATABASE_URL is required"),
@@ -16,7 +16,7 @@ const envSchema = z.object({
     .default("development"),
   ANALYZE: z.string().optional(),
 
-  // Website URLs
+  // Website URLs (server-aware)
   NEXT_PUBLIC_WEBSITE_URL: z
     .string()
     .min(1, "NEXT_PUBLIC_WEBSITE_URL is required"),
@@ -29,12 +29,14 @@ const envSchema = z.object({
     .string()
     .min(1, "NEXTAUTH_COOKIE_DOMAIN is required"),
 
-  // Digital Ocean Spaces
+  // Digital Ocean Spaces (private & public)
   DO_SPACES_REGION: z.string().min(1, "DO_SPACES_REGION is required"),
   DO_SPACES_ENDPOINT: z.string().min(1, "DO_SPACES_ENDPOINT is required"),
   DO_SPACES_KEY: z.string().min(1, "DO_SPACES_KEY is required"),
   DO_SPACES_SECRET: z.string().min(1, "DO_SPACES_SECRET is required"),
   DO_SPACES_BUCKET: z.string().min(1, "DO_SPACES_BUCKET is required"),
+
+  // Public Digital Ocean Spaces settings (exposed to client)
   NEXT_PUBLIC_DO_SPACES_FOLDER: z
     .string()
     .min(1, "NEXT_PUBLIC_DO_SPACES_FOLDER is required"),
@@ -45,7 +47,7 @@ const envSchema = z.object({
     .string()
     .min(1, "NEXT_PUBLIC_DO_SPACES_BUCKET is required"),
 
-  // Google Maps
+  // Google Maps & Cesium Ion keys (publicly available)
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z
     .string()
     .min(1, "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is required"),
@@ -54,38 +56,30 @@ const envSchema = z.object({
     .min(1, "NEXT_PUBLIC_CESIUM_ION_KEY is required"),
 });
 
-// Function to initialize environment
-function initializeEnv() {
-  // Parse and validate environment variables
-  const parsedEnv = envSchema.safeParse(process.env);
+// Parse and validate the environment variables
+const parsedEnv = serverEnvSchema.safeParse(process.env);
 
-  // If validation fails, log the error but don't throw
-  if (!parsedEnv.success) {
-    console.error(
-      "❌ Invalid environment variables:",
-      parsedEnv.error.format()
-    );
-    return null;
-  }
-
-  return parsedEnv.data;
+if (!parsedEnv.success) {
+  console.error(
+    "Invalid server environment variables:",
+    parsedEnv.error.format()
+  );
+  // It is common to throw an error in production to immediately indicate the misconfiguration.
+  throw new Error("Invalid server environment variables");
 }
 
-// Initialize environment
-const env = initializeEnv();
+export const serverEnv = parsedEnv.data;
 
-// Export typed environment variables
-export const serverEnv = env;
-
-// Export client-safe environment variables
-export const clientEnv = env
-  ? {
-      NEXT_PUBLIC_WEBSITE_URL: env.NEXT_PUBLIC_WEBSITE_URL,
-      NEXT_PUBLIC_APP_URL: env.NEXT_PUBLIC_APP_URL,
-      NEXT_PUBLIC_DO_SPACES_FOLDER: env.NEXT_PUBLIC_DO_SPACES_FOLDER,
-      NEXT_PUBLIC_DO_SPACES_ENDPOINT: env.NEXT_PUBLIC_DO_SPACES_ENDPOINT,
-      NEXT_PUBLIC_DO_SPACES_BUCKET: env.NEXT_PUBLIC_DO_SPACES_BUCKET,
-      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-      NEXT_PUBLIC_CESIUM_ION_KEY: env.NEXT_PUBLIC_CESIUM_ION_KEY,
-    }
-  : null;
+// Optionally, you can export specific configurations for Digital Ocean Spaces
+export const doSpacesConfig = {
+  region: serverEnv.DO_SPACES_REGION,
+  endpoint: serverEnv.DO_SPACES_ENDPOINT,
+  key: serverEnv.DO_SPACES_KEY,
+  secret: serverEnv.DO_SPACES_SECRET,
+  bucket: serverEnv.DO_SPACES_BUCKET,
+  public: {
+    endpoint: serverEnv.NEXT_PUBLIC_DO_SPACES_ENDPOINT,
+    bucket: serverEnv.NEXT_PUBLIC_DO_SPACES_BUCKET,
+    folder: serverEnv.NEXT_PUBLIC_DO_SPACES_FOLDER,
+  },
+};
