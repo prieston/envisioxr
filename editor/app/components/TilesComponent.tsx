@@ -113,11 +113,6 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
   });
 
   useEffect(() => {
-    // Position the camera for better viewing initially
-    camera.position.set(1000, 1000, 1000);
-    camera.lookAt(0, 0, 0);
-    camera.updateProjectionMatrix();
-
     try {
       // Create the tiles renderer without initial URL
       const tilesRenderer = new TilesRenderer();
@@ -155,6 +150,7 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
 
       // Create wrapper and add to scene
       const wrapper = new TilesRendererWrapper(tilesRenderer);
+      wrapper.position.y = 0; // Adjust the Y position to be closer to the ground plane
       scene.add(wrapper);
       wrapperRef.current = wrapper;
 

@@ -80,11 +80,6 @@ const CesiumIonTiles: React.FC<CesiumIonTilesProps> = ({
   });
 
   useEffect(() => {
-    // Position the camera for better viewing initially
-    camera.position.set(1000, 1000, 1000);
-    camera.lookAt(0, 0, 0);
-    camera.updateProjectionMatrix();
-
     console.log("Initializing Cesium Ion tiles renderer");
 
     try {
@@ -127,6 +122,8 @@ const CesiumIonTiles: React.FC<CesiumIonTilesProps> = ({
       wrapper.position.set(...position);
       wrapper.rotation.set(...rotation);
       wrapper.scale.set(...scale);
+      // Adjust the Y position to be closer to the ground plane
+      wrapper.position.y = 0;
       scene.add(wrapper);
       wrapperRef.current = wrapper;
 
