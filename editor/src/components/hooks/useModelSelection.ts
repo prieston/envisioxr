@@ -29,7 +29,18 @@ export const useModelSelection = ({
     const dy = e.clientY - pointerDown.current.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     if (distance < CLICK_THRESHOLD) {
-      onSelect(id, e.object);
+      let currentObject = e.object;
+      while (currentObject) {
+        if (currentObject.userData.isModel) {
+          onSelect(id, currentObject);
+          return;
+        }
+        if (!currentObject.parent) {
+          onSelect(id, e.object);
+          return;
+        }
+        currentObject = currentObject.parent;
+      }
     }
     pointerDown.current = null;
   };
