@@ -71,6 +71,8 @@ const Model = ({
   const clonedObject = useMemo(() => {
     if (originalObject) {
       const clone = originalObject.clone(true);
+      // Set the isModel flag on the parent object
+      clone.userData.isModel = true;
       clone.traverse((child: any) => {
         if (child.isMesh && child.material) {
           // Clone material to avoid sharing between instances

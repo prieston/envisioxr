@@ -225,7 +225,11 @@ const LeftPanel = () => {
               <ObjectListItem
                 key={object.id}
                 selectedItem={selectedObject?.id === object.id}
-                onClick={() => selectObject(object.id, null)}
+                onClick={() => {
+                  // Find the object in the scene and pass its reference
+                  const objectRef = object.ref || null;
+                  selectObject(object.id, objectRef);
+                }}
               >
                 <StyledListItemText
                   primary={object.name || "Untitled Object"}
