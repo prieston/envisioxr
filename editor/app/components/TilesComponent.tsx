@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { Sphere } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
@@ -102,10 +102,6 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
   longitude = 139.7454,
 }) => {
   const { camera, gl, scene } = useThree();
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState("Initializing...");
-  const [requestsMade, setRequestsMade] = useState(0);
   const tilesRendererRef = useRef<TilesRenderer | null>(null);
   const wrapperRef = useRef<TilesRendererWrapper | null>(null);
 
@@ -121,8 +117,6 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
     camera.position.set(1000, 1000, 1000);
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
-
-    console.log("Initializing Cesium Ion tiles renderer");
 
     try {
       // Create the tiles renderer without initial URL
@@ -154,8 +148,6 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
 
       tilesRendererRef.current = tilesRenderer;
 
-      console.log("Tiles renderer created with Cesium Ion");
-
       // Configure the renderer
       tilesRenderer.setCamera(camera);
       tilesRenderer.setResolutionFromRenderer(camera, gl);
@@ -166,22 +158,8 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
       scene.add(wrapper);
       wrapperRef.current = wrapper;
 
-      // Set up event listeners
-      tilesRenderer.addEventListener("load", () => {
-        console.log("Tiles loaded successfully");
-        setStatus("Tiles loaded successfully");
-        setLoading(false);
-      });
-
       tilesRenderer.addEventListener("error", (event: any) => {
         console.error("Error loading tiles:", event);
-        setError(`Error loading tiles: ${event.message || "Unknown error"}`);
-        setLoading(false);
-      });
-
-      tilesRenderer.addEventListener("tileLoad", () => {
-        setRequestsMade((prev) => prev + 1);
-        setStatus(`Loading tiles (${requestsMade + 1} requests)...`);
       });
 
       // Force initial update
@@ -197,10 +175,6 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
       };
     } catch (error: any) {
       console.error("Error initializing tiles renderer:", error);
-      setError(
-        `Error initializing tiles renderer: ${error.message || "Unknown error"}`
-      );
-      setLoading(false);
       return () => {};
     }
   }, [apiKey, camera, gl, scene, assetId, latitude, longitude]);

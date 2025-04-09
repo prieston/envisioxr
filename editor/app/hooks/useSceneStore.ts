@@ -85,7 +85,6 @@ interface SceneState {
   // Playback Actions
   togglePlayback: () => void;
   setPlaybackSpeed: (speed: number) => void;
-  setPreviewIndex: (index: number) => void;
 
   // Scene Object Actions
   setPreviewMode: (value: boolean) => void;
