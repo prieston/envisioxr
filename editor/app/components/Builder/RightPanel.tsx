@@ -26,24 +26,6 @@ interface RightPanelContainerProps {
 
 type Vector3Tuple = [number, number, number];
 
-interface Model {
-  id: string;
-  position: Vector3Tuple;
-  rotation?: Vector3Tuple;
-  scale?: Vector3Tuple;
-  material?: {
-    color: string;
-  };
-}
-
-interface ObservationPoint {
-  id: number;
-  title: string;
-  description: string;
-  position: Vector3Tuple | null;
-  target: Vector3Tuple | null;
-}
-
 const RightPanelContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== "previewMode",
 })<RightPanelContainerProps>(({ theme, previewMode }) => ({
