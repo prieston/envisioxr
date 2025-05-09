@@ -1,220 +1,139 @@
-import React, { useEffect, useRef } from "react";
-import { useThree, useFrame } from "@react-three/fiber";
-import { Vector3 } from "three";
-import { useRapier } from "@react-three/rapier";
+"use client";
 
-const DEFAULT_MAX_SPEED = 20;
-const DEFAULT_ACCELERATION = 0.5;
-const DEFAULT_FRICTION = 0.95;
-const DEFAULT_TURN_SPEED = 0.03;
+import React, { useRef, useEffect } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { RigidBody, RapierRigidBody } from "@react-three/rapier";
+import * as THREE from "three";
 
-const ThirdPersonCarControls = () => {
-  const { camera } = useThree();
-  const { world } = useRapier();
-  const currentGroundY = useRef(0);
-  const lastValidPosition = useRef(new Vector3());
-  const carPosition = useRef(new Vector3());
-  const carRotation = useRef(0);
-  const carDirection = useRef(new Vector3());
-  const currentSpeed = useRef(0);
+// Adjusted constants for slower speed and easier turning
+const ACCELERATION = 15; // reduced acceleration for slower top speed
+const BRAKE_FORCE = 20; // stronger braking
+const STEER_TORQUE = 15; // increased torque for sharper, easier turns
+const DRAG_FACTOR = 0.9; // more linear drag to slow down quicker
+const ANGULAR_DRAG = 0.5; // moderate angular drag to let steering reset faster
+
+/**
+ * Third-person car driving controls
+ * W/S = throttle/brake, A/D = steering
+ */
+export default function CarControls() {
+  const bodyRef = useRef<RapierRigidBody>(null!);
   const keys = useRef({
-    w: false,
-    s: false,
-    a: false,
-    d: false,
-    space: false,
+    forward: false,
+    backward: false,
+    left: false,
+    right: false,
   });
+  const { camera } = useThree();
 
+  // Keyboard input listeners
   useEffect(() => {
-    // Set initial car position
-    const rayOrigin = new Vector3(
-      camera.position.x,
-      camera.position.y + 100,
-      camera.position.z
-    );
-    const rayDir = new Vector3(0, -1, 0);
-    const hit = world.castRay(
-      { x: rayOrigin.x, y: rayOrigin.y, z: rayOrigin.z },
-      { x: rayDir.x, y: rayDir.y, z: rayDir.z },
-      true,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      200
-    );
-
-    if (hit) {
-      const groundY = hit.point.y;
-      carPosition.current.set(camera.position.x, groundY, camera.position.z);
-      lastValidPosition.current.copy(carPosition.current);
-      currentGroundY.current = groundY;
-    } else {
-      carPosition.current.copy(camera.position);
-      lastValidPosition.current.copy(camera.position);
-      currentGroundY.current = camera.position.y;
-    }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       switch (e.code) {
         case "KeyW":
-          keys.current.w = true;
+          keys.current.forward = true;
           break;
         case "KeyS":
-          keys.current.s = true;
+          keys.current.backward = true;
           break;
         case "KeyA":
-          keys.current.a = true;
+          keys.current.left = true;
           break;
         case "KeyD":
-          keys.current.d = true;
-          break;
-        case "Space":
-          keys.current.space = true;
+          keys.current.right = true;
           break;
       }
     };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
+    const onKeyUp = (e: KeyboardEvent) => {
       switch (e.code) {
         case "KeyW":
-          keys.current.w = false;
+          keys.current.forward = false;
           break;
         case "KeyS":
-          keys.current.s = false;
+          keys.current.backward = false;
           break;
         case "KeyA":
-          keys.current.a = false;
+          keys.current.left = false;
           break;
         case "KeyD":
-          keys.current.d = false;
-          break;
-        case "Space":
-          keys.current.space = false;
+          keys.current.right = false;
           break;
       }
     };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
     };
-  }, [camera.position, world]);
+  }, []);
 
+  // Driving logic each frame
   useFrame(() => {
-    // Calculate current speed
-    if (keys.current.w) {
-      currentSpeed.current = Math.min(
-        currentSpeed.current + DEFAULT_ACCELERATION,
-        DEFAULT_MAX_SPEED
-      );
-    } else if (keys.current.s) {
-      currentSpeed.current = Math.max(
-        currentSpeed.current - DEFAULT_ACCELERATION,
-        -DEFAULT_MAX_SPEED / 2
-      );
-    } else {
-      currentSpeed.current *= DEFAULT_FRICTION;
+    const body = bodyRef.current;
+    if (!body) return;
+
+    // Orientation quaternion
+    const { x: qx, y: qy, z: qz, w: qw } = body.rotation();
+    const quat = new THREE.Quaternion(qx, qy, qz, qw);
+
+    // Calculate forward vector
+    const forwardVec = new THREE.Vector3(0, 0, -1).applyQuaternion(quat);
+
+    // Apply acceleration/brake
+    if (keys.current.forward) {
+      const impulse = forwardVec.clone().multiplyScalar(ACCELERATION);
+      body.applyImpulse({ x: impulse.x, y: 0, z: impulse.z }, true);
+    }
+    if (keys.current.backward) {
+      const impulse = forwardVec.clone().multiplyScalar(-BRAKE_FORCE);
+      body.applyImpulse({ x: impulse.x, y: 0, z: impulse.z }, true);
     }
 
-    // Apply rotation
-    if (keys.current.a) {
-      carRotation.current +=
-        DEFAULT_TURN_SPEED * Math.sign(currentSpeed.current);
+    // Steering torque
+    if (keys.current.left) {
+      body.applyTorqueImpulse({ x: 0, y: STEER_TORQUE, z: 0 }, true);
     }
-    if (keys.current.d) {
-      carRotation.current -=
-        DEFAULT_TURN_SPEED * Math.sign(currentSpeed.current);
+    if (keys.current.right) {
+      body.applyTorqueImpulse({ x: 0, y: -STEER_TORQUE, z: 0 }, true);
     }
 
-    // Calculate movement direction
-    carDirection.current.set(
-      Math.sin(carRotation.current),
-      0,
-      Math.cos(carRotation.current)
+    // Linear and angular drag
+    const vel = body.linvel();
+    body.setLinvel(
+      { x: vel.x * DRAG_FACTOR, y: vel.y, z: vel.z * DRAG_FACTOR },
+      true
+    );
+    const ang = body.angvel();
+    body.setAngvel(
+      {
+        x: ang.x * ANGULAR_DRAG,
+        y: ang.y * ANGULAR_DRAG,
+        z: ang.z * ANGULAR_DRAG,
+      },
+      true
     );
 
-    // Apply movement
-    carPosition.current.addScaledVector(
-      carDirection.current,
-      currentSpeed.current
-    );
-
-    // Ground detection
-    const rayOrigin = new Vector3(
-      carPosition.current.x,
-      carPosition.current.y + 1,
-      carPosition.current.z
-    );
-    const rayDir = new Vector3(0, -1, 0);
-    const hit = world.castRay(
-      { x: rayOrigin.x, y: rayOrigin.y, z: rayOrigin.z },
-      { x: rayDir.x, y: rayDir.y, z: rayDir.z },
-      true,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      10
-    );
-
-    if (hit) {
-      currentGroundY.current = hit.point.y;
-      carPosition.current.y = currentGroundY.current;
-      lastValidPosition.current.copy(carPosition.current);
-    } else {
-      carPosition.current.copy(lastValidPosition.current);
-    }
-
-    // Update camera position
-    const cameraOffset = new Vector3(
-      Math.sin(carRotation.current) * -10,
-      5,
-      Math.cos(carRotation.current) * -10
-    );
-    camera.position.copy(carPosition.current).add(cameraOffset);
-    camera.lookAt(carPosition.current);
+    // Camera follow behind car
+    const pos = body.translation();
+    const camOffset = new THREE.Vector3(0, 5, 12).applyQuaternion(quat);
+    const desiredPos = new THREE.Vector3(pos.x, pos.y, pos.z).add(camOffset);
+    camera.position.lerp(desiredPos, 0.1);
+    camera.lookAt(pos.x, pos.y + 1, pos.z);
   });
 
   return (
-    <group
-      position={carPosition.current}
-      rotation={[0, carRotation.current, 0]}
+    <RigidBody
+      ref={bodyRef}
+      colliders="cuboid"
+      mass={1200}
+      linearDamping={0.2}
+      angularDamping={0.5}
     >
-      {/* Car body */}
-      <mesh>
+      <mesh castShadow receiveShadow>
         <boxGeometry args={[2, 1, 4]} />
-        <meshStandardMaterial color="#3498db" />
+        <meshStandardMaterial color="red" />
       </mesh>
-      {/* Wheels */}
-      <group position={[1, -0.5, 1]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.4, 0.4, 0.3, 16]} />
-          <meshStandardMaterial color="#2c3e50" />
-        </mesh>
-      </group>
-      <group position={[-1, -0.5, 1]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.4, 0.4, 0.3, 16]} />
-          <meshStandardMaterial color="#2c3e50" />
-        </mesh>
-      </group>
-      <group position={[1, -0.5, -1]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.4, 0.4, 0.3, 16]} />
-          <meshStandardMaterial color="#2c3e50" />
-        </mesh>
-      </group>
-      <group position={[-1, -0.5, -1]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.4, 0.4, 0.3, 16]} />
-          <meshStandardMaterial color="#2c3e50" />
-        </mesh>
-      </group>
-    </group>
+    </RigidBody>
   );
-};
-
-export default ThirdPersonCarControls;
+}

@@ -1,211 +1,186 @@
-import React, { useEffect, useRef } from "react";
-import { useThree, useFrame } from "@react-three/fiber";
-import { useRapier } from "@react-three/rapier";
-import useSceneStore from "../../../../app/hooks/useSceneStore";
-import * as THREE from "three";
-import { Vector3 } from "three";
+"use client";
+
+import React, { useRef, useEffect, useState } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
 import {
-  handleKeyboardInput,
-  calculateMovementDirection,
-  detectGround,
-  createRayOrigins,
-  applyMovement,
-  updateThirdPersonCamera,
-  KeyStates,
-  MovementParams,
-} from "../ControlHelpers";
-import { PlayerRigidBody } from "./PlayerRigidBody";
+  RigidBody,
+  RapierRigidBody,
+  CapsuleCollider,
+} from "@react-three/rapier";
+import * as THREE from "three";
 
-interface PhysicsObject extends THREE.Object3D {
-  setTranslation?: (x: number, y: number, z: number) => void;
-  translation?: () => { x: number; y: number; z: number };
-  linvel?: () => { x: number; y: number; z: number };
-  setLinvel?: (velocity: Vector3) => void;
-}
+const WALK_SPEED = 4;
+const RUN_SPEED = 8;
+const JUMP_VELOCITY = 6;
+const MOUSE_SENSITIVITY = 0.002;
 
-const ThirdPersonControls = () => {
-  const { camera } = useThree();
-  const { world } = useRapier();
-  const controlSettings = useSceneStore((state) => state.controlSettings);
-  const moveSpeed = controlSettings.walkSpeed;
-  const jumpForce = 5;
-  const playerHeight = 1.8;
-  const playerRadius = 0.3;
-  const cameraDistance = 5;
-  const cameraHeight = 2;
-  const isOnGround = useRef(false);
-  const velocity = useRef(new Vector3());
-  const keys = useRef<KeyStates>({
+type Key = "w" | "a" | "s" | "d" | "shift";
+
+export default function ThirdPersonControls() {
+  const { camera, gl } = useThree();
+  const bodyRef = useRef<RapierRigidBody>(null!);
+
+  // Jump state
+  const [canJump, setCanJump] = useState(true);
+
+  // Look orientation
+  const yaw = useRef(0);
+  const pitch = useRef(0);
+
+  // Pointer-lock state
+  const [isLocked, setIsLocked] = useState(false);
+
+  // Movement keys
+  const keys = useRef<Record<Key, boolean>>({
     w: false,
-    s: false,
     a: false,
+    s: false,
     d: false,
-    space: false,
+    shift: false,
   });
-  const moveDirection = useRef(new Vector3());
-  const forward = useRef(new Vector3());
-  const right = useRef(new Vector3());
-  const playerRef = useRef<PhysicsObject>(
-    new THREE.Object3D() as PhysicsObject
-  );
 
-  const updatePosition = (newPos: Vector3) => {
-    if (playerRef.current?.setTranslation) {
-      playerRef.current.setTranslation(newPos.x, newPos.y, newPos.z);
-    }
-  };
-
-  // Find ground position using ray cast
+  // Request pointer lock on click, track lock changes
   useEffect(() => {
-    if (!world) return;
+    const canvas = gl.domElement;
+    const requestLock = () => canvas.requestPointerLock();
+    const onLockChange = () =>
+      setIsLocked(document.pointerLockElement === canvas);
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.code === "Escape") document.exitPointerLock();
+    };
 
-    // Create ray from high up
-    const rayOrigin = new Vector3(0, 1000, 0);
-    const rayDir = new Vector3(0, -1, 0);
-    const hit = world.castRay(rayOrigin, rayDir, 2000, true);
+    canvas.addEventListener("click", requestLock);
+    document.addEventListener("pointerlockchange", onLockChange);
+    document.addEventListener("keydown", onEscape);
 
-    if (hit) {
-      // Spawn slightly above the hit point
-      const spawnY = hit.point.y + playerHeight / 2 + 0.1;
-      updatePosition(new Vector3(0, spawnY, 5));
-    } else {
-      // No ground found, spawn at default height
-      updatePosition(new Vector3(0, playerHeight, 5));
-    }
-  }, [world]);
+    return () => {
+      canvas.removeEventListener("click", requestLock);
+      document.removeEventListener("pointerlockchange", onLockChange);
+      document.removeEventListener("keydown", onEscape);
+    };
+  }, [gl]);
 
+  // Mouse movement when locked
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isLocked) return;
+      yaw.current -= e.movementX * MOUSE_SENSITIVITY;
+      pitch.current -= e.movementY * MOUSE_SENSITIVITY;
+      const limit = Math.PI / 4;
+      pitch.current = Math.max(-limit, Math.min(limit, pitch.current));
+    };
+    document.addEventListener("mousemove", onMouseMove);
+    return () => document.removeEventListener("mousemove", onMouseMove);
+  }, [isLocked]);
+
+  // Keyboard handlers
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      handleKeyboardInput(e, keys.current, true);
+      switch (e.code) {
+        case "KeyW":
+          keys.current.w = true;
+          break;
+        case "KeyA":
+          keys.current.a = true;
+          break;
+        case "KeyS":
+          keys.current.s = true;
+          break;
+        case "KeyD":
+          keys.current.d = true;
+          break;
+        case "ShiftLeft":
+        case "ShiftRight":
+          keys.current.shift = true;
+          break;
+        case "Space":
+          if (canJump && bodyRef.current) {
+            const vel = bodyRef.current.linvel();
+            bodyRef.current.setLinvel(
+              { x: vel.x, y: JUMP_VELOCITY, z: vel.z },
+              true
+            );
+            setCanJump(false);
+          }
+          break;
+      }
     };
-
     const handleKeyUp = (e: KeyboardEvent) => {
-      handleKeyboardInput(e, keys.current, false);
+      switch (e.code) {
+        case "KeyW":
+          keys.current.w = false;
+          break;
+        case "KeyA":
+          keys.current.a = false;
+          break;
+        case "KeyS":
+          keys.current.s = false;
+          break;
+        case "KeyD":
+          keys.current.d = false;
+          break;
+        case "ShiftLeft":
+        case "ShiftRight":
+          keys.current.shift = false;
+          break;
+      }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, []);
+  }, [canJump]);
 
-  useFrame((_, delta) => {
-    if (!playerRef.current) return;
-
-    const rigidBody = playerRef.current;
-    const position = rigidBody.translation?.() ?? { x: 0, y: 0, z: 0 };
-    const targetPosition = new Vector3(
-      position.x,
-      position.y + cameraHeight,
-      position.z
+  // Movement relative to yaw
+  const applyMovement = () => {
+    const body = bodyRef.current;
+    if (!body) return;
+    const speed = keys.current.shift ? RUN_SPEED : WALK_SPEED;
+    const dir = new THREE.Vector3(
+      (keys.current.d ? 1 : 0) + (keys.current.a ? -1 : 0),
+      0,
+      (keys.current.s ? 1 : 0) + (keys.current.w ? -1 : 0)
     );
-
-    // Calculate movement direction
-    calculateMovementDirection(
-      camera,
-      keys.current,
-      moveDirection.current,
-      forward.current,
-      right.current
-    );
-
-    // Apply movement
-    const movementParams: MovementParams = {
-      moveSpeed,
-      friction: 0.95,
-      maxSpeed: 10,
-    };
-
-    // Update velocity based on movement direction
-    const currentVelocity = rigidBody.linvel?.() ?? { x: 0, y: 0, z: 0 };
-    velocity.current.set(
-      currentVelocity.x,
-      currentVelocity.y,
-      currentVelocity.z
-    );
-
-    applyMovement(
-      targetPosition,
-      moveDirection.current,
-      velocity.current,
-      movementParams,
-      delta,
-      isOnGround.current
-    );
-
-    // Handle jumping
-    if (keys.current.space && isOnGround.current) {
-      velocity.current.y = jumpForce;
+    if (dir.lengthSq() > 0) {
+      dir.normalize().multiplyScalar(speed);
+      dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw.current);
     }
+    const vel = body.linvel();
+    body.setLinvel({ x: dir.x, y: vel.y, z: dir.z }, true);
+  };
 
-    // Apply gravity when not on ground
-    if (!isOnGround.current) {
-      velocity.current.y -= 9.8 * delta;
-    }
+  // Update each frame
+  useFrame(() => {
+    const body = bodyRef.current;
+    if (!body) return;
 
-    // Update rigid body velocity
-    if (rigidBody.setLinvel) {
-      rigidBody.setLinvel(velocity.current);
-    }
+    applyMovement();
 
-    // Update camera position
-    updateThirdPersonCamera(
-      camera,
-      targetPosition,
-      cameraDistance,
-      cameraHeight,
-      camera.rotation.y
-    );
-
-    // Ground check
-    const rayOrigin = new Vector3(position.x, position.y, position.z);
-    const rayDir = new Vector3(0, -1, 0);
-    const ray = new world.Ray(rayOrigin, rayDir);
-    const hit = world.castRay(ray, playerHeight / 2 + 0.1, true);
-    isOnGround.current = !!hit;
+    const pos = body.translation();
+    const offset = new THREE.Vector3(0, 2, 5)
+      .applyAxisAngle(new THREE.Vector3(1, 0, 0), pitch.current)
+      .applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw.current);
+    const desiredPos = new THREE.Vector3(pos.x, pos.y, pos.z).add(offset);
+    camera.position.lerp(desiredPos, 0.1);
+    camera.lookAt(pos.x, pos.y + 1, pos.z);
   });
 
   return (
-    <PlayerRigidBody
-      ref={playerRef}
-      playerHeight={playerHeight}
-      playerRadius={playerRadius}
+    <RigidBody
+      ref={bodyRef}
+      colliders={false}
+      mass={1}
+      position={[0, 1, 0]}
+      enabledRotations={[false, false, false]}
+      onCollisionEnter={() => setCanJump(true)}
     >
-      {/* Visual representation of the player */}
-      <group>
-        {/* Body */}
-        <mesh position={[0, playerHeight * 0.5, 0]}>
-          <capsuleGeometry args={[playerHeight * 0.4, playerRadius * 2]} />
-          <meshStandardMaterial color="#3498db" />
-        </mesh>
-        {/* Head */}
-        <mesh position={[0, playerHeight * 0.9, 0]}>
-          <sphereGeometry args={[playerRadius * 0.8]} />
-          <meshStandardMaterial color="#f5d0a9" />
-        </mesh>
-        {/* Arms */}
-        <mesh position={[playerRadius * 1.2, playerHeight * 0.5, 0]}>
-          <capsuleGeometry args={[playerHeight * 0.3, playerRadius * 0.5]} />
-          <meshStandardMaterial color="#3498db" />
-        </mesh>
-        <mesh position={[-playerRadius * 1.2, playerHeight * 0.5, 0]}>
-          <capsuleGeometry args={[playerHeight * 0.3, playerRadius * 0.5]} />
-          <meshStandardMaterial color="#3498db" />
-        </mesh>
-        {/* Legs */}
-        <mesh position={[playerRadius * 0.5, playerHeight * 0.2, 0]}>
-          <capsuleGeometry args={[playerHeight * 0.4, playerRadius * 0.5]} />
-          <meshStandardMaterial color="#2c3e50" />
-        </mesh>
-        <mesh position={[-playerRadius * 0.5, playerHeight * 0.2, 0]}>
-          <capsuleGeometry args={[playerHeight * 0.4, playerRadius * 0.5]} />
-          <meshStandardMaterial color="#2c3e50" />
-        </mesh>
-      </group>
-    </PlayerRigidBody>
+      <CapsuleCollider args={[0.5, 1]} />
+      <mesh visible={false}>
+        <capsuleGeometry args={[0.5, 1, 8, 16]} />
+        <meshStandardMaterial transparent opacity={0} />
+      </mesh>
+    </RigidBody>
   );
-};
-
-export default ThirdPersonControls;
+}
