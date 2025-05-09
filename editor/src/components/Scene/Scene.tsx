@@ -3,8 +3,9 @@
 import React, { useRef, useEffect, Suspense, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Grid, Sky, Html } from "@react-three/drei";
-import { Physics } from "@react-three/rapier";
+import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
 import useSceneStore from "../../../app/hooks/useSceneStore";
+
 import {
   SceneProps,
   SceneLights,
@@ -188,7 +189,22 @@ export default function Scene({
             />
 
             {/* Physics and Controls */}
-            <Physics gravity={[0, -9.81, 0]} debug={false}>
+            <Physics gravity={[0, -9.81, 0]} debug={true}>
+              {/* fixed ground */}
+              <RigidBody type="fixed" colliders={false}>
+                <CuboidCollider
+                  args={[500, 0.1, 500]}
+                  position={[0, -0.1, 0]}
+                />
+              </RigidBody>
+
+              {/* test dynamic sphere */}
+              <RigidBody position={[0, 5, 0]}>
+                <mesh>
+                  <sphereGeometry args={[0.5, 16, 16]} />
+                  <meshStandardMaterial color="hotpink" />
+                </mesh>
+              </RigidBody>
               <GroundPlane />
               <SceneControls />
             </Physics>
