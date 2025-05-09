@@ -88,8 +88,8 @@ importers:
         specifier: ^2.19.1
         version: 2.19.1(@react-three/fiber@8.15.12(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/three@0.175.0)(react@18.3.1)(three@0.170.0)
       '@react-three/rapier':
-        specifier: ^2.0.0
-        version: 2.0.0(@react-three/fiber@8.15.12(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(react@18.3.1)(three@0.170.0)
+        specifier: ^1.5.0
+        version: 1.5.0(@react-three/fiber@8.15.12(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(react@18.3.1)(three@0.170.0)
       '@react-three/xr':
         specifier: ^6.6.2
         version: 6.6.11(@react-three/fiber@8.15.12(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.20)(immer@10.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)
@@ -2580,12 +2580,12 @@ packages:
       react: ^18.0
       three: '>= 0.138.0'
 
-  '@react-three/rapier@2.0.0':
-    resolution: {integrity: sha512-nlKBfSUKaBUFBGJdCTqp8LzgJIpuZ1BJMzx19w8qlQLxhNOTz41Ldg6+qcBILaAzDUygnmdhyhCl3tTKybMqIw==}
+  '@react-three/rapier@1.5.0':
+    resolution: {integrity: sha512-gylk2KyCer9EoymFyTyc+g2IqyAq4mTbZgaHoSJi6gHoXlJsC2LVeN4jedvegvjUsXPExdE60wHjCPa+DS4iXw==}
     peerDependencies:
-      '@react-three/fiber': ^9.0.4
-      react: ^19
-      three: '>=0.159.0'
+      '@react-three/fiber': '>=8.9.0'
+      react: '>=18.0.0'
+      three: '>=0.139.0'
 
   '@react-three/xr@6.6.11':
     resolution: {integrity: sha512-Lr9SvWG0cRHK5yssUYhICJLpqWQBsdP2C87C/GlFQu+LwrXdxPIlRzdPpOMSUdrsjIztZGzgverbq4mgbQvuFQ==}
@@ -11755,7 +11755,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/three'
 
-  '@react-three/rapier@2.0.0(@react-three/fiber@8.15.12(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(react@18.3.1)(three@0.170.0)':
+  '@react-three/rapier@1.5.0(@react-three/fiber@8.15.12(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(react@18.3.1)(three@0.170.0)':
     dependencies:
       '@dimforge/rapier3d-compat': 0.14.0
       '@react-three/fiber': 8.15.12(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)
