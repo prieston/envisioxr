@@ -59,6 +59,7 @@ interface SceneState {
 
   // View Mode
   viewMode: ViewMode;
+  isThirdPerson: boolean;
 
   // Playback State
   isPlaying: boolean;
@@ -158,6 +159,7 @@ const useSceneStore = create<SceneState>((set) => ({
 
   // View Mode Initial State
   viewMode: "orbit",
+  isThirdPerson: false,
 
   // Playback Initial State
   isPlaying: false,
@@ -405,10 +407,10 @@ const useSceneStore = create<SceneState>((set) => ({
 
   // Control Settings Initial State
   controlSettings: {
-    carSpeed: 15,
-    walkSpeed: 5,
-    flightSpeed: 10,
-    turnSpeed: 0.05,
+    carSpeed: 54,
+    walkSpeed: 20,
+    flightSpeed: 100,
+    turnSpeed: 0.02,
     smoothness: 0.05,
   },
 

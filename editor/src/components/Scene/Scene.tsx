@@ -16,10 +16,11 @@ import {
   CameraSpringController,
   XRWrapper,
 } from ".";
-import SceneViewModeController from "./SceneViewModeController";
+import SceneControls from "./controls/SceneControls";
 import Loader from "./Loader";
 import { isWebGPUAvailable, createWebGPUContext } from "../../../lib/webgpu";
 import dynamic from "next/dynamic";
+import GroundPlane from "./GroundPlane";
 
 // Create a dynamic import for the 3D Tiles components
 const TilesComponent = dynamic(
@@ -121,15 +122,6 @@ export default function Scene({
     setOrbitControlsRef(orbitControlsRef.current);
   }, [setOrbitControlsRef]);
 
-  const handleAssetSelect = (
-    assetId: string,
-    latitude: number,
-    longitude: number
-  ) => {
-    setSelectedAssetId(assetId);
-    setSelectedLocation({ latitude, longitude });
-  };
-
   return (
     <>
       <Canvas
@@ -197,7 +189,8 @@ export default function Scene({
 
             {/* Physics and Controls */}
             <Physics gravity={[0, -9.81, 0]} debug={false}>
-              <SceneViewModeController orbitControlsRef={orbitControlsRef} />
+              <GroundPlane />
+              <SceneControls />
             </Physics>
 
             <CameraSpringController orbitControlsRef={orbitControlsRef} />

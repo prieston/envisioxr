@@ -15,6 +15,12 @@ import {
   KeyStates,
   MovementParams,
 } from "./ControlHelpers";
+import FirstPersonControls from "./controls/FirstPersonControls";
+import ThirdPersonControls from "./controls/ThirdPersonControls";
+import FlightControls from "./controls/FlightControls";
+import ThirdPersonFlightControls from "./controls/ThirdPersonFlightControls";
+import CarControls from "./controls/CarControls";
+import ThirdPersonCarControls from "./controls/ThirdPersonCarControls";
 
 interface SceneViewModeControllerProps {
   orbitControlsRef: React.MutableRefObject<any>;
@@ -1174,98 +1180,31 @@ const ThirdPersonCarControls = forwardRef<any, Record<string, never>>(
   }
 );
 
-const SceneViewModeController: React.FC<SceneViewModeControllerProps> = ({
-  orbitControlsRef,
-}) => {
+const SceneViewModeController = () => {
   const { camera } = useThree();
-  const firstPersonControlsRef = useRef<any>(null);
-
   const viewMode = useSceneStore((state) => state.viewMode);
-  const selectedObject = useSceneStore((state) => state.selectedObject);
-  const previewMode = useSceneStore((state) => state.previewMode);
+  const isThirdPerson = useSceneStore((state) => state.isThirdPerson);
 
-  // Handle view mode changes
-  useEffect(() => {
-    // Disable all controls first
-    if (orbitControlsRef.current) {
-      orbitControlsRef.current.enabled = false;
-    }
-    if (firstPersonControlsRef.current) {
-      firstPersonControlsRef.current.enabled = false;
-    }
-
-    // Enable the selected control
+  const renderControls = () => {
     switch (viewMode) {
-      case "orbit":
-        if (orbitControlsRef.current) {
-          orbitControlsRef.current.enabled = !selectedObject && !previewMode;
-        }
-        break;
       case "firstPerson":
+        return <FirstPersonControls />;
       case "thirdPerson":
+        return <ThirdPersonControls />;
       case "flight":
-      case "thirdPersonFlight":
+        return isThirdPerson ? (
+          <ThirdPersonFlightControls />
+        ) : (
+          <FlightControls />
+        );
       case "car":
-      case "thirdPersonCar":
-        if (firstPersonControlsRef.current) {
-          firstPersonControlsRef.current.enabled = !previewMode;
-        }
-        break;
+        return isThirdPerson ? <ThirdPersonCarControls /> : <CarControls />;
+      default:
+        return null;
     }
-  }, [viewMode, selectedObject, previewMode, camera, orbitControlsRef]);
+  };
 
-  return (
-    <>
-      <OrbitControls
-        ref={orbitControlsRef}
-        makeDefault
-        enableDamping
-        dampingFactor={0.05}
-        minDistance={1}
-        maxDistance={10000000}
-        enablePan={!previewMode}
-        enableZoom={!previewMode}
-        enableRotate={!previewMode}
-      />
-
-      {(viewMode === "firstPerson" ||
-        viewMode === "thirdPerson" ||
-        viewMode === "flight" ||
-        viewMode === "thirdPersonFlight") && (
-        <>
-          <PointerLockControls
-            ref={firstPersonControlsRef}
-            enabled={
-              (viewMode === "firstPerson" ||
-                viewMode === "thirdPerson" ||
-                viewMode === "flight" ||
-                viewMode === "thirdPersonFlight") &&
-              !previewMode
-            }
-          />
-          {viewMode === "firstPerson" && !previewMode && (
-            <FirstPersonControls />
-          )}
-          {viewMode === "thirdPerson" && !previewMode && (
-            <ThirdPersonControls />
-          )}
-          {viewMode === "flight" && !previewMode && <FlightControls />}
-          {viewMode === "thirdPersonFlight" && !previewMode && (
-            <ThirdPersonFlightControls />
-          )}
-        </>
-      )}
-
-      {(viewMode === "car" || viewMode === "thirdPersonCar") && (
-        <>
-          {viewMode === "car" && !previewMode && <CarControls />}
-          {viewMode === "thirdPersonCar" && !previewMode && (
-            <ThirdPersonCarControls />
-          )}
-        </>
-      )}
-    </>
-  );
+  return renderControls();
 };
 
 export default SceneViewModeController;
