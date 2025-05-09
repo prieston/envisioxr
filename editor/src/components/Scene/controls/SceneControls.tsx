@@ -10,7 +10,7 @@ import ThirdPersonCarControls from "./ThirdPersonCarControls";
 
 const SceneControls = () => {
   const viewMode = useSceneStore((state) => state.viewMode);
-  const isThirdPerson = useSceneStore((state) => state.isThirdPerson);
+
   const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
 
   const renderControls = () => {
@@ -22,13 +22,13 @@ const SceneControls = () => {
       case "thirdPerson":
         return <ThirdPersonControls />;
       case "flight":
-        return isThirdPerson ? (
-          <ThirdPersonFlightControls />
-        ) : (
-          <FlightControls />
-        );
+        return <FlightControls />;
+      case "thirdPersonFlight":
+        return <ThirdPersonFlightControls />;
       case "car":
-        return isThirdPerson ? <ThirdPersonCarControls /> : <CarControls />;
+        return <CarControls />;
+      case "thirdPersonCar":
+        return <ThirdPersonCarControls />;
       default:
         return <OrbitControls ref={orbitControlsRef} />;
     }
