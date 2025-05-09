@@ -1,171 +1,175 @@
-import { useEffect, useRef } from "react";
-import { useThree, useFrame } from "@react-three/fiber";
-import { PointerLockControls as ThreePointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
-import useSceneStore from "../../../../app/hooks/useSceneStore";
-import * as THREE from "three";
-import {
-  handleKeyboardInput,
-  calculateMovementDirection,
-  detectGround,
-  createRayOrigins,
-  applyMovement,
-  KeyStates,
-  MovementParams,
-} from "../ControlHelpers";
+"use client";
 
-const GRAVITY = 9.8;
-const JUMP_VELOCITY = 5;
-const PLAYER_HEIGHT = 1.8;
-const PROBE_OFFSET = 0.3;
+import React, { useRef, useEffect, useState } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import {
+  RigidBody,
+  RapierRigidBody,
+  CapsuleCollider,
+} from "@react-three/rapier";
+import * as THREE from "three";
+
+const WALK_SPEED = 4;
+const RUN_SPEED = 8;
+const JUMP_VELOCITY = 6;
+const MOUSE_SENSITIVITY = 0.002;
+
+type Key = "w" | "a" | "s" | "d" | "shift";
 
 export default function FirstPersonControls() {
-  const { camera, scene, gl } = useThree();
-  const controlSettings = useSceneStore((s) => s.controlSettings);
-  const moveSpeed = (controlSettings.walkSpeed * 1000) / 3600; // km/h → m/s
+  const { camera, gl } = useThree();
+  const bodyRef = useRef<RapierRigidBody>(null!);
 
-  // refs for state
-  const isOnGround = useRef(false);
-  const hasSpawned = useRef(false);
-  const raycaster = useRef(new THREE.Raycaster());
-  const velocity = useRef(new THREE.Vector3());
-  const keys = useRef<KeyStates>({
+  const [isLocked, setIsLocked] = useState(false);
+  const [canJump, setCanJump] = useState(true);
+
+  const yaw = useRef(0);
+  const pitch = useRef(0);
+  const keys = useRef<Record<Key, boolean>>({
     w: false,
-    s: false,
     a: false,
+    s: false,
     d: false,
-    space: false,
+    shift: false,
   });
-  const lastValidPos = useRef(new THREE.Vector3());
-  const currentGroundY = useRef(0);
-  const controlsRef = useRef<ThreePointerLockControls>();
 
-  // multi‐ray ground sampling
-  const sampleGround = (pos: THREE.Vector3) => {
-    const offsets: [number, number][] = [
-      [0, 0],
-      [PROBE_OFFSET, 0],
-      [-PROBE_OFFSET, 0],
-      [0, PROBE_OFFSET],
-      [0, -PROBE_OFFSET],
-    ];
-    let bestY: number | null = null;
-    offsets.forEach(([dx, dz]) => {
-      const probe = pos.clone().add(new THREE.Vector3(dx, 0, dz));
-      const origins = createRayOrigins(probe);
-      const { isOnGround, groundHeight } = detectGround(
-        raycaster.current,
-        scene,
-        probe,
-        origins,
-        new THREE.Vector3(0, -1, 0)
-      );
-      if (isOnGround) {
-        bestY = bestY === null ? groundHeight : Math.max(bestY, groundHeight);
-      }
-    });
-    return {
-      groundHeight: bestY !== null ? bestY : currentGroundY.current,
-      isOnGround: bestY !== null,
+  useEffect(() => {
+    camera.rotation.order = "YXZ";
+  }, [camera]);
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const requestLock = () => canvas.requestPointerLock();
+    const onLock = () => setIsLocked(document.pointerLockElement === canvas);
+    canvas.addEventListener("click", requestLock);
+    document.addEventListener("pointerlockchange", onLock);
+    return () => {
+      canvas.removeEventListener("click", requestLock);
+      document.removeEventListener("pointerlockchange", onLock);
     };
+  }, [gl]);
+
+  const applyHorizontal = () => {
+    const body = bodyRef.current;
+    if (!body || !isLocked) return;
+    const speed = keys.current.shift ? RUN_SPEED : WALK_SPEED;
+    const dir = new THREE.Vector3(
+      keys.current.d ? 1 : keys.current.a ? -1 : 0,
+      0,
+      keys.current.s ? 1 : keys.current.w ? -1 : 0
+    );
+    if (dir.lengthSq() > 0) dir.normalize().multiplyScalar(speed);
+    dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw.current);
+    const vel = body.linvel();
+    body.setLinvel({ x: dir.x, y: vel.y, z: dir.z }, true);
   };
 
-  // 1) pointer‐lock on click
   useEffect(() => {
-    controlsRef.current = new ThreePointerLockControls(camera, gl.domElement);
-    const onClick = () => controlsRef.current?.lock();
-    gl.domElement.addEventListener("click", onClick);
+    const onKeyDown = (e: KeyboardEvent) => {
+      let moved = false;
+      switch (e.code) {
+        case "KeyW":
+          keys.current.w = true;
+          moved = true;
+          break;
+        case "KeyA":
+          keys.current.a = true;
+          moved = true;
+          break;
+        case "KeyS":
+          keys.current.s = true;
+          moved = true;
+          break;
+        case "KeyD":
+          keys.current.d = true;
+          moved = true;
+          break;
+        case "ShiftLeft":
+        case "ShiftRight":
+          keys.current.shift = true;
+          moved = true;
+          break;
+        case "Space":
+          if (canJump && bodyRef.current) {
+            const { x, z } = bodyRef.current.linvel();
+            bodyRef.current.setLinvel({ x, y: JUMP_VELOCITY, z }, true);
+            setCanJump(false);
+          }
+          return;
+      }
+      if (moved) applyHorizontal();
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      let moved = false;
+      switch (e.code) {
+        case "KeyW":
+          keys.current.w = false;
+          moved = true;
+          break;
+        case "KeyA":
+          keys.current.a = false;
+          moved = true;
+          break;
+        case "KeyS":
+          keys.current.s = false;
+          moved = true;
+          break;
+        case "KeyD":
+          keys.current.d = false;
+          moved = true;
+          break;
+        case "ShiftLeft":
+        case "ShiftRight":
+          keys.current.shift = false;
+          moved = true;
+          break;
+      }
+      if (moved) applyHorizontal();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
     return () => {
-      gl.domElement.removeEventListener("click", onClick);
-      controlsRef.current?.dispose();
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
     };
-  }, [camera, gl.domElement]);
+  }, [canJump, isLocked]);
 
-  // 2) initial spawn at ground
   useEffect(() => {
-    if (hasSpawned.current) return;
-    const start = camera.position.clone();
-    const { groundHeight } = sampleGround(start);
-    currentGroundY.current = groundHeight;
-    camera.position.set(start.x, groundHeight + PLAYER_HEIGHT, start.z);
-    lastValidPos.current.copy(camera.position);
-    isOnGround.current = true;
-    hasSpawned.current = true;
-  }, [camera.position, scene]);
-
-  // 3) keyboard handling
-  useEffect(() => {
-    const down = (e: KeyboardEvent) =>
-      handleKeyboardInput(e, keys.current, true);
-    const up = (e: KeyboardEvent) =>
-      handleKeyboardInput(e, keys.current, false);
-    window.addEventListener("keydown", down);
-    window.addEventListener("keyup", up);
-    return () => {
-      window.removeEventListener("keydown", down);
-      window.removeEventListener("keyup", up);
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isLocked) return;
+      yaw.current -= e.movementX * MOUSE_SENSITIVITY;
+      pitch.current -= e.movementY * MOUSE_SENSITIVITY;
+      const limit = Math.PI / 2 - 0.01;
+      pitch.current = Math.max(-limit, Math.min(limit, pitch.current));
+      camera.rotation.set(pitch.current, yaw.current, 0);
     };
-  }, []);
+    document.addEventListener("mousemove", onMouseMove);
+    return () => document.removeEventListener("mousemove", onMouseMove);
+  }, [isLocked, camera]);
 
-  // 4) main loop
-  useFrame((_, delta) => {
-    // — horizontal movement (x/z)
-    const moveDir = new THREE.Vector3();
-    calculateMovementDirection(
-      camera,
-      keys.current,
-      moveDir,
-      new THREE.Vector3(),
-      new THREE.Vector3()
-    );
-    const horiz: MovementParams = {
-      moveSpeed,
-      friction: 0.95,
-      maxSpeed: 10,
-    };
-    applyMovement(
-      camera.position,
-      moveDir,
-      velocity.current,
-      horiz,
-      delta,
-      isOnGround.current
-    );
-
-    // — jump impulse
-    if (keys.current.space && isOnGround.current) {
-      velocity.current.y = JUMP_VELOCITY;
-      isOnGround.current = false;
-    }
-
-    // — apply gravity & integrate Y
-    velocity.current.y -= GRAVITY * delta;
-    camera.position.y += velocity.current.y * delta;
-
-    // — sample ground height
-    const { groundHeight } = sampleGround(camera.position);
-
-    // — decide landing only if moving downward and feet at/below ground
-    const feetY = camera.position.y - PLAYER_HEIGHT;
-    const landingThreshold = 0.05;
-    if (velocity.current.y <= 0 && feetY <= groundHeight + landingThreshold) {
-      // landed!
-      camera.position.y = groundHeight + PLAYER_HEIGHT;
-      velocity.current.y = 0;
-      isOnGround.current = true;
-      lastValidPos.current.copy(camera.position);
-      currentGroundY.current = groundHeight;
-    } else {
-      // still in air
-      isOnGround.current = false;
-    }
-
-    // — out‐of‐bounds safeguard
-    if (camera.position.y < currentGroundY.current - 20) {
-      camera.position.copy(lastValidPos.current);
-      velocity.current.set(0, 0, 0);
-      isOnGround.current = true;
-    }
+  useFrame(() => {
+    const body = bodyRef.current;
+    if (!body) return;
+    const { x, y, z } = body.translation();
+    camera.position.set(x, y + 0.5, z);
   });
 
-  return null;
+  return (
+    <RigidBody
+      ref={bodyRef}
+      colliders={false}
+      mass={1}
+      position={[0, 2, 0]}
+      enabledRotations={[false, false, false]}
+      onCollisionEnter={() => setCanJump(true)}
+    >
+      <CapsuleCollider args={[0.5, 1]} />
+
+      {/* Invisible mesh for debug visualization */}
+      <mesh visible={false}>
+        <capsuleGeometry args={[0.5, 1, 8, 16]} />
+        <meshStandardMaterial transparent opacity={0} />
+      </mesh>
+    </RigidBody>
+  );
 }
