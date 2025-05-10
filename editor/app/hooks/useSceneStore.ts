@@ -313,11 +313,18 @@ const useSceneStore = create<SceneState>((set) => ({
     })),
 
   updateObservationPoint: (id, updates) =>
-    set((state) => ({
-      observationPoints: state.observationPoints.map((point) =>
+    set((state) => {
+      const updatedPoints = state.observationPoints.map((point) =>
         point.id === id ? { ...point, ...updates } : point
-      ),
-    })),
+      );
+      return {
+        observationPoints: updatedPoints,
+        selectedObservation:
+          state.selectedObservation?.id === id
+            ? { ...state.selectedObservation, ...updates }
+            : state.selectedObservation,
+      };
+    }),
 
   deleteObservationPoint: (id) =>
     set((state) => ({
