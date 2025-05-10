@@ -83,7 +83,6 @@ const RightPanel: React.FC = () => {
     controlSettings,
     updateControlSettings,
   } = useSceneStore();
-
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
@@ -98,6 +97,7 @@ const RightPanel: React.FC = () => {
     property: string,
     value: string | Vector3Tuple
   ) => {
+    console.log("handleObservationChange", property, value);
     if (selectedObservation) {
       updateObservationPoint(selectedObservation.id, { [property]: value });
     }

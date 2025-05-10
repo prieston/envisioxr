@@ -317,12 +317,14 @@ const useSceneStore = create<SceneState>((set) => ({
       const updatedPoints = state.observationPoints.map((point) =>
         point.id === id ? { ...point, ...updates } : point
       );
+      const updatedSelected =
+        state.selectedObservation?.id === id
+          ? { ...state.selectedObservation, ...updates }
+          : state.selectedObservation;
+
       return {
         observationPoints: updatedPoints,
-        selectedObservation:
-          state.selectedObservation?.id === id
-            ? { ...state.selectedObservation, ...updates }
-            : state.selectedObservation,
+        selectedObservation: updatedSelected,
       };
     }),
 
