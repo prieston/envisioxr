@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { Sphere } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
@@ -104,6 +104,7 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
   const { camera, gl, scene } = useThree();
   const tilesRendererRef = useRef<TilesRenderer | null>(null);
   const wrapperRef = useRef<TilesRendererWrapper | null>(null);
+  const [authError, setAuthError] = useState(false);
 
   // Update the tiles renderer on each frame
   useFrame(() => {
@@ -112,19 +113,32 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
     }
   });
 
-  useEffect(() => {
+  const initializeTilesRenderer = useCallback(() => {
     try {
+      // Validate required parameters
+      if (!apiKey) {
+        throw new Error("Cesium Ion API key is required");
+      }
+      if (!assetId) {
+        throw new Error("Asset ID is required");
+      }
+
       // Create the tiles renderer without initial URL
       const tilesRenderer = new TilesRenderer();
 
       // Register plugins
-      tilesRenderer.registerPlugin(
-        new CesiumIonAuthPlugin({
-          apiToken: apiKey,
-          assetId: assetId,
-          autoRefreshToken: true,
-        })
-      );
+      const authPlugin = new CesiumIonAuthPlugin({
+        apiToken: apiKey,
+        assetId: assetId,
+        autoRefreshToken: true,
+      });
+
+      // Verify the auth plugin is properly initialized
+      if (!authPlugin) {
+        throw new Error("Failed to initialize Cesium Ion Auth Plugin");
+      }
+
+      tilesRenderer.registerPlugin(authPlugin);
       tilesRenderer.registerPlugin(new TileCompressionPlugin());
       tilesRenderer.registerPlugin(new TilesFadePlugin());
       tilesRenderer.registerPlugin(
@@ -156,24 +170,50 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
 
       tilesRenderer.addEventListener("error", (event: any) => {
         console.error("Error loading tiles:", event);
+        if (event.code === 405) {
+          console.error("Auth error with asset ID:", assetId);
+          setAuthError(true);
+        }
       });
 
       // Force initial update
       tilesRenderer.update();
-
-      // Cleanup function
-      return () => {
-        if (wrapperRef.current) {
-          scene.remove(wrapperRef.current);
-          wrapperRef.current.dispose();
-          wrapperRef.current = null;
-        }
-      };
+      setAuthError(false);
     } catch (error: any) {
       console.error("Error initializing tiles renderer:", error);
-      return () => {};
+      setAuthError(true);
     }
   }, [apiKey, camera, gl, scene, assetId, latitude, longitude]);
+
+  useEffect(() => {
+    initializeTilesRenderer();
+
+    // Cleanup function
+    return () => {
+      if (wrapperRef.current) {
+        scene.remove(wrapperRef.current);
+        wrapperRef.current.dispose();
+        wrapperRef.current = null;
+      }
+    };
+  }, [initializeTilesRenderer, scene]);
+
+  // Handle auth errors by reinitializing
+  useEffect(() => {
+    if (authError) {
+      // Clean up existing renderer
+      if (wrapperRef.current) {
+        scene.remove(wrapperRef.current);
+        wrapperRef.current.dispose();
+        wrapperRef.current = null;
+      }
+      // Reinitialize after a short delay
+      const timeout = setTimeout(() => {
+        initializeTilesRenderer();
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [authError, initializeTilesRenderer, scene]);
 
   return (
     <>

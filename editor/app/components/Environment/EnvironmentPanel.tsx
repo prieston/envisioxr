@@ -72,11 +72,12 @@ const EnvironmentPanel: React.FC = () => {
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setShowTiles(event.target.checked);
       if (!event.target.checked) {
-        setSelectedAssetId("");
-        setSelectedLocation(null);
+        // Don't clear the selectedAssetId and location when disabling tiles
+        // setSelectedAssetId("");
+        // setSelectedLocation(null);
       }
     },
-    [setShowTiles, setSelectedAssetId, setSelectedLocation]
+    [setShowTiles]
   );
 
   const handleAmbientLightChange = useCallback(
