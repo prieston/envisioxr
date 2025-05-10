@@ -39,11 +39,9 @@ const ObservationPoint = ({
 
   return (
     <>
-      {/* @ts-ignore-next-line */}
       <primitive
         object={
           new THREE.ArrowHelper(
-            // Compute direction using the target and position
             new THREE.Vector3()
               .subVectors(
                 new THREE.Vector3(...target),
@@ -51,8 +49,8 @@ const ObservationPoint = ({
               )
               .normalize(),
             new THREE.Vector3(...position),
-            1, // Length of the arrow; adjust as needed
-            selected ? 0xff0000 : 0xffff00 // Color: red if selected, yellow otherwise
+            1,
+            selected ? 0xff0000 : 0xffff00
           )
         }
         ref={arrowRef}
