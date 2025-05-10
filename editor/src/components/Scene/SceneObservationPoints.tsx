@@ -15,7 +15,7 @@ const SceneObservationPoints: React.FC<SceneObservationPointsProps> = ({
     (state) => state.selectedObservation
   );
   const selectObservationPoint = useSceneStore(
-    (state) => state.selectObservationPoint
+    (state) => state.selectObservation
   );
 
   return (

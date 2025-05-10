@@ -69,16 +69,18 @@ const PublishedScenePage = () => {
           // Select the first observation point if available
           if (data.project.sceneData.observationPoints.length > 0) {
             selectObservation(data.project.sceneData.observationPoints[0].id);
+            useSceneStore.setState({ previewIndex: 0 });
           }
         }
 
         // Initialize selectedAssetId and selectedLocation
         if (data.project.sceneData) {
-          const { selectedAssetId, selectedLocation } = data.project.sceneData;
+          const { selectedAssetId, selectedLocation, showTiles } =
+            data.project.sceneData;
           if (selectedAssetId) {
             useSceneStore.setState({
               selectedAssetId,
-              showTiles: true,
+              showTiles: showTiles ?? false,
             });
           }
           if (selectedLocation) {
