@@ -3,7 +3,6 @@
 import React, { useEffect } from "react";
 import { useThree } from "@react-three/fiber";
 import useSceneStore from "../../../app/hooks/useSceneStore";
-import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { OrbitControls as OrbitControlsImpl } from "three/examples/jsm/controls/OrbitControls";
 
@@ -25,18 +24,21 @@ const CameraPOVCaptureHandler: React.FC<CameraPOVCaptureHandlerProps> = ({
     (state) => state.updateObservationPoint
   );
   const setCapturingPOV = useSceneStore((state) => state.setCapturingPOV);
+  const viewMode = useSceneStore((state) => state.viewMode);
 
   useEffect(() => {
     if (capturingPOV && selectedObservation) {
-      if (!orbitControlsRef.current) {
-        console.warn("OrbitControls reference is null, cannot capture target.");
-        return;
-      }
-
+      setCapturingPOV(false);
       // Store the current camera state
       const currentPosition = new THREE.Vector3().copy(camera.position);
-      const currentTarget = new THREE.Vector3().copy(
-        orbitControlsRef.current.target
+
+      // Calculate target based on camera's forward direction
+      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(
+        camera.quaternion
+      );
+      const currentTarget = new THREE.Vector3().addVectors(
+        currentPosition,
+        forward
       );
 
       // Convert to arrays for storage
@@ -60,18 +62,15 @@ const CameraPOVCaptureHandler: React.FC<CameraPOVCaptureHandlerProps> = ({
 
       // Ensure the camera and controls maintain their state
       requestAnimationFrame(() => {
-        if (!orbitControlsRef.current) return;
-
-        // Update the orbit controls target
-        orbitControlsRef.current.target.copy(currentTarget);
-        orbitControlsRef.current.update();
-
         // Update the camera position and make it look at the target
         camera.position.copy(currentPosition);
         camera.lookAt(currentTarget);
 
-        // Final update to ensure everything is in sync
-        orbitControlsRef.current.update();
+        // If we're in orbit mode, update the orbit controls target
+        if (viewMode === "orbit" && orbitControlsRef.current) {
+          orbitControlsRef.current.target.copy(currentTarget);
+          orbitControlsRef.current.update();
+        }
 
         // Set capturingPOV to false after the camera state is maintained
         setCapturingPOV(false);
@@ -84,6 +83,7 @@ const CameraPOVCaptureHandler: React.FC<CameraPOVCaptureHandlerProps> = ({
     updateObservationPoint,
     setCapturingPOV,
     orbitControlsRef,
+    viewMode,
   ]);
 
   return null;
