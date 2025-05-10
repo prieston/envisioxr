@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useSpring } from "@react-spring/three";
 import useSceneStore from "../../../app/hooks/useSceneStore";
-import { OrbitControls } from "@react-three/drei";
 import { OrbitControls as OrbitControlsImpl } from "three/examples/jsm/controls/OrbitControls";
 
 type Vector3Tuple = [number, number, number];
@@ -21,14 +20,22 @@ const CameraSpringController: React.FC<CameraSpringControllerProps> = ({
   const previewIndex = useSceneStore((state) => state.previewIndex);
   const observationPoints = useSceneStore((state) => state.observationPoints);
   const capturingPOV = useSceneStore((state) => state.capturingPOV);
+  const viewMode = useSceneStore((state) => state.viewMode);
 
   const [spring, api] = useSpring(() => ({
     cameraPosition: camera.position.toArray() as Vector3Tuple,
-    target: orbitControlsRef.current
-      ? (orbitControlsRef.current.target.toArray() as Vector3Tuple)
-      : ([0, 0, 0] as Vector3Tuple),
+    target: [0, 0, 0] as Vector3Tuple,
     config: { mass: 1, tension: 170, friction: 26 },
   }));
+
+  // Update spring target when orbitControlsRef becomes available
+  useEffect(() => {
+    if (orbitControlsRef.current) {
+      api.start({
+        target: orbitControlsRef.current.target.toArray() as Vector3Tuple,
+      });
+    }
+  }, [orbitControlsRef.current, api]);
 
   // Only animate when in preview mode and not capturing POV
   useEffect(() => {
@@ -49,8 +56,8 @@ const CameraSpringController: React.FC<CameraSpringControllerProps> = ({
           target: target,
         });
 
-        // Update the orbit controls target immediately
-        if (orbitControlsRef.current) {
+        // Update the orbit controls target immediately if in orbit mode
+        if (viewMode === "orbit" && orbitControlsRef.current) {
           orbitControlsRef.current.target.set(...target);
           orbitControlsRef.current.update();
         }
@@ -66,18 +73,24 @@ const CameraSpringController: React.FC<CameraSpringControllerProps> = ({
     api,
     orbitControlsRef,
     capturingPOV,
+    viewMode,
   ]);
 
   // Only update camera position in preview mode and not capturing POV
   useFrame(() => {
-    if (previewMode && !capturingPOV && orbitControlsRef.current) {
+    if (previewMode && !capturingPOV) {
       const position = spring.cameraPosition.get() as Vector3Tuple;
       const target = spring.target.get() as Vector3Tuple;
 
       if (Array.isArray(position) && Array.isArray(target)) {
         camera.position.set(position[0], position[1], position[2]);
-        orbitControlsRef.current.target.set(target[0], target[1], target[2]);
-        orbitControlsRef.current.update();
+        camera.lookAt(target[0], target[1], target[2]);
+
+        // Only update orbit controls if in orbit mode
+        if (viewMode === "orbit" && orbitControlsRef.current) {
+          orbitControlsRef.current.target.set(target[0], target[1], target[2]);
+          orbitControlsRef.current.update();
+        }
       }
     }
   });

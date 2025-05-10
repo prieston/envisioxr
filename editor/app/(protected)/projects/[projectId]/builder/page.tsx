@@ -14,7 +14,8 @@ const sanitizeSceneData = (
   objects,
   observationPoints,
   selectedAssetId,
-  selectedLocation
+  selectedLocation,
+  showTiles
 ) => {
   // Ensure we have valid arrays to work with
   const safeObjects = Array.isArray(objects) ? objects : [];
@@ -40,7 +41,7 @@ const sanitizeSceneData = (
         scale: rest.scale || [1, 1, 1],
       };
     })
-    .filter(Boolean); // Remove any null entries
+    .filter(Boolean);
 
   // Clean up observation points
   const cleanObservationPoints = safeObservationPoints
@@ -96,6 +97,7 @@ const sanitizeSceneData = (
     observationPoints: cleanObservationPoints,
     selectedAssetId: selectedAssetId || "2275207",
     selectedLocation: cleanSelectedLocation,
+    showTiles,
   });
 
   return {
@@ -103,6 +105,7 @@ const sanitizeSceneData = (
     observationPoints: cleanObservationPoints,
     selectedAssetId: selectedAssetId || "2275207",
     selectedLocation: cleanSelectedLocation,
+    showTiles,
   };
 };
 
@@ -122,6 +125,9 @@ export default function BuilderPage() {
   useEffect(() => {
     const fetchProject = async () => {
       try {
+        // Reset scene state first
+        useSceneStore.getState().resetScene();
+
         const res = await fetch(`/api/projects/${projectId}`, {
           credentials: "include",
         });
@@ -136,6 +142,7 @@ export default function BuilderPage() {
             observationPoints,
             selectedAssetId,
             selectedLocation,
+            showTiles,
           } = data.project.sceneData;
 
           if (Array.isArray(objects)) {
@@ -147,7 +154,7 @@ export default function BuilderPage() {
           if (selectedAssetId) {
             useSceneStore.setState({
               selectedAssetId,
-              showTiles: true,
+              showTiles: showTiles ?? false,
             });
           }
           if (selectedLocation) {
@@ -179,7 +186,8 @@ export default function BuilderPage() {
         storeState.objects,
         storeState.observationPoints,
         storeState.selectedAssetId,
-        storeState.selectedLocation
+        storeState.selectedLocation,
+        storeState.showTiles
       );
 
       const response = await fetch(`/api/projects/${projectId}`, {
