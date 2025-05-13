@@ -4,23 +4,17 @@ import React, { useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useSpring } from "@react-spring/three";
 import useSceneStore from "../../../app/hooks/useSceneStore";
-import { OrbitControls as OrbitControlsImpl } from "three/examples/jsm/controls/OrbitControls";
 
 type Vector3Tuple = [number, number, number];
 
-interface CameraSpringControllerProps {
-  orbitControlsRef: React.RefObject<OrbitControlsImpl>;
-}
-
-const CameraSpringController: React.FC<CameraSpringControllerProps> = ({
-  orbitControlsRef,
-}) => {
+const CameraSpringController: React.FC = () => {
   const { camera } = useThree();
   const previewMode = useSceneStore((state) => state.previewMode);
   const previewIndex = useSceneStore((state) => state.previewIndex);
   const observationPoints = useSceneStore((state) => state.observationPoints);
   const capturingPOV = useSceneStore((state) => state.capturingPOV);
   const viewMode = useSceneStore((state) => state.viewMode);
+  const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
 
   const [spring, api] = useSpring(() => ({
     cameraPosition: camera.position.toArray() as Vector3Tuple,
@@ -30,12 +24,12 @@ const CameraSpringController: React.FC<CameraSpringControllerProps> = ({
 
   // Update spring target when orbitControlsRef becomes available
   useEffect(() => {
-    if (orbitControlsRef.current) {
+    if (orbitControlsRef?.current) {
       api.start({
         target: orbitControlsRef.current.target.toArray() as Vector3Tuple,
       });
     }
-  }, [orbitControlsRef.current, api]);
+  }, [orbitControlsRef, api]);
 
   // Only animate when in preview mode and not capturing POV
   useEffect(() => {

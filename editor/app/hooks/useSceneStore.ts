@@ -56,6 +56,7 @@ interface SceneState {
   ambientLightIntensity: number;
   skyboxType: "default" | "hdri" | "gradient" | "none";
   showTiles: boolean;
+  magnetEnabled: boolean;
 
   // View Mode
   viewMode: ViewMode;
@@ -73,12 +74,14 @@ interface SceneState {
   previewIndex: number;
   transformMode: "translate" | "rotate" | "scale";
   orbitControlsRef: any | null;
+  scene: THREE.Scene | null;
 
   // Environment Actions
   setGridEnabled: (enabled: boolean) => void;
   setAmbientLightIntensity: (intensity: number) => void;
   setSkyboxType: (type: "default" | "hdri" | "gradient" | "none") => void;
   setShowTiles: (show: boolean) => void;
+  setMagnetEnabled: (enabled: boolean) => void;
 
   // View Mode Actions
   setViewMode: (mode: ViewMode) => void;
@@ -119,6 +122,7 @@ interface SceneState {
   // Other Actions
   resetScene: () => void;
   setOrbitControlsRef: (ref: any) => void;
+  setScene: (scene: THREE.Scene) => void;
   addGoogleTiles: (apiKey: string) => void;
   addCesiumIonTiles: () => void;
   setSelectedAssetId: (assetId: string) => void;
@@ -141,6 +145,33 @@ interface SceneState {
   ) => void;
 }
 
+const findIntersectionPoint = (
+  scene: THREE.Scene,
+  camera: THREE.Camera
+): [number, number, number] => {
+  const raycaster = new THREE.Raycaster();
+  const cameraPosition = camera.position.clone();
+  const cameraTarget = new THREE.Vector3(0, 0, -1).unproject(camera);
+  const direction = cameraTarget.sub(cameraPosition).normalize();
+
+  raycaster.set(cameraPosition, direction);
+
+  const allMeshes: THREE.Mesh[] = [];
+  scene.traverse((object) => {
+    if (object instanceof THREE.Mesh) {
+      allMeshes.push(object);
+    }
+  });
+
+  const intersects = raycaster.intersectObjects(allMeshes);
+  if (intersects.length > 0) {
+    const hitPoint = intersects[0].point;
+    return [hitPoint.x, hitPoint.y, hitPoint.z];
+  }
+
+  return [0, 0, 0];
+};
+
 const useSceneStore = create<SceneState>((set) => ({
   // Initial State
   objects: [],
@@ -150,12 +181,14 @@ const useSceneStore = create<SceneState>((set) => ({
   selectedAssetId: "2275207",
   selectedLocation: null,
   orbitControlsRef: null,
+  scene: null,
 
   // Environment Settings Initial State
   gridEnabled: true,
   ambientLightIntensity: 0.5,
   skyboxType: "default",
   showTiles: false,
+  magnetEnabled: false,
 
   // View Mode Initial State
   viewMode: "orbit",
@@ -178,6 +211,7 @@ const useSceneStore = create<SceneState>((set) => ({
     set({ ambientLightIntensity: intensity }),
   setSkyboxType: (type) => set({ skyboxType: type }),
   setShowTiles: (show) => set({ showTiles: show }),
+  setMagnetEnabled: (enabled) => set({ magnetEnabled: enabled }),
 
   // View Mode Actions
   setViewMode: (mode) => set({ viewMode: mode }),
@@ -194,12 +228,19 @@ const useSceneStore = create<SceneState>((set) => ({
 
   addModel: (model) =>
     set((state) => {
+      const camera = state.orbitControlsRef?.object;
+
+      let position: [number, number, number] = [0, 0, 0];
+      if (state.scene && camera) {
+        position = findIntersectionPoint(state.scene, camera);
+      }
+
       const newModel = {
         id: uuidv4(),
         name: model.name || "",
         url: model.url || "",
         type: model.type || "model",
-        position: model.position || [0, 0, 0],
+        position: model.position || position,
         rotation: model.rotation || [0, 0, 0],
         scale: model.scale || [1, 1, 1],
         apiKey: model.apiKey,
@@ -376,6 +417,7 @@ const useSceneStore = create<SceneState>((set) => ({
     }),
 
   setOrbitControlsRef: (ref) => set({ orbitControlsRef: ref }),
+  setScene: (scene) => set({ scene }),
 
   addGoogleTiles: (apiKey) =>
     set((state) => ({

@@ -4,12 +4,14 @@ import React from "react";
 import { TransformControls } from "@react-three/drei";
 import useSceneStore from "../../../app/hooks/useSceneStore";
 import { SceneTransformControlsProps } from "./types";
+import MagnetControls from "./controls/MagnetControls";
 
 const SceneTransformControls: React.FC<SceneTransformControlsProps> = ({
   selectedObject,
   transformControlsRef,
 }) => {
   const transformMode = useSceneStore((state) => state.transformMode);
+  const magnetEnabled = useSceneStore((state) => state.magnetEnabled);
   const setModelPosition = useSceneStore((state) => state.setModelPosition);
   const setModelRotation = useSceneStore((state) => state.setModelRotation);
   const setModelScale = useSceneStore((state) => state.setModelScale);
@@ -40,12 +42,20 @@ const SceneTransformControls: React.FC<SceneTransformControlsProps> = ({
   };
 
   return (
-    <TransformControls
-      ref={transformControlsRef}
-      object={selectedObject.ref}
-      mode={transformMode}
-      onChange={handleChange}
-    />
+    <>
+      <TransformControls
+        ref={transformControlsRef}
+        object={selectedObject.ref}
+        mode={transformMode}
+        onChange={handleChange}
+      />
+      <MagnetControls
+        enabled={magnetEnabled}
+        target={selectedObject.ref}
+        heightOffset={0}
+        smoothingFactor={0.1}
+      />
+    </>
   );
 };
 

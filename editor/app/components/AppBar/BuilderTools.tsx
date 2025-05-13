@@ -4,8 +4,10 @@ import {
   OpenWith as OpenWithIcon,
   RotateRight as RotateRightIcon,
   AspectRatio as AspectRatioIcon,
+  AttachFile as MagnetIcon,
 } from "@mui/icons-material";
 import { MinimalButtonActive } from "./StyledComponents.tsx";
+import useSceneStore from "../../../app/hooks/useSceneStore";
 
 interface BuilderToolsProps {
   previewMode: boolean;
@@ -20,6 +22,13 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
   transformMode,
   onTransformModeChange,
 }) => {
+  const magnetEnabled = useSceneStore((state) => state.magnetEnabled);
+  const setMagnetEnabled = useSceneStore((state) => state.setMagnetEnabled);
+
+  const handleMagnetToggle = () => {
+    setMagnetEnabled(!magnetEnabled);
+  };
+
   return (
     <Box
       sx={{
@@ -51,6 +60,13 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
           >
             <AspectRatioIcon />
             <Typography variant="caption">Scale</Typography>
+          </MinimalButtonActive>
+          <MinimalButtonActive
+            active={magnetEnabled}
+            onClick={handleMagnetToggle}
+          >
+            <MagnetIcon />
+            <Typography variant="caption">Magnet</Typography>
           </MinimalButtonActive>
         </>
       )}

@@ -1,7 +1,7 @@
 // SceneControls.tsx
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import useSceneStore from "../../../../app/hooks/useSceneStore";
@@ -13,11 +13,28 @@ import CarControls from "./CarControls";
 import ThirdPersonCarControls from "./ThirdPersonCarControls";
 
 const SceneControls = () => {
-  const { camera } = useThree();
+  const { camera, scene } = useThree();
   const viewMode = useSceneStore((state) => state.viewMode);
-  const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
+  const selectedObject = useSceneStore((state) => state.selectedObject);
+  const setOrbitControlsRef = useSceneStore(
+    (state) => state.setOrbitControlsRef
+  );
+  const setScene = useSceneStore((state) => state.setScene);
 
-  // Whenever viewMode changes, “spawn” the camera if needed
+  // Create our own ref
+  const localOrbitControlsRef = useRef(null);
+
+  // Update the store's ref whenever our local ref changes
+  useEffect(() => {
+    setOrbitControlsRef(localOrbitControlsRef.current);
+  }, [localOrbitControlsRef.current, setOrbitControlsRef]);
+
+  // Set the scene in the store
+  useEffect(() => {
+    setScene(scene);
+  }, [scene, setScene]);
+
+  // Whenever viewMode changes, "spawn" the camera if needed
   useEffect(() => {
     // Capture wherever the camera currently is when switching modes
     if (
@@ -26,17 +43,18 @@ const SceneControls = () => {
       viewMode === "car" ||
       viewMode === "thirdPersonCar"
     ) {
-      // Optionally adjust Y to ensure we start slightly above ground
-      // camera.position.y += PLAYER_HEIGHT; // import from your constants if desired
-
       // Zero out rotation for a clean spawn (optional)
       camera.rotation.set(0, 0, 0);
     }
   }, [viewMode, camera]);
 
+  // If an object is selected, disable all controls
+  if (selectedObject) {
+    return null;
+  }
+
+  // Render appropriate controls based on view mode
   switch (viewMode) {
-    case "orbit":
-      return <OrbitControls ref={orbitControlsRef} />;
     case "firstPerson":
       return <FirstPersonControls />;
     case "thirdPerson":
@@ -49,8 +67,18 @@ const SceneControls = () => {
       return <CarControls />;
     case "thirdPersonCar":
       return <ThirdPersonCarControls />;
+    case "orbit":
     default:
-      return <OrbitControls ref={orbitControlsRef} />;
+      return (
+        <OrbitControls
+          ref={localOrbitControlsRef}
+          makeDefault
+          enableDamping
+          dampingFactor={0.05}
+          minDistance={3}
+          maxDistance={1000}
+        />
+      );
   }
 };
 

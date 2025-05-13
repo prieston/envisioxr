@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import * as THREE from "three";
 import {
   Dialog,
   DialogTitle,
@@ -48,7 +49,13 @@ const AddModelDialog = ({ open, onClose }) => {
   const [uploading, setUploading] = useState(false); // Upload spinner state
   const [uploadProgress, setUploadProgress] = useState(0); // Upload progress percentage
   const [deletingAssetId, setDeletingAssetId] = useState(null); // Currently deleting asset id
+  const [selectingPosition, setSelectingPosition] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<
+    [number, number, number] | null
+  >(null);
+
   const addModel = useSceneStore((state) => state.addModel);
+  const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
 
   // Fetch user's uploaded models when dialog opens.
   useEffect(() => {
@@ -65,16 +72,68 @@ const AddModelDialog = ({ open, onClose }) => {
     }
   }, [open]);
 
+  // Handle position selection mode
+  useEffect(() => {
+    if (!selectingPosition || !orbitControlsRef?.current) return;
+
+    const handleClick = (event) => {
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+
+      // Calculate mouse position in normalized device coordinates
+      const rect = event.target.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      // Update the raycaster
+      raycaster.setFromCamera(mouse, orbitControlsRef.current.object);
+
+      // Find intersections
+      const intersects = raycaster.intersectObjects(
+        orbitControlsRef.current.scene.children,
+        true
+      );
+
+      if (intersects.length > 0) {
+        const hitPoint = intersects[0].point;
+        setSelectedPosition([hitPoint.x, hitPoint.y, hitPoint.z]);
+        setSelectingPosition(false);
+        showToast("Position selected!");
+      }
+    };
+
+    const canvas = document.querySelector("canvas");
+    if (canvas) {
+      canvas.addEventListener("click", handleClick);
+      canvas.style.cursor = "crosshair";
+    }
+
+    return () => {
+      if (canvas) {
+        canvas.removeEventListener("click", handleClick);
+        canvas.style.cursor = "auto";
+      }
+    };
+  }, [selectingPosition, orbitControlsRef]);
+
   // Handler for selecting a model (stock or uploaded).
   const handleModelSelect = (model) => {
+    if (!selectedPosition) {
+      setSelectingPosition(true);
+      showToast("Click anywhere in the scene to select the insertion point");
+      return;
+    }
+
     addModel({
       name: model.name,
       url: model.url,
       type: model.type,
-      position: [0, 0, 0],
+      position: selectedPosition,
       scale: [1, 1, 1],
       rotation: [0, 0, 0],
     });
+
+    setSelectedPosition(null);
     onClose();
   };
 
@@ -242,8 +301,18 @@ const AddModelDialog = ({ open, onClose }) => {
   const isConfirmDisabled = !screenshot || !friendlyName || uploading;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add a Model</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={(_event, _reason) => {
+        // Only allow closing if we're not in position selection mode
+        if (!selectingPosition) {
+          onClose();
+        }
+      }}
+      maxWidth="md"
+      fullWidth
+    >
+      <DialogTitle>Add Model</DialogTitle>
       <DialogContent>
         <Tabs
           value={tabIndex}
@@ -251,9 +320,27 @@ const AddModelDialog = ({ open, onClose }) => {
           centered
         >
           <Tab label="Stock Models" />
-          <Tab label="My Models" />
-          <Tab label="Upload" />
+          <Tab label="Your Models" />
+          <Tab label="Upload Model" />
         </Tabs>
+
+        {selectingPosition && (
+          <Box sx={{ mt: 2, p: 2, bgcolor: "warning.light", borderRadius: 1 }}>
+            <Typography>
+              Click anywhere in the scene to select where to place the model
+            </Typography>
+          </Box>
+        )}
+
+        {selectedPosition && (
+          <Box sx={{ mt: 2, p: 2, bgcolor: "success.light", borderRadius: 1 }}>
+            <Typography>
+              Position selected: [{selectedPosition[0].toFixed(2)},{" "}
+              {selectedPosition[1].toFixed(2)}, {selectedPosition[2].toFixed(2)}
+              ]
+            </Typography>
+          </Box>
+        )}
 
         {/* Stock Models Tab */}
         {tabIndex === 0 && (
