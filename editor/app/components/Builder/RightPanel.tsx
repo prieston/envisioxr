@@ -2,41 +2,24 @@
 
 import React, { useState, useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import {
-  Box,
-  Typography,
-  TextField,
-  Tabs,
-  Tab,
-  Divider,
-  Button,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActions,
-  CircularProgress,
-  LinearProgress,
-  Tooltip,
-} from "@mui/material";
-import { Camera } from "@mui/icons-material";
+import { Box, Tabs, Tab } from "@mui/material";
 import useSceneStore from "../../hooks/useSceneStore";
-import ModelPreview from "../ModelPreview";
 import { useDropzone } from "react-dropzone";
 import { showToast } from "@/app/utils/toastUtils";
 import * as THREE from "three";
 import { clientEnv } from "@/lib/env/client";
+import PropertiesPanel from "./PropertiesPanel";
+import AssetLibraryPanel from "./AssetLibraryPanel";
 
 // Styled container for the RightPanel with conditional styles based on previewMode
 interface RightPanelContainerProps {
   previewMode: boolean;
 }
 
-type Vector3Tuple = [number, number, number];
-
 const RightPanelContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== "previewMode",
 })<RightPanelContainerProps>(({ theme, previewMode }) => ({
-  width: "280px",
+  width: "400px",
   height: "100%",
   backgroundColor: "#121212",
   color: theme.palette.text.primary,
@@ -48,36 +31,9 @@ const RightPanelContainer = styled(Box, {
   cursor: previewMode ? "not-allowed" : "default",
   filter: previewMode ? "grayscale(100%)" : "none",
   transition: "all 0.3s ease",
+  display: "flex",
+  flexDirection: "column",
 }));
-
-const TabPanel = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(2),
-  height: "calc(100% - 48px)", // 48px is the height of the tabs
-  overflow: "auto",
-}));
-
-const PropertyGroup = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-}));
-
-const PropertyLabel = styled(Typography)(({ theme }) => ({
-  fontSize: "0.875rem",
-  color: theme.palette.text.secondary,
-  marginBottom: theme.spacing(0.5),
-}));
-
-const stockModels = [
-  {
-    name: "House",
-    url: "https://prieston-prod.fra1.cdn.digitaloceanspaces.com/general/house.glb",
-    type: "glb",
-  },
-  {
-    name: "CNC",
-    url: "https://prieston-prod.fra1.cdn.digitaloceanspaces.com/general/cnc.glb",
-    type: "glb",
-  },
-];
 
 const RightPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -112,26 +68,6 @@ const RightPanel: React.FC = () => {
     scene,
   } = useSceneStore();
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
-  };
-
-  const handlePropertyChange = (property: string, value: number | string) => {
-    if (selectedObject) {
-      updateObjectProperty(selectedObject.id, property, value);
-    }
-  };
-
-  const handleObservationChange = (
-    property: string,
-    value: string | Vector3Tuple
-  ) => {
-    console.log("handleObservationChange", property, value);
-    if (selectedObservation) {
-      updateObservationPoint(selectedObservation.id, { [property]: value });
-    }
-  };
-
   // Fetch user's uploaded models when component mounts
   useEffect(() => {
     fetch("/api/models")
@@ -147,7 +83,6 @@ const RightPanel: React.FC = () => {
 
   // Handle position selection mode
   useEffect(() => {
-    debugger; //eslint-disable-line
     if (!selectingPosition || !orbitControlsRef || !scene) return;
 
     const handleClick = (event) => {
@@ -165,7 +100,7 @@ const RightPanel: React.FC = () => {
       // Get all objects in the scene
       const allObjects = [];
       scene.traverse((object) => {
-        if (object.isMesh) {
+        if ((object as THREE.Mesh).isMesh) {
           allObjects.push(object);
         }
       });
@@ -220,7 +155,7 @@ const RightPanel: React.FC = () => {
 
       const allObjects = [];
       scene.traverse((object) => {
-        if (object.isMesh) {
+        if ((object as THREE.Mesh).isMesh) {
           allObjects.push(object);
         }
       });
@@ -439,7 +374,17 @@ const RightPanel: React.FC = () => {
     <RightPanelContainer previewMode={previewMode}>
       <Tabs
         value={activeTab}
-        onChange={handleTabChange}
+        onChange={(e, v) => {
+          setActiveTab(v);
+          if (v === 1) {
+            setTabIndex(0); // Reset to first tab when switching to Assets
+            // Reset upload state
+            setPreviewFile(null);
+            setPreviewUrl(null);
+            setScreenshot(null);
+            setFriendlyName("");
+          }
+        }}
         variant="fullWidth"
         sx={{ borderBottom: 1, borderColor: "divider" }}
       >
@@ -447,584 +392,52 @@ const RightPanel: React.FC = () => {
         <Tab label="Assets" />
       </Tabs>
 
-      {/* Properties Inspector Tab */}
-      <TabPanel role="tabpanel" hidden={activeTab !== 0}>
-        {viewMode === "settings" ? (
-          // Control Settings Panel
-          <PropertyGroup>
-            <Typography variant="subtitle1" gutterBottom>
-              Control Settings
-            </Typography>
+      {/* Properties Tab */}
+      {activeTab === 0 && (
+        <PropertiesPanel
+          selectedObject={selectedObject}
+          selectedObservation={selectedObservation}
+          viewMode={viewMode}
+          controlSettings={controlSettings}
+          updateObjectProperty={updateObjectProperty}
+          updateObservationPoint={updateObservationPoint}
+          deleteObservationPoint={deleteObservationPoint}
+          setCapturingPOV={setCapturingPOV}
+          updateControlSettings={updateControlSettings}
+        />
+      )}
 
-            <PropertyLabel>Car Speed</PropertyLabel>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={controlSettings.carSpeed}
-              onChange={(e) =>
-                updateControlSettings({ carSpeed: Number(e.target.value) })
-              }
-              sx={{ mb: 2 }}
-            />
-
-            <PropertyLabel>Walk Speed</PropertyLabel>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={controlSettings.walkSpeed}
-              onChange={(e) =>
-                updateControlSettings({ walkSpeed: Number(e.target.value) })
-              }
-              sx={{ mb: 2 }}
-            />
-
-            <PropertyLabel>Flight Speed</PropertyLabel>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={controlSettings.flightSpeed}
-              onChange={(e) =>
-                updateControlSettings({ flightSpeed: Number(e.target.value) })
-              }
-              sx={{ mb: 2 }}
-            />
-
-            <PropertyLabel>Turn Speed</PropertyLabel>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={controlSettings.turnSpeed}
-              onChange={(e) =>
-                updateControlSettings({ turnSpeed: Number(e.target.value) })
-              }
-              sx={{ mb: 2 }}
-            />
-
-            <PropertyLabel>Smoothness</PropertyLabel>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={controlSettings.smoothness}
-              onChange={(e) =>
-                updateControlSettings({ smoothness: Number(e.target.value) })
-              }
-              sx={{ mb: 2 }}
-            />
-          </PropertyGroup>
-        ) : selectedObservation ? (
-          // Observation Point Properties
-          <>
-            <PropertyGroup>
-              <Typography variant="subtitle1" gutterBottom>
-                Observation Point Settings
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                label="Title"
-                value={selectedObservation.title || ""}
-                onChange={(e) =>
-                  handleObservationChange("title", e.target.value)
-                }
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                fullWidth
-                size="small"
-                label="Description"
-                multiline
-                rows={4}
-                value={selectedObservation.description || ""}
-                onChange={(e) =>
-                  handleObservationChange("description", e.target.value)
-                }
-                sx={{ mb: 2 }}
-              />
-              <Button
-                fullWidth
-                variant="contained"
-                color="primary"
-                onClick={() => setCapturingPOV(true)}
-                startIcon={<Camera />}
-                sx={{ mb: 2 }}
-              >
-                Capture Camera Position
-              </Button>
-              {selectedObservation.position && (
-                <>
-                  <PropertyLabel>Position</PropertyLabel>
-                  <Box display="flex" gap={1}>
-                    <TextField
-                      size="small"
-                      label="X"
-                      type="number"
-                      value={selectedObservation.position[0]}
-                      onChange={(e) => {
-                        const newPosition: Vector3Tuple = [
-                          Number(e.target.value),
-                          selectedObservation.position![1],
-                          selectedObservation.position![2],
-                        ];
-                        handleObservationChange("position", newPosition);
-                      }}
-                    />
-                    <TextField
-                      size="small"
-                      label="Y"
-                      type="number"
-                      value={selectedObservation.position[1]}
-                      onChange={(e) => {
-                        const newPosition: Vector3Tuple = [
-                          selectedObservation.position![0],
-                          Number(e.target.value),
-                          selectedObservation.position![2],
-                        ];
-                        handleObservationChange("position", newPosition);
-                      }}
-                    />
-                    <TextField
-                      size="small"
-                      label="Z"
-                      type="number"
-                      value={selectedObservation.position[2]}
-                      onChange={(e) => {
-                        const newPosition: Vector3Tuple = [
-                          selectedObservation.position![0],
-                          selectedObservation.position![1],
-                          Number(e.target.value),
-                        ];
-                        handleObservationChange("position", newPosition);
-                      }}
-                    />
-                  </Box>
-                </>
-              )}
-              {selectedObservation.target && (
-                <>
-                  <PropertyLabel>Look At Target</PropertyLabel>
-                  <Box display="flex" gap={1}>
-                    <TextField
-                      size="small"
-                      label="X"
-                      type="number"
-                      value={selectedObservation.target[0]}
-                      onChange={(e) => {
-                        const newTarget: Vector3Tuple = [
-                          Number(e.target.value),
-                          selectedObservation.target![1],
-                          selectedObservation.target![2],
-                        ];
-                        handleObservationChange("target", newTarget);
-                      }}
-                    />
-                    <TextField
-                      size="small"
-                      label="Y"
-                      type="number"
-                      value={selectedObservation.target[1]}
-                      onChange={(e) => {
-                        const newTarget: Vector3Tuple = [
-                          selectedObservation.target![0],
-                          Number(e.target.value),
-                          selectedObservation.target![2],
-                        ];
-                        handleObservationChange("target", newTarget);
-                      }}
-                    />
-                    <TextField
-                      size="small"
-                      label="Z"
-                      type="number"
-                      value={selectedObservation.target[2]}
-                      onChange={(e) => {
-                        const newTarget: Vector3Tuple = [
-                          selectedObservation.target![0],
-                          selectedObservation.target![1],
-                          Number(e.target.value),
-                        ];
-                        handleObservationChange("target", newTarget);
-                      }}
-                    />
-                  </Box>
-                </>
-              )}
-              <Button
-                color="error"
-                onClick={() => deleteObservationPoint(selectedObservation.id)}
-                sx={{ mt: 2 }}
-              >
-                Delete Observation Point
-              </Button>
-            </PropertyGroup>
-          </>
-        ) : selectedObject ? (
-          // Object Properties
-          <>
-            <PropertyGroup>
-              <Typography variant="subtitle1" gutterBottom>
-                Transform
-              </Typography>
-              <PropertyLabel>Position</PropertyLabel>
-              <Box display="flex" gap={1}>
-                <TextField
-                  size="small"
-                  label="X"
-                  type="number"
-                  value={selectedObject.position[0]}
-                  onChange={(e) =>
-                    handlePropertyChange("position.0", Number(e.target.value))
-                  }
-                />
-                <TextField
-                  size="small"
-                  label="Y"
-                  type="number"
-                  value={selectedObject.position[1]}
-                  onChange={(e) =>
-                    handlePropertyChange("position.1", Number(e.target.value))
-                  }
-                />
-                <TextField
-                  size="small"
-                  label="Z"
-                  type="number"
-                  value={selectedObject.position[2]}
-                  onChange={(e) =>
-                    handlePropertyChange("position.2", Number(e.target.value))
-                  }
-                />
-              </Box>
-
-              <PropertyLabel>Rotation</PropertyLabel>
-              <Box display="flex" gap={1}>
-                <TextField
-                  size="small"
-                  label="X"
-                  type="number"
-                  value={selectedObject.rotation?.[0] || 0}
-                  onChange={(e) =>
-                    handlePropertyChange("rotation.0", Number(e.target.value))
-                  }
-                />
-                <TextField
-                  size="small"
-                  label="Y"
-                  type="number"
-                  value={selectedObject.rotation?.[1] || 0}
-                  onChange={(e) =>
-                    handlePropertyChange("rotation.1", Number(e.target.value))
-                  }
-                />
-                <TextField
-                  size="small"
-                  label="Z"
-                  type="number"
-                  value={selectedObject.rotation?.[2] || 0}
-                  onChange={(e) =>
-                    handlePropertyChange("rotation.2", Number(e.target.value))
-                  }
-                />
-              </Box>
-
-              <PropertyLabel>Scale</PropertyLabel>
-              <Box display="flex" gap={1}>
-                <TextField
-                  size="small"
-                  label="X"
-                  type="number"
-                  value={selectedObject.scale?.[0] || 1}
-                  onChange={(e) =>
-                    handlePropertyChange("scale.0", Number(e.target.value))
-                  }
-                />
-                <TextField
-                  size="small"
-                  label="Y"
-                  type="number"
-                  value={selectedObject.scale?.[1] || 1}
-                  onChange={(e) =>
-                    handlePropertyChange("scale.1", Number(e.target.value))
-                  }
-                />
-                <TextField
-                  size="small"
-                  label="Z"
-                  type="number"
-                  value={selectedObject.scale?.[2] || 1}
-                  onChange={(e) =>
-                    handlePropertyChange("scale.2", Number(e.target.value))
-                  }
-                />
-              </Box>
-            </PropertyGroup>
-
-            <Divider sx={{ my: 2 }} />
-
-            <PropertyGroup>
-              <Typography variant="subtitle1" gutterBottom>
-                Material
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                label="Color"
-                type="color"
-                value={selectedObject.material?.color || "#ffffff"}
-                onChange={(e) =>
-                  handlePropertyChange("material.color", e.target.value)
-                }
-              />
-            </PropertyGroup>
-          </>
-        ) : (
-          <Typography variant="body2" color="text.secondary">
-            Select an object or observation point to view its properties
-          </Typography>
-        )}
-      </TabPanel>
-
-      {/* Asset Library Tab */}
-      <TabPanel role="tabpanel" hidden={activeTab !== 1}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Typography variant="subtitle1">Asset Library</Typography>
-        </Box>
-
-        <Tabs
-          value={tabIndex}
-          onChange={(e, newValue) => setTabIndex(newValue)}
-          sx={{ mb: 2 }}
-        >
-          <Tab label="Stock Models" />
-          <Tab label="Your Models" />
-          <Tab label="Upload Model" />
-        </Tabs>
-
-        {selectingPosition && (
-          <Box
-            sx={{
-              mt: 2,
-              p: 2,
-              bgcolor: "warning.light",
-              borderRadius: 1,
-              position: "relative",
-            }}
-          >
-            <Typography variant="subtitle2" gutterBottom>
-              Click anywhere in the scene to select where to place the model
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              The point will be shown in the panel for confirmation
-            </Typography>
-            <Button
-              size="small"
-              color="inherit"
-              onClick={() => {
-                setSelectingPosition(false);
-                setSelectedPosition(null);
-              }}
-              sx={{ position: "absolute", top: 8, right: 8 }}
-            >
-              ✕
-            </Button>
-          </Box>
-        )}
-
-        {selectedPosition && pendingModel && (
-          <Box
-            sx={{
-              mt: 2,
-              p: 2,
-              bgcolor: "success.light",
-              borderRadius: 1,
-              position: "relative",
-            }}
-          >
-            <Typography variant="subtitle2" gutterBottom>
-              Selected Position for {pendingModel.name}:
-            </Typography>
-            <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-              X: {selectedPosition[0].toFixed(2)}
-              <br />
-              Y: {selectedPosition[1].toFixed(2)}
-              <br />
-              Z: {selectedPosition[2].toFixed(2)}
-            </Typography>
-            <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-              <Button
-                size="small"
-                variant="contained"
-                color="primary"
-                onClick={handleConfirmModelPlacement}
-              >
-                Confirm Placement
-              </Button>
-              <Button
-                size="small"
-                color="inherit"
-                onClick={handleCancelModelPlacement}
-              >
-                Cancel
-              </Button>
-            </Box>
-          </Box>
-        )}
-
-        {/* Stock Models Tab */}
-        {tabIndex === 0 && (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {stockModels.map((model, index) => (
-              <Button
-                key={index}
-                variant="contained"
-                fullWidth
-                onClick={() => handleModelSelect(model)}
-              >
-                Add {model.name}
-              </Button>
-            ))}
-          </Box>
-        )}
-
-        {/* My Models Tab */}
-        {tabIndex === 1 && (
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-            {userAssets.length === 0 ? (
-              <Typography>No uploaded models found.</Typography>
-            ) : (
-              userAssets.map((model, index) => (
-                <Card key={index} sx={{ width: "100%" }}>
-                  {model.thumbnail && (
-                    <CardMedia
-                      style={{ background: "white" }}
-                      component="img"
-                      height="140"
-                      image={model.thumbnail}
-                      alt={model.originalFilename}
-                    />
-                  )}
-                  <CardContent>
-                    <Typography variant="h6">
-                      {model.originalFilename}
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      onClick={() =>
-                        handleModelSelect({
-                          name: model.originalFilename,
-                          url: model.fileUrl,
-                          type: model.fileType,
-                        })
-                      }
-                    >
-                      Add Model
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="error"
-                      onClick={() => handleDeleteModel(model.id)}
-                      disabled={deletingAssetId === model.id}
-                    >
-                      {deletingAssetId === model.id ? (
-                        <CircularProgress size={16} color="inherit" />
-                      ) : (
-                        "Delete"
-                      )}
-                    </Button>
-                  </CardActions>
-                </Card>
-              ))
-            )}
-          </Box>
-        )}
-
-        {/* Upload Tab */}
-        {tabIndex === 2 && (
-          <Box>
-            {previewUrl ? (
-              <>
-                <ModelPreview
-                  fileUrl={previewUrl}
-                  type="glb"
-                  onScreenshotCaptured={setScreenshot}
-                />
-                <TextField
-                  label="Friendly Name"
-                  fullWidth
-                  value={friendlyName}
-                  onChange={(e) => setFriendlyName(e.target.value)}
-                  sx={{ my: 2 }}
-                />
-                {uploading && (
-                  <Box sx={{ my: 2 }}>
-                    <LinearProgress
-                      variant="determinate"
-                      value={uploadProgress}
-                    />
-                    <Typography
-                      variant="caption"
-                      display="block"
-                      align="center"
-                    >
-                      {uploadProgress}% uploaded
-                    </Typography>
-                  </Box>
-                )}
-                <Tooltip
-                  title={
-                    isConfirmDisabled
-                      ? "Capture thumbnail and enter a friendly name first"
-                      : ""
-                  }
-                >
-                  <span>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      disabled={isConfirmDisabled}
-                      onClick={handleConfirmUpload}
-                    >
-                      {uploading ? (
-                        <CircularProgress size={24} color="inherit" />
-                      ) : (
-                        "Confirm Upload"
-                      )}
-                    </Button>
-                  </span>
-                </Tooltip>
-              </>
-            ) : (
-              <Box
-                sx={{
-                  padding: 2,
-                  border: "2px dashed #aaa",
-                  textAlign: "center",
-                  cursor: "pointer",
-                }}
-                {...getRootProps()}
-              >
-                <input {...getInputProps()} />
-                <Typography>
-                  Drag & drop a .glb file here, or click to select a file
-                </Typography>
-              </Box>
-            )}
-          </Box>
-        )}
-      </TabPanel>
+      {/* Assets Tab */}
+      {activeTab === 1 && (
+        <AssetLibraryPanel
+          tabIndex={tabIndex}
+          setTabIndex={setTabIndex}
+          userAssets={userAssets}
+          deletingAssetId={deletingAssetId}
+          handleDeleteModel={handleDeleteModel}
+          handleModelSelect={handleModelSelect}
+          selectingPosition={selectingPosition}
+          setSelectingPosition={setSelectingPosition}
+          selectedPosition={selectedPosition}
+          pendingModel={pendingModel}
+          handleConfirmModelPlacement={handleConfirmModelPlacement}
+          handleCancelModelPlacement={handleCancelModelPlacement}
+          previewUrl={previewUrl}
+          setPreviewUrl={setPreviewUrl}
+          previewFile={previewFile}
+          setPreviewFile={setPreviewFile}
+          screenshot={screenshot}
+          setScreenshot={setScreenshot}
+          friendlyName={friendlyName}
+          setFriendlyName={setFriendlyName}
+          uploading={uploading}
+          uploadProgress={uploadProgress}
+          isConfirmDisabled={isConfirmDisabled}
+          handleConfirmUpload={handleConfirmUpload}
+          getRootProps={getRootProps}
+          getInputProps={getInputProps}
+        />
+      )}
     </RightPanelContainer>
   );
 };

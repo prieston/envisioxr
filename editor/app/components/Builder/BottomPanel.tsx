@@ -36,7 +36,7 @@ interface BottomPanelContainerProps {
 
 const BottomPanelContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== "previewMode",
-})<BottomPanelContainerProps>(({ theme, previewMode }) => ({
+})<BottomPanelContainerProps>(({ theme }) => ({
   width: "100%",
   height: "120px",
   backgroundColor: theme.palette.background.paper,
