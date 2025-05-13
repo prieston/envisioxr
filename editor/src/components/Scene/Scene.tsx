@@ -3,7 +3,6 @@
 import React, { useRef, useEffect, Suspense, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Grid, Sky, Html } from "@react-three/drei";
-import { Physics } from "@react-three/rapier";
 import useSceneStore from "../../../app/hooks/useSceneStore";
 
 import {
@@ -21,7 +20,6 @@ import SceneControls from "./controls/SceneControls";
 import Loader from "./Loader";
 import { isWebGPUAvailable, createWebGPUContext } from "../../../lib/webgpu";
 import dynamic from "next/dynamic";
-import GroundPlane from "./GroundPlane";
 
 // Create a dynamic import for the 3D Tiles components
 const TilesComponent = dynamic(
@@ -188,11 +186,7 @@ export default function Scene({
               transformControlsRef={transformControlsRef}
             />
 
-            {/* Physics and Controls */}
-            <Physics gravity={[0, -9.81, 0]} debug={true}>
-              <GroundPlane />
-              <SceneControls />
-            </Physics>
+            <SceneControls />
 
             <CameraSpringController orbitControlsRef={orbitControlsRef} />
             <CameraPOVCaptureHandler orbitControlsRef={orbitControlsRef} />

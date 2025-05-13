@@ -1,62 +1,83 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { RigidBody, RapierRigidBody } from "@react-three/rapier";
 import * as THREE from "three";
 
-// Adjusted constants for slower speed and easier turning
-const ACCELERATION = 15; // reduced acceleration for slower top speed
-const BRAKE_FORCE = 20; // stronger braking
-const STEER_TORQUE = 15; // increased torque for sharper, easier turns
-const DRAG_FACTOR = 0.9; // more linear drag to slow down quicker
-const ANGULAR_DRAG = 0.5; // moderate angular drag to let steering reset faster
+const BASE_MAX_FORWARD = 20;
+const BASE_MAX_REVERSE = 10;
+const BASE_ACCELERATION = 30;
+const BASE_FRICTION = 30;
+const EPS_SPEED = 0.1;
+const STEER_ANGLE = Math.PI / 2;
+const STEER_SPEED = 10;
 
-/**
- * Third-person car driving controls
- * W/S = throttle/brake, A/D = steering
- */
-export default function CarControls() {
-  const bodyRef = useRef<RapierRigidBody>(null!);
-  const keys = useRef({
-    forward: false,
-    backward: false,
-    left: false,
-    right: false,
-  });
-  const { camera } = useThree();
+const PLAYER_HEIGHT = 0.5;
+const COCKPIT_OFFSET = new THREE.Vector3(0, 1.2, 0.5);
+const RAY_HEIGHT = 2;
+const GROUND_EPS = 0.1;
 
-  // Keyboard input listeners
+export default function FirstPersonCarControls() {
+  const { camera, scene } = useThree();
+  const raycaster = useRef(new THREE.Raycaster()).current;
+
+  // Car state
+  const carPosition = useRef(new THREE.Vector3());
+  const carHeading = useRef(0);
+  const speed = useRef(0);
+  const throttle = useRef(0); // +1 forward, -1 reverse
+  const steerTarget = useRef(0); // +1 left, -1 right
+  const steerCurrent = useRef(0);
+  const velocityY = useRef(0);
+  const isBoost = useRef(false);
+
+  // Spawn at camera start
+  useEffect(() => {
+    const start = camera.position.clone();
+    raycaster.set(
+      start.clone().add(new THREE.Vector3(0, RAY_HEIGHT, 0)),
+      new THREE.Vector3(0, -1, 0)
+    );
+    const hit = raycaster.intersectObjects(scene.children, true)[0];
+    const groundY = hit ? hit.point.y : start.y;
+    carPosition.current.set(start.x, groundY + PLAYER_HEIGHT, start.z);
+  }, []);
+
+  // Input
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       switch (e.code) {
         case "KeyW":
-          keys.current.forward = true;
+          throttle.current = 1; // forward
           break;
         case "KeyS":
-          keys.current.backward = true;
+          throttle.current = -1; // reverse
           break;
         case "KeyA":
-          keys.current.left = true;
+          steerTarget.current = 1; // left
           break;
         case "KeyD":
-          keys.current.right = true;
+          steerTarget.current = -1; // right
+          break;
+        case "ShiftLeft":
+        case "ShiftRight":
+          isBoost.current = true;
           break;
       }
     };
     const onKeyUp = (e: KeyboardEvent) => {
       switch (e.code) {
         case "KeyW":
-          keys.current.forward = false;
-          break;
         case "KeyS":
-          keys.current.backward = false;
+          throttle.current = 0;
           break;
         case "KeyA":
-          keys.current.left = false;
-          break;
         case "KeyD":
-          keys.current.right = false;
+          steerTarget.current = 0;
+          break;
+        case "ShiftLeft":
+        case "ShiftRight":
+          isBoost.current = false;
           break;
       }
     };
@@ -68,72 +89,89 @@ export default function CarControls() {
     };
   }, []);
 
-  // Driving logic each frame
-  useFrame(() => {
-    const body = bodyRef.current;
-    if (!body) return;
+  // Helper: gravity + snap the carPosition
+  function applyGravityAndSnapOnPosition(
+    position: THREE.Vector3,
+    vy: number,
+    dt: number
+  ): { vy: number; onGround: boolean } {
+    vy -= 9.81 * dt;
+    position.y += vy * dt;
 
-    // Orientation quaternion
-    const { x: qx, y: qy, z: qz, w: qw } = body.rotation();
-    const quat = new THREE.Quaternion(qx, qy, qz, qw);
+    const origin = position.clone().add(new THREE.Vector3(0, RAY_HEIGHT, 0));
+    raycaster.set(origin, new THREE.Vector3(0, -1, 0));
+    const hit = raycaster.intersectObjects(scene.children, true)[0];
+    const groundY = hit ? hit.point.y : -Infinity;
 
-    // Calculate forward vector
-    const forwardVec = new THREE.Vector3(0, 0, -1).applyQuaternion(quat);
-
-    // Apply acceleration/brake
-    if (keys.current.forward) {
-      const impulse = forwardVec.clone().multiplyScalar(ACCELERATION);
-      body.applyImpulse({ x: impulse.x, y: 0, z: impulse.z }, true);
+    const targetY = groundY + PLAYER_HEIGHT;
+    if (position.y <= targetY + GROUND_EPS) {
+      position.y = targetY;
+      return { vy: 0, onGround: true };
     }
-    if (keys.current.backward) {
-      const impulse = forwardVec.clone().multiplyScalar(-BRAKE_FORCE);
-      body.applyImpulse({ x: impulse.x, y: 0, z: impulse.z }, true);
-    }
+    return { vy, onGround: false };
+  }
 
-    // Steering torque
-    if (keys.current.left) {
-      body.applyTorqueImpulse({ x: 0, y: STEER_TORQUE, z: 0 }, true);
-    }
-    if (keys.current.right) {
-      body.applyTorqueImpulse({ x: 0, y: -STEER_TORQUE, z: 0 }, true);
-    }
-
-    // Linear and angular drag
-    const vel = body.linvel();
-    body.setLinvel(
-      { x: vel.x * DRAG_FACTOR, y: vel.y, z: vel.z * DRAG_FACTOR },
-      true
+  // Main loop
+  useFrame((_, dt) => {
+    // 1) Gravity & snap
+    const { vy, onGround } = applyGravityAndSnapOnPosition(
+      carPosition.current,
+      velocityY.current,
+      dt
     );
-    const ang = body.angvel();
-    body.setAngvel(
-      {
-        x: ang.x * ANGULAR_DRAG,
-        y: ang.y * ANGULAR_DRAG,
-        z: ang.z * ANGULAR_DRAG,
-      },
-      true
-    );
+    velocityY.current = vy;
 
-    // Camera follow behind car
-    const pos = body.translation();
-    const camOffset = new THREE.Vector3(0, 5, 12).applyQuaternion(quat);
-    const desiredPos = new THREE.Vector3(pos.x, pos.y, pos.z).add(camOffset);
-    camera.position.lerp(desiredPos, 0.1);
-    camera.lookAt(pos.x, pos.y + 1, pos.z);
+    // 2) Boost factor
+    const boostMul = isBoost.current ? 1.5 : 1;
+    const maxF = BASE_MAX_FORWARD * boostMul;
+    const maxR = BASE_MAX_REVERSE * boostMul;
+    const accel = BASE_ACCELERATION * boostMul;
+    const friction = BASE_FRICTION;
+
+    // 3) Update speed
+    if (throttle.current !== 0 && onGround) {
+      speed.current = THREE.MathUtils.clamp(
+        speed.current + accel * throttle.current * dt,
+        -maxR,
+        maxF
+      );
+    } else {
+      // apply friction always
+      const sign = Math.sign(speed.current);
+      speed.current -= sign * friction * dt;
+      if (Math.abs(speed.current) < EPS_SPEED) speed.current = 0;
+    }
+
+    // 4) Steering smoothing + inversion in reverse
+    steerCurrent.current +=
+      (steerTarget.current - steerCurrent.current) *
+      Math.min(dt * STEER_SPEED, 1);
+    const steerSign = speed.current < 0 ? -1 : 1;
+    const turn =
+      steerCurrent.current *
+      steerSign *
+      STEER_ANGLE *
+      (Math.abs(speed.current) / maxF);
+    carHeading.current += turn * dt;
+
+    // 5) Move carPosition (inverted forward vector)
+    if (speed.current !== 0) {
+      const forward = new THREE.Vector3(
+        -Math.sin(carHeading.current),
+        0,
+        -Math.cos(carHeading.current)
+      );
+      carPosition.current.addScaledVector(forward, speed.current * dt);
+    }
+
+    // 6) Camera in cockpit
+    const cockpitOffset = COCKPIT_OFFSET.clone().applyAxisAngle(
+      new THREE.Vector3(0, 1, 0),
+      carHeading.current
+    );
+    camera.position.copy(carPosition.current.clone().add(cockpitOffset));
+    camera.rotation.set(0, carHeading.current, 0);
   });
 
-  return (
-    <RigidBody
-      ref={bodyRef}
-      colliders="cuboid"
-      mass={1200}
-      linearDamping={0.2}
-      angularDamping={0.5}
-    >
-      <mesh castShadow receiveShadow>
-        <boxGeometry args={[2, 1, 4]} />
-        <meshStandardMaterial color="red" />
-      </mesh>
-    </RigidBody>
-  );
+  return null;
 }
