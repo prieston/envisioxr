@@ -48,11 +48,6 @@ const SceneControls = () => {
     }
   }, [viewMode, camera]);
 
-  // If an object is selected, disable all controls
-  if (selectedObject) {
-    return null;
-  }
-
   // Render appropriate controls based on view mode
   switch (viewMode) {
     case "firstPerson":
@@ -77,6 +72,7 @@ const SceneControls = () => {
           dampingFactor={0.05}
           minDistance={3}
           maxDistance={1000}
+          enabled={!selectedObject}
         />
       );
   }
