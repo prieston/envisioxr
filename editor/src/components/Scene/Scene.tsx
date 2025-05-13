@@ -67,7 +67,6 @@ export default function Scene({
   const showTiles = useSceneStore((state) => state.showTiles);
 
   // Refs
-  const orbitControlsRef = useRef<any>(null);
   const transformControlsRef = useRef<any>(null);
 
   // Store actions
@@ -78,9 +77,6 @@ export default function Scene({
   const setSelectedAssetId = useSceneStore((state) => state.setSelectedAssetId);
   const setSelectedLocation = useSceneStore(
     (state) => state.setSelectedLocation
-  );
-  const setOrbitControlsRef = useSceneStore(
-    (state) => state.setOrbitControlsRef
   );
 
   // Initialize WebGPU
@@ -116,11 +112,6 @@ export default function Scene({
     }
   }, [objects, observationPoints, onSceneDataChange]);
 
-  // Store orbit controls ref
-  useEffect(() => {
-    setOrbitControlsRef(orbitControlsRef.current);
-  }, [setOrbitControlsRef]);
-
   return (
     <>
       <Canvas
@@ -133,7 +124,7 @@ export default function Scene({
         }}
       >
         <Suspense fallback={null}>
-          <XRWrapper enabled={enableXR} orbitControlsRef={orbitControlsRef}>
+          <XRWrapper enabled={enableXR}>
             {showTiles && (
               <TilesComponent
                 apiKey={process.env.NEXT_PUBLIC_CESIUM_ION_KEY || ""}
@@ -188,8 +179,8 @@ export default function Scene({
 
             <SceneControls />
 
-            <CameraSpringController orbitControlsRef={orbitControlsRef} />
-            <CameraPOVCaptureHandler orbitControlsRef={orbitControlsRef} />
+            <CameraSpringController />
+            <CameraPOVCaptureHandler />
             <ObservationPointHandler />
           </XRWrapper>
         </Suspense>

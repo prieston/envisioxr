@@ -4,17 +4,10 @@ import React, { useEffect } from "react";
 import { useThree } from "@react-three/fiber";
 import useSceneStore from "../../../app/hooks/useSceneStore";
 import * as THREE from "three";
-import { OrbitControls as OrbitControlsImpl } from "three/examples/jsm/controls/OrbitControls";
 
 type Vector3Tuple = [number, number, number];
 
-interface CameraPOVCaptureHandlerProps {
-  orbitControlsRef: React.RefObject<OrbitControlsImpl>;
-}
-
-const CameraPOVCaptureHandler: React.FC<CameraPOVCaptureHandlerProps> = ({
-  orbitControlsRef,
-}) => {
+const CameraPOVCaptureHandler: React.FC = () => {
   const { camera } = useThree();
   const capturingPOV = useSceneStore((state) => state.capturingPOV);
   const selectedObservation = useSceneStore(
@@ -25,6 +18,7 @@ const CameraPOVCaptureHandler: React.FC<CameraPOVCaptureHandlerProps> = ({
   );
   const setCapturingPOV = useSceneStore((state) => state.setCapturingPOV);
   const viewMode = useSceneStore((state) => state.viewMode);
+  const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
 
   useEffect(() => {
     if (capturingPOV && selectedObservation) {

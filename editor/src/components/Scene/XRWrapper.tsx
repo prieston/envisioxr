@@ -14,23 +14,18 @@ const xrStore = createXRStore();
 interface XRWrapperProps {
   enabled: boolean;
   children: React.ReactNode;
-  orbitControlsRef: React.RefObject<any>;
 }
 
-const XRWrapper: React.FC<XRWrapperProps> = ({
-  enabled,
-  children,
-  orbitControlsRef,
-}) => {
+const XRWrapper: React.FC<XRWrapperProps> = ({ enabled, children }) => {
   return (
     <>
       {enabled ? (
         <XR store={xrStore}>{children}</XR>
       ) : (
         <>
-          <CameraSpringController orbitControlsRef={orbitControlsRef} />
+          <CameraSpringController />
           <ObservationPointHandler />
-          <CameraPOVCaptureHandler orbitControlsRef={orbitControlsRef} />
+          <CameraPOVCaptureHandler />
           {children}
         </>
       )}
