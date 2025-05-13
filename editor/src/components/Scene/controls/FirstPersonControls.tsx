@@ -1,175 +1,139 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import {
-  RigidBody,
-  RapierRigidBody,
-  CapsuleCollider,
-} from "@react-three/rapier";
 import * as THREE from "three";
+import {
+  applyGravityAndSnap,
+  enablePointerLockMouseLook,
+} from "./controlsUtils";
 
 const WALK_SPEED = 4;
 const RUN_SPEED = 8;
-const JUMP_VELOCITY = 6;
+const JUMP_SPEED = 6;
 const MOUSE_SENSITIVITY = 0.002;
+const PLAYER_HEIGHT = 1.8;
+const RAY_HEIGHT = 50;
+const GROUND_EPS = 0.1;
 
-type Key = "w" | "a" | "s" | "d" | "shift";
+type MoveKeys = {
+  w: boolean;
+  a: boolean;
+  s: boolean;
+  d: boolean;
+  shift: boolean;
+};
+const KEY_MAP: Record<string, keyof MoveKeys> = {
+  KeyW: "w",
+  KeyA: "a",
+  KeyS: "s",
+  KeyD: "d",
+  ShiftLeft: "shift",
+  ShiftRight: "shift",
+};
 
 export default function FirstPersonControls() {
-  const { camera, gl } = useThree();
-  const bodyRef = useRef<RapierRigidBody>(null!);
-
-  const [isLocked, setIsLocked] = useState(false);
-  const [canJump, setCanJump] = useState(true);
-
-  const yaw = useRef(0);
-  const pitch = useRef(0);
-  const keys = useRef<Record<Key, boolean>>({
+  const { camera, scene, gl } = useThree();
+  const raycaster = useRef(new THREE.Raycaster()).current;
+  const keys = useRef<MoveKeys>({
     w: false,
     a: false,
     s: false,
     d: false,
     shift: false,
   });
+  const velocityY = useRef(0);
+  const canJump = useRef(true);
 
+  // Obstacle to ignore by raycast
+  const obstacleRef = useRef<THREE.Mesh>(null!);
   useEffect(() => {
-    camera.rotation.order = "YXZ";
+    // put obstacle and player camera on layer 1
+    obstacleRef.current.layers.set(1);
+    camera.layers.enable(1);
   }, [camera]);
 
+  // pointer‑lock & mouse look
   useEffect(() => {
-    const canvas = gl.domElement;
-    const requestLock = () => canvas.requestPointerLock();
-    const onLock = () => setIsLocked(document.pointerLockElement === canvas);
-    canvas.addEventListener("click", requestLock);
-    document.addEventListener("pointerlockchange", onLock);
-    return () => {
-      canvas.removeEventListener("click", requestLock);
-      document.removeEventListener("pointerlockchange", onLock);
-    };
-  }, [gl]);
+    const { cleanup } = enablePointerLockMouseLook(camera, gl.domElement, {
+      sensitivity: MOUSE_SENSITIVITY,
+      initialOrder: "YXZ" as THREE.EulerOrder,
+    });
+    return cleanup;
+  }, [camera, gl.domElement]);
 
-  const applyHorizontal = () => {
-    const body = bodyRef.current;
-    if (!body || !isLocked) return;
-    const speed = keys.current.shift ? RUN_SPEED : WALK_SPEED;
-    const dir = new THREE.Vector3(
-      keys.current.d ? 1 : keys.current.a ? -1 : 0,
-      0,
-      keys.current.s ? 1 : keys.current.w ? -1 : 0
+  // keyboard
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.code === "Space" && canJump.current) {
+        velocityY.current = JUMP_SPEED;
+        canJump.current = false;
+      }
+      const m = KEY_MAP[e.code];
+      if (m) keys.current[m] = true;
+    };
+    const up = (e: KeyboardEvent) => {
+      const m = KEY_MAP[e.code];
+      if (m) keys.current[m] = false;
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
+  }, []);
+
+  useEffect(() => {
+    // restrict raycaster to layer 0 only
+    raycaster.layers.set(0);
+  }, [raycaster]);
+
+  useFrame((_, dt) => {
+    // gravity & snap
+    const { velocityY: newVY } = applyGravityAndSnap(
+      camera,
+      velocityY.current,
+      dt,
+      scene,
+      raycaster,
+      {
+        playerHeight: PLAYER_HEIGHT,
+        rayHeight: RAY_HEIGHT,
+        groundEps: GROUND_EPS,
+      }
     );
-    if (dir.lengthSq() > 0) dir.normalize().multiplyScalar(speed);
-    dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw.current);
-    const vel = body.linvel();
-    body.setLinvel({ x: dir.x, y: vel.y, z: dir.z }, true);
-  };
+    velocityY.current = newVY;
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      let moved = false;
-      switch (e.code) {
-        case "KeyW":
-          keys.current.w = true;
-          moved = true;
-          break;
-        case "KeyA":
-          keys.current.a = true;
-          moved = true;
-          break;
-        case "KeyS":
-          keys.current.s = true;
-          moved = true;
-          break;
-        case "KeyD":
-          keys.current.d = true;
-          moved = true;
-          break;
-        case "ShiftLeft":
-        case "ShiftRight":
-          keys.current.shift = true;
-          moved = true;
-          break;
-        case "Space":
-          if (canJump && bodyRef.current) {
-            const { x, z } = bodyRef.current.linvel();
-            bodyRef.current.setLinvel({ x, y: JUMP_VELOCITY, z }, true);
-            setCanJump(false);
-          }
-          return;
-      }
-      if (moved) applyHorizontal();
-    };
-    const onKeyUp = (e: KeyboardEvent) => {
-      let moved = false;
-      switch (e.code) {
-        case "KeyW":
-          keys.current.w = false;
-          moved = true;
-          break;
-        case "KeyA":
-          keys.current.a = false;
-          moved = true;
-          break;
-        case "KeyS":
-          keys.current.s = false;
-          moved = true;
-          break;
-        case "KeyD":
-          keys.current.d = false;
-          moved = true;
-          break;
-        case "ShiftLeft":
-        case "ShiftRight":
-          keys.current.shift = false;
-          moved = true;
-          break;
-      }
-      if (moved) applyHorizontal();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
-    };
-  }, [canJump, isLocked]);
-
-  useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isLocked) return;
-      yaw.current -= e.movementX * MOUSE_SENSITIVITY;
-      pitch.current -= e.movementY * MOUSE_SENSITIVITY;
-      const limit = Math.PI / 2 - 0.01;
-      pitch.current = Math.max(-limit, Math.min(limit, pitch.current));
-      camera.rotation.set(pitch.current, yaw.current, 0);
-    };
-    document.addEventListener("mousemove", onMouseMove);
-    return () => document.removeEventListener("mousemove", onMouseMove);
-  }, [isLocked, camera]);
-
-  useFrame(() => {
-    const body = bodyRef.current;
-    if (!body) return;
-    const { x, y, z } = body.translation();
-    camera.position.set(x, y + 0.5, z);
+    // movement
+    const forward = new THREE.Vector3();
+    camera.getWorldDirection(forward);
+    forward.y = 0;
+    forward.normalize();
+    const right = new THREE.Vector3()
+      .crossVectors(forward, new THREE.Vector3(0, 1, 0))
+      .normalize();
+    const move = new THREE.Vector3();
+    if (keys.current.w) move.add(forward);
+    if (keys.current.s) move.sub(forward);
+    if (keys.current.d) move.add(right);
+    if (keys.current.a) move.sub(right);
+    if (move.lengthSq()) {
+      move
+        .normalize()
+        .multiplyScalar((keys.current.shift ? RUN_SPEED : WALK_SPEED) * dt);
+      camera.position.add(move);
+    }
   });
 
   return (
-    <RigidBody
-      ref={bodyRef}
-      colliders={false}
-      mass={1}
-      position={[0, 2, 0]}
-      enabledRotations={[false, false, false]}
-      onCollisionEnter={() => setCanJump(true)}
-    >
-      <CapsuleCollider args={[0.5, 1]} />
-
-      {/* Invisible mesh for debug visualization */}
-      <mesh visible={false}>
-        <capsuleGeometry args={[0.5, 1, 8, 16]} />
-        <meshStandardMaterial transparent opacity={0} />
+    <>
+      {/* obstacle that raycast will ignore */}
+      <mesh ref={obstacleRef} position={[1, 0.5, -2]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="red" />
       </mesh>
-    </RigidBody>
+      {/* no visual player mesh, camera acts as player */}
+    </>
   );
 }

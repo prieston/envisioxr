@@ -1,158 +1,169 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { Vector3 } from "three";
+import {
+  applyGravityAndSnap,
+  enablePointerLockMouseLook,
+} from "./controlsUtils";
 
-const THRUST = 0.2;
+const WALK_SPEED = 4;
+const RUN_SPEED = 8;
+const JUMP_SPEED = 6;
 const TURN_SPEED = 0.002;
-const CAMERA_DISTANCE = 20; // increased for further back view
-const CAMERA_HEIGHT = 5; // raised camera for better overview
+const MOUSE_SENSITIVITY = 0.002;
+const PLAYER_HEIGHT = 1.8;
+const RAY_HEIGHT = 50;
+const GROUND_EPS = 0.1;
+const CAMERA_OFFSET = new THREE.Vector3(0, 2, -5);
 
-/**
- * Third-person flight controls without physics.
- * W/S = forward/backward thrust,
- * A/D = roll yaw,
- * Space/Shift = ascend/descend.
- * Click to lock pointer for mouse-look to pitch and yaw.
- */
-export default function ThirdPersonFlightControls() {
-  const { camera, gl } = useThree();
-  const vehicleRef = useRef<THREE.Object3D>(new THREE.Object3D());
-  const keys = useRef({
-    forward: false,
-    backward: false,
-    left: false,
-    right: false,
-    up: false,
-    down: false,
+type MoveKeys = {
+  w: boolean;
+  a: boolean;
+  s: boolean;
+  d: boolean;
+  shift: boolean;
+};
+const KEY_MAP: Record<string, keyof MoveKeys> = {
+  KeyW: "w",
+  KeyA: "a",
+  KeyS: "s",
+  KeyD: "d",
+  ShiftLeft: "shift",
+  ShiftRight: "shift",
+};
+
+export default function ThirdPersonControls() {
+  // simple obstacle to avoid
+  const avoidRef = useRef<THREE.Mesh>(null!);
+  useEffect(() => {
+    if (avoidRef.current) avoidRef.current.layers.set(1);
+  }, []);
+
+  const { camera, scene, gl } = useThree();
+  const playerRef = useRef<THREE.Mesh>(null!);
+  // assign player to layer 1 to avoid self-intersection
+  useEffect(() => {
+    playerRef.current.layers.set(1);
+  }, []);
+  const raycaster = useRef(new THREE.Raycaster()).current;
+  // restrict raycaster to layer 0 (world geometry) only
+  useEffect(() => {
+    raycaster.layers.set(0);
+  }, []);
+  const keys = useRef<MoveKeys>({
+    w: false,
+    a: false,
+    s: false,
+    d: false,
+    shift: false,
   });
+  const velocityY = useRef(0);
+  const canJump = useRef(true);
 
-  // Pointer-lock for mouse control
+  // Pointer-lock & mouse-look: now rotates the player mesh
   useEffect(() => {
-    const canvas = gl.domElement;
-    const lock = () => canvas.requestPointerLock();
-    canvas.addEventListener("click", lock);
-    return () => canvas.removeEventListener("click", lock);
-  }, [gl]);
-
-  // Input handlers
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      switch (e.code) {
-        case "KeyW":
-          keys.current.forward = true;
-          break;
-        case "KeyS":
-          keys.current.backward = true;
-          break;
-        case "KeyA":
-          keys.current.left = true;
-          break;
-        case "KeyD":
-          keys.current.right = true;
-          break;
-        case "Space":
-          keys.current.up = true;
-          break;
-        case "ShiftLeft":
-          keys.current.down = true;
-          break;
-      }
-    };
-    const onKeyUp = (e: KeyboardEvent) => {
-      switch (e.code) {
-        case "KeyW":
-          keys.current.forward = false;
-          break;
-        case "KeyS":
-          keys.current.backward = false;
-          break;
-        case "KeyA":
-          keys.current.left = false;
-          break;
-        case "KeyD":
-          keys.current.right = false;
-          break;
-        case "Space":
-          keys.current.up = false;
-          break;
-        case "ShiftLeft":
-          keys.current.down = false;
-          break;
-      }
-    };
+    const { cleanup } = enablePointerLockMouseLook(camera, gl.domElement, {
+      sensitivity: MOUSE_SENSITIVITY,
+      initialOrder: "YXZ" as THREE.EulerOrder,
+    });
     const onMouseMove = (e: MouseEvent) => {
       if (document.pointerLockElement === gl.domElement) {
-        vehicleRef.current.rotation.y -= e.movementX * TURN_SPEED;
-        vehicleRef.current.rotation.x -= e.movementY * TURN_SPEED;
-        const limit = Math.PI / 2 - 0.1;
-        vehicleRef.current.rotation.x = Math.max(
-          -limit,
-          Math.min(limit, vehicleRef.current.rotation.x)
-        );
+        // yaw (horizontal)
+        playerRef.current.rotation.y -= e.movementX * TURN_SPEED;
       }
     };
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
-    document.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mousemove", onMouseMove);
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
-      document.removeEventListener("mousemove", onMouseMove);
+      cleanup();
+      window.removeEventListener("mousemove", onMouseMove);
     };
-  }, [gl.domElement]);
+  }, [camera, gl.domElement]);
 
-  // Frame update: move vehicle and update camera
-  useFrame(() => {
-    const v = vehicleRef.current;
-    const dir = new Vector3();
-    // Thrust forward/back
-    if (keys.current.forward) dir.z -= THRUST;
-    if (keys.current.backward) dir.z += THRUST;
-    // Ascend/descend
-    if (keys.current.up) dir.y += THRUST;
-    if (keys.current.down) dir.y -= THRUST;
-    // Apply local transform
-    dir.applyQuaternion(v.quaternion);
-    v.position.add(dir);
+  // Keyboard for movement and jump
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.code === "Space" && canJump.current) {
+        velocityY.current = JUMP_SPEED;
+        canJump.current = false;
+      }
+      const m = KEY_MAP[e.code];
+      if (m) keys.current[m] = true;
+    };
+    const up = (e: KeyboardEvent) => {
+      const m = KEY_MAP[e.code];
+      if (m) keys.current[m] = false;
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
+  }, []);
 
-    // Camera follow behind and above
-    const offset = new Vector3(
-      0,
-      CAMERA_HEIGHT,
-      CAMERA_DISTANCE
-    ).applyQuaternion(v.quaternion);
-    camera.position.copy(v.position).add(offset);
-    camera.lookAt(v.position);
+  useFrame((_, dt) => {
+    // Gravity & snap (manual raycast excluding player)
+    // update vertical velocity
+    velocityY.current -= 9.8 * dt;
+    // cast from above player down
+    const origin = playerRef.current.position.clone();
+    origin.y += RAY_HEIGHT;
+    raycaster.set(origin, new THREE.Vector3(0, -1, 0));
+    const hits = raycaster
+      .intersectObjects(scene.children, true)
+      .filter((hit) => hit.object !== playerRef.current);
+    if (hits.length && hits[0].distance < PLAYER_HEIGHT + GROUND_EPS) {
+      // on or close to ground
+      velocityY.current = Math.max(0, velocityY.current);
+      // snap to ground
+      playerRef.current.position.y = hits[0].point.y + PLAYER_HEIGHT / 2;
+      canJump.current = true;
+    } else {
+      // in air
+      playerRef.current.position.y += velocityY.current * dt;
+    }
+
+    // Local forward vector (based on player rotation) (based on player rotation)
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(
+      playerRef.current.quaternion
+    );
+    forward.y = 0;
+    forward.normalize();
+
+    // Right vector
+    const right = new THREE.Vector3()
+      .crossVectors(forward, new THREE.Vector3(0, 1, 0))
+      .normalize();
+
+    // Movement dir
+    const move = new THREE.Vector3();
+    if (keys.current.w) move.add(forward);
+    if (keys.current.s) move.sub(forward);
+    if (keys.current.d) move.add(right);
+    if (keys.current.a) move.sub(right);
+
+    if (move.lengthSq()) {
+      move
+        .normalize()
+        .multiplyScalar((keys.current.shift ? RUN_SPEED : WALK_SPEED) * dt);
+      playerRef.current.position.add(move);
+    }
+
+    // Camera follow logic
+    const offset = CAMERA_OFFSET.clone().applyQuaternion(
+      playerRef.current.quaternion
+    );
+    const desiredPosition = playerRef.current.position.clone().add(offset);
+    camera.position.lerp(desiredPosition, 0.1);
+    camera.lookAt(playerRef.current.position);
   });
 
   return (
-    <primitive object={vehicleRef.current}>
-      {/* Scaled-down airplane model */}
-      <group>
-        <mesh>
-          <capsuleGeometry args={[1, 0.25]} />
-          <meshStandardMaterial color="#e74c3c" />
-        </mesh>
-        <mesh position={[0, 0, 0]}>
-          <boxGeometry args={[2, 0.05, 0.5]} />
-          <meshStandardMaterial color="#e74c3c" />
-        </mesh>
-        <mesh position={[0, 0.25, -0.75]}>
-          <boxGeometry args={[0.5, 0.25, 0.05]} />
-          <meshStandardMaterial color="#e74c3c" />
-        </mesh>
-        <mesh position={[0, 0.25, -0.75]}>
-          <boxGeometry args={[0.05, 0.25, 0.25]} />
-          <meshStandardMaterial color="#e74c3c" />
-        </mesh>
-        <mesh position={[0, 0.1, 0.75]}>
-          <sphereGeometry args={[0.075]} />
-          <meshStandardMaterial color="#3498db" />
-        </mesh>
-      </group>
-    </primitive>
+    <mesh ref={playerRef} position={[0, PLAYER_HEIGHT / 2, 0]}>
+      <boxGeometry args={[1, PLAYER_HEIGHT, 1]} />
+      <meshStandardMaterial color="orange" />
+    </mesh>
   );
 }
