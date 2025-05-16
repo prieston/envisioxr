@@ -4,8 +4,11 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { Sphere } from "@react-three/drei";
 import * as THREE from "three";
+import { MathUtils } from "three";
+import useSceneStore from "../hooks/useSceneStore";
+import { setReferenceLocation } from "../utils/coordinateUtils";
 
-// Import TilesRenderer
+// Import TilesRenderer and plugins
 import { TilesRenderer } from "3d-tiles-renderer";
 import {
   CesiumIonAuthPlugin,
@@ -14,7 +17,7 @@ import {
   GLTFExtensionsPlugin,
 } from "3d-tiles-renderer/plugins";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-import { MathUtils } from "three";
+
 // Define props type
 interface TilesComponentProps {
   apiKey: string;
@@ -23,77 +26,72 @@ interface TilesComponentProps {
   longitude?: number;
 }
 
-// Create a wrapper for TilesRenderer that extends Object3D
+// Wrapper to add TilesRenderer.group into scene
 class TilesRendererWrapper extends THREE.Object3D {
   tilesRenderer: TilesRenderer;
 
   constructor(tilesRenderer: TilesRenderer) {
     super();
     this.tilesRenderer = tilesRenderer;
-
-    // Add the tiles renderer's group to this object
-    if (tilesRenderer.group) {
-      this.add(tilesRenderer.group);
-    }
+    if (tilesRenderer.group) this.add(tilesRenderer.group);
   }
 
   update() {
-    if (this.tilesRenderer) {
-      this.tilesRenderer.update();
-    }
+    this.tilesRenderer.update();
   }
 
   dispose() {
-    if (this.tilesRenderer) {
-      this.tilesRenderer.dispose();
-    }
+    this.tilesRenderer.dispose();
   }
 }
 
+/**
+ * Main component that initializes and renders 3D Tiles
+ */
 const TilesComponent: React.FC<TilesComponentProps> = ({
   apiKey,
-  assetId = "2275207", // Default to Tokyo Tower if no assetId provided
-  latitude = 35.6586, // Default to Tokyo Tower coordinates
-  longitude = 139.7454,
+  assetId = "2275207",
+  latitude = 40.7128,
+  longitude = -74.006,
 }) => {
   const { camera, gl, scene } = useThree();
   const tilesRendererRef = useRef<TilesRenderer | null>(null);
   const wrapperRef = useRef<TilesRendererWrapper | null>(null);
   const [authError, setAuthError] = useState(false);
+  const setTilesRenderer = useSceneStore((state) => state.setTilesRenderer);
 
-  // Update the tiles renderer on each frame
-  useFrame(() => {
-    if (wrapperRef.current) {
-      wrapperRef.current.update();
+  // Configure camera settings
+  useEffect(() => {
+    // Set camera far plane to a much larger value
+    camera.far = 10000000; // 10000km
+    camera.updateProjectionMatrix();
+
+    // Configure orbit controls if they exist
+    const controls = useSceneStore.getState().orbitControlsRef;
+    if (controls) {
+      controls.minDistance = 10; // Minimum zoom distance
+      controls.maxDistance = 1000000; // Maximum zoom distance (1000km)
+      controls.maxPolarAngle = Math.PI; // Allow full vertical rotation
+      controls.update();
     }
-  });
+  }, [camera]);
+
+  // Animate / update tiles each frame
+  useFrame(() => wrapperRef.current?.update());
 
   const initializeTilesRenderer = useCallback(() => {
     try {
-      // Validate required parameters
-      if (!apiKey) {
-        throw new Error("Cesium Ion API key is required");
-      }
-      if (!assetId) {
-        throw new Error("Asset ID is required");
-      }
+      if (!apiKey) throw new Error("Cesium Ion API key is required");
+      if (!assetId) throw new Error("Asset ID is required");
 
-      // Create the tiles renderer without initial URL
       const tilesRenderer = new TilesRenderer();
-
-      // Register plugins
-      const authPlugin = new CesiumIonAuthPlugin({
-        apiToken: apiKey,
-        assetId: assetId,
-        autoRefreshToken: true,
-      });
-
-      // Verify the auth plugin is properly initialized
-      if (!authPlugin) {
-        throw new Error("Failed to initialize Cesium Ion Auth Plugin");
-      }
-
-      tilesRenderer.registerPlugin(authPlugin);
+      tilesRenderer.registerPlugin(
+        new CesiumIonAuthPlugin({
+          apiToken: apiKey,
+          assetId,
+          autoRefreshToken: true,
+        })
+      );
       tilesRenderer.registerPlugin(new TileCompressionPlugin());
       tilesRenderer.registerPlugin(new TilesFadePlugin());
       tilesRenderer.registerPlugin(
@@ -104,83 +102,85 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
         })
       );
 
-      // Set the location to the provided coordinates
+      // Center the local frame at the reference lat/lon (Y-up)
+      console.log("[TilesComponent] Setting reference location:", {
+        latitude,
+        longitude,
+        latRad: latitude * MathUtils.DEG2RAD,
+        lonRad: longitude * MathUtils.DEG2RAD,
+      });
+
+      // Set the reference location for coordinate conversions
+      setReferenceLocation(latitude, longitude);
+
       tilesRenderer.setLatLonToYUp(
         latitude * MathUtils.DEG2RAD,
         longitude * MathUtils.DEG2RAD
       );
 
-      tilesRendererRef.current = tilesRenderer;
-
-      // Configure the renderer
       tilesRenderer.setCamera(camera);
       tilesRenderer.setResolutionFromRenderer(camera, gl);
-      tilesRenderer.errorTarget = 4;
+      tilesRenderer.errorTarget = 32; // Increase error target for better performance
       tilesRenderer.displayActiveTiles = true;
-      tilesRenderer.maximumScreenSpaceError = 2;
-      tilesRenderer.maximumMemoryUsage = 1024;
 
-      // Create wrapper and add to scene
+      // Add to scene
       const wrapper = new TilesRendererWrapper(tilesRenderer);
-      wrapper.position.y = 0; // Adjust the Y position to be closer to the ground plane
       scene.add(wrapper);
+      tilesRendererRef.current = tilesRenderer;
       wrapperRef.current = wrapper;
 
-      tilesRenderer.addEventListener("error", (event: any) => {
-        console.error("Error loading tiles:", event);
-        if (event.code === 405) {
-          console.error("Auth error with asset ID:", assetId);
-          setAuthError(true);
-        }
+      // Store the tilesRenderer in the scene store
+      setTilesRenderer(tilesRenderer);
+
+      // Listen for auth errors
+      tilesRenderer.addEventListener("error", (e: any) => {
+        if (e.code === 405) setAuthError(true);
       });
 
-      // Force initial update
       tilesRenderer.update();
       setAuthError(false);
-    } catch (error: any) {
-      console.error("Error initializing tiles renderer:", error);
+    } catch (err) {
+      console.error(err);
       setAuthError(true);
     }
-  }, [apiKey, camera, gl, scene, assetId, latitude, longitude]);
+  }, [
+    apiKey,
+    assetId,
+    camera,
+    gl,
+    scene,
+    latitude,
+    longitude,
+    setTilesRenderer,
+  ]);
 
   useEffect(() => {
     initializeTilesRenderer();
-
-    // Cleanup function
     return () => {
       if (wrapperRef.current) {
         scene.remove(wrapperRef.current);
         wrapperRef.current.dispose();
         wrapperRef.current = null;
       }
+      setTilesRenderer(null);
     };
-  }, [initializeTilesRenderer, scene]);
+  }, [initializeTilesRenderer, scene, setTilesRenderer]);
 
-  // Handle auth errors by reinitializing
   useEffect(() => {
-    if (authError) {
-      // Clean up existing renderer
-      if (wrapperRef.current) {
-        scene.remove(wrapperRef.current);
-        wrapperRef.current.dispose();
-        wrapperRef.current = null;
-      }
-      // Reinitialize after a short delay
-      const timeout = setTimeout(() => {
-        initializeTilesRenderer();
-      }, 1000);
-      return () => clearTimeout(timeout);
-    }
+    if (!authError) return;
+    // retry once on auth failure
+    wrapperRef.current?.dispose();
+    scene.remove(wrapperRef.current!);
+    wrapperRef.current = null;
+    const id = setTimeout(() => initializeTilesRenderer(), 1000);
+    return () => clearTimeout(id);
   }, [authError, initializeTilesRenderer, scene]);
 
   return (
     <>
-      {/* Earth representation */}
       <Sphere args={[6371000, 64, 64]} position={[0, 0, 0]}>
         <meshStandardMaterial color="royalblue" opacity={0.1} transparent />
       </Sphere>
-
-      {/* Light sources */}
       <ambientLight intensity={0.5} />
       <directionalLight position={[1, 1, 1]} intensity={1} />
     </>

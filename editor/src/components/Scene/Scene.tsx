@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useRef, useEffect, Suspense, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { Grid, Sky, Html } from "@react-three/drei";
 import useSceneStore from "../../../app/hooks/useSceneStore";
+import * as THREE from "three";
 
 import {
   SceneProps,
@@ -43,6 +44,49 @@ const TilesComponent = dynamic(
   }
 );
 
+// Create a component to handle deselection
+const DeselectionHandler = () => {
+  const { scene, camera, gl } = useThree();
+  const deselectObject = useSceneStore((state) => state.deselectObject);
+
+  const handleClick = (e: MouseEvent) => {
+    // Only handle clicks on the canvas
+    if (e.target !== gl.domElement) return;
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    // Calculate mouse position in normalized device coordinates
+    const rect = gl.domElement.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+    // Update the raycaster
+    raycaster.setFromCamera(mouse, camera);
+
+    // Get all objects in the scene
+    const allObjects: THREE.Mesh[] = [];
+    scene.traverse((object: THREE.Object3D) => {
+      if (object instanceof THREE.Mesh) {
+        allObjects.push(object);
+      }
+    });
+
+    // If no objects were clicked, deselect
+    const intersects = raycaster.intersectObjects(allObjects, true);
+    if (intersects.length === 0) {
+      deselectObject();
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, [scene, camera, gl, deselectObject]);
+
+  return null;
+};
+
 export default function Scene({
   initialSceneData,
   renderObservationPoints = true,
@@ -78,6 +122,7 @@ export default function Scene({
   const setSelectedLocation = useSceneStore(
     (state) => state.setSelectedLocation
   );
+  const deselectObject = useSceneStore((state) => state.deselectObject);
 
   // Initialize WebGPU
   useEffect(() => {
@@ -115,16 +160,15 @@ export default function Scene({
   return (
     <>
       <Canvas
-        style={{ background: "#1a1a1a", width: "100%", height: "100%" }}
-        camera={{ position: [10, 10, 10], fov: 50, far: 1e9 }}
-        onPointerMissed={() => useSceneStore.getState().deselectObject()}
-        gl={{
-          ...(isWebGPU && { backend: "webgpu" }),
-          ...createWebGPUContext(),
+        shadows
+        camera={{ position: [0, 5, 10], fov: 50 }}
+        onCreated={({ gl }) => {
+          gl.setClearColor("#000000");
         }}
       >
         <Suspense fallback={null}>
           <XRWrapper enabled={enableXR}>
+            <DeselectionHandler />
             {showTiles && (
               <TilesComponent
                 apiKey={process.env.NEXT_PUBLIC_CESIUM_ION_KEY || ""}

@@ -15,11 +15,17 @@ import {
   TextField,
 } from "@mui/material";
 import ModelPreview from "../ModelPreview";
+import ModelMetadataFields from "./ModelMetadataFields";
 
 // Types for props
 // You may want to import these from your types file
 
 type Vector3Tuple = [number, number, number];
+
+interface MetadataField {
+  label: string;
+  value: string;
+}
 
 interface AssetLibraryPanelProps {
   tabIndex: number;
@@ -35,10 +41,10 @@ interface AssetLibraryPanelProps {
   handleConfirmModelPlacement: () => void;
   handleCancelModelPlacement: () => void;
   previewUrl: string | null;
-  setPreviewUrl: (url: string | null) => void;
-  previewFile: File | null;
-  setPreviewFile: (file: File | null) => void;
-  screenshot: string | null;
+  _setPreviewUrl: (url: string | null) => void;
+  _previewFile: File | null;
+  _setPreviewFile: (file: File | null) => void;
+  _screenshot: string | null;
   setScreenshot: (s: string | null) => void;
   friendlyName: string;
   setFriendlyName: (n: string) => void;
@@ -48,6 +54,8 @@ interface AssetLibraryPanelProps {
   handleConfirmUpload: () => void;
   getRootProps: any;
   getInputProps: any;
+  metadata: MetadataField[];
+  setMetadata: (metadata: MetadataField[]) => void;
 }
 
 const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
@@ -64,10 +72,10 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
   handleConfirmModelPlacement,
   handleCancelModelPlacement,
   previewUrl,
-  setPreviewUrl,
-  previewFile,
-  setPreviewFile,
-  screenshot,
+  _setPreviewUrl,
+  _previewFile,
+  _setPreviewFile,
+  _screenshot,
   setScreenshot,
   friendlyName,
   setFriendlyName,
@@ -77,6 +85,8 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
   handleConfirmUpload,
   getRootProps,
   getInputProps,
+  metadata,
+  setMetadata,
 }) => {
   return (
     <Box display="flex" flexDirection="column" height="100%">
@@ -189,20 +199,38 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                     <Typography variant="h6">
                       {model.originalFilename}
                     </Typography>
+                    {model.metadata &&
+                      Object.entries(model.metadata).length > 0 && (
+                        <Box sx={{ mt: 1 }}>
+                          {Object.entries(model.metadata).map(
+                            ([label, value]) => (
+                              <Typography
+                                key={label}
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                <strong>{label}:</strong> {value}
+                              </Typography>
+                            )
+                          )}
+                        </Box>
+                      )}
                   </CardContent>
                   <CardActions>
                     <Button
                       size="small"
                       variant="contained"
-                      onClick={() =>
+                      onClick={() => {
+                        console.info("Adding model", model);
                         handleModelSelect({
                           name: model.originalFilename,
                           url: model.fileUrl,
                           type: model.fileType,
-                        })
-                      }
+                          assetId: model.id,
+                        });
+                      }}
                     >
-                      Add Model
+                      Add Models
                     </Button>
                     <Button
                       size="small"
@@ -254,6 +282,10 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                     value={friendlyName}
                     onChange={(e) => setFriendlyName(e.target.value)}
                     sx={{ mb: 2 }}
+                  />
+                  <ModelMetadataFields
+                    metadata={metadata}
+                    onChange={setMetadata}
                   />
                   {uploading && (
                     <Box sx={{ mb: 2 }}>

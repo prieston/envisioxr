@@ -3,24 +3,26 @@
 import React, { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import useSceneStore from "../../app/hooks/useSceneStore.ts";
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 import useModelLoader from "./useModelLoader.tsx";
 import { useModelSelection } from "./hooks/useModelSelection.ts";
 import { useModelMaterials } from "./hooks/useModelMaterials.ts";
 
-// Dynamically import CesiumIonTiles to avoid SSR issues
-const CesiumIonTiles = dynamic(
-  () => import("../../app/components/CesiumIonTiles.tsx"),
-  {
-    ssr: false,
-  }
-) as React.ComponentType<{
-  apiKey: string;
-  assetId: string;
-  position?: [number, number, number];
-  rotation?: [number, number, number];
-  scale?: [number, number, number];
-}>;
+// // Dynamically import CesiumIonTiles to avoid SSR issues
+// const CesiumIonTiles = dynamic(
+//   () => import("../../app/components/CesiumIonTiles.tsx"),
+//   {
+//     ssr: false,
+//   }
+// ) as React.ComponentType<{
+//   apiKey: string;
+//   assetId?: string;
+//   position?: [number, number, number];
+//   rotation?: [number, number, number];
+//   scale?: [number, number, number];
+//   latitude: number;
+//   longitude: number;
+// }>;
 
 interface ModelProps {
   id: string;
@@ -43,20 +45,26 @@ const Model = ({
   rotation,
   selected,
   onSelect,
-  assetId,
+  // assetId,
 }: ModelProps) => {
   // If this is a Cesium Ion tiles model, render it differently
-  if (type === "tiles" && assetId) {
-    return (
-      <CesiumIonTiles
-        apiKey={process.env.NEXT_PUBLIC_CESIUM_ION_KEY || ""}
-        assetId={assetId}
-        position={position}
-        rotation={rotation}
-        scale={scale}
-      />
-    );
-  }
+  // if (type === "tiles" && assetId) {
+  //   return (
+  //     <CesiumIonTiles
+  //       apiKey={process.env.NEXT_PUBLIC_CESIUM_ION_KEY || ""}
+  //       assetId={assetId}
+  //       position={position}
+  //       rotation={rotation}
+  //       scale={scale}
+  //       latitude={
+  //         useSceneStore.getState().selectedLocation?.latitude || 35.6586
+  //       }
+  //       longitude={
+  //         useSceneStore.getState().selectedLocation?.longitude || 139.7454
+  //       }
+  //     />
+  //   );
+  // }
 
   // For regular models, use the model loader
   const modelData = useModelLoader(url, type);

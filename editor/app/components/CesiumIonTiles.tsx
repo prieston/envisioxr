@@ -29,6 +29,8 @@ interface CesiumIonTilesProps {
   position?: [number, number, number];
   rotation?: [number, number, number];
   scale?: [number, number, number];
+  latitude: number;
+  longitude: number;
 }
 
 // Create a wrapper for TilesRenderer that extends Object3D
@@ -63,6 +65,8 @@ const CesiumIonTiles: React.FC<CesiumIonTilesProps> = ({
   position = [0, 0, 0],
   rotation = [0, 0, 0],
   scale = [1, 1, 1],
+  latitude,
+  longitude,
 }) => {
   const { camera, gl, scene } = useThree();
   const [error, setError] = useState<string | null>(null);
@@ -104,10 +108,10 @@ const CesiumIonTiles: React.FC<CesiumIonTilesProps> = ({
         })
       );
 
-      // Set the location to Tokyo Tower coordinates
+      // Set the location to the provided coordinates
       tilesRenderer.setLatLonToYUp(
-        35.6586 * MathUtils.DEG2RAD,
-        139.7454 * MathUtils.DEG2RAD
+        latitude * MathUtils.DEG2RAD,
+        longitude * MathUtils.DEG2RAD
       );
 
       tilesRendererRef.current = tilesRenderer;
@@ -122,8 +126,7 @@ const CesiumIonTiles: React.FC<CesiumIonTilesProps> = ({
       wrapper.position.set(...position);
       wrapper.rotation.set(...rotation);
       wrapper.scale.set(...scale);
-      // Adjust the Y position to be closer to the ground plane
-      wrapper.position.y = 0;
+      // Don't adjust the Y position - let the tiles renderer handle elevation
       scene.add(wrapper);
       wrapperRef.current = wrapper;
 
@@ -163,7 +166,18 @@ const CesiumIonTiles: React.FC<CesiumIonTilesProps> = ({
       setLoading(false);
       return () => {};
     }
-  }, [apiKey, assetId, camera, gl, scene, position, rotation, scale]);
+  }, [
+    apiKey,
+    assetId,
+    camera,
+    gl,
+    scene,
+    position,
+    rotation,
+    scale,
+    latitude,
+    longitude,
+  ]);
 
   return (
     <>

@@ -71,21 +71,25 @@ const ObjectListItem = styled(ListItem)<ObjectListItemProps>(
     borderRadius: 12,
     marginBottom: theme.spacing(1),
     backgroundColor: selectedItem
-      ? "rgba(255, 255, 255, 0.08)"
+      ? "rgba(25, 118, 210, 0.12)"
       : "rgba(255, 255, 255, 0.05)",
-    color: selectedItem ? theme.palette.text.primary : "inherit",
+    color: selectedItem ? theme.palette.primary.main : "inherit",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     padding: theme.spacing(1.5),
     transition: "all 0.2s ease",
     border: selectedItem
-      ? "1px solid rgba(255, 255, 255, 0.2)"
+      ? `1px solid ${theme.palette.primary.main}`
       : "1px solid rgba(255, 255, 255, 0.05)",
     "&:hover": {
-      backgroundColor: "rgba(255, 255, 255, 0.08)",
+      backgroundColor: selectedItem
+        ? "rgba(25, 118, 210, 0.16)"
+        : "rgba(255, 255, 255, 0.08)",
       transform: "translateX(4px)",
-      border: "1px solid rgba(255, 255, 255, 0.2)",
+      border: selectedItem
+        ? `1px solid ${theme.palette.primary.main}`
+        : "1px solid rgba(255, 255, 255, 0.2)",
     },
   })
 );
@@ -140,8 +144,14 @@ const LeftPanel = () => {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItemForDelete, setSelectedItemForDelete] = useState(null);
-  const { objects, selectedObject, selectObject, removeObject, previewMode } =
-    useSceneStore();
+  const {
+    objects,
+    selectedObject,
+    selectObject,
+    removeObject,
+    previewMode,
+    deselectObject,
+  } = useSceneStore();
 
   // Open menu on three-dots click and store target id
   const handleMenuOpen = (
@@ -226,9 +236,13 @@ const LeftPanel = () => {
                 key={object.id}
                 selectedItem={selectedObject?.id === object.id}
                 onClick={() => {
-                  // Find the object in the scene and pass its reference
-                  const objectRef = object.ref || null;
-                  selectObject(object.id, objectRef);
+                  // If clicking the same object that's already selected, deselect it
+                  if (selectedObject?.id === object.id) {
+                    deselectObject();
+                  } else {
+                    // Only pass the ref if we're selecting a new object
+                    selectObject(object.id, object.ref || null);
+                  }
                 }}
               >
                 <StyledListItemText

@@ -100,14 +100,30 @@ export async function POST(request: NextRequest) {
   }
   const userId = session.user.id;
   try {
-    // Expecting a JSON body with key, originalFilename, fileType, and thumbnail.
+    // Expecting a JSON body with key, originalFilename, fileType, thumbnail, and metadata
     const body = await request.json();
-    const { key, originalFilename, fileType, thumbnail } = body;
+    const { key, originalFilename, fileType, thumbnail, metadata } = body;
     if (!key || !originalFilename || !fileType) {
       return NextResponse.json({ error: "Missing file data" }, { status: 400 });
     }
-    // Construct the public file URL from your DigitalOcean Spaces bucket.
+    // Construct the public file URL from your DigitalOcean Spaces bucket
     const fileUrl = `${serverEnv.DO_SPACES_ENDPOINT}/${serverEnv.DO_SPACES_BUCKET}/${key}`;
+
+    // Convert metadata array to object format
+    const metadataObject =
+      metadata?.reduce(
+        (
+          acc: Record<string, string>,
+          field: { label: string; value: string }
+        ) => {
+          if (field.label && field.value) {
+            acc[field.label] = field.value;
+          }
+          return acc;
+        },
+        {}
+      ) || {};
+
     const asset = await prisma.asset.create({
       data: {
         userId,
@@ -115,6 +131,7 @@ export async function POST(request: NextRequest) {
         originalFilename,
         fileType,
         thumbnail: thumbnail || null,
+        metadata: metadataObject,
       },
     });
     return NextResponse.json({ asset });
