@@ -167,7 +167,7 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
         </Box>
       )}
 
-      <Box sx={{ flex: 1, overflow: "auto" }}>
+      <Box sx={{ flex: 1, overflow: "auto", pb: 4 }}>
         {/* My Models Tab */}
         {tabIndex === 0 && (
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
@@ -231,7 +231,7 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
               display: "flex",
               flexDirection: "column",
               gap: 2,
-              height: "100%",
+              minHeight: "100%",
             }}
           >
             {previewUrl ? (
@@ -240,8 +240,6 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                   display: "flex",
                   flexDirection: "column",
                   gap: 2,
-                  flex: 1,
-                  overflow: "auto",
                 }}
               >
                 <ModelPreview

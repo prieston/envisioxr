@@ -33,6 +33,7 @@ const RightPanelContainer = styled(Box, {
   transition: "all 0.3s ease",
   display: "flex",
   flexDirection: "column",
+  overflow: "hidden",
 }));
 
 const RightPanel: React.FC = () => {
@@ -386,7 +387,7 @@ const RightPanel: React.FC = () => {
           }
         }}
         variant="fullWidth"
-        sx={{ borderBottom: 1, borderColor: "divider" }}
+        sx={{ borderBottom: 1, borderColor: "divider", flexShrink: 0 }}
       >
         <Tab label="Properties" />
         <Tab label="Assets" />
@@ -394,49 +395,53 @@ const RightPanel: React.FC = () => {
 
       {/* Properties Tab */}
       {activeTab === 0 && (
-        <PropertiesPanel
-          selectedObject={selectedObject}
-          selectedObservation={selectedObservation}
-          viewMode={viewMode}
-          controlSettings={controlSettings}
-          updateObjectProperty={updateObjectProperty}
-          updateObservationPoint={updateObservationPoint}
-          deleteObservationPoint={deleteObservationPoint}
-          setCapturingPOV={setCapturingPOV}
-          updateControlSettings={updateControlSettings}
-        />
+        <Box sx={{ flex: 1, overflow: "auto", pb: 2 }}>
+          <PropertiesPanel
+            selectedObject={selectedObject}
+            selectedObservation={selectedObservation}
+            viewMode={viewMode}
+            controlSettings={controlSettings}
+            updateObjectProperty={updateObjectProperty}
+            updateObservationPoint={updateObservationPoint}
+            deleteObservationPoint={deleteObservationPoint}
+            setCapturingPOV={setCapturingPOV}
+            updateControlSettings={updateControlSettings}
+          />
+        </Box>
       )}
 
       {/* Assets Tab */}
       {activeTab === 1 && (
-        <AssetLibraryPanel
-          tabIndex={tabIndex}
-          setTabIndex={setTabIndex}
-          userAssets={userAssets}
-          deletingAssetId={deletingAssetId}
-          handleDeleteModel={handleDeleteModel}
-          handleModelSelect={handleModelSelect}
-          selectingPosition={selectingPosition}
-          setSelectingPosition={setSelectingPosition}
-          selectedPosition={selectedPosition}
-          pendingModel={pendingModel}
-          handleConfirmModelPlacement={handleConfirmModelPlacement}
-          handleCancelModelPlacement={handleCancelModelPlacement}
-          previewUrl={previewUrl}
-          setPreviewUrl={setPreviewUrl}
-          previewFile={previewFile}
-          setPreviewFile={setPreviewFile}
-          screenshot={screenshot}
-          setScreenshot={setScreenshot}
-          friendlyName={friendlyName}
-          setFriendlyName={setFriendlyName}
-          uploading={uploading}
-          uploadProgress={uploadProgress}
-          isConfirmDisabled={isConfirmDisabled}
-          handleConfirmUpload={handleConfirmUpload}
-          getRootProps={getRootProps}
-          getInputProps={getInputProps}
-        />
+        <Box sx={{ flex: 1, overflow: "auto", pb: 2 }}>
+          <AssetLibraryPanel
+            tabIndex={tabIndex}
+            setTabIndex={setTabIndex}
+            userAssets={userAssets}
+            deletingAssetId={deletingAssetId}
+            handleDeleteModel={handleDeleteModel}
+            handleModelSelect={handleModelSelect}
+            selectingPosition={selectingPosition}
+            setSelectingPosition={setSelectingPosition}
+            selectedPosition={selectedPosition}
+            pendingModel={pendingModel}
+            handleConfirmModelPlacement={handleConfirmModelPlacement}
+            handleCancelModelPlacement={handleCancelModelPlacement}
+            previewUrl={previewUrl}
+            setPreviewUrl={setPreviewUrl}
+            previewFile={previewFile}
+            setPreviewFile={setPreviewFile}
+            screenshot={screenshot}
+            setScreenshot={setScreenshot}
+            friendlyName={friendlyName}
+            setFriendlyName={setFriendlyName}
+            uploading={uploading}
+            uploadProgress={uploadProgress}
+            isConfirmDisabled={isConfirmDisabled}
+            handleConfirmUpload={handleConfirmUpload}
+            getRootProps={getRootProps}
+            getInputProps={getInputProps}
+          />
+        </Box>
       )}
     </RightPanelContainer>
   );
