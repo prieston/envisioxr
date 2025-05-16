@@ -635,6 +635,66 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             Delete Observation Point
           </Button>
         </PropertyGroup>
+
+        {/* Add Google Maps Link Section */}
+        {tilesRenderer && (
+          <PropertyGroup>
+            <Typography variant="subtitle1" gutterBottom>
+              Google Maps Links
+            </Typography>
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Single Point
+              </Typography>
+              {selectedObservation.position && (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  href={`https://www.google.com/maps?q=${
+                    localToGeographic(
+                      tilesRenderer,
+                      new THREE.Vector3(...selectedObservation.position)
+                    ).latitude
+                  },${
+                    localToGeographic(
+                      tilesRenderer,
+                      new THREE.Vector3(...selectedObservation.position)
+                    ).longitude
+                  }`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ mb: 2 }}
+                >
+                  View This Point in Google Maps
+                </Button>
+              )}
+
+              <Typography variant="subtitle2" gutterBottom>
+                All Points
+              </Typography>
+              <Button
+                fullWidth
+                variant="outlined"
+                size="small"
+                href={`https://www.google.com/maps/dir/${observationPoints
+                  .filter((point) => point.position)
+                  .map((point) =>
+                    localToGeographic(
+                      tilesRenderer,
+                      new THREE.Vector3(...point.position!)
+                    )
+                  )
+                  .map((coords) => `${coords.latitude},${coords.longitude}`)
+                  .join("/")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View All Points in Google Maps
+              </Button>
+            </Paper>
+          </PropertyGroup>
+        )}
       </>
     );
   }
