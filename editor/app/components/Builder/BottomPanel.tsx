@@ -163,15 +163,18 @@ const BottomPanel = () => {
   };
 
   const handleObservationClick = (point: any, index: number) => {
+    // First select the observation point and set the preview index
     selectObservation(point.id);
     setPreviewIndex(index);
 
-    // Temporarily enable preview mode to trigger camera movement
-    if (!previewMode) {
-      setPreviewMode(true);
-      // Disable preview mode after camera movement (about 500ms)
-      setTimeout(() => setPreviewMode(false), 500);
-    }
+    // Then enable preview mode to trigger camera movement
+    setPreviewMode(true);
+
+    // Wait for camera movement to complete before disabling preview mode
+    // Using a longer timeout to ensure the camera movement is complete
+    setTimeout(() => {
+      setPreviewMode(false);
+    }, 1500);
   };
 
   const hasNextPoint =

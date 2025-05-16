@@ -115,7 +115,10 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
       // Configure the renderer
       tilesRenderer.setCamera(camera);
       tilesRenderer.setResolutionFromRenderer(camera, gl);
-      tilesRenderer.errorTarget = 8;
+      tilesRenderer.errorTarget = 4;
+      tilesRenderer.displayActiveTiles = true;
+      tilesRenderer.maximumScreenSpaceError = 2;
+      tilesRenderer.maximumMemoryUsage = 1024;
 
       // Create wrapper and add to scene
       const wrapper = new TilesRendererWrapper(tilesRenderer);
