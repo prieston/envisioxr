@@ -49,7 +49,9 @@ interface SceneState {
   selectedLocation: {
     latitude: number;
     longitude: number;
+    altitude?: number;
   } | null;
+  tilesRenderer: any | null;
 
   // Environment Settings
   gridEnabled: boolean;
@@ -123,6 +125,7 @@ interface SceneState {
   resetScene: () => void;
   setOrbitControlsRef: (ref: any) => void;
   setScene: (scene: THREE.Scene) => void;
+  setTilesRenderer: (renderer: any) => void;
   addGoogleTiles: (apiKey: string) => void;
   addCesiumIonTiles: () => void;
   setSelectedAssetId: (assetId: string) => void;
@@ -182,6 +185,7 @@ const useSceneStore = create<SceneState>((set) => ({
   selectedLocation: null,
   orbitControlsRef: null,
   scene: null,
+  tilesRenderer: null,
 
   // Environment Settings Initial State
   gridEnabled: true,
@@ -414,10 +418,12 @@ const useSceneStore = create<SceneState>((set) => ({
       viewMode: "orbit",
       isPlaying: false,
       playbackSpeed: 1,
+      tilesRenderer: null,
     }),
 
   setOrbitControlsRef: (ref) => set({ orbitControlsRef: ref }),
   setScene: (scene) => set({ scene }),
+  setTilesRenderer: (renderer) => set({ tilesRenderer: renderer }),
 
   addGoogleTiles: (apiKey) =>
     set((state) => ({

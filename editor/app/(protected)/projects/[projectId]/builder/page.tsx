@@ -39,6 +39,7 @@ const sanitizeSceneData = (
         position: rest.position || [0, 0, 0],
         rotation: rest.rotation || [0, 0, 0],
         scale: rest.scale || [1, 1, 1],
+        assetId: rest.assetId || undefined,
       };
     })
     .filter(Boolean);

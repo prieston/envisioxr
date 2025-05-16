@@ -58,6 +58,7 @@ const EnvironmentPanel: React.FC = () => {
     selectedLocation,
     setSelectedAssetId,
     setSelectedLocation,
+    tilesRenderer,
   } = useSceneStore();
 
   const handleAssetSelect = useCallback(
@@ -163,6 +164,14 @@ const EnvironmentPanel: React.FC = () => {
                     color="text.secondary"
                   >
                     Longitude: {selectedLocation.longitude.toFixed(6)}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    display="block"
+                    color="text.secondary"
+                  >
+                    Reference Height:{" "}
+                    {tilesRenderer?.group?.position.y.toFixed(2)}m
                   </Typography>
                   <Typography
                     variant="caption"

@@ -71,8 +71,6 @@ const SceneControls = () => {
           makeDefault
           enableDamping
           dampingFactor={0.05}
-          minDistance={3}
-          maxDistance={1000}
           enabled={!selectedObject && !previewMode}
           enablePan={!previewMode}
           enableZoom={!previewMode}

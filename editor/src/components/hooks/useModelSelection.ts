@@ -25,23 +25,31 @@ export const useModelSelection = ({
   const handlePointerUp = (e: any) => {
     e.stopPropagation();
     if (previewMode || !onSelect || !pointerDown.current) return;
+
     const dx = e.clientX - pointerDown.current.x;
     const dy = e.clientY - pointerDown.current.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance < CLICK_THRESHOLD) {
-      let currentObject = e.object;
-      while (currentObject) {
-        if (currentObject.userData.isModel) {
-          onSelect(id, currentObject);
-          return;
-        }
-        if (!currentObject.parent) {
-          onSelect(id, e.object);
-          return;
-        }
-        currentObject = currentObject.parent;
-      }
+
+    // If we moved the object significantly, don't handle selection
+    if (distance >= CLICK_THRESHOLD) {
+      pointerDown.current = null;
+      return;
     }
+
+    // Find the model in the object hierarchy
+    let currentObject = e.object;
+    while (currentObject) {
+      if (currentObject.userData.isModel) {
+        e.stopPropagation(); // Prevent the click from reaching the background
+        onSelect(id, currentObject);
+        break;
+      }
+      if (!currentObject.parent) {
+        break;
+      }
+      currentObject = currentObject.parent;
+    }
+
     pointerDown.current = null;
   };
 

@@ -1,6 +1,18 @@
-import React from "react";
-import { Box, Typography, TextField, Button, Divider } from "@mui/material";
-import { Camera } from "@mui/icons-material";
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Divider,
+  Paper,
+  CircularProgress,
+} from "@mui/material";
+import { Camera, FlightTakeoff } from "@mui/icons-material";
+import useSceneStore from "../../hooks/useSceneStore";
+import * as THREE from "three";
+import useSWR from "swr";
+import { localToGeographic } from "../../utils/coordinateUtils";
 
 // Types for props
 // You may want to import these from your types file
@@ -26,6 +38,45 @@ const PropertyLabel = (props: any) => (
   </Typography>
 );
 
+// Fetcher function for SWR
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+// Component to display model metadata
+const ModelMetadata = ({ assetId }: { assetId?: string }) => {
+  const { data, error, isLoading } = useSWR(
+    assetId ? `/api/models/${assetId}` : null,
+    fetcher
+  );
+
+  if (!assetId) {
+    return null;
+  }
+  if (isLoading) {
+    return <CircularProgress size={20} />;
+  }
+  if (error) {
+    return <Typography color="error">Failed to load metadata</Typography>;
+  }
+  if (!data?.asset?.metadata) {
+    return null;
+  }
+
+  return (
+    <Box sx={{ mt: 1 }}>
+      {Object.entries(data.asset.metadata).map(([key, value]) => (
+        <Box key={key} sx={{ mb: 1 }}>
+          <Typography variant="subtitle2" color="text.primary" sx={{ mb: 0.5 }}>
+            {key}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ pl: 1 }}>
+            {value as string}
+          </Typography>
+        </Box>
+      ))}
+    </Box>
+  );
+};
+
 const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   selectedObject,
   selectedObservation,
@@ -37,8 +88,95 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   setCapturingPOV,
   updateControlSettings,
 }) => {
+  const [localObject, setLocalObject] = useState(selectedObject);
+  const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
+  const selectedLocation = useSceneStore((state) => state.selectedLocation);
+  const tilesRenderer = useSceneStore((state) => state.tilesRenderer);
+
+  // Update local state when selectedObject changes or when its transform properties change
+  useEffect(() => {
+    if (selectedObject) {
+      setLocalObject({
+        ...selectedObject,
+        position: selectedObject.position || [0, 0, 0],
+        rotation: selectedObject.rotation || [0, 0, 0],
+        scale: selectedObject.scale || [1, 1, 1],
+      });
+    } else {
+      setLocalObject(null);
+    }
+  }, [selectedObject]);
+
+  // Calculate geographic coordinates if we have a reference location and tilesRenderer
+  const geographicCoords =
+    tilesRenderer && localObject?.position
+      ? localToGeographic(
+          tilesRenderer,
+          new THREE.Vector3(...localObject.position)
+        )
+      : null;
+
+  // Add a separate effect to handle transform updates
+  useEffect(() => {
+    if (selectedObject?.ref) {
+      const updateTransform = () => {
+        if (!selectedObject.ref) return;
+
+        const newPosition = selectedObject.ref.position.toArray();
+        const newRotation = [
+          selectedObject.ref.rotation.x,
+          selectedObject.ref.rotation.y,
+          selectedObject.ref.rotation.z,
+        ];
+        const newScale = selectedObject.ref.scale.toArray();
+
+        // Only update if values have changed
+        if (
+          JSON.stringify(newPosition) !==
+            JSON.stringify(localObject?.position) ||
+          JSON.stringify(newRotation) !==
+            JSON.stringify(localObject?.rotation) ||
+          JSON.stringify(newScale) !== JSON.stringify(localObject?.scale)
+        ) {
+          setLocalObject((prev) => ({
+            ...prev,
+            position: newPosition,
+            rotation: newRotation,
+            scale: newScale,
+          }));
+        }
+      };
+
+      // Update immediately
+      updateTransform();
+
+      // Set up an animation frame loop for smooth updates
+      let animationFrameId: number;
+      const animate = () => {
+        updateTransform();
+        animationFrameId = requestAnimationFrame(animate);
+      };
+      animationFrameId = requestAnimationFrame(animate);
+
+      return () => {
+        cancelAnimationFrame(animationFrameId);
+      };
+    }
+  }, [
+    selectedObject?.ref,
+    localObject?.position,
+    localObject?.rotation,
+    localObject?.scale,
+  ]);
+
   const handlePropertyChange = (property: string, value: number | string) => {
     if (selectedObject) {
+      // Update local state immediately for responsive UI
+      setLocalObject((prev) => ({
+        ...prev,
+        [property]: value,
+      }));
+      // Update global state
       updateObjectProperty(selectedObject.id, property, value);
     }
   };
@@ -49,6 +187,34 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   ) => {
     if (selectedObservation) {
       updateObservationPoint(selectedObservation.id, { [property]: value });
+    }
+  };
+
+  const handleFlyToObject = () => {
+    if (selectedObject?.ref && orbitControlsRef) {
+      // Get the object's position and bounding box
+      const targetPosition = selectedObject.ref.position.clone();
+      const boundingBox = new THREE.Box3().setFromObject(selectedObject.ref);
+      const size = new THREE.Vector3();
+      boundingBox.getSize(size);
+
+      // Calculate a dynamic offset based on the object's size
+      const maxDimension = Math.max(size.x, size.y, size.z);
+      const distance = Math.max(maxDimension * 2, 10); // At least 10 units away
+      const offset = new THREE.Vector3(
+        distance,
+        distance * 0.6, // Slightly lower than the distance
+        distance
+      );
+
+      // Set the camera position
+      orbitControlsRef.object.position.copy(targetPosition).add(offset);
+
+      // Set the orbit controls target to the object
+      orbitControlsRef.target.copy(targetPosition);
+
+      // Update the controls
+      orbitControlsRef.update();
     }
   };
 
@@ -114,6 +280,215 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           sx={{ mb: 2 }}
         />
       </PropertyGroup>
+    );
+  }
+
+  if (selectedObject) {
+    return (
+      <>
+        <PropertyGroup>
+          <Typography variant="subtitle1" gutterBottom>
+            Model Information
+          </Typography>
+          <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Name: {selectedObject.name || "Untitled"}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Type: {selectedObject.type || "Unknown"}
+            </Typography>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="primary"
+              onClick={handleFlyToObject}
+              startIcon={<FlightTakeoff />}
+              sx={{ mt: 2 }}
+            >
+              Fly to Object
+            </Button>
+          </Paper>
+        </PropertyGroup>
+
+        <PropertyGroup>
+          <Typography variant="subtitle1" gutterBottom>
+            Descriptive Info
+          </Typography>
+          <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+            <ModelMetadata assetId={selectedObject.assetId} />
+          </Paper>
+        </PropertyGroup>
+
+        <PropertyGroup>
+          <Typography variant="subtitle1" gutterBottom>
+            Transform
+          </Typography>
+          <PropertyLabel>Position</PropertyLabel>
+          <Box display="flex" gap={1}>
+            <TextField
+              size="small"
+              label="X"
+              type="number"
+              value={localObject?.position?.[0] || 0}
+              onChange={(e) =>
+                handlePropertyChange("position.0", Number(e.target.value))
+              }
+              sx={{ flex: 1 }}
+            />
+            <TextField
+              size="small"
+              label="Y"
+              type="number"
+              value={localObject?.position?.[1] || 0}
+              onChange={(e) =>
+                handlePropertyChange("position.1", Number(e.target.value))
+              }
+              sx={{ flex: 1 }}
+            />
+            <TextField
+              size="small"
+              label="Z"
+              type="number"
+              value={localObject?.position?.[2] || 0}
+              onChange={(e) =>
+                handlePropertyChange("position.2", Number(e.target.value))
+              }
+              sx={{ flex: 1 }}
+            />
+          </Box>
+
+          {geographicCoords && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Geographic Coordinates
+              </Typography>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: 1,
+                }}
+              >
+                <TextField
+                  label="Latitude"
+                  value={geographicCoords.latitude.toFixed(6)}
+                  size="small"
+                  disabled
+                />
+                <TextField
+                  label="Longitude"
+                  value={geographicCoords.longitude.toFixed(6)}
+                  size="small"
+                  disabled
+                />
+                <TextField
+                  label="Altitude"
+                  value={geographicCoords.altitude.toFixed(2)}
+                  size="small"
+                  disabled
+                />
+              </Box>
+              <Button
+                fullWidth
+                variant="outlined"
+                size="small"
+                href={`https://www.google.com/maps?q=${geographicCoords.latitude},${geographicCoords.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{ mt: 1 }}
+              >
+                View in Google Maps
+              </Button>
+            </Box>
+          )}
+
+          <PropertyLabel>Rotation</PropertyLabel>
+          <Box display="flex" gap={1}>
+            <TextField
+              size="small"
+              label="X"
+              type="number"
+              value={localObject?.rotation?.[0] || 0}
+              onChange={(e) =>
+                handlePropertyChange("rotation.0", Number(e.target.value))
+              }
+              sx={{ flex: 1 }}
+            />
+            <TextField
+              size="small"
+              label="Y"
+              type="number"
+              value={localObject?.rotation?.[1] || 0}
+              onChange={(e) =>
+                handlePropertyChange("rotation.1", Number(e.target.value))
+              }
+              sx={{ flex: 1 }}
+            />
+            <TextField
+              size="small"
+              label="Z"
+              type="number"
+              value={localObject?.rotation?.[2] || 0}
+              onChange={(e) =>
+                handlePropertyChange("rotation.2", Number(e.target.value))
+              }
+              sx={{ flex: 1 }}
+            />
+          </Box>
+
+          <PropertyLabel>Scale</PropertyLabel>
+          <Box display="flex" gap={1}>
+            <TextField
+              size="small"
+              label="X"
+              type="number"
+              value={localObject?.scale?.[0] || 1}
+              onChange={(e) =>
+                handlePropertyChange("scale.0", Number(e.target.value))
+              }
+              sx={{ flex: 1 }}
+            />
+            <TextField
+              size="small"
+              label="Y"
+              type="number"
+              value={localObject?.scale?.[1] || 1}
+              onChange={(e) =>
+                handlePropertyChange("scale.1", Number(e.target.value))
+              }
+              sx={{ flex: 1 }}
+            />
+            <TextField
+              size="small"
+              label="Z"
+              type="number"
+              value={localObject?.scale?.[2] || 1}
+              onChange={(e) =>
+                handlePropertyChange("scale.2", Number(e.target.value))
+              }
+              sx={{ flex: 1 }}
+            />
+          </Box>
+        </PropertyGroup>
+
+        <Divider sx={{ my: 2 }} />
+
+        <PropertyGroup>
+          <Typography variant="subtitle1" gutterBottom>
+            Material
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            label="Color"
+            type="color"
+            value={localObject?.material?.color || "#ffffff"}
+            onChange={(e) =>
+              handlePropertyChange("material.color", e.target.value)
+            }
+          />
+        </PropertyGroup>
+      </>
     );
   }
 
@@ -264,132 +639,21 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     );
   }
 
-  if (selectedObject) {
-    return (
-      <>
-        <PropertyGroup>
-          <Typography variant="subtitle1" gutterBottom>
-            Transform
-          </Typography>
-          <PropertyLabel>Position</PropertyLabel>
-          <Box display="flex" gap={1}>
-            <TextField
-              size="small"
-              label="X"
-              type="number"
-              value={selectedObject.position[0]}
-              onChange={(e) =>
-                handlePropertyChange("position.0", Number(e.target.value))
-              }
-            />
-            <TextField
-              size="small"
-              label="Y"
-              type="number"
-              value={selectedObject.position[1]}
-              onChange={(e) =>
-                handlePropertyChange("position.1", Number(e.target.value))
-              }
-            />
-            <TextField
-              size="small"
-              label="Z"
-              type="number"
-              value={selectedObject.position[2]}
-              onChange={(e) =>
-                handlePropertyChange("position.2", Number(e.target.value))
-              }
-            />
-          </Box>
-
-          <PropertyLabel>Rotation</PropertyLabel>
-          <Box display="flex" gap={1}>
-            <TextField
-              size="small"
-              label="X"
-              type="number"
-              value={selectedObject.rotation?.[0] || 0}
-              onChange={(e) =>
-                handlePropertyChange("rotation.0", Number(e.target.value))
-              }
-            />
-            <TextField
-              size="small"
-              label="Y"
-              type="number"
-              value={selectedObject.rotation?.[1] || 0}
-              onChange={(e) =>
-                handlePropertyChange("rotation.1", Number(e.target.value))
-              }
-            />
-            <TextField
-              size="small"
-              label="Z"
-              type="number"
-              value={selectedObject.rotation?.[2] || 0}
-              onChange={(e) =>
-                handlePropertyChange("rotation.2", Number(e.target.value))
-              }
-            />
-          </Box>
-
-          <PropertyLabel>Scale</PropertyLabel>
-          <Box display="flex" gap={1}>
-            <TextField
-              size="small"
-              label="X"
-              type="number"
-              value={selectedObject.scale?.[0] || 1}
-              onChange={(e) =>
-                handlePropertyChange("scale.0", Number(e.target.value))
-              }
-            />
-            <TextField
-              size="small"
-              label="Y"
-              type="number"
-              value={selectedObject.scale?.[1] || 1}
-              onChange={(e) =>
-                handlePropertyChange("scale.1", Number(e.target.value))
-              }
-            />
-            <TextField
-              size="small"
-              label="Z"
-              type="number"
-              value={selectedObject.scale?.[2] || 1}
-              onChange={(e) =>
-                handlePropertyChange("scale.2", Number(e.target.value))
-              }
-            />
-          </Box>
-        </PropertyGroup>
-
-        <Divider sx={{ my: 2 }} />
-
-        <PropertyGroup>
-          <Typography variant="subtitle1" gutterBottom>
-            Material
-          </Typography>
-          <TextField
-            fullWidth
-            size="small"
-            label="Color"
-            type="color"
-            value={selectedObject.material?.color || "#ffffff"}
-            onChange={(e) =>
-              handlePropertyChange("material.color", e.target.value)
-            }
-          />
-        </PropertyGroup>
-      </>
-    );
-  }
-
   return (
-    <Typography variant="body2" color="text.secondary">
-      Select an object or observation point to view its properties
-    </Typography>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        color: "text.secondary",
+      }}
+    >
+      <Typography variant="body1" align="center">
+        Select an object or observation point to view its properties
+      </Typography>
+    </Box>
   );
 };
 

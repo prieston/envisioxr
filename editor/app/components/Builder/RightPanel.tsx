@@ -36,6 +36,11 @@ const RightPanelContainer = styled(Box, {
   overflow: "hidden",
 }));
 
+interface MetadataField {
+  label: string;
+  value: string;
+}
+
 const RightPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [tabIndex, setTabIndex] = useState(0);
@@ -52,6 +57,7 @@ const RightPanel: React.FC = () => {
     [number, number, number] | null
   >(null);
   const [pendingModel, setPendingModel] = useState(null);
+  const [metadata, setMetadata] = useState<MetadataField[]>([]);
 
   const {
     selectedObject,
@@ -187,6 +193,7 @@ const RightPanel: React.FC = () => {
     // Store the model temporarily
     const pendingModel = {
       name: model.name,
+      assetId: model.assetId,
       url: model.url,
       type: model.type,
       position: [0, 0, 0], // Default position, will be updated on click
@@ -323,6 +330,7 @@ const RightPanel: React.FC = () => {
           originalFilename: friendlyName,
           fileType: previewFile.type,
           thumbnail: thumbnailUpload.publicUrl,
+          metadata: metadata,
         }),
       });
       if (!postRes.ok) {
@@ -340,6 +348,7 @@ const RightPanel: React.FC = () => {
       setPreviewUrl(null);
       setScreenshot(null);
       setFriendlyName("");
+      setMetadata([]); // Reset metadata after successful upload
     } catch (error) {
       console.error("Upload error:", error);
       showToast("An error occurred during upload.");
@@ -440,6 +449,8 @@ const RightPanel: React.FC = () => {
             handleConfirmUpload={handleConfirmUpload}
             getRootProps={getRootProps}
             getInputProps={getInputProps}
+            metadata={metadata}
+            setMetadata={setMetadata}
           />
         </Box>
       )}

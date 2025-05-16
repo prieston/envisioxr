@@ -15,6 +15,9 @@ const SceneTransformControls: React.FC<SceneTransformControlsProps> = ({
   const setModelPosition = useSceneStore((state) => state.setModelPosition);
   const setModelRotation = useSceneStore((state) => state.setModelRotation);
   const setModelScale = useSceneStore((state) => state.setModelScale);
+  const updateObjectProperty = useSceneStore(
+    (state) => state.updateObjectProperty
+  );
 
   if (!selectedObject || !selectedObject.ref) {
     return null;
@@ -31,12 +34,22 @@ const SceneTransformControls: React.FC<SceneTransformControlsProps> = ({
     switch (transformMode) {
       case "translate":
         setModelPosition(selectedObject.id, position);
+        // Update the object's position in the store
+        updateObjectProperty(selectedObject.id, "position", position.toArray());
         break;
       case "rotate":
         setModelRotation(selectedObject.id, rotation);
+        // Update the object's rotation in the store
+        updateObjectProperty(selectedObject.id, "rotation", [
+          rotation.x,
+          rotation.y,
+          rotation.z,
+        ]);
         break;
       case "scale":
         setModelScale(selectedObject.id, scale);
+        // Update the object's scale in the store
+        updateObjectProperty(selectedObject.id, "scale", scale.toArray());
         break;
     }
   };
