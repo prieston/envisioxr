@@ -6,6 +6,7 @@ import { Save as SaveIcon, Publish as PublishIcon } from "@mui/icons-material";
 import { MinimalButton } from "./StyledComponents";
 import { showToast } from "@/app/utils/toastUtils";
 import useSceneStore from "@/app/hooks/useSceneStore";
+import ReportGenerator from "../Report/ReportGenerator";
 
 interface BuilderActionsProps {
   onSave?: () => Promise<void>;
@@ -20,6 +21,7 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
 
   return (
     <>
+      <ReportGenerator disabled={previewMode} />
       <MinimalButton
         onClick={async () => {
           if (onSave) {
