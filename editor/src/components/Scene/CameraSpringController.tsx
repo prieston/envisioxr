@@ -57,31 +57,19 @@ const CameraSpringController: React.FC = () => {
         api.start({
           cameraPosition: position,
           target: target,
+          config: {
+            mass: 1.2,
+            tension: 150,
+            friction: 25,
+            precision: 0.001,
+          },
         });
 
-        // Update the orbit controls target immediately if in orbit mode
+        // Update orbit controls target
         if (viewMode === "orbit" && orbitControlsRef) {
           orbitControlsRef.target.set(...target);
           orbitControlsRef.update();
         }
-      }
-    } else if (!previewMode && selectedObservation) {
-      // When not in preview mode, still update camera to match observation point
-      const position = Array.isArray(selectedObservation.position)
-        ? (selectedObservation.position as Vector3Tuple)
-        : ([0, 0, 0] as Vector3Tuple);
-      const target = Array.isArray(selectedObservation.target)
-        ? (selectedObservation.target as Vector3Tuple)
-        : ([0, 0, 0] as Vector3Tuple);
-
-      // Update camera position and target without animation
-      camera.position.set(...position);
-      camera.lookAt(...target);
-
-      // Update orbit controls if in orbit mode
-      if (viewMode === "orbit" && orbitControlsRef) {
-        orbitControlsRef.target.set(...target);
-        orbitControlsRef.update();
       }
     } else if (capturingPOV) {
       // Stop any ongoing animations when capturing POV
@@ -91,12 +79,10 @@ const CameraSpringController: React.FC = () => {
     previewMode,
     previewIndex,
     observationPoints,
-    selectedObservation,
     api,
     orbitControlsRef,
     capturingPOV,
     viewMode,
-    camera,
   ]);
 
   // Only update camera position in preview mode and not capturing POV
@@ -114,38 +100,6 @@ const CameraSpringController: React.FC = () => {
           orbitControlsRef.current.target.set(target[0], target[1], target[2]);
           orbitControlsRef.current.update();
         }
-      }
-    } else if (
-      !previewMode &&
-      selectedObservation &&
-      selectedObservation.position &&
-      selectedObservation.target
-    ) {
-      // When not in preview mode, maintain the same camera position relative to target
-      const position = Array.isArray(selectedObservation.position)
-        ? (selectedObservation.position as Vector3Tuple)
-        : ([0, 0, 0] as Vector3Tuple);
-      const target = Array.isArray(selectedObservation.target)
-        ? (selectedObservation.target as Vector3Tuple)
-        : ([0, 0, 0] as Vector3Tuple);
-
-      // Calculate the direction vector from target to position
-      const direction = new THREE.Vector3(...position).sub(
-        new THREE.Vector3(...target)
-      );
-      const distance = direction.length();
-
-      // Normalize the direction
-      direction.normalize();
-
-      // Set the camera position maintaining the same distance
-      camera.position.set(...target).add(direction.multiplyScalar(distance));
-      camera.lookAt(...target);
-
-      // Update orbit controls if in orbit mode
-      if (viewMode === "orbit" && orbitControlsRef.current) {
-        orbitControlsRef.current.target.set(...target);
-        orbitControlsRef.current.update();
       }
     }
   });

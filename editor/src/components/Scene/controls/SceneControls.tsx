@@ -16,6 +16,7 @@ const SceneControls = () => {
   const { camera, scene } = useThree();
   const viewMode = useSceneStore((state) => state.viewMode);
   const selectedObject = useSceneStore((state) => state.selectedObject);
+  const previewMode = useSceneStore((state) => state.previewMode);
   const setOrbitControlsRef = useSceneStore(
     (state) => state.setOrbitControlsRef
   );
@@ -72,7 +73,10 @@ const SceneControls = () => {
           dampingFactor={0.05}
           minDistance={3}
           maxDistance={1000}
-          enabled={!selectedObject}
+          enabled={!selectedObject && !previewMode}
+          enablePan={!previewMode}
+          enableZoom={!previewMode}
+          enableRotate={!previewMode}
         />
       );
   }
