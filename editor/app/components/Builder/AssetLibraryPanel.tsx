@@ -29,25 +29,25 @@ interface MetadataField {
 
 interface AssetLibraryPanelProps {
   tabIndex: number;
-  setTabIndex: (idx: number) => void;
+  setTabIndex: (index: number) => void;
   userAssets: any[];
   deletingAssetId: string | null;
-  handleDeleteModel: (assetId: string) => void;
+  handleDeleteModel: (assetId: string) => Promise<void>;
   handleModelSelect: (model: any) => void;
   selectingPosition: boolean;
-  setSelectingPosition: (val: boolean) => void;
+  setSelectingPosition: (selecting: boolean) => void;
   selectedPosition: Vector3Tuple | null;
   pendingModel: any;
   handleConfirmModelPlacement: () => void;
   handleCancelModelPlacement: () => void;
   previewUrl: string | null;
-  _setPreviewUrl: (url: string | null) => void;
-  _previewFile: File | null;
-  _setPreviewFile: (file: File | null) => void;
-  _screenshot: string | null;
-  setScreenshot: (s: string | null) => void;
+  setPreviewUrl: (url: string | null) => void;
+  previewFile: File | null;
+  setPreviewFile: (file: File | null) => void;
+  screenshot: string | null;
+  setScreenshot: (screenshot: string | null) => void;
   friendlyName: string;
-  setFriendlyName: (n: string) => void;
+  setFriendlyName: (name: string) => void;
   uploading: boolean;
   uploadProgress: number;
   isConfirmDisabled: boolean;
@@ -56,6 +56,18 @@ interface AssetLibraryPanelProps {
   getInputProps: any;
   metadata: MetadataField[];
   setMetadata: (metadata: MetadataField[]) => void;
+  isObservationModel: boolean;
+  onObservationModelChange: (isObservationModel: boolean) => void;
+  observationProperties: {
+    fov: number;
+    showVisibleArea: boolean;
+    visibilityRadius: number;
+  };
+  onObservationPropertiesChange: (properties: {
+    fov: number;
+    showVisibleArea: boolean;
+    visibilityRadius: number;
+  }) => void;
 }
 
 const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
@@ -72,10 +84,10 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
   handleConfirmModelPlacement,
   handleCancelModelPlacement,
   previewUrl,
-  _setPreviewUrl,
-  _previewFile,
-  _setPreviewFile,
-  _screenshot,
+  setPreviewUrl,
+  previewFile,
+  setPreviewFile,
+  screenshot,
   setScreenshot,
   friendlyName,
   setFriendlyName,
@@ -87,6 +99,10 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
   getInputProps,
   metadata,
   setMetadata,
+  isObservationModel,
+  onObservationModelChange,
+  observationProperties,
+  onObservationPropertiesChange,
 }) => {
   return (
     <Box display="flex" flexDirection="column" height="100%">
@@ -286,6 +302,12 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                   <ModelMetadataFields
                     metadata={metadata}
                     onChange={setMetadata}
+                    isObservationModel={isObservationModel}
+                    onObservationModelChange={onObservationModelChange}
+                    observationProperties={observationProperties}
+                    onObservationPropertiesChange={
+                      onObservationPropertiesChange
+                    }
                   />
                   {uploading && (
                     <Box sx={{ mb: 2 }}>

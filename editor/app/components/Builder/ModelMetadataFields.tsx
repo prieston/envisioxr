@@ -8,6 +8,9 @@ import {
   Typography,
   IconButton,
   Paper,
+  Switch,
+  FormControlLabel,
+  Slider,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -20,11 +23,31 @@ interface MetadataField {
 interface ModelMetadataFieldsProps {
   metadata: MetadataField[];
   onChange: (metadata: MetadataField[]) => void;
+  isObservationModel?: boolean;
+  onObservationModelChange?: (isObservationModel: boolean) => void;
+  observationProperties?: {
+    fov: number;
+    showVisibleArea: boolean;
+    visibilityRadius: number;
+  };
+  onObservationPropertiesChange?: (properties: {
+    fov: number;
+    showVisibleArea: boolean;
+    visibilityRadius: number;
+  }) => void;
 }
 
 const ModelMetadataFields: React.FC<ModelMetadataFieldsProps> = ({
   metadata,
   onChange,
+  isObservationModel = false,
+  onObservationModelChange,
+  observationProperties = {
+    fov: 90,
+    showVisibleArea: false,
+    visibilityRadius: 100,
+  },
+  onObservationPropertiesChange,
 }) => {
   const handleAddField = () => {
     onChange([...metadata, { label: "", value: "" }]);
@@ -93,6 +116,78 @@ const ModelMetadataFields: React.FC<ModelMetadataFieldsProps> = ({
         >
           Add Field
         </Button>
+
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Observation Model Properties
+          </Typography>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isObservationModel}
+                onChange={(e) => onObservationModelChange?.(e.target.checked)}
+              />
+            }
+            label="Is Observation Model"
+          />
+
+          {isObservationModel && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Field of View (degrees)
+              </Typography>
+              <Slider
+                value={observationProperties.fov}
+                min={10}
+                max={360}
+                onChange={(_, value) =>
+                  onObservationPropertiesChange?.({
+                    ...observationProperties,
+                    fov: value as number,
+                  })
+                }
+                valueLabelDisplay="auto"
+              />
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                gutterBottom
+                sx={{ mt: 2 }}
+              >
+                Visibility Radius (meters)
+              </Typography>
+              <Slider
+                value={observationProperties.visibilityRadius}
+                min={10}
+                max={1000}
+                onChange={(_, value) =>
+                  onObservationPropertiesChange?.({
+                    ...observationProperties,
+                    visibilityRadius: value as number,
+                  })
+                }
+                valueLabelDisplay="auto"
+              />
+
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={observationProperties.showVisibleArea}
+                    onChange={(e) =>
+                      onObservationPropertiesChange?.({
+                        ...observationProperties,
+                        showVisibleArea: e.target.checked,
+                      })
+                    }
+                  />
+                }
+                label="Show Visible Area"
+                sx={{ mt: 2 }}
+              />
+            </Box>
+          )}
+        </Box>
       </Paper>
     </Box>
   );
