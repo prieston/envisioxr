@@ -269,16 +269,30 @@ const useSceneStore = create<SceneState>((set) => ({
     })),
 
   updateObjectProperty: (id, property, value) =>
-    set((state) => ({
-      objects: state.objects.map((obj) =>
+    set((state) => {
+      const updatedObjects = state.objects.map((obj) =>
         obj.id === id
           ? {
               ...obj,
               [property]: value,
             }
           : obj
-      ),
-    })),
+      );
+
+      // Also update selectedObject if it matches the id
+      const updatedSelectedObject =
+        state.selectedObject?.id === id
+          ? {
+              ...state.selectedObject,
+              [property]: value,
+            }
+          : state.selectedObject;
+
+      return {
+        objects: updatedObjects,
+        selectedObject: updatedSelectedObject,
+      };
+    }),
 
   updateModelRef: (id, ref) =>
     set((state) => ({

@@ -2,7 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import { Box, Tabs, Tab } from "@mui/material";
+import {
+  Box,
+  Tabs,
+  Tab,
+  TextField,
+  LinearProgress,
+  Typography,
+  Button,
+  Tooltip,
+  CircularProgress,
+} from "@mui/material";
 import useSceneStore from "../../hooks/useSceneStore";
 import { useDropzone } from "react-dropzone";
 import { showToast } from "@/app/utils/toastUtils";
@@ -10,6 +20,8 @@ import * as THREE from "three";
 import { clientEnv } from "@/lib/env/client";
 import PropertiesPanel from "./PropertiesPanel";
 import AssetLibraryPanel from "./AssetLibraryPanel";
+import ModelPreview from "./ModelPreview";
+import ModelMetadataFields from "./ModelMetadataFields";
 
 // Styled container for the RightPanel with conditional styles based on previewMode
 interface RightPanelContainerProps {
@@ -58,6 +70,12 @@ const RightPanel: React.FC = () => {
   >(null);
   const [pendingModel, setPendingModel] = useState(null);
   const [metadata, setMetadata] = useState<MetadataField[]>([]);
+  const [isObservationModel, setIsObservationModel] = useState(false);
+  const [observationProperties, setObservationProperties] = useState({
+    fov: 90,
+    showVisibleArea: false,
+    visibilityRadius: 100,
+  });
 
   const {
     selectedObject,
@@ -322,6 +340,19 @@ const RightPanel: React.FC = () => {
         null
       );
 
+      // Add observation model properties to metadata if it's an observation model
+      const metadataWithObservation = isObservationModel
+        ? [
+            ...metadata,
+            { label: "isObservationModel", value: "true" },
+            { label: "fov", value: observationProperties.fov.toString() },
+            {
+              label: "visibilityRadius",
+              value: observationProperties.visibilityRadius.toString(),
+            },
+          ]
+        : metadata;
+
       const postRes = await fetch("/api/models", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -330,7 +361,7 @@ const RightPanel: React.FC = () => {
           originalFilename: friendlyName,
           fileType: previewFile.type,
           thumbnail: thumbnailUpload.publicUrl,
-          metadata: metadata,
+          metadata: metadataWithObservation,
         }),
       });
       if (!postRes.ok) {
@@ -343,12 +374,22 @@ const RightPanel: React.FC = () => {
         name: friendlyName,
         url: postData.asset.fileUrl,
         type: previewFile.type,
+        isObservationModel,
+        observationProperties: isObservationModel
+          ? observationProperties
+          : undefined,
       });
       setPreviewFile(null);
       setPreviewUrl(null);
       setScreenshot(null);
       setFriendlyName("");
-      setMetadata([]); // Reset metadata after successful upload
+      setMetadata([]);
+      setIsObservationModel(false);
+      setObservationProperties({
+        fov: 90,
+        showVisibleArea: false,
+        visibilityRadius: 100,
+      });
     } catch (error) {
       console.error("Upload error:", error);
       showToast("An error occurred during upload.");
@@ -366,6 +407,15 @@ const RightPanel: React.FC = () => {
       addModel({
         ...pendingModel,
         position: selectedPosition,
+        isObservationModel: pendingModel.isObservationModel || false,
+        observationProperties: pendingModel.isObservationModel
+          ? {
+              fov: pendingModel.observationProperties?.fov || 90,
+              showVisibleArea: false,
+              visibilityRadius:
+                pendingModel.observationProperties?.visibilityRadius || 100,
+            }
+          : undefined,
       });
       setPendingModel(null);
       setSelectedPosition(null);
@@ -451,6 +501,10 @@ const RightPanel: React.FC = () => {
             getInputProps={getInputProps}
             metadata={metadata}
             setMetadata={setMetadata}
+            isObservationModel={isObservationModel}
+            onObservationModelChange={setIsObservationModel}
+            observationProperties={observationProperties}
+            onObservationPropertiesChange={setObservationProperties}
           />
         </Box>
       )}

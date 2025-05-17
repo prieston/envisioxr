@@ -7,6 +7,7 @@ import useSceneStore from "../../app/hooks/useSceneStore.ts";
 import useModelLoader from "./useModelLoader.tsx";
 import { useModelSelection } from "./hooks/useModelSelection.ts";
 import { useModelMaterials } from "./hooks/useModelMaterials.ts";
+import ObservationVisibilityArea from "./ObservationVisibilityArea";
 
 // // Dynamically import CesiumIonTiles to avoid SSR issues
 // const CesiumIonTiles = dynamic(
@@ -34,18 +35,26 @@ interface ModelProps {
   selected?: boolean;
   onSelect?: (id: string, object: THREE.Object3D) => void;
   assetId?: string;
+  isObservationModel?: boolean;
+  observationProperties?: {
+    fov: number;
+    showVisibleArea: boolean;
+    visibilityRadius: number;
+  };
 }
 
 const Model = ({
   id,
   url,
   type = "glb",
-  position,
-  scale,
-  rotation,
+  position = [0, 0, 0],
+  scale = [1, 1, 1],
+  rotation = [0, 0, 0],
   selected,
   onSelect,
-  // assetId,
+  assetId,
+  isObservationModel,
+  observationProperties,
 }: ModelProps) => {
   // If this is a Cesium Ion tiles model, render it differently
   // if (type === "tiles" && assetId) {
@@ -139,12 +148,23 @@ const Model = ({
   }
 
   return (
-    <primitive
-      ref={modelRef}
-      object={clonedObject}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-    />
+    <>
+      <primitive
+        ref={modelRef}
+        object={clonedObject}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+      />
+      {isObservationModel && observationProperties && (
+        <ObservationVisibilityArea
+          position={position}
+          rotation={rotation}
+          fov={observationProperties.fov}
+          radius={observationProperties.visibilityRadius}
+          showVisibleArea={observationProperties.showVisibleArea}
+        />
+      )}
+    </>
   );
 };
 

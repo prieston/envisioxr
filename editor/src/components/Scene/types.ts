@@ -9,6 +9,12 @@ export interface Model {
   apiKey?: string;
   assetId?: string;
   component?: string;
+  isObservationModel?: boolean;
+  observationProperties?: {
+    fov: number; // Field of view in degrees (10-360)
+    showVisibleArea: boolean;
+    visibilityRadius: number; // Radius in meters
+  };
   [key: string]: any; // For any additional properties
 }
 

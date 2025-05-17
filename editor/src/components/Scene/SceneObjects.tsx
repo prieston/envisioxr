@@ -26,6 +26,8 @@ const SceneObjects: React.FC<SceneObjectsProps> = ({
           selected={selectedObject?.id === obj.id}
           onSelect={previewMode || isPublishMode ? undefined : selectObject}
           assetId={obj.assetId || undefined}
+          isObservationModel={obj.isObservationModel}
+          observationProperties={obj.observationProperties}
         />
       ))}
     </>

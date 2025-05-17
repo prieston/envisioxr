@@ -7,6 +7,9 @@ import {
   Divider,
   Paper,
   CircularProgress,
+  Switch,
+  FormControlLabel,
+  Slider,
 } from "@mui/material";
 import { Camera, FlightTakeoff } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
@@ -101,6 +104,16 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         position: selectedObject.position || [0, 0, 0],
         rotation: selectedObject.rotation || [0, 0, 0],
         scale: selectedObject.scale || [1, 1, 1],
+        isObservationModel: selectedObject.isObservationModel || false,
+        observationProperties: selectedObject.isObservationModel
+          ? {
+              fov: selectedObject.observationProperties?.fov || 90,
+              showVisibleArea:
+                selectedObject.observationProperties?.showVisibleArea || false,
+              visibilityRadius:
+                selectedObject.observationProperties?.visibilityRadius || 100,
+            }
+          : undefined,
       });
     } else {
       setLocalObject(null);
@@ -169,15 +182,60 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     localObject?.scale,
   ]);
 
-  const handlePropertyChange = (property: string, value: number | string) => {
+  const handlePropertyChange = (
+    property: string,
+    value: number | string | boolean
+  ) => {
     if (selectedObject) {
       // Update local state immediately for responsive UI
-      setLocalObject((prev) => ({
-        ...prev,
-        [property]: value,
-      }));
+      setLocalObject((prev) => {
+        if (!prev) return prev;
+
+        // Handle nested properties (e.g., "position.0", "observationProperties.fov")
+        if (property.includes(".")) {
+          const [parent, child] = property.split(".");
+          if (parent === "observationProperties") {
+            return {
+              ...prev,
+              observationProperties: {
+                ...prev.observationProperties,
+                [child]: value,
+              },
+            };
+          }
+          // Handle array indices (e.g., "position.0")
+          const index = parseInt(child);
+          if (!isNaN(index)) {
+            const array = [...(prev[parent] || [])];
+            array[index] = value;
+            return {
+              ...prev,
+              [parent]: array,
+            };
+          }
+        }
+
+        return {
+          ...prev,
+          [property]: value,
+        };
+      });
+
       // Update global state
-      updateObjectProperty(selectedObject.id, property, value);
+      if (property.startsWith("observationProperties.")) {
+        const propName = property.split(".")[1];
+        const updatedProperties = {
+          ...selectedObject.observationProperties,
+          [propName]: value,
+        };
+        updateObjectProperty(
+          selectedObject.id,
+          "observationProperties",
+          updatedProperties
+        );
+      } else {
+        updateObjectProperty(selectedObject.id, property, value);
+      }
     }
   };
 
@@ -297,6 +355,21 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             <Typography variant="body2" color="text.secondary">
               Type: {selectedObject.type || "Unknown"}
             </Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={selectedObject.isObservationModel || false}
+                  onChange={(e) =>
+                    updateObjectProperty(
+                      selectedObject.id,
+                      "isObservationModel",
+                      e.target.checked
+                    )
+                  }
+                />
+              }
+              label="Observation Model"
+            />
             <Button
               fullWidth
               variant="outlined"
@@ -309,6 +382,70 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             </Button>
           </Paper>
         </PropertyGroup>
+
+        {selectedObject.isObservationModel && (
+          <PropertyGroup>
+            <Typography variant="subtitle1" gutterBottom>
+              Observation Properties
+            </Typography>
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Field of View (degrees)
+                </Typography>
+                <Slider
+                  value={selectedObject.observationProperties?.fov || 90}
+                  min={10}
+                  max={360}
+                  onChange={(_, value) =>
+                    handlePropertyChange(
+                      "observationProperties.fov",
+                      value as number
+                    )
+                  }
+                  valueLabelDisplay="auto"
+                />
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Visibility Radius (meters)
+                </Typography>
+                <Slider
+                  value={
+                    selectedObject.observationProperties?.visibilityRadius ||
+                    100
+                  }
+                  min={10}
+                  max={1000}
+                  onChange={(_, value) =>
+                    handlePropertyChange(
+                      "observationProperties.visibilityRadius",
+                      value as number
+                    )
+                  }
+                  valueLabelDisplay="auto"
+                />
+              </Box>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={
+                      selectedObject.observationProperties?.showVisibleArea ||
+                      false
+                    }
+                    onChange={(e) =>
+                      handlePropertyChange(
+                        "observationProperties.showVisibleArea",
+                        e.target.checked
+                      )
+                    }
+                  />
+                }
+                label="Show Visible Area"
+              />
+            </Paper>
+          </PropertyGroup>
+        )}
 
         <PropertyGroup>
           <Typography variant="subtitle1" gutterBottom>
