@@ -8,6 +8,7 @@ import useModelLoader from "./useModelLoader.tsx";
 import { useModelSelection } from "./hooks/useModelSelection.ts";
 import { useModelMaterials } from "./hooks/useModelMaterials.ts";
 import ObservationVisibilityArea from "./ObservationVisibilityArea";
+import ActualVisibilityArea from "./ActualVisibilityArea";
 
 // // Dynamically import CesiumIonTiles to avoid SSR issues
 // const CesiumIonTiles = dynamic(
@@ -40,6 +41,9 @@ interface ModelProps {
     fov: number;
     showVisibleArea: boolean;
     visibilityRadius: number;
+    showActualArea: boolean;
+    showCalculatedArea: boolean;
+    gridDensity?: number;
   };
 }
 
@@ -156,13 +160,36 @@ const Model = ({
         onPointerUp={handlePointerUp}
       />
       {isObservationModel && observationProperties && (
-        <ObservationVisibilityArea
-          position={position}
-          rotation={rotation}
-          fov={observationProperties.fov}
-          radius={observationProperties.visibilityRadius}
-          showVisibleArea={observationProperties.showVisibleArea}
-        />
+        <>
+          {observationProperties.showVisibleArea && (
+            <ObservationVisibilityArea
+              position={position}
+              rotation={rotation}
+              fov={observationProperties.fov}
+              radius={observationProperties.visibilityRadius}
+              showVisibleArea={observationProperties.showVisibleArea}
+            />
+          )}
+          {observationProperties.showActualArea && (
+            <ActualVisibilityArea
+              position={position}
+              rotation={rotation}
+              fov={observationProperties.fov}
+              radius={observationProperties.visibilityRadius}
+              showVisibleArea={observationProperties.showActualArea}
+            />
+          )}
+          {observationProperties.showCalculatedArea && (
+            <ActualVisibilityArea
+              position={position}
+              rotation={rotation}
+              fov={observationProperties.fov}
+              radius={observationProperties.visibilityRadius}
+              showVisibleArea={observationProperties.showCalculatedArea}
+              gridDensity={observationProperties.gridDensity || 10}
+            />
+          )}
+        </>
       )}
     </>
   );

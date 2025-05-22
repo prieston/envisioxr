@@ -84,8 +84,6 @@ const CesiumIonTiles: React.FC<CesiumIonTilesProps> = ({
   });
 
   useEffect(() => {
-    console.log("Initializing Cesium Ion tiles renderer");
-
     try {
       // Create the tiles renderer without initial URL
       const tilesRenderer = new TilesRenderer();

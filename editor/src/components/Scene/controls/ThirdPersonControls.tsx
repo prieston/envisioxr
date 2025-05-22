@@ -112,25 +112,9 @@ export default function ThirdPersonControls() {
     raycaster.set(origin, dir);
     raycaster.far = PLAYER_HEIGHT + GROUND_EPS + 0.2;
 
-    console.log(
-      `[DEBUG] Ray Origin Y: ${origin.y.toFixed(2)}, Ray Far: ${raycaster.far.toFixed(2)}`
-    );
-
     const hits = raycaster
       .intersectObjects(scene.children, true)
       .filter((h) => h.object !== playerRef.current);
-    if (hits.length) {
-      console.log(
-        "%c[DEBUG] Ray Hits:",
-        "color: green;",
-        hits.map((h) => ({
-          name: h.object.name || h.object.id,
-          dist: h.distance.toFixed(2),
-        }))
-      );
-    } else {
-      console.log("%c[DEBUG] No Ray Hits", "color: orange;");
-    }
 
     // -- Gravity & snapping --
     const { velocityY: newVY, snapped } = applyGravityAndSnap(

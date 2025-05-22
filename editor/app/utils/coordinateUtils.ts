@@ -8,10 +8,6 @@ let referenceLongitude = -74.006;
 export function setReferenceLocation(latitude: number, longitude: number) {
   referenceLatitude = latitude;
   referenceLongitude = longitude;
-  console.log("[coordinateUtils] Set reference location:", {
-    latitude,
-    longitude,
-  });
 }
 
 /**
@@ -23,17 +19,6 @@ export function localToGeographic(
   tilesRenderer: TilesRenderer,
   localPos: Vector3
 ): { latitude: number; longitude: number; altitude: number } {
-  console.log("[localToGeographic] Input local position:", {
-    x: localPos.x,
-    y: localPos.y,
-    z: localPos.z,
-  });
-
-  console.log("[localToGeographic] Reference location:", {
-    refLat: referenceLatitude,
-    refLon: referenceLongitude,
-  });
-
   // Convert local position to geographic offset
   // Use the Earth's radius at the reference latitude for more accurate conversion
   const earthRadius = 6378137.0; // Earth's radius in meters
@@ -50,19 +35,12 @@ export function localToGeographic(
   // Use local y position directly as altitude
   const altitude = localPos.y;
 
-  console.log("[localToGeographic] Calculated offsets:", {
-    latOffset,
-    lonOffset,
-    altOffset: altitude,
-  });
-
   const result = {
     latitude,
     longitude,
     altitude,
   };
 
-  console.log("[localToGeographic] Output geographic:", result);
   return result;
 }
 
@@ -79,17 +57,6 @@ export function geographicToLocal(
   longitude: number,
   altitude: number
 ): Vector3 {
-  console.log("[geographicToLocal] Input geographic:", {
-    latitude,
-    longitude,
-    altitude,
-  });
-
-  console.log("[geographicToLocal] Reference location:", {
-    refLat: referenceLatitude,
-    refLon: referenceLongitude,
-  });
-
   // Calculate offsets from reference location
   const latOffset = latitude - referenceLatitude;
   const lonOffset = longitude - referenceLongitude;
@@ -105,18 +72,7 @@ export function geographicToLocal(
   // Use altitude directly as y position
   const y = altitude;
 
-  console.log("[geographicToLocal] Calculated offsets:", {
-    latOffset,
-    lonOffset,
-  });
-
   const localPos = new Vector3(x, y, z);
-
-  console.log("[geographicToLocal] Output local position:", {
-    x: localPos.x,
-    y: localPos.y,
-    z: localPos.z,
-  });
 
   return localPos;
 }

@@ -10,6 +10,10 @@ import {
   Switch,
   FormControlLabel,
   Slider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { Camera, FlightTakeoff } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
@@ -110,6 +114,8 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               fov: selectedObject.observationProperties?.fov || 90,
               showVisibleArea:
                 selectedObject.observationProperties?.showVisibleArea || false,
+              showActualArea:
+                selectedObject.observationProperties?.showActualArea || false,
               visibilityRadius:
                 selectedObject.observationProperties?.visibilityRadius || 100,
             }
@@ -274,6 +280,22 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       // Update the controls
       orbitControlsRef.update();
     }
+  };
+
+  const handleCalculateVisibleArea = () => {
+    if (!selectedObject) return;
+
+    // Update the object to show the actual visibility area
+    updateObjectProperty(
+      selectedObject.id,
+      "observationProperties.showActualArea",
+      true
+    );
+    updateObjectProperty(
+      selectedObject.id,
+      "observationProperties.showVisibleArea",
+      false
+    );
   };
 
   if (viewMode === "settings") {
@@ -441,8 +463,80 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     }
                   />
                 }
-                label="Show Visible Area"
+                label="Show Cone"
               />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={
+                      selectedObject.observationProperties
+                        ?.showCalculatedArea || false
+                    }
+                    onChange={(e) =>
+                      handlePropertyChange(
+                        "observationProperties.showCalculatedArea",
+                        e.target.checked
+                      )
+                    }
+                  />
+                }
+                label="Show Calculated Area"
+              />
+              <Box sx={{ mb: 2, mt: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Grid Density (points per side)
+                </Typography>
+                <Slider
+                  value={
+                    selectedObject.observationProperties?.gridDensity || 10
+                  }
+                  min={5}
+                  max={50}
+                  onChange={(_, value) =>
+                    handlePropertyChange(
+                      "observationProperties.gridDensity",
+                      value as number
+                    )
+                  }
+                  valueLabelDisplay="auto"
+                />
+              </Box>
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{ mt: 1 }}
+                onClick={() => {
+                  console.log("Calculate Visible Area button clicked");
+                  console.log(
+                    "Current observation properties:",
+                    selectedObject.observationProperties
+                  );
+
+                  // First ensure the calculated area is shown
+                  console.log("Setting showCalculatedArea to true");
+                  handlePropertyChange(
+                    "observationProperties.showCalculatedArea",
+                    true
+                  );
+
+                  // Then trigger a recalculation by toggling the switch
+                  console.log("Setting showCalculatedArea to false");
+                  handlePropertyChange(
+                    "observationProperties.showCalculatedArea",
+                    false
+                  );
+
+                  setTimeout(() => {
+                    console.log("Setting showCalculatedArea back to true");
+                    handlePropertyChange(
+                      "observationProperties.showCalculatedArea",
+                      true
+                    );
+                  }, 0);
+                }}
+              >
+                Calculate Visible Area
+              </Button>
             </Paper>
           </PropertyGroup>
         )}

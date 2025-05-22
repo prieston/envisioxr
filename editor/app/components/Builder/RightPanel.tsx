@@ -115,12 +115,10 @@ const RightPanel: React.FC = () => {
       const mouse = new THREE.Vector2();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-      console.log("Mouse coordinates:", { x: mouse.x, y: mouse.y });
 
       // Update the raycaster
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, orbitControlsRef.object);
-      console.log("Camera position:", orbitControlsRef.object.position);
 
       // Get all objects in the scene
       const allObjects = [];
@@ -129,27 +127,22 @@ const RightPanel: React.FC = () => {
           allObjects.push(object);
         }
       });
-      console.log("Found meshes for raycasting:", allObjects.length);
 
       // Find intersections with all objects
       const intersects = raycaster.intersectObjects(allObjects, true);
-      console.log("Intersections found:", intersects.length);
 
       if (intersects.length > 0) {
         const hitPoint = intersects[0].point;
-        console.log("Hit point:", hitPoint);
         setSelectedPosition([hitPoint.x, hitPoint.y, hitPoint.z]);
         setSelectingPosition(false); // Close the first box
         showToast("Position selected!");
       } else {
-        console.log("No intersections found");
         showToast("No surface detected at click point");
       }
     };
 
     const canvas = document.querySelector("canvas");
     if (canvas) {
-      console.log("Adding click listener to canvas");
       canvas.addEventListener("click", handleClick);
       canvas.style.cursor = "crosshair";
     } else {
@@ -158,7 +151,6 @@ const RightPanel: React.FC = () => {
 
     return () => {
       if (canvas) {
-        console.log("Removing click listener from canvas");
         canvas.removeEventListener("click", handleClick);
         canvas.style.cursor = "auto";
       }
