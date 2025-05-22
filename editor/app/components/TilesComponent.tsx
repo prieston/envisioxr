@@ -102,14 +102,6 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
         })
       );
 
-      // Center the local frame at the reference lat/lon (Y-up)
-      console.log("[TilesComponent] Setting reference location:", {
-        latitude,
-        longitude,
-        latRad: latitude * MathUtils.DEG2RAD,
-        lonRad: longitude * MathUtils.DEG2RAD,
-      });
-
       // Set the reference location for coordinate conversions
       setReferenceLocation(latitude, longitude);
 

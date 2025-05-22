@@ -93,14 +93,6 @@ const sanitizeSceneData = (
       }
     : null;
 
-  console.log("Cleaned scene data:", {
-    objects: cleanObjects,
-    observationPoints: cleanObservationPoints,
-    selectedAssetId: selectedAssetId || "2275207",
-    selectedLocation: cleanSelectedLocation,
-    showTiles,
-  });
-
   return {
     objects: cleanObjects,
     observationPoints: cleanObservationPoints,

@@ -237,7 +237,6 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                       size="small"
                       variant="contained"
                       onClick={() => {
-                        console.info("Adding model", model);
                         handleModelSelect({
                           name: model.originalFilename,
                           url: model.fileUrl,
