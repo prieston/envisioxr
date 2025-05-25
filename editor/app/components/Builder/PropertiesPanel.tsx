@@ -197,13 +197,14 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         if (property.includes(".")) {
           const [parent, child] = property.split(".");
           if (parent === "observationProperties") {
-            return {
+            const updated = {
               ...prev,
               observationProperties: {
                 ...prev.observationProperties,
                 [child]: value,
               },
             };
+            return updated;
           }
           // Handle array indices (e.g., "position.0")
           const index = parseInt(child);
@@ -452,12 +453,12 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                       selectedObject.observationProperties
                         ?.showCalculatedArea || false
                     }
-                    onChange={(e) =>
+                    onChange={(e) => {
                       handlePropertyChange(
                         "observationProperties.showCalculatedArea",
                         e.target.checked
-                      )
-                    }
+                      );
+                    }}
                   />
                 }
                 label="Show Calculated Area"
@@ -486,33 +487,9 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 fullWidth
                 sx={{ mt: 1 }}
                 onClick={() => {
-                  console.log("Calculate Visible Area button clicked");
-                  console.log(
-                    "Current observation properties:",
-                    selectedObject.observationProperties
-                  );
-
-                  // First ensure the calculated area is shown
-                  console.log("Setting showCalculatedArea to true");
-                  handlePropertyChange(
-                    "observationProperties.showCalculatedArea",
-                    true
-                  );
-
-                  // Then trigger a recalculation by toggling the switch
-                  console.log("Setting showCalculatedArea to false");
-                  handlePropertyChange(
-                    "observationProperties.showCalculatedArea",
-                    false
-                  );
-
-                  setTimeout(() => {
-                    console.log("Setting showCalculatedArea back to true");
-                    handlePropertyChange(
-                      "observationProperties.showCalculatedArea",
-                      true
-                    );
-                  }, 0);
+                  useSceneStore
+                    .getState()
+                    .startVisibilityCalculation(selectedObject.id);
                 }}
               >
                 Calculate Visible Area

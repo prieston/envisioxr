@@ -59,6 +59,11 @@ const Model = ({
   isObservationModel,
   observationProperties,
 }: ModelProps) => {
+  const store = useSceneStore();
+  const objectFromStore = store.objects.find((obj) => obj.id === id);
+  const effectiveObservationProperties =
+    objectFromStore?.observationProperties || observationProperties;
+
   // If this is a Cesium Ion tiles model, render it differently
   // if (type === "tiles" && assetId) {
   //   return (
@@ -158,34 +163,29 @@ const Model = ({
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       />
-      {isObservationModel && observationProperties && (
+      {isObservationModel && effectiveObservationProperties && (
         <>
-          {observationProperties.showVisibleArea && (
+          {effectiveObservationProperties.showVisibleArea && (
             <ObservationVisibilityArea
               position={position}
               rotation={rotation}
-              fov={observationProperties.fov}
-              radius={observationProperties.visibilityRadius}
-              showVisibleArea={observationProperties.showVisibleArea}
+              fov={effectiveObservationProperties.fov}
+              radius={effectiveObservationProperties.visibilityRadius}
+              showVisibleArea={effectiveObservationProperties.showVisibleArea}
             />
           )}
-          {observationProperties.showActualArea && (
+          {effectiveObservationProperties.showCalculatedArea && (
             <ActualVisibilityArea
+              key={`visibility-${id}-${Date.now()}`}
               position={position}
               rotation={rotation}
-              fov={observationProperties.fov}
-              radius={observationProperties.visibilityRadius}
-              showVisibleArea={observationProperties.showActualArea}
-            />
-          )}
-          {observationProperties.showCalculatedArea && (
-            <ActualVisibilityArea
-              position={position}
-              rotation={rotation}
-              fov={observationProperties.fov}
-              radius={observationProperties.visibilityRadius}
-              showVisibleArea={observationProperties.showCalculatedArea}
-              gridDensity={observationProperties.gridDensity || 10}
+              fov={effectiveObservationProperties.fov}
+              radius={effectiveObservationProperties.visibilityRadius}
+              showVisibleArea={
+                effectiveObservationProperties.showCalculatedArea
+              }
+              gridDensity={effectiveObservationProperties.gridDensity || 10}
+              objectId={id}
             />
           )}
         </>
