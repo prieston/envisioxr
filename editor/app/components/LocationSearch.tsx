@@ -6,6 +6,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemButton,
   Paper,
   CircularProgress,
   Box,
@@ -204,15 +205,13 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onAssetSelect }) => {
       {locations.length > 0 && (
         <List>
           {locations.map((location) => (
-            <ListItem
-              key={location.id}
-              button
-              onClick={() => handleLocationSelect(location)}
-            >
-              <ListItemText
-                primary={location.name}
-                secondary={`${location.latitude}, ${location.longitude}`}
-              />
+            <ListItem key={location.id}>
+              <ListItemButton onClick={() => handleLocationSelect(location)}>
+                <ListItemText
+                  primary={location.name}
+                  secondary={`${location.latitude}, ${location.longitude}`}
+                />
+              </ListItemButton>
             </ListItem>
           ))}
         </List>
@@ -227,15 +226,13 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onAssetSelect }) => {
             />
           </ListItem>
           {assets.map((asset) => (
-            <ListItem
-              key={asset.id}
-              button
-              onClick={() => handleAssetSelect(asset)}
-            >
-              <ListItemText
-                primary={asset.name}
-                secondary={asset.description}
-              />
+            <ListItem key={asset.id}>
+              <ListItemButton onClick={() => handleAssetSelect(asset)}>
+                <ListItemText
+                  primary={asset.name}
+                  secondary={asset.description}
+                />
+              </ListItemButton>
             </ListItem>
           ))}
         </List>
