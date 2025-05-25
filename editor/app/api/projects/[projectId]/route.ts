@@ -179,7 +179,6 @@ export async function PATCH(request: NextRequest, { params }: ProjectParams) {
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const userId = session.user.id;
 
   try {
     const body = await request.json();

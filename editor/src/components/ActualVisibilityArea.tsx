@@ -21,7 +21,6 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
 }) => {
   const { scene } = useThree();
   const visibilityAreaRef = useRef<THREE.Object3D>();
-  const materialRef = useRef<THREE.MeshBasicMaterial>();
   const raycaster = useRef(new THREE.Raycaster());
   const visiblePoints = useRef<THREE.Vector3[]>([]);
   const debugPointsRef = useRef<THREE.Points>();

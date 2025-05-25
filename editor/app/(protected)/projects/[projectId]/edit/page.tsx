@@ -59,7 +59,6 @@ const EditProjectPage = () => {
         throw new Error(errorData.error || "Failed to update project");
       }
 
-      const data = await res.json();
       showToast("Project saved successfully!");
       router.push("/dashboard");
     } catch (error) {

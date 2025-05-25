@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  IconButton,
-  CircularProgress,
-  AppBar,
-} from "@mui/material";
+import { Box, Typography, IconButton, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
 import InfoIcon from "@mui/icons-material/Info";
 import useProjects from "@/app/hooks/useProjects";
