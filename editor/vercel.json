@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "pnpm build:editor",
+  "buildCommand": "pnpm vercel:build:editor",
   "installCommand": "pnpm install",
   "framework": "nextjs",
   "regions": ["sfo1"],
