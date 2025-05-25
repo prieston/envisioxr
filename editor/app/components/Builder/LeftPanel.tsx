@@ -17,12 +17,6 @@ import {
   Typography,
   Tabs,
   Tab,
-  Divider,
-  TextField,
-  Switch,
-  FormControlLabel,
-  Collapse,
-  ListItemIcon,
 } from "@mui/material";
 import { MoreVert, ViewInAr, Landscape } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
@@ -124,15 +118,6 @@ const PanelTitle = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
-// New styled components for environment settings
-const SettingsSection = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(2),
-}));
-
-const SettingItem = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-}));
-
 const TabPanel = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
   height: "calc(100% - 48px)", // 48px is the height of the tabs
@@ -182,13 +167,6 @@ const LeftPanel = () => {
       console.log("No object id to delete.");
     }
     setDeleteDialogOpen(false);
-    setSelectedItemForDelete(null);
-  };
-
-  // Cancel deletion.
-  const cancelDelete = () => {
-    setDeleteDialogOpen(false);
-    // Optionally clear deleteTargetId if you don't want to keep it.
     setSelectedItemForDelete(null);
   };
 

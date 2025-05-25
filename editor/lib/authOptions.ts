@@ -2,8 +2,6 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "./prisma";
-import { AuthOptions } from "next-auth";
-import { JWT } from "next-auth/jwt";
 
 interface UserSession {
   id: string;
@@ -12,7 +10,7 @@ interface UserSession {
   image?: string;
 }
 
-export const authOptions: AuthOptions = {
+export const authOptions = {
   pages: {
     signIn: "/auth/signin",
   },

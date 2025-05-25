@@ -10,10 +10,6 @@ import {
   Switch,
   FormControlLabel,
   Slider,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from "@mui/material";
 import { Camera, FlightTakeoff } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
@@ -97,7 +93,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 }) => {
   const [localObject, setLocalObject] = useState(selectedObject);
   const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
-  const selectedLocation = useSceneStore((state) => state.selectedLocation);
   const tilesRenderer = useSceneStore((state) => state.tilesRenderer);
   const observationPoints = useSceneStore((state) => state.observationPoints);
 
@@ -281,22 +276,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       // Update the controls
       orbitControlsRef.update();
     }
-  };
-
-  const handleCalculateVisibleArea = () => {
-    if (!selectedObject) return;
-
-    // Update the object to show the actual visibility area
-    updateObjectProperty(
-      selectedObject.id,
-      "observationProperties.showActualArea",
-      true
-    );
-    updateObjectProperty(
-      selectedObject.id,
-      "observationProperties.showVisibleArea",
-      false
-    );
   };
 
   if (viewMode === "settings") {

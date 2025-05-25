@@ -2,17 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import {
-  Box,
-  Tabs,
-  Tab,
-  TextField,
-  LinearProgress,
-  Typography,
-  Button,
-  Tooltip,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Tabs, Tab } from "@mui/material";
 import useSceneStore from "../../hooks/useSceneStore";
 import { useDropzone } from "react-dropzone";
 import { showToast } from "@/app/utils/toastUtils";
@@ -20,8 +10,6 @@ import * as THREE from "three";
 import { clientEnv } from "@/lib/env/client";
 import PropertiesPanel from "./PropertiesPanel";
 import AssetLibraryPanel from "./AssetLibraryPanel";
-import ModelPreview from "./ModelPreview";
-import ModelMetadataFields from "./ModelMetadataFields";
 
 // Styled container for the RightPanel with conditional styles based on previewMode
 interface RightPanelContainerProps {
