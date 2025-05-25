@@ -30,8 +30,11 @@
     "typescript": "^5.3.3"
   },
   "engines": {
-    "node": ">=18",
-    "pnpm": ">=8"
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "resolutions": {
+    "next": "^15.2.4"
   },
   "dependencies": {
     "@types/react": "^18.3.20",
