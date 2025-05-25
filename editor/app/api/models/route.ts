@@ -1,12 +1,25 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/authOptions";
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { authOptions } from "@/lib/authOptions";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import prisma from "@/prisma";
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma.ts";
+import { Session } from "next-auth";
+import { serverEnv } from "@/lib/env/server";
+
+interface StockModel {
+  name: string;
+  url: string;
+  type: string;
+}
 
 // Hard-coded stock models.
-const stockModels = [
+const stockModels: StockModel[] = [
   {
     name: "House",
     url: "https://prieston-prod.fra1.cdn.digitaloceanspaces.com/general/house.glb",
@@ -20,9 +33,9 @@ const stockModels = [
 ];
 
 // GET: List both stock models and user's uploaded assets.
-export async function GET(request) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
+export async function GET(_request: NextRequest) {
+  const session = (await getServerSession(authOptions)) as Session;
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const userId = session.user.id;
@@ -33,14 +46,17 @@ export async function GET(request) {
     });
     return NextResponse.json({ stockModels, assets });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }
 
 // PATCH: Generate a signed URL for uploading a file to DigitalOcean Spaces.
-export async function PATCH(request) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
+export async function PATCH(request: NextRequest) {
+  const session = (await getServerSession(authOptions)) as Session;
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
@@ -50,14 +66,14 @@ export async function PATCH(request) {
     }
     // Configure the S3 client for DigitalOcean Spaces.
     const s3 = new S3Client({
-      region: process.env.DO_SPACES_REGION,
-      endpoint: process.env.DO_SPACES_ENDPOINT, // e.g. "https://fra1.digitaloceanspaces.com"
+      region: serverEnv.DO_SPACES_REGION,
+      endpoint: serverEnv.DO_SPACES_ENDPOINT,
       credentials: {
-        accessKeyId: process.env.DO_SPACES_KEY,
-        secretAccessKey: process.env.DO_SPACES_SECRET,
+        accessKeyId: serverEnv.DO_SPACES_KEY,
+        secretAccessKey: serverEnv.DO_SPACES_SECRET,
       },
     });
-    const bucketName = process.env.DO_SPACES_BUCKET;
+    const bucketName = serverEnv.DO_SPACES_BUCKET;
     const key = `models/${Date.now()}-${fileName}`;
     const command = new PutObjectCommand({
       Bucket: bucketName,
@@ -69,26 +85,45 @@ export async function PATCH(request) {
     const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
     return NextResponse.json({ signedUrl, key });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }
 
 // POST: Create a new Asset record once the file has been uploaded.
-export async function POST(request) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
+export async function POST(request: NextRequest) {
+  const session = (await getServerSession(authOptions)) as Session;
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const userId = session.user.id;
   try {
-    // Expecting a JSON body with key, originalFilename, fileType, and thumbnail.
+    // Expecting a JSON body with key, originalFilename, fileType, thumbnail, and metadata
     const body = await request.json();
-    const { key, originalFilename, fileType, thumbnail } = body;
+    const { key, originalFilename, fileType, thumbnail, metadata } = body;
     if (!key || !originalFilename || !fileType) {
       return NextResponse.json({ error: "Missing file data" }, { status: 400 });
     }
-    // Construct the public file URL from your DigitalOcean Spaces bucket.
-    const fileUrl = `${process.env.DO_SPACES_ENDPOINT}/${process.env.DO_SPACES_BUCKET}/${key}`;
+    // Construct the public file URL from your DigitalOcean Spaces bucket
+    const fileUrl = `${serverEnv.DO_SPACES_ENDPOINT}/${serverEnv.DO_SPACES_BUCKET}/${key}`;
+
+    // Convert metadata array to object format
+    const metadataObject =
+      metadata?.reduce(
+        (
+          acc: Record<string, string>,
+          field: { label: string; value: string }
+        ) => {
+          if (field.label && field.value) {
+            acc[field.label] = field.value;
+          }
+          return acc;
+        },
+        {}
+      ) || {};
+
     const asset = await prisma.asset.create({
       data: {
         userId,
@@ -96,19 +131,23 @@ export async function POST(request) {
         originalFilename,
         fileType,
         thumbnail: thumbnail || null,
+        metadata: metadataObject,
       },
     });
     return NextResponse.json({ asset });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }
 
 // DELETE: Remove an asset from DigitalOcean Spaces and the database.
-export async function DELETE(request) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
+export async function DELETE(request: NextRequest) {
+  const session = (await getServerSession(authOptions)) as Session;
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const userId = session.user.id;
@@ -129,17 +168,17 @@ export async function DELETE(request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
     // Determine the key from the asset's fileUrl.
-    const bucketName = process.env.DO_SPACES_BUCKET;
-    const endpoint = process.env.DO_SPACES_ENDPOINT;
+    const bucketName = serverEnv.DO_SPACES_BUCKET;
+    const endpoint = serverEnv.DO_SPACES_ENDPOINT;
     const fileUrl = asset.fileUrl;
     const key = fileUrl.replace(`${endpoint}/${bucketName}/`, "");
     // Setup S3 client.
     const s3 = new S3Client({
-      region: process.env.DO_SPACES_REGION,
+      region: serverEnv.DO_SPACES_REGION,
       endpoint: endpoint,
       credentials: {
-        accessKeyId: process.env.DO_SPACES_KEY,
-        secretAccessKey: process.env.DO_SPACES_SECRET,
+        accessKeyId: serverEnv.DO_SPACES_KEY,
+        secretAccessKey: serverEnv.DO_SPACES_SECRET,
       },
     });
     // Delete the object from Spaces.
@@ -155,6 +194,9 @@ export async function DELETE(request) {
     return NextResponse.json({ message: "Asset deleted successfully" });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }

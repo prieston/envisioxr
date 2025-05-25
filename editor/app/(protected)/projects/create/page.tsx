@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Box, TextField, Button, Typography } from "@mui/material";
 import { useRouter } from "next/navigation";
-import AdminAppBar from "@/components/AppBar";
+import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 
 const CreateProjectPage = () => {
   const router = useRouter();
@@ -33,7 +33,7 @@ const CreateProjectPage = () => {
   return (
     <>
       <AdminAppBar mode="simple" />
-      <Box sx={{ padding: 3 }}>
+      <Box sx={{ padding: 3, marginTop: "64px" }}>
         <Typography variant="h5" gutterBottom>
           Create New Project
         </Typography>

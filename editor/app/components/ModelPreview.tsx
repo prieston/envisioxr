@@ -4,11 +4,11 @@ import React, { useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { Box, Button, Typography } from "@mui/material";
-import useModelLoader from "@/components/useModelLoader";
+import useModelLoader from "@/src/components/useModelLoader";
 
 const Model = ({ url, type }) => {
   const model = useModelLoader(url, type);
-    {/* @ts-ignore-next-line */}
+  // @ts-expect-error - model.scene is not defined
   return model ? <primitive object={model.scene || model} /> : null;
 };
 
@@ -36,9 +36,7 @@ const ModelPreview = ({ fileUrl, type, onScreenshotCaptured }) => {
           canvasRef.current = gl.domElement;
         }}
       >
-    {/* @ts-ignore-next-line */}
         <ambientLight intensity={0.5} />
-    {/* @ts-ignore-next-line */}
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <Model url={fileUrl} type={type} />
         <OrbitControls />

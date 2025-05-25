@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import dynamic from "next/dynamic";
 import {
   IconButton,
@@ -8,16 +7,16 @@ import {
   FormControlLabel,
   Switch,
   Typography,
+  AppBar,
+  Toolbar,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import Toolbar from "@mui/material/Toolbar";
-import AppBar from "@mui/material/AppBar";
-import InfoIcon from "@mui/icons-material/Info";
+import MenuIcon from "@mui/icons-material/Menu";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import LogoHeader from "@/components/AppBar/LogoHeader";
+import LogoHeader from "../AppBar/LogoHeader";
 
-const PreviewScene = dynamic(() => import("@/components/PreviewScene"), {
+const PreviewScene = dynamic(() => import("../PreviewScene"), {
   ssr: false,
 });
 
@@ -101,11 +100,12 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
           initialSceneData={project.sceneData}
           renderObservationPoints={false}
           enableXR={false}
+          isPublishMode={true}
         />
       </MobileSceneContainer>
       <MobileBottomNav>
         <IconButton color="inherit" onClick={() => setDrawerOpen(true)}>
-          <InfoIcon />
+          <MenuIcon />
         </IconButton>
         <IconButton
           color="inherit"

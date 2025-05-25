@@ -1,10 +1,11 @@
 import "@/global.css";
 import { ThemeProvider, CssBaseline } from "@mui/material";
-import theme from "@/theme";
+import theme from "@/lib/theme";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ToastContainer } from "react-toastify";
-import ClientProvider from "@/ClientProvider";
+import ClientProvider from "@/lib/ClientProvider";
+import { serverEnv } from "@/lib/env/server";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,13 @@ async function getSessionFromAuthApp(baseUrl) {
 }
 
 export default async function RootLayout({ children }) {
-  const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
+  if (!serverEnv) {
+    throw new Error(
+      "Environment variables not properly initialized. Please check your .env file."
+    );
+  }
+
+  const baseUrl = serverEnv.NEXT_PUBLIC_WEBSITE_URL;
 
   // Check the pathname if possible. (This approach may need adjustments.)
   // For a robust solution, use route groups (Option 1).

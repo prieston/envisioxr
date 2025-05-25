@@ -9,8 +9,8 @@ export default function Pricing() {
       <div className="px-4 xl:container">
         <SectionTitle
           mainTitle="PRICING PLANS"
-          title="Flexible Pricing for Every Business"
-          paragraph="Whether you're a museum, real estate company, or eCommerce brand, EnvisioXR offers cost-effective plans to bring your spaces to life with 3D presentations and virtual tours."
+          title="Custom Solutions for Every Business"
+          paragraph="Whether you're a museum, real estate company, or eCommerce brand, EnvisioXR offers tailored solutions to bring your spaces to life with 3D presentations and virtual tours. Contact us to discuss your specific needs."
         />
 
         <div className="relative z-10 flex flex-wrap justify-center overflow-hidden rounded drop-shadow-light dark:drop-shadow-none">

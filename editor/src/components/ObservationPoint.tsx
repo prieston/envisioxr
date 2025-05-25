@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
-import useSceneStore from "@/hooks/useSceneStore";
+import useSceneStore from "../../app/hooks/useSceneStore";
 
 const ObservationPoint = ({
   id,
@@ -33,26 +33,24 @@ const ObservationPoint = ({
   }, [position, target]);
 
   // In preview mode, do not render the arrow.
-  if (previewMode || !renderObservationPoints) {
+  if (previewMode || !renderObservationPoints || !position || !target) {
     return null;
   }
 
   return (
     <>
-      {/* @ts-ignore-next-line */}
       <primitive
         object={
           new THREE.ArrowHelper(
-            // Compute direction using the target and position
             new THREE.Vector3()
               .subVectors(
-                new THREE.Vector3(...(target || [0, 0, 1])),
-                new THREE.Vector3(...(position || [0, 0, 0]))
+                new THREE.Vector3(...target),
+                new THREE.Vector3(...position)
               )
               .normalize(),
-            new THREE.Vector3(...(position || [0, 0, 0])),
-            1, // Length of the arrow; adjust as needed
-            selected ? 0xff0000 : 0xffff00 // Color: red if selected, yellow otherwise
+            new THREE.Vector3(...position),
+            1,
+            selected ? 0xff0000 : 0xffff00
           )
         }
         ref={arrowRef}

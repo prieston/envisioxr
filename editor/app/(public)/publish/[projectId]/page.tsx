@@ -1,16 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { CircularProgress, Typography } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import useSceneStore from "@/hooks/useSceneStore";
-import MobileLayout from "@/components/PublishPage/MobileLayout";
-import DesktopLayout from "@/components/PublishPage/DesktopLayout";
+import useSceneStore from "@/app/hooks/useSceneStore";
+import MobileLayout from "@/app/components/PublishPage/MobileLayout";
+import DesktopLayout from "@/app/components/PublishPage/DesktopLayout";
 
-const LoadingContainer = styled("div")(({ theme }) => ({
+const LoadingContainer = styled("div")(() => ({
   height: "100vh",
   display: "flex",
   alignItems: "center",
@@ -35,15 +34,14 @@ const PublishedScenePage = () => {
     previewMode,
     setPreviewMode,
     setObservationPoints,
-    selectObservationPoint,
     observationPoints,
     previewIndex,
-    selectedObservation,
+    selectObservation,
     nextObservation,
     prevObservation,
   } = useSceneStore();
 
-  // Enable preview mode on mount.
+  // Enable preview mode and initialize observation points on mount.
   useEffect(() => {
     setPreviewMode(true);
   }, [setPreviewMode]);
@@ -61,6 +59,34 @@ const PublishedScenePage = () => {
           throw new Error("Project not published");
         }
         setProject(data.project);
+
+        // Initialize observation points from project data
+        if (
+          data.project.sceneData &&
+          data.project.sceneData.observationPoints
+        ) {
+          setObservationPoints(data.project.sceneData.observationPoints);
+          // Select the first observation point if available
+          if (data.project.sceneData.observationPoints.length > 0) {
+            selectObservation(data.project.sceneData.observationPoints[0].id);
+            useSceneStore.setState({ previewIndex: 0 });
+          }
+        }
+
+        // Initialize selectedAssetId and selectedLocation
+        if (data.project.sceneData) {
+          const { selectedAssetId, selectedLocation, showTiles } =
+            data.project.sceneData;
+          if (selectedAssetId) {
+            useSceneStore.setState({
+              selectedAssetId,
+              showTiles: showTiles ?? false,
+            });
+          }
+          if (selectedLocation) {
+            useSceneStore.setState({ selectedLocation });
+          }
+        }
       } catch (error) {
         console.error("Error fetching project:", error);
       } finally {
@@ -69,39 +95,7 @@ const PublishedScenePage = () => {
     };
 
     fetchProject();
-  }, [projectId]);
-
-  // When project data loads, update the store's observation points and select the first one.
-  useEffect(() => {
-    if (
-      project &&
-      project.sceneData &&
-      project.sceneData.observationPoints &&
-      project.sceneData.observationPoints.length > 0
-    ) {
-      setObservationPoints(project.sceneData.observationPoints);
-      selectObservationPoint(project.sceneData.observationPoints[0].id);
-    }
-  }, [project, setObservationPoints, selectObservationPoint]);
-
-  // When previewIndex changes, update the selected observation.
-  useEffect(() => {
-    if (
-      observationPoints &&
-      observationPoints.length > 0 &&
-      previewIndex >= 0 &&
-      previewIndex < observationPoints.length
-    ) {
-      selectObservationPoint(observationPoints[previewIndex].id);
-    }
-  }, [previewIndex, observationPoints, selectObservationPoint]);
-
-  // Use the selected observation for display.
-  const currentObservation =
-    selectedObservation ||
-    (observationPoints && observationPoints.length > 0
-      ? observationPoints[0]
-      : null);
+  }, [projectId, setObservationPoints, selectObservation]);
 
   if (loading) {
     return (
@@ -120,6 +114,8 @@ const PublishedScenePage = () => {
       </ErrorContainer>
     );
   }
+
+  const currentObservation = observationPoints[previewIndex];
 
   return isMobile ? (
     <MobileLayout
