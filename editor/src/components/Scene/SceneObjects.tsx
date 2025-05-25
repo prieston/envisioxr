@@ -15,21 +15,32 @@ const SceneObjects: React.FC<SceneObjectsProps> = ({
 
   return (
     <>
-      {objects.map((obj: ModelType) => (
-        <Model
-          key={obj.id}
-          id={obj.id}
-          url={obj.url}
-          position={obj.position}
-          rotation={obj.rotation}
-          scale={obj.scale}
-          selected={selectedObject?.id === obj.id}
-          onSelect={previewMode || isPublishMode ? undefined : selectObject}
-          assetId={obj.assetId || undefined}
-          isObservationModel={obj.isObservationModel}
-          observationProperties={obj.observationProperties}
-        />
-      ))}
+      {objects.map(
+        (obj: ModelType) =>
+          obj.url && (
+            <Model
+              key={obj.id}
+              id={obj.id}
+              url={obj.url}
+              position={obj.position}
+              rotation={obj.rotation}
+              scale={obj.scale}
+              selected={selectedObject?.id === obj.id}
+              onSelect={previewMode || isPublishMode ? undefined : selectObject}
+              assetId={obj.assetId || undefined}
+              isObservationModel={obj.isObservationModel}
+              observationProperties={
+                obj.observationProperties
+                  ? {
+                      ...obj.observationProperties,
+                      showActualArea: false,
+                      showCalculatedArea: false,
+                    }
+                  : undefined
+              }
+            />
+          )
+      )}
     </>
   );
 };
