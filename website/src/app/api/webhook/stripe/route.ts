@@ -34,23 +34,23 @@ export async function POST(request: Request) {
   }
 
   // when first purchased
-  if (event.type === "checkout.session.completed") {
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string,
-    );
+  // if (event.type === "checkout.session.completed") {
+  //   const subscription = await stripe.subscriptions.retrieve(
+  //     session.subscription as string,
+  //   );
 
-    // Save or use the subscriptions data as needed
-  }
+  //   // Save or use the subscriptions data as needed
+  // }
 
   // when renewed the subscription
-  if (event.type === "invoice.payment_succeeded") {
-    // Retrieve the subscription details from Stripe.
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string,
-    );
+  // if (event.type === "invoice.payment_succeeded") {
+  //   // Retrieve the subscription details from Stripe.
+  //   const subscription = await stripe.subscriptions.retrieve(
+  //     session.subscription as string,
+  //   );
 
-    // Save or use the subscriptions data as needed
-  }
+  //   // Save or use the subscriptions data as needed
+  // }
 
   return new Response(null, { status: 200 });
 }
