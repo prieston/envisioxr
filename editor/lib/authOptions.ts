@@ -2,15 +2,9 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "./prisma";
+import { NextAuthOptions } from "next-auth";
 
-interface UserSession {
-  id: string;
-  name?: string;
-  email?: string;
-  image?: string;
-}
-
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/auth/signin",
   },
@@ -51,7 +45,7 @@ export const authOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        (session.user as UserSession).id = token.sub as string;
+        session.user.id = token.sub as string;
       }
       return session;
     },
