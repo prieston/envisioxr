@@ -15,10 +15,10 @@ export const useModelMaterials = ({
   useEffect(() => {
     if (modelRef.current && !previewMode) {
       modelRef.current.traverse((child) => {
-        // @ts-ignore-next-line
+        // @ts-expect-error-next-line - ignore type error
         if (child.isMesh && child.material) {
           // Set emissive to highlight color if selected, otherwise reset to black.
-          // @ts-ignore-next-line
+          // @ts-expect-error-next-line - ignore type error
           child.material.emissive = selected
             ? new THREE.Color(0x00ffff)
             : new THREE.Color(0x000000);

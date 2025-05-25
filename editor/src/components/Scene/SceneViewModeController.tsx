@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, forwardRef } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
-import { OrbitControls, PointerLockControls } from "@react-three/drei";
-import { RigidBody, useRapier, RayColliderToi } from "@react-three/rapier";
+import { PointerLockControls } from "@react-three/drei";
+import { RigidBody, useRapier } from "@react-three/rapier";
 import useSceneStore from "../../../app/hooks/useSceneStore";
 import * as THREE from "three";
 import { Vector3 } from "three";
@@ -15,16 +15,6 @@ import {
   KeyStates,
   MovementParams,
 } from "./ControlHelpers";
-import FirstPersonControls from "./controls/FirstPersonControls";
-import ThirdPersonControls from "./controls/ThirdPersonControls";
-import FlightControls from "./controls/FlightControls";
-import ThirdPersonFlightControls from "./controls/ThirdPersonFlightControls";
-import CarControls from "./controls/CarControls";
-import ThirdPersonCarControls from "./controls/ThirdPersonCarControls";
-
-interface SceneViewModeControllerProps {
-  orbitControlsRef: React.MutableRefObject<any>;
-}
 
 interface PlayerRigidBodyProps {
   playerHeight: number;
@@ -36,6 +26,7 @@ interface PhysicsObject extends THREE.Object3D {
   setTranslation?: (x: number, y: number, z: number) => void;
   translation?: () => { x: number; y: number; z: number };
   linvel?: () => { x: number; y: number; z: number };
+  setLinvel?: (velocity: THREE.Vector3) => void;
 }
 
 // Forwarded RigidBody component
@@ -66,7 +57,6 @@ const FirstPersonControls = () => {
   const moveSpeed = controlSettings.walkSpeed;
   const jumpForce = 5;
   const playerHeight = 1.8;
-  const playerRadius = 0.3;
   const isOnGround = useRef(false);
   const raycaster = useRef(new THREE.Raycaster());
   const velocity = useRef(new Vector3());
@@ -82,34 +72,12 @@ const FirstPersonControls = () => {
   const hasSpawned = useRef(false);
   const currentGroundY = useRef(0);
   const lastGroundY = useRef(0);
-  const groundCheckCount = useRef(0);
   const lastResetTime = useRef(0);
   const moveDirection = useRef(new Vector3());
   const forward = useRef(new Vector3());
   const right = useRef(new Vector3());
-  const groundSmoothingFactor = 0.05;
   const groundSamples = useRef<number[]>([]);
   const maxGroundSamples = 5;
-  const playerRef = useRef<PhysicsObject>(
-    new THREE.Object3D() as PhysicsObject
-  );
-
-  // Ground check using ray casting
-  const checkGround = () => {
-    if (!playerRef.current) return Infinity;
-    const pos = playerRef.current.position;
-    const hit = world.castRay(
-      { x: pos.x, y: pos.y, z: pos.z },
-      { x: 0, y: -1, z: 0 },
-      true,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      10
-    ) as RayColliderToi | null;
-    return hit?.toi ?? Infinity;
-  };
 
   // Find ground position using ray cast against 3D tiles
   useEffect(() => {
@@ -247,7 +215,7 @@ const FirstPersonControls = () => {
 
 // Third person controls (MMORPG style)
 const ThirdPersonControls = () => {
-  const { camera } = useThree();
+  const { camera, scene } = useThree();
   const { world } = useRapier();
   const controlSettings = useSceneStore((state) => state.controlSettings);
   const moveSpeed = controlSettings.walkSpeed;
@@ -271,23 +239,7 @@ const ThirdPersonControls = () => {
   const playerRef = useRef<PhysicsObject>(
     new THREE.Object3D() as PhysicsObject
   );
-
-  // Ground check using ray casting
-  const checkGround = () => {
-    if (!playerRef.current) return Infinity;
-    const pos = playerRef.current.position;
-    const hit = world.castRay(
-      { x: pos.x, y: pos.y, z: pos.z },
-      { x: 0, y: -1, z: 0 },
-      true,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      10
-    ) as RayColliderToi | null;
-    return hit?.toi ?? Infinity;
-  };
+  const raycaster = useRef(new THREE.Raycaster());
 
   const updatePosition = (newPos: Vector3) => {
     if (playerRef.current?.setTranslation) {
@@ -302,17 +254,26 @@ const ThirdPersonControls = () => {
     // Create ray from high up
     const rayOrigin = new Vector3(0, 1000, 0);
     const rayDir = new Vector3(0, -1, 0);
-    const hit = world.castRay(rayOrigin, rayDir, 2000, true);
+    raycaster.current.set(rayOrigin, rayDir);
 
-    if (hit) {
-      // Spawn slightly above the hit point
-      const spawnY = hit.point.y + playerHeight / 2 + 0.1;
+    // Find all meshes in the scene
+    const allMeshes: THREE.Mesh[] = [];
+    scene.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        allMeshes.push(object);
+      }
+    });
+
+    const intersects = raycaster.current.intersectObjects(allMeshes);
+    if (intersects.length > 0) {
+      const hitPoint = intersects[0].point;
+      const spawnY = hitPoint.y + playerHeight / 2 + 0.1;
       updatePosition(new Vector3(0, spawnY, 5));
     } else {
       // No ground found, spawn at default height
       updatePosition(new Vector3(0, playerHeight, 5));
     }
-  }, [world]);
+  }, [world, scene]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -335,6 +296,9 @@ const ThirdPersonControls = () => {
     if (!playerRef.current) return;
 
     const rigidBody = playerRef.current;
+    if (!rigidBody.translation || !rigidBody.linvel || !rigidBody.setLinvel)
+      return;
+
     const position = rigidBody.translation();
     const targetPosition = new Vector3(
       position.x,
@@ -400,9 +364,18 @@ const ThirdPersonControls = () => {
     // Ground check
     const rayOrigin = new Vector3(position.x, position.y, position.z);
     const rayDir = new Vector3(0, -1, 0);
-    const ray = new world.Ray(rayOrigin, rayDir);
-    const hit = world.castRay(ray, playerHeight / 2 + 0.1, true);
-    isOnGround.current = !!hit;
+    raycaster.current.set(rayOrigin, rayDir);
+
+    // Find all meshes in the scene
+    const allMeshes: THREE.Mesh[] = [];
+    scene.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        allMeshes.push(object);
+      }
+    });
+
+    const intersects = raycaster.current.intersectObjects(allMeshes);
+    isOnGround.current = intersects.length > 0;
   });
 
   return (
@@ -612,7 +585,6 @@ const ThirdPersonFlightControls = () => {
 const CarControls = forwardRef<any, Record<string, never>>((_props, _ref) => {
   const { camera, scene } = useThree();
   const controlSettings = useSceneStore((state) => state.controlSettings);
-  const moveSpeed = controlSettings.carSpeed;
   const baseTurnSpeed = controlSettings.turnSpeed;
   const turnSmoothing = controlSettings.smoothness;
   const targetRotation = useRef(0);
@@ -839,7 +811,6 @@ const ThirdPersonCarControls = forwardRef<any, Record<string, never>>(
     const carHeight = 1;
     const velocity = useRef(new Vector3());
     const gravity = 9.8;
-    const jumpForce = 5;
     const maxSpeed = 20;
     const friction = 0.95;
 
@@ -1181,7 +1152,6 @@ const ThirdPersonCarControls = forwardRef<any, Record<string, never>>(
 );
 
 const SceneViewModeController = () => {
-  const { camera } = useThree();
   const viewMode = useSceneStore((state) => state.viewMode);
   const isThirdPerson = useSceneStore((state) => state.isThirdPerson);
 

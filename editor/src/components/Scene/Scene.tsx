@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, Suspense, useState } from "react";
+import React, { useRef, useEffect, Suspense } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Grid, Sky, Html } from "@react-three/drei";
 import useSceneStore from "../../../app/hooks/useSceneStore";
@@ -19,7 +19,6 @@ import {
 } from ".";
 import SceneControls from "./controls/SceneControls";
 import Loader from "./Loader";
-import { isWebGPUAvailable, createWebGPUContext } from "../../../lib/webgpu";
 import dynamic from "next/dynamic";
 
 // Create a dynamic import for the 3D Tiles components
@@ -94,8 +93,6 @@ export default function Scene({
   enableXR = false,
   isPublishMode = false,
 }: SceneProps) {
-  const [isWebGPU, setIsWebGPU] = useState(false);
-
   // Scene state from store
   const objects = useSceneStore((state) => state.objects);
   const observationPoints = useSceneStore((state) => state.observationPoints);
@@ -122,12 +119,6 @@ export default function Scene({
   const setSelectedLocation = useSceneStore(
     (state) => state.setSelectedLocation
   );
-  const deselectObject = useSceneStore((state) => state.deselectObject);
-
-  // Initialize WebGPU
-  useEffect(() => {
-    isWebGPUAvailable().then(setIsWebGPU);
-  }, []);
 
   // Initialize scene data
   useEffect(() => {

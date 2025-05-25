@@ -6,18 +6,14 @@ import {
   PerspectiveCamera,
   View as ViewImpl,
 } from "@react-three/drei";
-//  @ts-ignore-next-line
+//  @ts-expect-error-next-line - ignore type error
 import { Three } from "@/helpers/components/Three";
 
 export const Common = ({ color }) => (
   <Suspense fallback={null}>
-    {/* @ts-ignore-next-line */}
     {color && <color attach="background" args={[color]} />}
-    {/* @ts-ignore-next-line */}
     <ambientLight />
-    {/* @ts-ignore-next-line */}
     <pointLight position={[20, 30, 10]} intensity={3} decay={0.2} />
-    {/* @ts-ignore-next-line */}
     <pointLight position={[-10, -10, -10]} color="blue" decay={0.2} />
     <PerspectiveCamera makeDefault fov={40} position={[0, 0, 6]} />
   </Suspense>
