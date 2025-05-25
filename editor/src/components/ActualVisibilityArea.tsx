@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
+import useSceneStore from "../../app/hooks/useSceneStore";
 
 interface ActualVisibilityAreaProps {
   position: [number, number, number];
@@ -9,6 +10,7 @@ interface ActualVisibilityAreaProps {
   radius: number;
   showVisibleArea: boolean;
   gridDensity?: number;
+  objectId: string;
 }
 
 const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
@@ -18,20 +20,30 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
   radius,
   showVisibleArea,
   gridDensity = 20,
+  objectId,
 }) => {
   const { scene } = useThree();
   const visibilityAreaRef = useRef<THREE.Object3D>();
   const raycaster = useRef(new THREE.Raycaster());
   const visiblePoints = useRef<THREE.Vector3[]>([]);
-  const debugPointsRef = useRef<THREE.Points>();
-  const debugLinesRef = useRef<THREE.Line[]>([]);
-  const debugMaterialsRef = useRef<THREE.LineBasicMaterial[]>([]);
   const lastCalculationRef = useRef<{
     position: [number, number, number];
     rotation: [number, number, number];
     fov: number;
     radius: number;
   }>();
+
+  const store = useSceneStore();
+  const isCalculatingVisibility = store.isCalculatingVisibility;
+  const lastVisibilityCalculation = store.lastVisibilityCalculation;
+  const finishVisibilityCalculation = store.finishVisibilityCalculation;
+
+  console.log("ActualVisibilityArea mounted:", {
+    isCalculatingVisibility,
+    lastVisibilityCalculation,
+    objectId,
+    scene: !!scene,
+  });
 
   const isPartOfOriginObject = (
     mesh: THREE.Mesh,
@@ -288,56 +300,16 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
   };
 
   useEffect(() => {
-    if (showVisibleArea) {
-      // Only calculate if values have changed
-      const shouldCalculate =
-        !lastCalculationRef.current ||
-        JSON.stringify(lastCalculationRef.current) !==
-          JSON.stringify({ position, rotation, fov, radius });
-
-      if (shouldCalculate) {
-        calculateVisibleArea();
-      }
-    } else {
-      if (visibilityAreaRef.current) {
-        scene.remove(visibilityAreaRef.current);
-      }
-      if (debugPointsRef.current) {
-        scene.remove(debugPointsRef.current);
-      }
-      if (debugLinesRef.current) {
-        debugLinesRef.current.forEach((line) => {
-          scene.remove(line);
-          if (line.geometry) line.geometry.dispose();
-        });
-        debugLinesRef.current = [];
-      }
-      if (debugMaterialsRef.current) {
-        debugMaterialsRef.current.forEach((material) => material.dispose());
-        debugMaterialsRef.current = [];
-      }
+    // Only calculate when isCalculatingVisibility is true and it's for this object
+    if (
+      isCalculatingVisibility &&
+      lastVisibilityCalculation?.objectId === objectId
+    ) {
+      console.log("Starting visibility calculation for object:", objectId);
+      calculateVisibleArea();
+      finishVisibilityCalculation(objectId);
     }
-
-    return () => {
-      if (visibilityAreaRef.current) {
-        scene.remove(visibilityAreaRef.current);
-      }
-      if (debugPointsRef.current) {
-        scene.remove(debugPointsRef.current);
-      }
-      if (debugLinesRef.current) {
-        debugLinesRef.current.forEach((line) => {
-          scene.remove(line);
-          if (line.geometry) line.geometry.dispose();
-        });
-        debugLinesRef.current = [];
-      }
-      if (debugMaterialsRef.current) {
-        debugMaterialsRef.current.forEach((material) => material.dispose());
-        debugMaterialsRef.current = [];
-      }
-    };
-  }, [showVisibleArea]); // Only depend on showVisibleArea
+  }, [isCalculatingVisibility, lastVisibilityCalculation, objectId]);
 
   return null;
 };
