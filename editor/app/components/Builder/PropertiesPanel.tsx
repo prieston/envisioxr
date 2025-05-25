@@ -99,6 +99,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
   const selectedLocation = useSceneStore((state) => state.selectedLocation);
   const tilesRenderer = useSceneStore((state) => state.tilesRenderer);
+  const observationPoints = useSceneStore((state) => state.observationPoints);
 
   // Update local state when selectedObject changes or when its transform properties change
   useEffect(() => {
@@ -909,15 +910,15 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 variant="outlined"
                 size="small"
                 href={`https://www.google.com/maps/dir/${observationPoints
-                  .filter((point) => point.position)
-                  .map((point) =>
+                  ?.filter((point) => point.position)
+                  ?.map((point) =>
                     localToGeographic(
                       tilesRenderer,
                       new THREE.Vector3(...point.position!)
                     )
                   )
-                  .map((coords) => `${coords.latitude},${coords.longitude}`)
-                  .join("/")}`}
+                  ?.map((coords) => `${coords.latitude},${coords.longitude}`)
+                  ?.join("/")}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
