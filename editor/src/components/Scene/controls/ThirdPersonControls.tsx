@@ -115,7 +115,7 @@ export default function ThirdPersonControls() {
     // -- Gravity & snapping --
     const tempCamera = new THREE.PerspectiveCamera();
     tempCamera.position.copy(playerRef.current.position);
-    const { velocityY: newVY, onGround } = applyGravityAndSnap(
+    const { velocityY: newVY } = applyGravityAndSnap(
       tempCamera,
       velocityY.current,
       dt,
@@ -128,10 +128,7 @@ export default function ThirdPersonControls() {
       }
     );
     playerRef.current.position.copy(tempCamera.position);
-    console.log(
-      `%c[DEBUG] velY before: ${velocityY.current.toFixed(2)}, after: ${newVY.toFixed(2)}, onGround: ${onGround}`,
-      "color: blue;"
-    );
+
     velocityY.current = newVY;
 
     // -- Movement --

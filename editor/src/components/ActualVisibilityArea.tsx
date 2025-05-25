@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
+import useSceneStore from "../../app/hooks/useSceneStore";
 
 interface ActualVisibilityAreaProps {
   position: [number, number, number];
@@ -9,6 +10,7 @@ interface ActualVisibilityAreaProps {
   radius: number;
   showVisibleArea: boolean;
   gridDensity?: number;
+  objectId: string;
 }
 
 const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
@@ -18,20 +20,23 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
   radius,
   showVisibleArea,
   gridDensity = 20,
+  objectId,
 }) => {
   const { scene } = useThree();
   const visibilityAreaRef = useRef<THREE.Object3D>();
   const raycaster = useRef(new THREE.Raycaster());
   const visiblePoints = useRef<THREE.Vector3[]>([]);
-  const debugPointsRef = useRef<THREE.Points>();
-  const debugLinesRef = useRef<THREE.Line[]>([]);
-  const debugMaterialsRef = useRef<THREE.LineBasicMaterial[]>([]);
   const lastCalculationRef = useRef<{
     position: [number, number, number];
     rotation: [number, number, number];
     fov: number;
     radius: number;
   }>();
+
+  const store = useSceneStore();
+  const isCalculatingVisibility = store.isCalculatingVisibility;
+  const lastVisibilityCalculation = store.lastVisibilityCalculation;
+  const finishVisibilityCalculation = store.finishVisibilityCalculation;
 
   const isPartOfOriginObject = (
     mesh: THREE.Mesh,
@@ -55,17 +60,7 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
     raycaster.current.near = 0.01; // Reduced near plane to catch closer intersections
     raycaster.current.far = radius * 2; // Make sure we can detect intersections beyond our radius
 
-    console.log("Starting visibility calculation with:", {
-      position,
-      rotation,
-      fov,
-      radius,
-      showVisibleArea,
-      gridDensity,
-    });
-
     if (!showVisibleArea) {
-      console.log("Visibility calculation skipped - showVisibleArea is false");
       return;
     }
 
@@ -99,8 +94,6 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
       }
     }
 
-    console.log("Created", gridPoints.length, "grid points");
-
     visiblePoints.current = [];
 
     // Get all meshes in the scene once, excluding debug objects
@@ -110,33 +103,13 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
         if (object instanceof THREE.Mesh) {
           const isDebug = object.userData.isDebug;
           const isOriginObject = isPartOfOriginObject(object, origin);
-          const distanceToOrigin = object.position.distanceTo(origin);
 
           if (!isDebug && !isOriginObject) {
             meshes.push(object);
-            console.log("Including mesh for raycasting:", {
-              name: object.name,
-              type: object.type,
-              position: object.position.toArray(),
-              isDebug,
-              distanceToOrigin,
-              geometry: object.geometry.type,
-              vertices: object.geometry.attributes.position.count,
-            });
-          } else {
-            console.log("Excluding mesh from raycasting:", {
-              name: object.name,
-              type: object.type,
-              position: object.position.toArray(),
-              isDebug,
-              distanceToOrigin,
-              reason: isDebug ? "debug object" : "origin object",
-            });
           }
         }
       });
     }
-    console.log("Found", meshes.length, "meshes in scene for raycasting");
 
     const hitPoints: THREE.Vector3[] = [];
     for (const gridPoint of gridPoints) {
@@ -148,61 +121,26 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
       const distanceToGrid = gridPoint.distanceTo(origin);
       let isVisible = false;
 
-      console.log(
-        "Checking ray from origin:",
-        origin.toArray(),
-        "to grid point:",
-        gridPoint.toArray()
-      );
-      console.log("Ray direction:", rayDirection.toArray());
-      console.log("Distance to grid:", distanceToGrid);
-      console.log("Number of intersections:", intersects.length);
-
       if (intersects.length === 0) {
         isVisible = true;
-        console.log("No intersections - point is visible");
       } else {
         // Sort intersections by distance
         intersects.sort((a, b) => a.distance - b.distance);
         const firstHit = intersects[0];
 
-        console.log("Intersection details:", {
-          totalHits: intersects.length,
-          firstHit: {
-            distance: firstHit.distance,
-            point: firstHit.point.toArray(),
-            object: firstHit.object.name,
-            objectType: firstHit.object.type,
-            face: firstHit.face
-              ? {
-                  normal: firstHit.face.normal.toArray(),
-                  materialIndex: firstHit.face.materialIndex,
-                }
-              : null,
-          },
-        });
-
         // If the first hit is beyond the grid point, the point is visible
         if (firstHit.distance > distanceToGrid) {
           isVisible = true;
-          console.log("First hit is beyond grid point - point is visible");
         } else {
           // Calculate how far along the ray the hit occurred (0 to 1)
           const hitRatio = firstHit.distance / distanceToGrid;
-          console.log("Hit ratio:", hitRatio);
 
           // If the hit occurred within the first 95% of the ray length, consider it occluded
           if (hitRatio < 0.95) {
             // Occluded: store the intersection point
             hitPoints.push(firstHit.point);
-            console.log(
-              "Point is occluded - hit point is between origin and grid point"
-            );
           } else {
             isVisible = true;
-            console.log(
-              "Hit point is too close to grid point - point is visible"
-            );
           }
         }
       }
@@ -212,15 +150,8 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
         const groundPoint = gridPoint.clone();
         groundPoint.y = 0.1; // Slightly above ground to prevent z-fighting
         visiblePoints.current.push(groundPoint);
-        console.log(
-          "Added visible point to ground plane:",
-          groundPoint.toArray()
-        );
       }
     }
-
-    console.log("Found", visiblePoints.current.length, "visible points");
-    console.log("Found", hitPoints.length, "hit points");
 
     // Remove old intersection debug points
     if (scene) {
@@ -243,18 +174,6 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
 
     // Add green spheres for intersection hits
     if (hitPoints.length > 0) {
-      console.log(
-        "Creating debug points for",
-        hitPoints.length,
-        "intersections"
-      );
-      console.log("Hit points positions (fixed to 2 decimals):");
-      hitPoints.forEach((point, index) => {
-        console.log(
-          `Hit point ${index}: [${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)}]`
-        );
-      });
-
       // Create a group for all hit point spheres
       const hitPointsGroup = new THREE.Group();
       hitPointsGroup.name = "ActualVisibilityAreaDebugHitPoints";
@@ -277,7 +196,6 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
       });
 
       scene.add(hitPointsGroup);
-      console.log("Added debug spheres to scene");
     }
 
     // Clean up any existing visibility area
@@ -288,56 +206,15 @@ const ActualVisibilityArea: React.FC<ActualVisibilityAreaProps> = ({
   };
 
   useEffect(() => {
-    if (showVisibleArea) {
-      // Only calculate if values have changed
-      const shouldCalculate =
-        !lastCalculationRef.current ||
-        JSON.stringify(lastCalculationRef.current) !==
-          JSON.stringify({ position, rotation, fov, radius });
-
-      if (shouldCalculate) {
-        calculateVisibleArea();
-      }
-    } else {
-      if (visibilityAreaRef.current) {
-        scene.remove(visibilityAreaRef.current);
-      }
-      if (debugPointsRef.current) {
-        scene.remove(debugPointsRef.current);
-      }
-      if (debugLinesRef.current) {
-        debugLinesRef.current.forEach((line) => {
-          scene.remove(line);
-          if (line.geometry) line.geometry.dispose();
-        });
-        debugLinesRef.current = [];
-      }
-      if (debugMaterialsRef.current) {
-        debugMaterialsRef.current.forEach((material) => material.dispose());
-        debugMaterialsRef.current = [];
-      }
+    // Only calculate when isCalculatingVisibility is true and it's for this object
+    if (
+      isCalculatingVisibility &&
+      lastVisibilityCalculation?.objectId === objectId
+    ) {
+      calculateVisibleArea();
+      finishVisibilityCalculation(objectId);
     }
-
-    return () => {
-      if (visibilityAreaRef.current) {
-        scene.remove(visibilityAreaRef.current);
-      }
-      if (debugPointsRef.current) {
-        scene.remove(debugPointsRef.current);
-      }
-      if (debugLinesRef.current) {
-        debugLinesRef.current.forEach((line) => {
-          scene.remove(line);
-          if (line.geometry) line.geometry.dispose();
-        });
-        debugLinesRef.current = [];
-      }
-      if (debugMaterialsRef.current) {
-        debugMaterialsRef.current.forEach((material) => material.dispose());
-        debugMaterialsRef.current = [];
-      }
-    };
-  }, [showVisibleArea]); // Only depend on showVisibleArea
+  }, [isCalculatingVisibility, lastVisibilityCalculation, objectId]);
 
   return null;
 };
