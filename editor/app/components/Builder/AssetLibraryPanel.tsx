@@ -221,7 +221,7 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                                 variant="body2"
                                 color="text.secondary"
                               >
-                                <strong>{label}:</strong> {value}
+                                {`${label}: ${value}`}
                               </Typography>
                             )
                           )}

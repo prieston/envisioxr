@@ -34,11 +34,11 @@
     "pnpm": ">=8.0.0"
   },
   "resolutions": {
-    "next": "^15.2.4"
+    "next": "^14.1.0"
   },
   "dependencies": {
     "@types/react": "^18.3.20",
     "@types/react-dom": "^18.0.0",
-    "next": "^15.2.4"
+    "next": "^14.1.0"
   }
 }
