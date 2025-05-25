@@ -146,6 +146,17 @@ interface SceneState {
   updateControlSettings: (
     settings: Partial<SceneState["controlSettings"]>
   ) => void;
+
+  // Visibility Area Calculation State
+  isCalculatingVisibility: boolean;
+  lastVisibilityCalculation: {
+    objectId: string;
+    timestamp: number;
+  } | null;
+
+  // Visibility Area Calculation Actions
+  startVisibilityCalculation: (objectId: string) => void;
+  finishVisibilityCalculation: (objectId: string) => void;
 }
 
 const findIntersectionPoint = (
@@ -268,7 +279,8 @@ const useSceneStore = create<SceneState>((set) => ({
         state.selectedObject?.id === id ? null : state.selectedObject,
     })),
 
-  updateObjectProperty: (id, property, value) =>
+  updateObjectProperty: (id, property, value) => {
+    console.log("Store: updateObjectProperty called:", { id, property, value });
     set((state) => {
       const updatedObjects = state.objects.map((obj) =>
         obj.id === id
@@ -288,11 +300,17 @@ const useSceneStore = create<SceneState>((set) => ({
             }
           : state.selectedObject;
 
+      console.log("Store: Updated state:", {
+        updatedObjects: updatedObjects.find((obj) => obj.id === id),
+        updatedSelectedObject,
+      });
+
       return {
         objects: updatedObjects,
         selectedObject: updatedSelectedObject,
       };
-    }),
+    });
+  },
 
   updateModelRef: (id, ref) =>
     set((state) => ({
@@ -490,6 +508,23 @@ const useSceneStore = create<SceneState>((set) => ({
     set((state) => ({
       controlSettings: { ...state.controlSettings, ...settings },
     })),
+
+  // Visibility Area Calculation Initial State
+  isCalculatingVisibility: false,
+  lastVisibilityCalculation: null,
+
+  // Visibility Area Calculation Actions
+  startVisibilityCalculation: (objectId) => {
+    console.log("Store: Starting visibility calculation for", objectId);
+    set({
+      isCalculatingVisibility: true,
+      lastVisibilityCalculation: { objectId, timestamp: Date.now() },
+    });
+  },
+  finishVisibilityCalculation: (_objectId) => {
+    console.log("Store: Finishing visibility calculation");
+    set({ isCalculatingVisibility: false });
+  },
 }));
 
 export default useSceneStore;
