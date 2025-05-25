@@ -14,8 +14,6 @@ export const metadata: Metadata = {
 export default async function SigninPage() {
   const session = await getServerSession(authOptions); // ✅ Use server-side session check
 
-  console.log("Server Session Data:", session); // ✅ Logs session on server
-
   // ✅ Redirect signed-in users to home
   if (session) {
     redirect("/");

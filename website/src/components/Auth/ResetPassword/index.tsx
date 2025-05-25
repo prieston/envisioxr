@@ -8,8 +8,6 @@ const ResetPassword = ({ token }: { token: string }) => {
   const [data, setData] = useState({
     password: "",
   });
-  const [error, setError] = useState("");
-  const [verified, setVerified] = useState(false);
   const [user, setUser] = useState({
     email: "",
   });
@@ -27,7 +25,6 @@ const ResetPassword = ({ token }: { token: string }) => {
           setUser({
             email: res.data.email,
           });
-          setVerified(true);
         }
       } catch (error: any) {
         toast.error(error.response.data);
@@ -54,7 +51,6 @@ const ResetPassword = ({ token }: { token: string }) => {
 
       if (res.status === 200) {
         toast.success(res.data);
-        setVerified(true);
         setData({ password: "" });
         router.push("/auth/signin");
       }
@@ -94,17 +90,11 @@ const ResetPassword = ({ token }: { token: string }) => {
 
                 <button
                   aria-label="login with email and password"
-                  className={`inline-flex items-center justify-center rounded bg-primary px-14 py-[14px] text-sm font-semibold text-white ${
-                    error.length > 0 || !data.password
-                      ? "bg-gray-600"
-                      : "bg-black  "
-                  }`}
+                  className={`inline-flex items-center justify-center rounded bg-primary px-14 py-[14px] text-sm font-semibold text-white `}
                   type="submit"
                 >
                   Save Password
                 </button>
-
-                {error.length > 0 && <p className="text-red-500">{error}</p>}
               </div>
             </form>
           </div>

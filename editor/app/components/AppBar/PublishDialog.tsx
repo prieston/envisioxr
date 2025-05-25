@@ -7,10 +7,33 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
+import { showToast } from "@/app/utils/toastUtils";
 
-const PublishDialog = ({ open, onCancel, onConfirm }) => {
+interface PublishDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
+}
+
+const PublishDialog: React.FC<PublishDialogProps> = ({
+  open,
+  onClose,
+  onConfirm,
+}) => {
+  const handleConfirm = async () => {
+    try {
+      await onConfirm();
+      showToast("World published successfully!");
+    } catch (error) {
+      console.error("Error publishing world:", error);
+      showToast("Error publishing world.");
+    } finally {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={open} onClose={onCancel}>
+    <Dialog open={open} onClose={onClose}>
       <DialogTitle>Publish World</DialogTitle>
       <DialogContent>
         <DialogContentText>
@@ -19,8 +42,8 @@ const PublishDialog = ({ open, onCancel, onConfirm }) => {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
-        <Button onClick={onConfirm} color="primary">
+        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={handleConfirm} color="primary">
           Publish
         </Button>
       </DialogActions>

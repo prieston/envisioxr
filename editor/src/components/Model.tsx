@@ -1,43 +1,99 @@
 "use client";
 
-import React, { useRef, useEffect, Suspense, useMemo } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
-import useSceneStore from "@/hooks/useSceneStore";
-import useModelLoader from "./useModelLoader";
+import useSceneStore from "../../app/hooks/useSceneStore.ts";
+// import dynamic from "next/dynamic";
+import useModelLoader from "./useModelLoader.tsx";
+import { useModelSelection } from "./hooks/useModelSelection.ts";
+import { useModelMaterials } from "./hooks/useModelMaterials.ts";
+import ObservationVisibilityArea from "./ObservationVisibilityArea";
+import ActualVisibilityArea from "./ActualVisibilityArea";
 
-const CLICK_THRESHOLD = 5;
+// // Dynamically import CesiumIonTiles to avoid SSR issues
+// const CesiumIonTiles = dynamic(
+//   () => import("../../app/components/CesiumIonTiles.tsx"),
+//   {
+//     ssr: false,
+//   }
+// ) as React.ComponentType<{
+//   apiKey: string;
+//   assetId?: string;
+//   position?: [number, number, number];
+//   rotation?: [number, number, number];
+//   scale?: [number, number, number];
+//   latitude: number;
+//   longitude: number;
+// }>;
 
 interface ModelProps {
   id: string;
   url: string;
   type?: string;
-  position: [number, number, number];
-  scale: [number, number, number];
-  rotation: [number, number, number];
-  selected: boolean;
-  onSelect: (id: string, object: THREE.Object3D) => void;
+  position?: [number, number, number];
+  scale?: [number, number, number];
+  rotation?: [number, number, number];
+  selected?: boolean;
+  onSelect?: (id: string, object: THREE.Object3D) => void;
+  assetId?: string;
+  isObservationModel?: boolean;
+  observationProperties?: {
+    fov: number;
+    showVisibleArea: boolean;
+    visibilityRadius: number;
+    showActualArea: boolean;
+    showCalculatedArea: boolean;
+    gridDensity?: number;
+  };
 }
 
 const Model = ({
   id,
   url,
   type = "glb",
-  position,
-  scale,
-  rotation,
+  position = [0, 0, 0],
+  scale = [1, 1, 1],
+  rotation = [0, 0, 0],
   selected,
   onSelect,
+  isObservationModel,
+  observationProperties,
 }: ModelProps) => {
+  // If this is a Cesium Ion tiles model, render it differently
+  // if (type === "tiles" && assetId) {
+  //   return (
+  //     <CesiumIonTiles
+  //       apiKey={process.env.NEXT_PUBLIC_CESIUM_ION_KEY || ""}
+  //       assetId={assetId}
+  //       position={position}
+  //       rotation={rotation}
+  //       scale={scale}
+  //       latitude={
+  //         useSceneStore.getState().selectedLocation?.latitude || 35.6586
+  //       }
+  //       longitude={
+  //         useSceneStore.getState().selectedLocation?.longitude || 139.7454
+  //       }
+  //     />
+  //   );
+  // }
+
+  // For regular models, use the model loader
   const modelData = useModelLoader(url, type);
-  // @ts-ignore-next-line
-  const originalObject = modelData.scene || modelData;
+
+  if (!modelData) {
+    return null;
+  }
+
+  const originalObject = (modelData as any).scene || modelData;
 
   // Clone the loaded object and ensure each mesh has its own material.
   const clonedObject = useMemo(() => {
     if (originalObject) {
       const clone = originalObject.clone(true);
-      clone.traverse((child) => {
-        // @ts-ignore-next-line
+      // Set the isModel flag on the parent object
+      clone.userData.isModel = true;
+      clone.traverse((child: any) => {
         if (child.isMesh && child.material) {
           // Clone material to avoid sharing between instances
           child.material = child.material.clone();
@@ -49,91 +105,92 @@ const Model = ({
   }, [originalObject]);
 
   const modelRef = useRef<THREE.Object3D | null>(null);
-  const pointerDown = useRef<{ x: number; y: number } | null>(null);
-
-  // Subscribe to previewMode from the store.
   const previewMode = useSceneStore((state) => state.previewMode);
-  // Get the updateModelRef function from the store.
   const updateModelRef = useSceneStore((state) => state.updateModelRef);
 
-  // Update the model: set shadow properties and adjust emissive color if selected.
-  // (Preserved commented-out code below.)
-  // useEffect(() => {
-  //   if (modelRef.current) {
-  //     modelRef.current.traverse((child) => {
-  //       if (child.isMesh) {
-  //         // Enable shadows on each mesh.
-  //         child.castShadow = true;
-  //         child.receiveShadow = true;
-  //         // Update emissive color when not in preview mode.
-  //       }
-  //     });
-  //   }
-  // }, [previewMode]);
+  // Use custom hooks for model functionality
+  const { handlePointerDown, handlePointerUp } = useModelSelection({
+    id,
+    onSelect,
+    previewMode,
+  });
 
-  // Update the model: adjust emissive color if selected.
-  useEffect(() => {
-    if (modelRef.current && !previewMode) {
-      modelRef.current.traverse((child) => {
-        // @ts-ignore-next-line
-        if (child.isMesh && child.material) {
-          // Set emissive to highlight color if selected, otherwise reset to black.
-          // @ts-ignore-next-line
-          child.material.emissive = selected
-            ? new THREE.Color(0x00ffff)
-            : new THREE.Color(0x000000);
-        }
-      });
-    }
-  }, [selected, previewMode]);
+  useModelMaterials({
+    modelRef,
+    selected,
+    previewMode,
+  });
 
-  // Update scale manually when the scale prop changes.
-  useEffect(() => {
-    if (modelRef.current && scale) {
-      modelRef.current.scale.set(...scale);
-    }
-  }, [scale]);
-
-  // **New useEffect to update the model's reference in the store on mount.**
+  // Update model properties when they change
   useEffect(() => {
     if (modelRef.current) {
-      // Update the store with the model's ref.
+      // Update position
+      if (position) {
+        modelRef.current.position.set(...position);
+      }
+      // Update rotation
+      if (rotation) {
+        modelRef.current.rotation.set(...rotation);
+      }
+      // Update scale
+      if (scale) {
+        modelRef.current.scale.set(...scale);
+      }
+    }
+  }, [position, rotation, scale]);
+
+  // Update the model ref in the store
+  useEffect(() => {
+    if (modelRef.current) {
       updateModelRef(id, modelRef.current);
     }
   }, [id, updateModelRef]);
 
-  const handlePointerDown = (e: any) => {
-    e.stopPropagation();
-    pointerDown.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handlePointerUp = (e: any) => {
-    e.stopPropagation();
-    if (!pointerDown.current) return;
-    const dx = e.clientX - pointerDown.current.x;
-    const dy = e.clientY - pointerDown.current.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance < CLICK_THRESHOLD && !previewMode) {
-      onSelect(id, modelRef.current!);
-    }
-    pointerDown.current = null;
-  };
-
-  // If cloned object is not ready, render nothing.
-  if (!clonedObject) return null;
+  if (!clonedObject) {
+    return null;
+  }
 
   return (
-    <Suspense fallback={null}>
-      {/* @ts-ignore-next-line */}
+    <>
       <primitive
-        object={clonedObject}
         ref={modelRef}
-        position={position}
-        rotation={rotation}
+        object={clonedObject}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       />
-    </Suspense>
+      {isObservationModel && observationProperties && (
+        <>
+          {observationProperties.showVisibleArea && (
+            <ObservationVisibilityArea
+              position={position}
+              rotation={rotation}
+              fov={observationProperties.fov}
+              radius={observationProperties.visibilityRadius}
+              showVisibleArea={observationProperties.showVisibleArea}
+            />
+          )}
+          {observationProperties.showActualArea && (
+            <ActualVisibilityArea
+              position={position}
+              rotation={rotation}
+              fov={observationProperties.fov}
+              radius={observationProperties.visibilityRadius}
+              showVisibleArea={observationProperties.showActualArea}
+            />
+          )}
+          {observationProperties.showCalculatedArea && (
+            <ActualVisibilityArea
+              position={position}
+              rotation={rotation}
+              fov={observationProperties.fov}
+              radius={observationProperties.visibilityRadius}
+              showVisibleArea={observationProperties.showCalculatedArea}
+              gridDensity={observationProperties.gridDensity || 10}
+            />
+          )}
+        </>
+      )}
+    </>
   );
 };
 

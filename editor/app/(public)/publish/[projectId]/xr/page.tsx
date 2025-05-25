@@ -1,6 +1,6 @@
 "use client";
-import PreviewScene from "@/components/PreviewScene";
-import useSceneStore from "@/hooks/useSceneStore";
+import PreviewScene from "@/app/components/PreviewScene";
+import useSceneStore from "@/app/hooks/useSceneStore";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -31,6 +31,17 @@ export default function Scene() {
           throw new Error("Project not published");
         }
         setProject(data.project);
+
+        // Initialize selectedAssetId and selectedLocation
+        if (data.project.sceneData) {
+          const { selectedAssetId, selectedLocation } = data.project.sceneData;
+          if (selectedAssetId) {
+            useSceneStore.setState({ selectedAssetId });
+          }
+          if (selectedLocation) {
+            useSceneStore.setState({ selectedLocation });
+          }
+        }
       } catch (error) {
         console.error("Error fetching project:", error);
       } finally {

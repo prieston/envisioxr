@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Typewriter } from "react-simple-typewriter";
 
 export default function Hero() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);

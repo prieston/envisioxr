@@ -3,9 +3,8 @@
 // Learn more: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -69,7 +68,7 @@ model Project {
   userId       String
   title        String
   description  String?
-  // sceneData stores your scene’s configuration in JSON format.
+  // sceneData stores your scene's configuration in JSON format.
   sceneData    Json
   // isPublished indicates whether the project is public.
   isPublished  Boolean  @default(false)
@@ -91,7 +90,8 @@ model Asset {
   fileUrl          String // URL to the file in your cloud storage
   fileType         String // e.g., "glb", "3dm", "jpg", etc.
   originalFilename String
-  thumbnail        String? // NEW: URL for the captured thumbnail image
+  thumbnail        String? // URL for the captured thumbnail image
+  metadata         Json? // Stores descriptive information about the model
   createdAt        DateTime @default(now())
 
   // Relations:

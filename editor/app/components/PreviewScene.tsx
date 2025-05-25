@@ -1,17 +1,29 @@
 "use client";
 import React from "react";
-import Scene from "@/components/Scene/Scene";
+import Scene from "../../src/components/Scene/Scene";
+
+interface SceneData {
+  objects?: any[];
+  observationPoints?: any[];
+  selectedAssetId?: string;
+  selectedLocation?: {
+    latitude: number;
+    longitude: number;
+  } | null;
+}
 
 const PreviewScene = ({
   initialSceneData,
   renderObservationPoints = true,
   onSceneDataChange,
   enableXR = false,
+  isPublishMode = false,
 }: {
-  initialSceneData: any;
+  initialSceneData: SceneData;
   renderObservationPoints?: boolean;
   onSceneDataChange?: any;
   enableXR?: boolean;
+  isPublishMode?: boolean;
 }) => {
   return (
     <div
@@ -28,6 +40,7 @@ const PreviewScene = ({
         renderObservationPoints={renderObservationPoints}
         onSceneDataChange={onSceneDataChange}
         enableXR={enableXR}
+        isPublishMode={isPublishMode}
       />
     </div>
   );

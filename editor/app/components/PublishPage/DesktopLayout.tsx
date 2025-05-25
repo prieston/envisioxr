@@ -3,8 +3,8 @@
 import React from "react";
 import { Button, FormControlLabel, Switch, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import LogoHeader from "@/components/AppBar/LogoHeader";
-import PreviewScene from "@/components/PreviewScene";
+import LogoHeader from "../AppBar/LogoHeader";
+import PreviewScene from "../PreviewScene";
 
 const DesktopContainer = styled("div")({
   display: "flex",
@@ -129,6 +129,7 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
           initialSceneData={project.sceneData}
           renderObservationPoints={false}
           enableXR={false}
+          isPublishMode={true}
         />
       </DesktopSceneContainer>
     </DesktopContainer>

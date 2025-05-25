@@ -2,41 +2,57 @@
 
 import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemText from "@mui/material/ListItemText";
-import IconButton from "@mui/material/IconButton";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogActions from "@mui/material/DialogActions";
-import Button from "@mui/material/Button";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import { MoreVert } from "@mui/icons-material";
+import {
+  Box,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogActions,
+  Button,
+  Menu,
+  MenuItem,
+  Typography,
+  Tabs,
+  Tab,
+} from "@mui/material";
+import { MoreVert, ViewInAr, Landscape } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
+import EnvironmentPanel from "../../components/Environment/EnvironmentPanel";
 
 // Container for the left panel with conditional styling based on previewMode
 interface LeftPanelContainerProps {
   previewMode: boolean;
 }
 
-const LeftPanelContainer = styled(Box)<LeftPanelContainerProps>(
-  ({ theme, previewMode }) => ({
-    width: "250px",
-    height: "100%",
-    backgroundColor: theme.palette.background.paper,
-    color: theme.palette.text.primary,
-    padding: theme.spacing(2),
-    borderRight: "1px solid rgba(255, 255, 255, 0.1)",
-    userSelect: "none",
-    pointerEvents: previewMode ? "none" : "auto",
-    opacity: previewMode ? 0.5 : 1,
-    cursor: previewMode ? "not-allowed" : "default",
-    filter: previewMode ? "grayscale(100%)" : "none",
-    transition: "opacity 0.3s ease, filter 0.3s ease",
-  })
-);
+const LeftPanelContainer = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "previewMode",
+})<LeftPanelContainerProps>(({ theme, previewMode }) => ({
+  width: "280px",
+  height: "100%",
+  backgroundColor: "#121212",
+  color: theme.palette.text.primary,
+  padding: theme.spacing(2),
+  borderRight: "1px solid rgba(255, 255, 255, 0.08)",
+  userSelect: "none",
+  pointerEvents: previewMode ? "none" : "auto",
+  opacity: previewMode ? 0.5 : 1,
+  cursor: previewMode ? "not-allowed" : "default",
+  filter: previewMode ? "grayscale(100%)" : "none",
+  transition: "all 0.3s ease",
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: "1px",
+    background:
+      "linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), transparent)",
+  },
+}));
 
 // Styled ListItem for objects, using a prop (selectedItem) to determine styles
 interface ObjectListItemProps {
@@ -46,38 +62,90 @@ interface ObjectListItemProps {
 const ObjectListItem = styled(ListItem)<ObjectListItemProps>(
   ({ theme, selectedItem }) => ({
     cursor: "pointer",
-    borderRadius: theme.shape.borderRadius,
+    borderRadius: 12,
     marginBottom: theme.spacing(1),
-    backgroundColor: selectedItem ? theme.palette.primary.main : "transparent",
-    color: selectedItem ? "white" : "inherit",
+    backgroundColor: selectedItem
+      ? "rgba(25, 118, 210, 0.12)"
+      : "rgba(255, 255, 255, 0.05)",
+    color: selectedItem ? theme.palette.primary.main : "inherit",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    padding: theme.spacing(1.5),
+    transition: "all 0.2s ease",
+    border: selectedItem
+      ? `1px solid ${theme.palette.primary.main}`
+      : "1px solid rgba(255, 255, 255, 0.05)",
     "&:hover": {
       backgroundColor: selectedItem
-        ? theme.palette.primary.dark
-        : "rgba(255, 255, 255, 0.1)",
+        ? "rgba(25, 118, 210, 0.16)"
+        : "rgba(255, 255, 255, 0.08)",
+      transform: "translateX(4px)",
+      border: selectedItem
+        ? `1px solid ${theme.palette.primary.main}`
+        : "1px solid rgba(255, 255, 255, 0.2)",
     },
   })
 );
 
-const LeftPanel = () => {
-  const objects = useSceneStore((state) => state.objects);
-  const selectedObject = useSceneStore((state) => state.selectedObject);
-  const selectObject = useSceneStore((state) => state.selectObject);
-  const removeObject = useSceneStore((state) => state.removeObject); // assumed deletion function
-  const previewMode = useSceneStore((state) => state.previewMode);
+const StyledList = styled(List)(({ theme }) => ({
+  padding: theme.spacing(1),
+}));
 
-  // Local state for menu and deletion confirmation.
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+const StyledListItemText = styled(ListItemText)(({ theme }) => ({
+  "& .MuiListItemText-primary": {
+    fontSize: "0.9rem",
+    fontWeight: 500,
+  },
+  "& .MuiListItemText-secondary": {
+    fontSize: "0.8rem",
+    color: theme.palette.text.secondary,
+  },
+}));
+
+const StyledIconButton = styled(IconButton)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  "&:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    color: theme.palette.text.primary,
+  },
+}));
+
+const PanelTitle = styled(Typography)(({ theme }) => ({
+  fontSize: "1rem",
+  fontWeight: 500,
+  marginBottom: theme.spacing(2),
+  color: theme.palette.text.primary,
+}));
+
+const TabPanel = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  height: "calc(100% - 48px)", // 48px is the height of the tabs
+  overflow: "auto",
+}));
+
+const LeftPanel = () => {
+  const [activeTab, setActiveTab] = useState(0);
+  const [menuAnchor, setMenuAnchor] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedItemForDelete, setSelectedItemForDelete] = useState(null);
+  const {
+    objects,
+    selectedObject,
+    selectObject,
+    removeObject,
+    previewMode,
+    deselectObject,
+  } = useSceneStore();
 
   // Open menu on three-dots click and store target id
-  const handleMenuOpen = (e: React.MouseEvent<HTMLButtonElement>, objectId: string) => {
+  const handleMenuOpen = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    objectId: string
+  ) => {
     e.stopPropagation();
     setMenuAnchor(e.currentTarget);
-    setDeleteTargetId(objectId);
+    setSelectedItemForDelete(objectId);
   };
 
   // Close the menu.
@@ -93,53 +161,92 @@ const LeftPanel = () => {
 
   // Confirm deletion: log and remove object.
   const confirmDelete = () => {
-    if (deleteTargetId) {
-      removeObject(deleteTargetId);
+    if (selectedItemForDelete) {
+      removeObject(selectedItemForDelete);
     } else {
       console.log("No object id to delete.");
     }
     setDeleteDialogOpen(false);
-    setDeleteTargetId(null);
+    setSelectedItemForDelete(null);
   };
 
-  // Cancel deletion.
-  const cancelDelete = () => {
-    setDeleteDialogOpen(false);
-    // Optionally clear deleteTargetId if you don't want to keep it.
-    setDeleteTargetId(null);
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
   };
 
   return (
-    <>
-      <LeftPanelContainer previewMode={previewMode}>
-        <List>
-          {objects.map((obj) => (
-            <ObjectListItem
-              className="object-list-item"
-              key={obj.id}
-              selectedItem={selectedObject?.id === obj.id}
-              onClick={() =>
-                selectObject(
-                  selectedObject?.id === obj.id ? null : obj.id,
-                  obj.ref
-                )
-              }
-            >
-              <ListItemText primary={obj.name} />
-              {!previewMode && (
-                <IconButton
+    <LeftPanelContainer previewMode={previewMode}>
+      <Tabs
+        value={activeTab}
+        onChange={handleTabChange}
+        variant="fullWidth"
+        sx={{
+          borderBottom: 1,
+          borderColor: "divider",
+          mb: 2,
+          "& .MuiTab-root": {
+            color: "text.secondary",
+            "&.Mui-selected": {
+              color: "primary.main",
+            },
+          },
+        }}
+      >
+        <Tab
+          icon={<ViewInAr />}
+          label="Assets"
+          sx={{ textTransform: "none" }}
+        />
+        <Tab
+          icon={<Landscape />}
+          label="Environment"
+          sx={{ textTransform: "none" }}
+        />
+      </Tabs>
+
+      {/* Assets Tab */}
+      {activeTab === 0 && (
+        <TabPanel>
+          <PanelTitle>Scene Objects</PanelTitle>
+          <StyledList>
+            {objects.map((object) => (
+              <ObjectListItem
+                key={object.id}
+                selectedItem={selectedObject?.id === object.id}
+                onClick={() => {
+                  // If clicking the same object that's already selected, deselect it
+                  if (selectedObject?.id === object.id) {
+                    deselectObject();
+                  } else {
+                    // Only pass the ref if we're selecting a new object
+                    selectObject(object.id, object.ref || null);
+                  }
+                }}
+              >
+                <StyledListItemText
+                  primary={object.name || "Untitled Object"}
+                  secondary={`Type: ${object.type}`}
+                />
+                <StyledIconButton
+                  onClick={(e) => handleMenuOpen(e, object.id)}
                   size="small"
-                  onClick={(e) => handleMenuOpen(e, obj.id)}
                 >
                   <MoreVert />
-                </IconButton>
-              )}
-            </ObjectListItem>
-          ))}
-        </List>
-      </LeftPanelContainer>
+                </StyledIconButton>
+              </ObjectListItem>
+            ))}
+          </StyledList>
+        </TabPanel>
+      )}
 
-      {/* Menu for options */}
+      {/* Environment Tab */}
+      {activeTab === 1 && (
+        <TabPanel>
+          <EnvironmentPanel />
+        </TabPanel>
+      )}
+
+      {/* Menu for object actions */}
       <Menu
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
@@ -148,13 +255,20 @@ const LeftPanel = () => {
         <MenuItem onClick={handleDeleteOption}>Delete</MenuItem>
       </Menu>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onClose={cancelDelete}>
-        <DialogTitle>
-          Are you sure you want to delete this object?
-        </DialogTitle>
+      {/* Delete confirmation dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            bgcolor: "background.paper",
+            color: "text.primary",
+          },
+        }}
+      >
+        <DialogTitle>Delete Object?</DialogTitle>
         <DialogActions>
-          <Button onClick={cancelDelete} color="primary">
+          <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
             Cancel
           </Button>
           <Button onClick={confirmDelete} color="error">
@@ -162,7 +276,7 @@ const LeftPanel = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </LeftPanelContainer>
   );
 };
 

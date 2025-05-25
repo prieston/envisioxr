@@ -1,23 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  IconButton,
-  CircularProgress,
-  AppBar,
-} from "@mui/material";
+import { Box, Typography, IconButton, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
 import InfoIcon from "@mui/icons-material/Info";
-
-import useProjects from "@/hooks/useProjects";
-import AdminAppBar from "@/components/AppBar";
-import InfoBox from "@/components/Dashboard/InfoBox";
-import ProjectCard from "@/components/Dashboard/ProjectCard";
-import CreateProjectCard from "@/components/Dashboard/CreateProjectCard";
-import OptionsMenu from "@/components/Dashboard/OptionsMenu";
-import DeleteConfirmationDialog from "@/components/Dashboard/DeleteConfirmationDialog";
+import useProjects from "@/app/hooks/useProjects";
+import CreateProjectCard from "@/app/components/Dashboard/CreateProjectCard";
+import ProjectCard from "@/app/components/Dashboard/ProjectCard";
+import OptionsMenu from "@/app/components/Dashboard/OptionsMenu";
+import DeleteConfirmationDialog from "@/app/components/Dashboard/DeleteConfirmationDialog";
+import InfoBox from "@/app/components/Dashboard/InfoBox";
+import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 
 const DashboardPage = () => {
   const router = useRouter();
@@ -42,7 +35,7 @@ const DashboardPage = () => {
   };
 
   const handleGoToBuilder = (projectId) => {
-    router.push(`/projects/${projectId}/build`);
+    router.push(`/projects/${projectId}/builder`);
   };
 
   // --- Options Menu State ---
@@ -112,7 +105,7 @@ const DashboardPage = () => {
     <>
       <AdminAppBar mode="simple" />
 
-      <Box sx={{ padding: 5 }}>
+      <Box sx={{ padding: 5, marginTop: "64px" }}>
         {showInfo && <InfoBox onDismiss={handleDismissInfo} />}
 
         <Box

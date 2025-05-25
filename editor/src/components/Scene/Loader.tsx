@@ -5,7 +5,6 @@ import { useProgress } from "@react-three/drei";
 
 const Loader = () => {
   const { progress } = useProgress();
-  console.log("Loading progress:", progress); // Verify progress updates in console
 
   // Calculate dynamic opacity: when progress is 100, opacity becomes 0
   const dynamicOpacity = 1 - progress / 100;

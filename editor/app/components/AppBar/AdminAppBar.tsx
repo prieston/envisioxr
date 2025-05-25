@@ -1,31 +1,80 @@
 "use client";
 
-import React from "react";
-import { Box } from "@mui/material";
-import LogoHeader from "./LogoHeader";
-import BuilderActions from "./BuilderActions";
+import React, { useState } from "react";
+import { Divider } from "@mui/material";
+import LogoHeader from "./LogoHeader.tsx";
+import useSceneStore from "@/app/hooks/useSceneStore.ts";
+import {
+  AppBarContainer,
+  ToolbarContainer,
+  LeftSection,
+  RightSection,
+} from "./StyledComponents.tsx";
+import BuilderTools from "./BuilderTools.tsx";
+import BuilderActions from "./BuilderActions.tsx";
+import PublishDialog from "./PublishDialog.tsx";
 
-const AdminAppBar = ({ mode = "builder", onSave, onPublish }) => {
+interface AdminAppBarProps {
+  mode?: string;
+  onSave?: () => Promise<void>;
+  onPublish?: () => Promise<void>;
+}
+
+const AdminAppBar: React.FC<AdminAppBarProps> = ({
+  mode = "builder",
+  onSave,
+  onPublish,
+}) => {
+  const [openPublishDialog, setOpenPublishDialog] = useState(false);
+  const { transformMode, setTransformMode, selectedObject } = useSceneStore();
+
+  const handleTransformModeChange = (
+    mode: "translate" | "rotate" | "scale"
+  ) => {
+    setTransformMode(mode);
+  };
+
   return (
-    <Box
-      sx={{
-        width: "100%",
-        backgroundColor: "background.paper",
-        color: "text.primary",
-        display: "flex",
-        height: "64px",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingX: 2,
-        borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-      }}
-    >
-      {/* Left Section: Logo */}
-      <LogoHeader />
-      {mode === "builder" && (
-        <BuilderActions onSave={onSave} onPublish={onPublish} />
-      )}
-    </Box>
+    <>
+      <AppBarContainer position="fixed">
+        <ToolbarContainer>
+          <LeftSection>
+            <LogoHeader />
+            {mode === "builder" && (
+              <Divider
+                orientation="vertical"
+                flexItem
+                sx={{ mx: 1, height: 24 }}
+              />
+            )}
+          </LeftSection>
+
+          {mode === "builder" && (
+            <BuilderTools
+              previewMode={false}
+              selectedObject={selectedObject}
+              transformMode={transformMode}
+              onTransformModeChange={handleTransformModeChange}
+            />
+          )}
+
+          <RightSection>
+            {mode === "builder" && (
+              <BuilderActions
+                onSave={onSave}
+                onPublish={() => setOpenPublishDialog(true)}
+              />
+            )}
+          </RightSection>
+        </ToolbarContainer>
+      </AppBarContainer>
+
+      <PublishDialog
+        open={openPublishDialog}
+        onClose={() => setOpenPublishDialog(false)}
+        onConfirm={onPublish}
+      />
+    </>
   );
 };
 

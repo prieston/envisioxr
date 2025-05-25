@@ -3,39 +3,45 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
-import AdminAppBar from "../AppBar";
+import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 import LeftPanel from "./LeftPanel";
 import RightPanel from "./RightPanel";
 import BottomPanel from "./BottomPanel";
 
-const LayoutContainer = styled(Box)(({ theme }) => ({
+const LayoutContainer = styled(Box)(() => ({
   display: "flex",
   flexDirection: "column",
   height: "100vh",
   overflow: "hidden",
+  position: "relative",
 }));
 
-const MainContent = styled(Box)(({ theme }) => ({
+const MainContent = styled(Box)(() => ({
   display: "flex",
   flexGrow: 1,
   overflow: "hidden",
+  marginTop: "64px",
 }));
 
-const CenterContainer = styled(Box)(({ theme }) => ({
+const CenterContainer = styled(Box)(() => ({
   flexGrow: 1,
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
+  position: "relative",
+  zIndex: 1,
 }));
 
-const SceneContainer = styled(Box)(({ theme }) => ({
+const SceneContainer = styled(Box)(() => ({
   flexGrow: 1,
   display: "flex",
   overflow: "hidden",
 }));
 
-const BottomContainer = styled(Box)(({ theme }) => ({
+const BottomContainer = styled(Box)(() => ({
   flexShrink: 0,
+  position: "relative",
+  zIndex: 1,
 }));
 
 const AdminLayout = ({ children, onSave, onPublish }) => {

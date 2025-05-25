@@ -22,11 +22,6 @@ export async function POST(request: any) {
   }
 
   const resetToken = crypto.randomBytes(20).toString("hex");
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
-
   const passwordResetTokenExp = new Date();
   passwordResetTokenExp.setHours(passwordResetTokenExp.getHours() + 1);
 
@@ -46,7 +41,7 @@ export async function POST(request: any) {
     await sendEmail({
       to: email,
       subject: "Reset your password",
-      html: ` 
+      html: `
       <div>
         <h1>You requested a password reset</h1>
         <p>Click the link below to reset your password</p>

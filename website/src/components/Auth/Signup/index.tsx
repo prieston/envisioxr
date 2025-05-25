@@ -42,7 +42,7 @@ export default function Signup() {
     rePassword: "",
   });
 
-  const { name, email, password, rePassword } = data;
+  const { name, email, password } = data;
 
   const registerUser = async (e: any) => {
     e.preventDefault();
