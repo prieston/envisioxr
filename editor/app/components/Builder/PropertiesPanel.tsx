@@ -491,7 +491,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     selectedObject.observationProperties?.gridDensity || 10
                   }
                   min={5}
-                  max={50}
+                  max={100}
                   onChange={(_, value) =>
                     handlePropertyChange(
                       "observationProperties.gridDensity",
