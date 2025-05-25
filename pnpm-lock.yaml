@@ -251,6 +251,9 @@ importers:
       '@tailwindcss/typography':
         specifier: ^0.5.10
         version: 0.5.16(tailwindcss@3.4.17)
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       algoliasearch:
         specifier: ^4.22.1
         version: 4.24.0
@@ -363,9 +366,6 @@ importers:
       '@babel/preset-env':
         specifier: ^7.24.0
         version: 7.27.2(@babel/core@7.27.1)
-      '@types/bcryptjs':
-        specifier: ^2.4.6
-        version: 2.4.6
       '@types/node':
         specifier: ^20
         version: 20.17.50
