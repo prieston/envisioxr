@@ -64,13 +64,6 @@ const Model = ({
   const effectiveObservationProperties =
     objectFromStore?.observationProperties || observationProperties;
 
-  console.log("Model render:", {
-    id,
-    storeProps: objectFromStore?.observationProperties,
-    propProps: observationProperties,
-    effectiveProps: effectiveObservationProperties,
-  });
-
   // If this is a Cesium Ion tiles model, render it differently
   // if (type === "tiles" && assetId) {
   //   return (

@@ -280,7 +280,6 @@ const useSceneStore = create<SceneState>((set) => ({
     })),
 
   updateObjectProperty: (id, property, value) => {
-    console.log("Store: updateObjectProperty called:", { id, property, value });
     set((state) => {
       const updatedObjects = state.objects.map((obj) =>
         obj.id === id
@@ -299,11 +298,6 @@ const useSceneStore = create<SceneState>((set) => ({
               [property]: value,
             }
           : state.selectedObject;
-
-      console.log("Store: Updated state:", {
-        updatedObjects: updatedObjects.find((obj) => obj.id === id),
-        updatedSelectedObject,
-      });
 
       return {
         objects: updatedObjects,
@@ -515,14 +509,12 @@ const useSceneStore = create<SceneState>((set) => ({
 
   // Visibility Area Calculation Actions
   startVisibilityCalculation: (objectId) => {
-    console.log("Store: Starting visibility calculation for", objectId);
     set({
       isCalculatingVisibility: true,
       lastVisibilityCalculation: { objectId, timestamp: Date.now() },
     });
   },
   finishVisibilityCalculation: (_objectId) => {
-    console.log("Store: Finishing visibility calculation");
     set({ isCalculatingVisibility: false });
   },
 }));
