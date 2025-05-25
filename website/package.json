@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "vercel:build:website": "cd .. && pnpm install && pnpm prisma:generate && pnpm prisma:migrate:deploy && cd website && pnpm build"
+    "vercel:build:website": "pnpm -C ../packages/prisma generate && pnpm -C ../packages/prisma prisma migrate deploy && pnpm build"
   },
   "dependencies": {
     "@envisioxr/prisma": "workspace:*",
