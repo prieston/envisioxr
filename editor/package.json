@@ -17,7 +17,7 @@
     "build": "next build",
     "analyze": "ANALYZE=true next build",
     "start": "next start",
-    "vercel:build:editor": "pnpm -C ../packages/prisma generate && pnpm -C ../packages/prisma prisma migrate deploy && pnpm build"
+    "vercel:build:editor": "pnpm --filter @envisioxr/prisma generate && pnpm --filter @envisioxr/prisma prisma migrate deploy && pnpm build"
   },
   "dependencies": {
     "3d-tiles-renderer": "^0.4.7",
