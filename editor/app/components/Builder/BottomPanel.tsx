@@ -20,10 +20,10 @@ import {
   NavigateNext,
   ThreeSixty,
   FlightTakeoff,
-  AirplanemodeActiveOutlined,
-  DriveEta,
+  // AirplanemodeActiveOutlined,
+  // DriveEta,
   Person,
-  PersonOutline,
+  // PersonOutline,
   DirectionsCarFilled,
   Settings,
 } from "@mui/icons-material";
@@ -237,7 +237,7 @@ const BottomPanel = () => {
         </ViewModeRow>
 
         {/* Row 3: Third Person Views */}
-        <ViewModeRow>
+        {/* <ViewModeRow>
           <Tooltip title="Third Person">
             <ViewModeButton
               className={viewMode === "thirdPerson" ? "active" : ""}
@@ -262,7 +262,7 @@ const BottomPanel = () => {
               <AirplanemodeActiveOutlined />
             </ViewModeButton>
           </Tooltip>
-        </ViewModeRow>
+        </ViewModeRow> */}
       </ViewModeSection>
 
       <Divider orientation="vertical" flexItem />
