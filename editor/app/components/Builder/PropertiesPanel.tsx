@@ -189,8 +189,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     value: number | string | boolean
   ) => {
     if (selectedObject) {
-      console.log("handlePropertyChange:", { property, value, selectedObject });
-
       // Update local state immediately for responsive UI
       setLocalObject((prev) => {
         if (!prev) return prev;
@@ -206,7 +204,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 [child]: value,
               },
             };
-            console.log("Updated local object:", updated);
             return updated;
           }
           // Handle array indices (e.g., "position.0")
@@ -234,7 +231,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           ...selectedObject.observationProperties,
           [propName]: value,
         };
-        console.log("Updating global state with:", updatedProperties);
         updateObjectProperty(
           selectedObject.id,
           "observationProperties",
@@ -458,14 +454,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                         ?.showCalculatedArea || false
                     }
                     onChange={(e) => {
-                      console.log(
-                        "Toggle showCalculatedArea:",
-                        e.target.checked
-                      );
-                      console.log(
-                        "Current observationProperties:",
-                        selectedObject.observationProperties
-                      );
                       handlePropertyChange(
                         "observationProperties.showCalculatedArea",
                         e.target.checked
@@ -499,11 +487,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 fullWidth
                 sx={{ mt: 1 }}
                 onClick={() => {
-                  console.log("Calculate button clicked", selectedObject.id);
-                  console.log(
-                    "Current showCalculatedArea:",
-                    selectedObject.observationProperties?.showCalculatedArea
-                  );
                   useSceneStore
                     .getState()
                     .startVisibilityCalculation(selectedObject.id);
