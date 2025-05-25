@@ -3,10 +3,7 @@
 import { useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import {
-  applyGravityAndSnap,
-  enablePointerLockMouseLook,
-} from "./controlsUtils";
+import { enablePointerLockMouseLook } from "./controlsUtils";
 
 const WALK_SPEED = 4;
 const RUN_SPEED = 8;

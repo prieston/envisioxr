@@ -112,13 +112,11 @@ export default function ThirdPersonControls() {
     raycaster.set(origin, dir);
     raycaster.far = PLAYER_HEIGHT + GROUND_EPS + 0.2;
 
-    const hits = raycaster
-      .intersectObjects(scene.children, true)
-      .filter((h) => h.object !== playerRef.current);
-
     // -- Gravity & snapping --
-    const { velocityY: newVY, snapped } = applyGravityAndSnap(
-      playerRef.current,
+    const tempCamera = new THREE.PerspectiveCamera();
+    tempCamera.position.copy(playerRef.current.position);
+    const { velocityY: newVY, onGround } = applyGravityAndSnap(
+      tempCamera,
       velocityY.current,
       dt,
       scene,
@@ -129,8 +127,9 @@ export default function ThirdPersonControls() {
         groundEps: GROUND_EPS,
       }
     );
+    playerRef.current.position.copy(tempCamera.position);
     console.log(
-      `%c[DEBUG] velY before: ${velocityY.current.toFixed(2)}, after: ${newVY.toFixed(2)}, snapped: ${snapped}`,
+      `%c[DEBUG] velY before: ${velocityY.current.toFixed(2)}, after: ${newVY.toFixed(2)}, onGround: ${onGround}`,
       "color: blue;"
     );
     velocityY.current = newVY;

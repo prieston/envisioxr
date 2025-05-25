@@ -1,4 +1,3 @@
-// @ts-nocheck
 import * as THREE from 'three'
 import { extend, useFrame } from '@react-three/fiber'
 import { shaderMaterial } from '@react-three/drei'
@@ -17,8 +16,7 @@ const ShaderImpl = shaderMaterial(
 
 extend({ ShaderImpl })
 
-// eslint-disable-next-line react/display-name
-const Shader = forwardRef(({ children, ...props }, ref) => {
+const Shader = forwardRef(({ _children, ...props }, ref) => {
   const localRef = useRef()
 
   useImperativeHandle(ref, () => localRef.current)

@@ -56,7 +56,6 @@ const Model = ({
   rotation = [0, 0, 0],
   selected,
   onSelect,
-  assetId,
   isObservationModel,
   observationProperties,
 }: ModelProps) => {

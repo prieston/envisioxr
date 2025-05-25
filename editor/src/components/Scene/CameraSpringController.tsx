@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useSpring } from "@react-spring/three";
 import useSceneStore from "../../../app/hooks/useSceneStore";
-import * as THREE from "three";
 
 type Vector3Tuple = [number, number, number];
 
@@ -16,9 +15,6 @@ const CameraSpringController: React.FC = () => {
   const capturingPOV = useSceneStore((state) => state.capturingPOV);
   const viewMode = useSceneStore((state) => state.viewMode);
   const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
-  const selectedObservation = useSceneStore(
-    (state) => state.selectedObservation
-  );
 
   const [spring, api] = useSpring(() => ({
     cameraPosition: camera.position.toArray() as Vector3Tuple,
