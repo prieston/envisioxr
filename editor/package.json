@@ -30,6 +30,7 @@
     "@mui/icons-material": "^6.4.2",
     "@mui/material": "^6.4.1",
     "@next-auth/prisma-adapter": "^1.0.7",
+    "@next/bundle-analyzer": "^14.0.4",
     "@prisma/client": "^5.22.0",
     "@react-spring/three": "^9.7.3",
     "@react-three/drei": "^9.92.7",
@@ -58,7 +59,6 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "^14.0.4",
     "@types/next": "^9.0.0",
     "@types/react": "^18.3.20",
     "@types/three": "^0.175.0",
