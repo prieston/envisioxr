@@ -13,10 +13,11 @@
   "scripts": {
     "lint": "next lint --fix --dir app",
     "dev": "NODE_ENV=development NEXT_TELEMETRY_DISABLED=1 next dev -p 3001",
-    "prebuild": "node -e \"require('child_process').execSync('cd ../packages/prisma && pnpm generate', { stdio: 'inherit' })\"",
+    "prebuild": "node -e \"require('child_process').execSync('cd ../packages/prisma && pnpm generate && pnpm prisma migrate deploy', { stdio: 'inherit' })\"",
     "build": "next build",
     "analyze": "ANALYZE=true next build",
-    "start": "next start"
+    "start": "next start",
+    "vercel:build:editor": "cd .. && pnpm install && pnpm prisma:generate && pnpm prisma:migrate:deploy && cd editor && pnpm build"
   },
   "dependencies": {
     "3d-tiles-renderer": "^0.4.7",

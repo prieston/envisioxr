@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "NODE_ENV=development NEXT_TELEMETRY_DISABLED=1 next dev",
-    "prebuild": "node -e \"require('child_process').execSync('cd ../packages/prisma && pnpm generate', { stdio: 'inherit' })\"",
+    "prebuild": "node -e \"require('child_process').execSync('cd ../packages/prisma && pnpm generate && pnpm prisma migrate deploy', { stdio: 'inherit' })\"",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "vercel:build:website": "cd .. && pnpm install && pnpm prisma:generate && pnpm prisma:migrate:deploy && cd website && pnpm build"
   },
   "dependencies": {
     "@envisioxr/prisma": "workspace:*",
