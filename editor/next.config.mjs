@@ -22,6 +22,14 @@ const nextConfig = {
     esmExternals: 'loose'
   },
   webpack(config, { isServer }) {
+    config.resolve = {
+      ...config.resolve,
+      alias: {
+        ...config.resolve?.alias,
+        '@': '.',
+      },
+    };
+
     if (!isServer) {
       config.externals.push('sharp');
     }
