@@ -18,7 +18,6 @@ import {
   VisibilityOff as VisibilityOffIcon,
   Settings as SettingsIcon,
 } from "@mui/icons-material";
-import { useBuilderStore } from "@/app/hooks/useBuilderStore";
 
 interface AppBarProps {
   onSave: () => void;
@@ -49,10 +48,7 @@ const AppBar: React.FC<AppBarProps> = ({
   canDelete,
   onAddModel,
 }) => {
-  const { setRightPanelTab } = useBuilderStore();
-
   const handleAddModel = () => {
-    setRightPanelTab(1); // Switch to Assets tab
     onAddModel();
   };
 
