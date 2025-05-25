@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function SingleBlog({ blog }: { blog: Blog }) {
-  const { title, slug, mainImage, tags } = blog;
+  const { title, slug, mainImage } = blog;
 
   return (
     <div className="w-full px-4 md:w-1/2 lg:w-1/3">

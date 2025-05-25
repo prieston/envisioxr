@@ -8,11 +8,8 @@ import Hero from "@/components/Home/Hero";
 // import Testimonials from "@/components/Home/Testimonials";
 import Pricing from "@/components/Pricing";
 import Support from "@/components/Support";
-import Team from "@/components/Team";
 import { Metadata } from "next";
-import { integrations, messages } from "../../../integrations.config";
-
-const siteName = process.env.SITE_NAME;
+import { integrations } from "../../../integrations.config";
 
 export const metadata: Metadata = {
   title: `EnvisioXR | Home`,
