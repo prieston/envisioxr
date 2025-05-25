@@ -167,14 +167,17 @@ const BottomPanel = () => {
     selectObservation(point.id);
     setPreviewIndex(index);
 
-    // Then enable preview mode to trigger camera movement
-    setPreviewMode(true);
+    // Only trigger camera movement if the point has both position and target set
+    if (point.position && point.target) {
+      // Then enable preview mode to trigger camera movement
+      setPreviewMode(true);
 
-    // Wait for camera movement to complete before disabling preview mode
-    // Using a longer timeout to ensure the camera movement is complete
-    setTimeout(() => {
-      setPreviewMode(false);
-    }, 1500);
+      // Wait for camera movement to complete before disabling preview mode
+      // Using a longer timeout to ensure the camera movement is complete
+      setTimeout(() => {
+        setPreviewMode(false);
+      }, 1500);
+    }
   };
 
   const hasNextPoint =

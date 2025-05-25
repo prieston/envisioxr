@@ -402,7 +402,8 @@ const RightPanel: React.FC = () => {
         observationProperties: pendingModel.isObservationModel
           ? {
               fov: pendingModel.observationProperties?.fov || 90,
-              showVisibleArea: false,
+              showVisibleArea:
+                pendingModel.observationProperties?.showVisibleArea || false,
               visibilityRadius:
                 pendingModel.observationProperties?.visibilityRadius || 100,
             }
