@@ -299,8 +299,7 @@ const RightPanel: React.FC = () => {
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           const endpoint = clientEnv.NEXT_PUBLIC_DO_SPACES_ENDPOINT;
-          const bucket = clientEnv.NEXT_PUBLIC_DO_SPACES_BUCKET;
-          const publicUrl = `${endpoint}/${bucket}/${key}`;
+          const publicUrl = `${endpoint}/${key}`;
           resolve({ key, publicUrl });
         } else {
           reject(new Error("Upload failed with status " + xhr.status));
@@ -344,7 +343,7 @@ const RightPanel: React.FC = () => {
             },
           ]
         : metadata;
-
+      debugger; //eslint-disable-line no-debugger
       const postRes = await fetch("/api/models", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
