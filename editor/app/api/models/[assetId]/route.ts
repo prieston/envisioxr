@@ -5,16 +5,19 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma.ts";
 import { Session } from "next-auth";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { assetId: string } }
-) {
+type RouteContext = {
+  params: {
+    assetId: string;
+  };
+};
+
+export async function GET(request: NextRequest, context: RouteContext) {
   const session = (await getServerSession(authOptions)) as Session;
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { assetId } = params;
+  const { assetId } = context.params;
   if (!assetId) {
     return NextResponse.json(
       { error: "Asset ID is required" },
