@@ -10,6 +10,9 @@ import {
   Switch,
   FormControlLabel,
   Slider,
+  FormControl,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { Camera, FlightTakeoff } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
@@ -79,6 +82,12 @@ const ModelMetadata = ({ assetId }: { assetId?: string }) => {
     </Box>
   );
 };
+
+const IOT_PROVIDERS = [
+  { id: "provider1", name: "Provider 1" },
+  { id: "provider2", name: "Provider 2" },
+  { id: "provider3", name: "Provider 3" },
+];
 
 const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   selectedObject,
@@ -184,10 +193,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     localObject?.scale,
   ]);
 
-  const handlePropertyChange = (
-    property: string,
-    value: number | string | boolean
-  ) => {
+  const handlePropertyChange = (property: string, value: any) => {
     if (selectedObject) {
       // Update local state immediately for responsive UI
       setLocalObject((prev) => {
@@ -362,13 +368,28 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               control={
                 <Switch
                   checked={selectedObject.isObservationModel || false}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const isObservationModel = e.target.checked;
                     updateObjectProperty(
                       selectedObject.id,
                       "isObservationModel",
-                      e.target.checked
-                    )
-                  }
+                      isObservationModel
+                    );
+                    if (isObservationModel) {
+                      // Initialize observation properties with default values
+                      updateObjectProperty(
+                        selectedObject.id,
+                        "observationProperties",
+                        {
+                          fov: 90,
+                          showVisibleArea: false,
+                          visibilityRadius: 100,
+                          iotProvider: "",
+                          iotData: null,
+                        }
+                      );
+                    }
+                  }}
                 />
               }
               label="Observation Model"
@@ -392,6 +413,48 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               Observation Properties
             </Typography>
             <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  IoT Provider
+                </Typography>
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={
+                      selectedObject.observationProperties?.iotProvider || ""
+                    }
+                    onChange={(e) => {
+                      const provider = e.target.value;
+                      const mockData = provider
+                        ? {
+                            speed: Math.floor(Math.random() * 100),
+                            volume: Math.floor(Math.random() * 20),
+                            occupancy: Math.floor(Math.random() * 10),
+                          }
+                        : null;
+
+                      const updatedProperties = {
+                        ...selectedObject.observationProperties,
+                        iotProvider: provider,
+                        iotData: mockData,
+                      };
+
+                      handlePropertyChange(
+                        "observationProperties",
+                        updatedProperties
+                      );
+                    }}
+                  >
+                    <MenuItem value="">
+                      <em>None</em>
+                    </MenuItem>
+                    {IOT_PROVIDERS.map((provider) => (
+                      <MenuItem key={provider.id} value={provider.id}>
+                        {provider.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   Field of View (degrees)
