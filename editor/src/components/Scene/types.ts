@@ -14,6 +14,12 @@ export interface Model {
     fov: number; // Field of view in degrees (10-360)
     showVisibleArea: boolean;
     visibilityRadius: number; // Radius in meters
+    iotProvider?: string; // Selected IoT provider
+    iotData?: {
+      speed: number;
+      volume: number;
+      occupancy: number;
+    };
   };
   [key: string]: any; // For any additional properties
 }

@@ -9,6 +9,7 @@ import { useModelSelection } from "./hooks/useModelSelection.ts";
 import { useModelMaterials } from "./hooks/useModelMaterials.ts";
 import ObservationVisibilityArea from "./ObservationVisibilityArea";
 import ActualVisibilityArea from "./ActualVisibilityArea";
+import IoTDataDisplay from "./IoTDataDisplay";
 
 // // Dynamically import CesiumIonTiles to avoid SSR issues
 // const CesiumIonTiles = dynamic(
@@ -44,6 +45,8 @@ interface ModelProps {
     showActualArea: boolean;
     showCalculatedArea: boolean;
     gridDensity?: number;
+    iotProvider?: string;
+    iotData?: any;
   };
 }
 
@@ -188,6 +191,13 @@ const Model = ({
               objectId={id}
             />
           )}
+          {effectiveObservationProperties.iotProvider &&
+            effectiveObservationProperties.iotData && (
+              <IoTDataDisplay
+                position={position}
+                data={effectiveObservationProperties.iotData}
+              />
+            )}
         </>
       )}
     </>
