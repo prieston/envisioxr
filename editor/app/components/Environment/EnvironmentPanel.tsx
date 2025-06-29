@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import useSceneStore from "../../hooks/useSceneStore";
 import LocationSearch from "../LocationSearch";
+import CesiumIonAssetsManager from "./CesiumIonAssetsManager";
 
 const Container = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
@@ -185,6 +186,11 @@ const EnvironmentPanel: React.FC = () => {
             </>
           )}
         </Box>
+      </Section>
+
+      {/* Cesium Ion Assets Management */}
+      <Section>
+        <CesiumIonAssetsManager />
       </Section>
     </Container>
   );
