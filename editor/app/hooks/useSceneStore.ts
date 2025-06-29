@@ -3,6 +3,14 @@ import { create } from "zustand";
 import * as THREE from "three";
 import { v4 as uuidv4 } from "uuid";
 
+interface CesiumIonAsset {
+  id: string;
+  name: string;
+  apiKey: string;
+  assetId: string;
+  enabled: boolean;
+}
+
 interface Model {
   id: string;
   position: [number, number, number];
@@ -52,6 +60,9 @@ interface SceneState {
     altitude?: number;
   } | null;
   tilesRenderer: any | null;
+
+  // Cesium Ion Assets
+  cesiumIonAssets: CesiumIonAsset[];
 
   // Environment Settings
   gridEnabled: boolean;
@@ -157,6 +168,14 @@ interface SceneState {
   // Visibility Area Calculation Actions
   startVisibilityCalculation: (objectId: string) => void;
   finishVisibilityCalculation: (objectId: string) => void;
+
+  // Cesium Ion Asset Actions
+  addCesiumIonAsset: (asset: Omit<CesiumIonAsset, "id">) => void;
+  removeCesiumIonAsset: (id: string) => void;
+  updateCesiumIonAsset: (id: string, updates: Partial<CesiumIonAsset>) => void;
+  toggleCesiumIonAsset: (id: string) => void;
+  setCesiumIonAssets: (assets: CesiumIonAsset[]) => void;
+  flyToCesiumIonAsset: (assetId: string) => void;
 }
 
 const findIntersectionPoint = (
@@ -197,6 +216,7 @@ const useSceneStore = create<SceneState>((set) => ({
   orbitControlsRef: null,
   scene: null,
   tilesRenderer: null,
+  cesiumIonAssets: [],
 
   // Environment Settings Initial State
   gridEnabled: true,
@@ -445,6 +465,7 @@ const useSceneStore = create<SceneState>((set) => ({
       isPlaying: false,
       playbackSpeed: 1,
       tilesRenderer: null,
+      cesiumIonAssets: [],
     }),
 
   setOrbitControlsRef: (ref) => set({ orbitControlsRef: ref }),
@@ -516,6 +537,68 @@ const useSceneStore = create<SceneState>((set) => ({
   },
   finishVisibilityCalculation: (_objectId) => {
     set({ isCalculatingVisibility: false });
+  },
+
+  // Cesium Ion Asset Actions
+  addCesiumIonAsset: (asset) =>
+    set((state) => ({
+      cesiumIonAssets: [...state.cesiumIonAssets, { ...asset, id: uuidv4() }],
+    })),
+  removeCesiumIonAsset: (id) =>
+    set((state) => ({
+      cesiumIonAssets: state.cesiumIonAssets.filter((asset) => asset.id !== id),
+    })),
+  updateCesiumIonAsset: (id, updates) =>
+    set((state) => ({
+      cesiumIonAssets: state.cesiumIonAssets.map((asset) =>
+        asset.id === id ? { ...asset, ...updates } : asset
+      ),
+    })),
+  toggleCesiumIonAsset: (id) =>
+    set((state) => ({
+      cesiumIonAssets: state.cesiumIonAssets.map((asset) =>
+        asset.id === id ? { ...asset, enabled: !asset.enabled } : asset
+      ),
+    })),
+  setCesiumIonAssets: (assets) => set({ cesiumIonAssets: assets }),
+  flyToCesiumIonAsset: (assetId) => {
+    const state = useSceneStore.getState();
+    const asset = state.cesiumIonAssets.find((a) => a.id === assetId);
+    const orbitControls = state.orbitControlsRef;
+
+    if (!asset || !orbitControls) return;
+
+    // Find the asset wrapper in the scene
+    const scene = state.scene;
+    if (!scene) return;
+
+    // Look for the asset wrapper by traversing the scene
+    let assetWrapper = null;
+    scene.traverse((object) => {
+      if (object.userData && object.userData.assetId === assetId) {
+        assetWrapper = object;
+      }
+    });
+
+    if (assetWrapper) {
+      // Get the asset's position and bounding sphere
+      const boundingBox = new THREE.Box3().setFromObject(assetWrapper);
+      const center = boundingBox.getCenter(new THREE.Vector3());
+      const size = boundingBox.getSize(new THREE.Vector3());
+
+      // Calculate a good camera distance based on the asset size
+      const maxDimension = Math.max(size.x, size.y, size.z);
+      const distance = Math.max(maxDimension * 3, 100); // At least 100 units away
+
+      // Set camera position
+      const cameraPosition = center
+        .clone()
+        .add(new THREE.Vector3(distance, distance * 0.6, distance));
+
+      orbitControls.object.position.copy(cameraPosition);
+      orbitControls.target.copy(center);
+      orbitControls.update();
+    }
   },
 }));
 

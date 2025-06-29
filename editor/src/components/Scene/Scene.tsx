@@ -43,6 +43,28 @@ const TilesComponent = dynamic(
   }
 );
 
+// Create a dynamic import for the Cesium Ion Assets Renderer
+const CesiumIonAssetsRenderer = dynamic(
+  () => import("../../../app/components/CesiumIonAssetsRenderer"),
+  {
+    ssr: false,
+    loading: () => (
+      <Html center>
+        <div
+          style={{
+            color: "white",
+            background: "rgba(0,0,0,0.7)",
+            padding: "20px",
+            borderRadius: "10px",
+          }}
+        >
+          Loading Cesium Ion Assets...
+        </div>
+      </Html>
+    ),
+  }
+);
+
 // Create a component to handle deselection
 const DeselectionHandler = () => {
   const { scene, camera, gl } = useThree();
@@ -106,6 +128,7 @@ export default function Scene({
   const selectedAssetId = useSceneStore((state) => state.selectedAssetId);
   const selectedLocation = useSceneStore((state) => state.selectedLocation);
   const showTiles = useSceneStore((state) => state.showTiles);
+  const cesiumIonAssets = useSceneStore((state) => state.cesiumIonAssets);
 
   // Refs
   const transformControlsRef = useRef<any>(null);
@@ -119,6 +142,7 @@ export default function Scene({
   const setSelectedLocation = useSceneStore(
     (state) => state.setSelectedLocation
   );
+  const setCesiumIonAssets = useSceneStore((state) => state.setCesiumIonAssets);
 
   // Initialize scene data
   useEffect(() => {
@@ -127,6 +151,7 @@ export default function Scene({
       setObservationPoints(initialSceneData.observationPoints || []);
       setSelectedAssetId(initialSceneData.selectedAssetId || "2275207");
       setSelectedLocation(initialSceneData.selectedLocation || null);
+      setCesiumIonAssets(initialSceneData.cesiumIonAssets || []);
     }
   }, [
     initialSceneData,
@@ -134,6 +159,7 @@ export default function Scene({
     setObservationPoints,
     setSelectedAssetId,
     setSelectedLocation,
+    setCesiumIonAssets,
   ]);
 
   // Update scene data
@@ -142,11 +168,19 @@ export default function Scene({
       onSceneDataChange({
         objects,
         observationPoints,
-        selectedAssetId: useSceneStore.getState().selectedAssetId,
-        selectedLocation: useSceneStore.getState().selectedLocation,
+        selectedAssetId,
+        selectedLocation,
+        cesiumIonAssets,
       });
     }
-  }, [objects, observationPoints, onSceneDataChange]);
+  }, [
+    objects,
+    observationPoints,
+    selectedAssetId,
+    selectedLocation,
+    cesiumIonAssets,
+    onSceneDataChange,
+  ]);
 
   return (
     <>
@@ -168,6 +202,9 @@ export default function Scene({
                 longitude={selectedLocation?.longitude}
               />
             )}
+
+            {/* Render multiple Cesium Ion assets */}
+            <CesiumIonAssetsRenderer />
 
             {/* Environment Elements */}
             {skyboxType === "default" && (
