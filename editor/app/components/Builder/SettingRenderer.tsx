@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { PanelSetting } from "../../types/panelConfig";
+import { getComponent } from "./ComponentRegistry";
 
 const SettingContainer = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(2),
@@ -151,16 +152,25 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
 
       case "custom":
         if (setting.customComponent) {
-          const CustomComponent = setting.customComponent;
-          return (
-            <CustomComponent
-              value={value ?? setting.defaultValue}
-              onChange={handleChange}
-              onClick={handleClick}
-              disabled={setting.disabled}
-              {...setting.customProps}
-            />
-          );
+          let CustomComponent: React.ComponentType<any> | null = null;
+
+          if (typeof setting.customComponent === "string") {
+            CustomComponent = getComponent(setting.customComponent);
+          } else {
+            CustomComponent = setting.customComponent;
+          }
+
+          if (CustomComponent) {
+            return (
+              <CustomComponent
+                value={value ?? setting.defaultValue}
+                onChange={handleChange}
+                onClick={handleClick}
+                disabled={setting.disabled}
+                {...setting.customProps}
+              />
+            );
+          }
         }
         return null;
 

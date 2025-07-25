@@ -102,14 +102,6 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
 }) => {
   return (
     <Box display="flex" flexDirection="column" height="100%">
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
-        <Typography variant="subtitle1">Asset Library</Typography>
-      </Box>
       <Tabs
         value={tabIndex}
         onChange={(e, newValue) => setTabIndex(newValue)}
