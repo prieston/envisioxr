@@ -24,7 +24,7 @@ export interface PanelSetting {
   visible?: boolean;
   onChange?: (value: any) => void;
   onClick?: () => void;
-  customComponent?: React.ComponentType<any>;
+  customComponent?: React.ComponentType<any> | string;
   customProps?: Record<string, any>;
 }
 

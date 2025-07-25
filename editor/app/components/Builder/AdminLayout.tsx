@@ -5,8 +5,8 @@ import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 import LeftPanel from "./LeftPanelNew";
-import RightPanel from "./RightPanel";
-import BottomPanel from "./BottomPanel";
+import RightPanel from "./RightPanelNew";
+import BottomPanel from "./BottomPanelNew";
 
 const LayoutContainer = styled(Box)(() => ({
   display: "flex",
