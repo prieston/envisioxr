@@ -11,7 +11,7 @@ import {
   SceneLights,
   SceneObjects,
   SceneObservationPoints,
-  SceneTransformControls,
+  SceneTransformControlsNew,
   CameraPOVCaptureHandler,
   ObservationPointHandler,
   CameraSpringController,
@@ -244,7 +244,7 @@ export default function Scene({
               enableXR={enableXR}
               renderObservationPoints={renderObservationPoints}
             />
-            <SceneTransformControls
+            <SceneTransformControlsNew
               selectedObject={selectedObject}
               transformControlsRef={transformControlsRef}
             />

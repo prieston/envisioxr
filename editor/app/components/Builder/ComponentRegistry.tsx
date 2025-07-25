@@ -6,6 +6,8 @@ import SceneObjectsList from "./SceneObjectsList";
 import LocationSearchSection from "./LocationSearchSection";
 import PropertiesPanel from "./PropertiesPanel";
 import AssetLibraryPanel from "./AssetLibraryPanel";
+import LogoHeader from "../AppBar/LogoHeader";
+import ReportGenerator from "../Report/ReportGenerator";
 
 export const componentRegistry: Record<string, React.ComponentType<any>> = {
   ViewModeControls: ViewModeControls,
@@ -15,6 +17,8 @@ export const componentRegistry: Record<string, React.ComponentType<any>> = {
   LocationSearchSection: LocationSearchSection,
   PropertiesPanel: PropertiesPanel,
   AssetLibraryPanel: AssetLibraryPanel,
+  LogoHeader: LogoHeader,
+  ReportGenerator: ReportGenerator,
 };
 
 export const getComponent = (
