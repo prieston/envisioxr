@@ -53,8 +53,14 @@ export default function CesiumPerformanceOptimizer({
       // Optimize picking
       scene.pickTranslucentDepth = false;
 
-      // Optimize memory usage
-      scene.globe.tileLoadProgressEvent.removeAllListeners();
+      // Optimize memory usage (check if method exists)
+      if (
+        scene.globe.tileLoadProgressEvent &&
+        typeof scene.globe.tileLoadProgressEvent.removeAllListeners ===
+          "function"
+      ) {
+        scene.globe.tileLoadProgressEvent.removeAllListeners();
+      }
 
       console.log(
         "[CesiumPerformanceOptimizer] Applied performance optimizations"
@@ -64,9 +70,11 @@ export default function CesiumPerformanceOptimizer({
     // Memory monitoring
     const setupMemoryMonitoring = () => {
       const checkMemoryUsage = () => {
-        if (performance.memory) {
-          const used = performance.memory.usedJSHeapSize / 1024 / 1024;
-          const total = performance.memory.totalJSHeapSize / 1024 / 1024;
+        // Check if performance.memory is available (Chrome only)
+        if ("memory" in performance && performance.memory) {
+          const used = (performance as any).memory.usedJSHeapSize / 1024 / 1024;
+          const total =
+            (performance as any).memory.totalJSHeapSize / 1024 / 1024;
 
           if (used > total * 0.8) {
             console.warn(
@@ -78,8 +86,8 @@ export default function CesiumPerformanceOptimizer({
             );
 
             // Force garbage collection if available
-            if (window.gc) {
-              window.gc();
+            if ("gc" in window && (window as any).gc) {
+              (window as any).gc();
             }
           }
         }

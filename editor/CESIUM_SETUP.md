@@ -21,6 +21,7 @@ This project is configured to work with Cesium in Next.js following the best pra
 ### 3. Environment Configuration
 
 - ✅ `NEXT_PUBLIC_CESIUM_ION_KEY` environment variable
+- ✅ `NEXT_PUBLIC_BING_MAPS_KEY` environment variable (optional)
 - ✅ Proper TypeScript declarations
 - ✅ Client and server-side validation
 
@@ -75,6 +76,8 @@ pnpm build
 - ✅ Terrain provider with water mask and vertex normals
 - ✅ Entity rendering from world data
 - ✅ Proper cleanup and memory management
+- ✅ Multiple basemap support (Cesium World Imagery, Google Satellite, Bing Maps)
+- ✅ Full-width/height container sizing
 
 ### 3D Tiles Integration
 
