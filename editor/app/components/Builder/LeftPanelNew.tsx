@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { styled } from "@mui/material/styles";
 import { Box, Tabs, Tab } from "@mui/material";
 import useSceneStore from "../../hooks/useSceneStore";
@@ -59,6 +59,8 @@ const LeftPanelNew: React.FC = () => {
     setSkyboxType,
     ambientLightIntensity,
     setAmbientLightIntensity,
+    basemapType,
+    setBasemapType,
   } = useSceneStore();
 
   // Recreate configuration whenever state changes
@@ -69,7 +71,9 @@ const LeftPanelNew: React.FC = () => {
       skyboxType,
       setSkyboxType,
       ambientLightIntensity,
-      setAmbientLightIntensity
+      setAmbientLightIntensity,
+      basemapType,
+      setBasemapType
     );
   }, [
     engine,
@@ -79,6 +83,8 @@ const LeftPanelNew: React.FC = () => {
     setSkyboxType,
     ambientLightIntensity,
     setAmbientLightIntensity,
+    basemapType,
+    setBasemapType,
   ]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {

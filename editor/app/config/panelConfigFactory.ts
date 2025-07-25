@@ -17,9 +17,15 @@ export const getLeftPanelConfig = (
   gridEnabled: boolean,
   setGridEnabled: (enabled: boolean) => void,
   skyboxType: "default" | "hdri" | "gradient" | "none",
-  setSkyboxType: (type: "default" | "hdri" | "gradient" | "none") => void,
+  setSkyboxType: (
+    type: "default" | "hdri" | "gradient" | "none" | "stars"
+  ) => void,
   ambientLightIntensity: number,
-  setAmbientLightIntensity: (intensity: number) => void
+  setAmbientLightIntensity: (intensity: number) => void,
+  basemapType?: "cesium" | "google" | "google-photorealistic" | "bing" | "none",
+  setBasemapType?: (
+    type: "cesium" | "google" | "google-photorealistic" | "bing" | "none"
+  ) => void
 ): PanelConfiguration => {
   const engine = useWorldStore.getState().engine;
 
@@ -40,7 +46,9 @@ export const getLeftPanelConfig = (
         skyboxType,
         setSkyboxType,
         ambientLightIntensity,
-        setAmbientLightIntensity
+        setAmbientLightIntensity,
+        basemapType || "cesium",
+        setBasemapType || (() => {})
       );
     default:
       return createThreeJSLeftPanelConfig(
