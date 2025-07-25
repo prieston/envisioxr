@@ -25,7 +25,9 @@ const StyledButtonGroup = styled(ButtonGroup)(({ theme }) => ({
 }));
 
 interface BasemapSelectorProps {
-  onBasemapChange: (basemapType: "cesium" | "google" | "bing" | "none") => void;
+  onBasemapChange: (
+    basemapType: "cesium" | "google" | "google-photorealistic" | "bing" | "none"
+  ) => void;
   currentBasemap?: string;
   disabled?: boolean;
 }
@@ -38,7 +40,7 @@ const BasemapSelector: React.FC<BasemapSelectorProps> = ({
   const [selectedBasemap, setSelectedBasemap] = useState(currentBasemap);
 
   const handleBasemapChange = (
-    basemapType: "cesium" | "google" | "bing" | "none"
+    basemapType: "cesium" | "google" | "google-photorealistic" | "bing" | "none"
   ) => {
     setSelectedBasemap(basemapType);
     onBasemapChange(basemapType);
@@ -68,6 +70,16 @@ const BasemapSelector: React.FC<BasemapSelectorProps> = ({
           variant={selectedBasemap === "google" ? "contained" : "outlined"}
         >
           Google Satellite
+        </Button>
+        <Button
+          onClick={() => handleBasemapChange("google-photorealistic")}
+          variant={
+            selectedBasemap === "google-photorealistic"
+              ? "contained"
+              : "outlined"
+          }
+        >
+          Google Photorealistic
         </Button>
         <Button
           onClick={() => handleBasemapChange("bing")}
