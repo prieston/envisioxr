@@ -207,7 +207,6 @@ const LeftPanel = () => {
       {/* Assets Tab */}
       {activeTab === 0 && (
         <TabPanel>
-          <PanelTitle>Scene Objects</PanelTitle>
           <StyledList>
             {objects.map((object) => (
               <ObjectListItem

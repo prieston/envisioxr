@@ -4,7 +4,7 @@ import React from "react";
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
-import LeftPanel from "./LeftPanel";
+import LeftPanel from "./LeftPanelNew";
 import RightPanel from "./RightPanel";
 import BottomPanel from "./BottomPanel";
 
