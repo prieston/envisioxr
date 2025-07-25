@@ -32,6 +32,8 @@ declare namespace NodeJS {
 
     // Google Maps
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: string;
+    // Bing Maps (optional)
+    NEXT_PUBLIC_BING_MAPS_KEY: string;
     // Cesium Ion (support both naming conventions)
     NEXT_PUBLIC_CESIUM_ION_KEY: string;
     NEXT_PUBLIC_CESIUM_TOKEN: string;

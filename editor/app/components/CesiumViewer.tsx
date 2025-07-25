@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import useWorldStore from "../hooks/useWorldStore";
 import CesiumPerformanceOptimizer from "./CesiumPerformanceOptimizer";
+import BasemapSelector from "./BasemapSelector";
 
 // Extend Window interface for Cesium
 declare global {
@@ -27,6 +28,7 @@ export default function CesiumViewer() {
 
   // Add instance tracking
   const instanceId = useRef(Math.random().toString(36).substr(2, 9));
+  const isInitializing = useRef(false);
 
   // React Strict Mode compatible cleanup
   const cleanupPrimitives = () => {
@@ -47,15 +49,77 @@ export default function CesiumViewer() {
     }
   };
 
+  // Function to change basemap
+  const changeBasemap = useCallback(
+    (basemapType: "cesium" | "google" | "bing" | "none") => {
+      if (!viewerRef.current || !cesiumRef.current) return;
+
+      const Cesium = cesiumRef.current;
+
+      try {
+        switch (basemapType) {
+          case "cesium":
+            viewerRef.current.imageryLayers.removeAll();
+            viewerRef.current.imageryLayers.addImageryProvider(
+              Cesium.createWorldImagery()
+            );
+            console.log(
+              `[CesiumViewer ${instanceId.current}] Switched to Cesium World Imagery`
+            );
+            break;
+          case "google":
+            viewerRef.current.imageryLayers.removeAll();
+            viewerRef.current.imageryLayers.addImageryProvider(
+              new Cesium.UrlTemplateImageryProvider({
+                url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                credit: "Google Satellite",
+              })
+            );
+            console.log(
+              `[CesiumViewer ${instanceId.current}] Switched to Google Satellite`
+            );
+            break;
+          case "bing":
+            viewerRef.current.imageryLayers.removeAll();
+            viewerRef.current.imageryLayers.addImageryProvider(
+              new Cesium.BingMapsImageryProvider({
+                url: "https://dev.virtualearth.net",
+                key: process.env.NEXT_PUBLIC_BING_MAPS_KEY || "",
+                mapStyle: Cesium.BingMapsStyle.AERIAL_WITH_LABELS,
+              })
+            );
+            console.log(
+              `[CesiumViewer ${instanceId.current}] Switched to Bing Maps`
+            );
+            break;
+          case "none":
+            viewerRef.current.imageryLayers.removeAll();
+            console.log(
+              `[CesiumViewer ${instanceId.current}] Removed all imagery layers`
+            );
+            break;
+        }
+      } catch (error) {
+        console.error(
+          `[CesiumViewer ${instanceId.current}] Error changing basemap:`,
+          error
+        );
+      }
+    },
+    [instanceId]
+  );
+
   useEffect(() => {
     console.log(`[CesiumViewer ${instanceId.current}] Initializing...`);
 
-    if (!containerRef.current || viewerRef.current) {
+    if (!containerRef.current || viewerRef.current || isInitializing.current) {
       console.log(
-        `[CesiumViewer ${instanceId.current}] Skipping initialization - container or viewer already exists`
+        `[CesiumViewer ${instanceId.current}] Skipping initialization - container, viewer exists, or already initializing`
       );
       return;
     }
+
+    isInitializing.current = true;
 
     const initializeCesium = async () => {
       try {
@@ -127,8 +191,8 @@ export default function CesiumViewer() {
           requestRenderMode: true,
           maximumRenderTimeChange: Infinity,
           targetFrameRate: 60,
-          // Disable default imagery provider to avoid conflicts
-          imageryProvider: false,
+          // Add Cesium World Imagery as default basemap
+          imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }),
         });
 
         console.log(
@@ -173,6 +237,8 @@ export default function CesiumViewer() {
           err instanceof Error ? err.message : "Failed to initialize Cesium"
         );
         setIsLoading(false);
+      } finally {
+        isInitializing.current = false;
       }
     };
 
@@ -206,31 +272,80 @@ export default function CesiumViewer() {
       viewer.entities.removeAll();
       const objects = (world?.sceneData?.objects as any[]) || [];
 
-      objects.forEach((obj) => {
-        const [x = 0, y = 0, z = 0] = obj.position || [];
+      // Add test data if no objects exist
+      if (objects.length === 0) {
+        console.log(
+          `[CesiumViewer ${instanceId.current}] Adding test entities...`
+        );
 
-        // Place simple points in space
+        // Add a test point at a known location (New York City)
         viewer.entities.add({
-          position: Cesium.Cartesian3.fromElements(x, y, z),
+          position: Cesium.Cartesian3.fromDegrees(-74.006, 40.7128, 100),
           point: {
-            pixelSize: 10,
-            color: Cesium.Color.RED,
+            pixelSize: 15,
+            color: Cesium.Color.YELLOW,
             outlineColor: Cesium.Color.WHITE,
             outlineWidth: 2,
           },
           label: {
-            text: obj.name || "Object",
-            font: "12pt sans-serif",
+            text: "Test Point - NYC",
+            font: "14pt sans-serif",
             fillColor: Cesium.Color.WHITE,
             outlineColor: Cesium.Color.BLACK,
             outlineWidth: 2,
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            pixelOffset: new Cesium.Cartesian2(0, -30),
+            pixelOffset: new Cesium.Cartesian2(0, -40),
           },
         });
-      });
+
+        // Add another test point (London)
+        viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(-0.1276, 51.5074, 100),
+          point: {
+            pixelSize: 15,
+            color: Cesium.Color.CYAN,
+            outlineColor: Cesium.Color.WHITE,
+            outlineWidth: 2,
+          },
+          label: {
+            text: "Test Point - London",
+            font: "14pt sans-serif",
+            fillColor: Cesium.Color.WHITE,
+            outlineColor: Cesium.Color.BLACK,
+            outlineWidth: 2,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            pixelOffset: new Cesium.Cartesian2(0, -40),
+          },
+        });
+      } else {
+        // Render actual objects from world data
+        objects.forEach((obj) => {
+          const [x = 0, y = 0, z = 0] = obj.position || [];
+
+          // Place simple points in space
+          viewer.entities.add({
+            position: Cesium.Cartesian3.fromElements(x, y, z),
+            point: {
+              pixelSize: 10,
+              color: Cesium.Color.RED,
+              outlineColor: Cesium.Color.WHITE,
+              outlineWidth: 2,
+            },
+            label: {
+              text: obj.name || "Object",
+              font: "12pt sans-serif",
+              fillColor: Cesium.Color.WHITE,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 2,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              pixelOffset: new Cesium.Cartesian2(0, -30),
+            },
+          });
+        });
+      }
+      const totalEntities = objects.length === 0 ? 2 : objects.length;
       console.log(
-        `[CesiumViewer ${instanceId.current}] Rendered ${objects.length} entities`
+        `[CesiumViewer ${instanceId.current}] Rendered ${totalEntities} entities`
       );
     } catch (err) {
       console.error(
@@ -239,6 +354,13 @@ export default function CesiumViewer() {
       );
     }
   }, [world, isLoading]);
+
+  // Expose changeBasemap function through ref
+  useEffect(() => {
+    if (viewerRef.current) {
+      (viewerRef.current as any).changeBasemap = changeBasemap;
+    }
+  }, [changeBasemap]);
 
   if (error) {
     return (
@@ -263,13 +385,26 @@ export default function CesiumViewer() {
   return (
     <>
       <div
-        style={{ width: "100%", height: "100%" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
         ref={containerRef}
         className={isLoading ? "opacity-50" : ""}
       />
       {viewerRef.current && (
         <CesiumPerformanceOptimizer viewer={viewerRef.current} />
       )}
+      <BasemapSelector
+        onBasemapChange={changeBasemap}
+        currentBasemap="cesium"
+        disabled={isLoading || !viewerRef.current}
+      />
     </>
   );
 }
