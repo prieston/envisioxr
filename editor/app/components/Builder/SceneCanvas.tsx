@@ -2,8 +2,12 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
+import useWorldStore from "../../hooks/useWorldStore";
 
 const Scene = dynamic(() => import("../../../src/components/Scene/Scene"), {
+  ssr: false,
+});
+const CesiumViewer = dynamic(() => import("../../components/CesiumViewer"), {
   ssr: false,
 });
 
@@ -18,6 +22,7 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
   onSceneDataChange,
   renderObservationPoints = true,
 }) => {
+  const engine = useWorldStore((s) => s.engine);
   return (
     <div
       style={{
@@ -28,11 +33,15 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
         overflow: "hidden",
       }}
     >
-      <Scene
-        initialSceneData={initialSceneData}
-        onSceneDataChange={onSceneDataChange}
-        renderObservationPoints={renderObservationPoints}
-      />
+      {engine === "cesium" ? (
+        <CesiumViewer />
+      ) : (
+        <Scene
+          initialSceneData={initialSceneData}
+          onSceneDataChange={onSceneDataChange}
+          renderObservationPoints={renderObservationPoints}
+        />
+      )}
     </div>
   );
 };

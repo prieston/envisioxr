@@ -6,6 +6,7 @@ import { Box, CircularProgress } from "@mui/material";
 import AdminLayout from "../../../../../app/components/Builder/AdminLayout";
 import SceneCanvas from "../../../../../app/components/Builder/SceneCanvas";
 import useSceneStore from "../../../../../app/hooks/useSceneStore";
+import useWorldStore from "../../../../../app/hooks/useWorldStore";
 import { showToast } from "../../../../../app/utils/toastUtils";
 import { toast } from "react-toastify";
 
@@ -107,6 +108,7 @@ export default function BuilderPage() {
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const setActiveWorld = useWorldStore((s) => s.setActiveWorld);
 
   // Get scene data and actions from store
   const setObjects = useSceneStore((state) => state.setObjects);
@@ -127,6 +129,7 @@ export default function BuilderPage() {
         if (!res.ok) throw new Error("Failed to fetch project");
         const data = await res.json();
         setProject(data.project);
+        setActiveWorld(data.project);
 
         // Initialize scene data from project
         if (data.project?.sceneData) {
@@ -163,7 +166,8 @@ export default function BuilderPage() {
     };
 
     fetchProject();
-  }, [projectId, setObjects, setObservationPoints]);
+    return () => setActiveWorld(null);
+  }, [projectId, setObjects, setObservationPoints, setActiveWorld]);
 
   // Save handler
   const handleSave = async () => {
