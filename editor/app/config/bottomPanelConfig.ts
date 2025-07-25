@@ -101,7 +101,7 @@ export const createCesiumBottomPanelConfig = (
             id: "view-modes",
             type: "custom",
             label: "View Modes",
-            customComponent: "ViewModeControls",
+            customComponent: "CesiumViewModeControls",
             customProps: {
               viewMode,
               setViewMode,

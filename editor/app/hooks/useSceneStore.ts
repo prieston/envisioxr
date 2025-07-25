@@ -39,6 +39,7 @@ interface ObservationPoint {
 
 export type ViewMode =
   | "orbit"
+  | "explore"
   | "firstPerson"
   | "thirdPerson"
   | "flight"
