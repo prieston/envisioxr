@@ -64,6 +64,10 @@ interface SceneState {
   // Cesium Ion Assets
   cesiumIonAssets: CesiumIonAsset[];
 
+  // Cesium Viewer
+  cesiumViewer: any | null;
+  cesiumInstance: any | null;
+
   // Environment Settings
   gridEnabled: boolean;
   ambientLightIntensity: number;
@@ -95,6 +99,10 @@ interface SceneState {
   setSkyboxType: (type: "default" | "hdri" | "gradient" | "none") => void;
   setShowTiles: (show: boolean) => void;
   setMagnetEnabled: (enabled: boolean) => void;
+
+  // Cesium Viewer Actions
+  setCesiumViewer: (viewer: any) => void;
+  setCesiumInstance: (instance: any) => void;
 
   // View Mode Actions
   setViewMode: (mode: ViewMode) => void;
@@ -217,6 +225,8 @@ const useSceneStore = create<SceneState>((set) => ({
   scene: null,
   tilesRenderer: null,
   cesiumIonAssets: [],
+  cesiumViewer: null,
+  cesiumInstance: null,
 
   // Environment Settings Initial State
   gridEnabled: true,
@@ -247,6 +257,10 @@ const useSceneStore = create<SceneState>((set) => ({
   setSkyboxType: (type) => set({ skyboxType: type }),
   setShowTiles: (show) => set({ showTiles: show }),
   setMagnetEnabled: (enabled) => set({ magnetEnabled: enabled }),
+
+  // Cesium Viewer Actions
+  setCesiumViewer: (viewer) => set({ cesiumViewer: viewer }),
+  setCesiumInstance: (instance) => set({ cesiumInstance: instance }),
 
   // View Mode Actions
   setViewMode: (mode) => set({ viewMode: mode }),

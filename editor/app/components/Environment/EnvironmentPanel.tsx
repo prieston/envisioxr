@@ -10,8 +10,10 @@ import {
   Slider,
 } from "@mui/material";
 import useSceneStore from "../../hooks/useSceneStore";
+import useWorldStore from "../../hooks/useWorldStore";
 import LocationSearch from "../LocationSearch";
 import CesiumIonAssetsManager from "./CesiumIonAssetsManager";
+import BasemapSelector from "./BasemapSelector";
 
 const Container = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
@@ -46,6 +48,7 @@ const SearchContainer = styled(Box)(() => ({
 }));
 
 const EnvironmentPanel: React.FC = () => {
+  const engine = useWorldStore((s) => s.engine);
   const {
     gridEnabled,
     setGridEnabled,
@@ -60,6 +63,8 @@ const EnvironmentPanel: React.FC = () => {
     setSelectedAssetId,
     setSelectedLocation,
     tilesRenderer,
+    cesiumViewer,
+    cesiumInstance,
   } = useSceneStore();
 
   const handleAssetSelect = useCallback(
@@ -87,6 +92,88 @@ const EnvironmentPanel: React.FC = () => {
       setAmbientLightIntensity(value as number);
     },
     [setAmbientLightIntensity]
+  );
+
+  const handleBasemapChange = useCallback(
+    (basemapType: "cesium" | "google" | "bing" | "none") => {
+      if (!cesiumViewer || !cesiumInstance) {
+        console.warn("Cesium viewer or instance not available");
+        return;
+      }
+
+      try {
+        switch (basemapType) {
+          case "cesium": {
+            try {
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                cesiumInstance.createWorldImagery()
+              );
+            } catch (error) {
+              console.error("Error setting Cesium World Imagery:", error);
+            }
+            break;
+          }
+          case "google": {
+            try {
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                  credit: "Google Satellite",
+                })
+              );
+            } catch (error) {
+              console.error("Error setting Google Satellite:", error);
+            }
+            break;
+          }
+          case "bing": {
+            const bingKey = process.env.NEXT_PUBLIC_BING_MAPS_KEY;
+            if (!bingKey) {
+              console.warn(
+                "Bing Maps API key not found. Please set NEXT_PUBLIC_BING_MAPS_KEY environment variable."
+              );
+              // Fall back to Cesium World Imagery if Bing key is not available
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                cesiumInstance.createWorldImagery()
+              );
+              return;
+            }
+            try {
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.BingMapsImageryProvider({
+                  url: "https://dev.virtualearth.net",
+                  key: bingKey,
+                  mapStyle: cesiumInstance.BingMapsStyle.AERIAL_WITH_LABELS,
+                })
+              );
+            } catch (error) {
+              console.error("Error setting Bing Maps:", error);
+              // Fall back to Cesium World Imagery on error
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                cesiumInstance.createWorldImagery()
+              );
+            }
+            break;
+          }
+          case "none": {
+            try {
+              cesiumViewer.imageryLayers.removeAll();
+            } catch (error) {
+              console.error("Error removing imagery layers:", error);
+            }
+            break;
+          }
+        }
+      } catch (error) {
+        console.error("Error changing basemap:", error);
+      }
+    },
+    [cesiumViewer, cesiumInstance]
   );
 
   return (
@@ -192,6 +279,17 @@ const EnvironmentPanel: React.FC = () => {
       <Section>
         <CesiumIonAssetsManager />
       </Section>
+
+      {/* Basemap Selector - Only show for Cesium engine */}
+      {engine === "cesium" && (
+        <Section>
+          <BasemapSelector
+            onBasemapChange={handleBasemapChange}
+            currentBasemap="cesium"
+            disabled={!cesiumViewer || !cesiumInstance}
+          />
+        </Section>
+      )}
     </Container>
   );
 };
