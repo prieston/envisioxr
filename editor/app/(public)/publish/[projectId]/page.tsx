@@ -6,6 +6,7 @@ import { CircularProgress, Typography } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import useSceneStore from "@/app/hooks/useSceneStore";
+import useWorldStore from "@/app/hooks/useWorldStore";
 import MobileLayout from "@/app/components/PublishPage/MobileLayout";
 import DesktopLayout from "@/app/components/PublishPage/DesktopLayout";
 
@@ -25,6 +26,7 @@ const PublishedScenePage = () => {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const setActiveWorld = useWorldStore((s) => s.setActiveWorld);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -59,6 +61,7 @@ const PublishedScenePage = () => {
           throw new Error("Project not published");
         }
         setProject(data.project);
+        setActiveWorld(data.project);
 
         // Initialize observation points from project data
         if (
@@ -95,7 +98,8 @@ const PublishedScenePage = () => {
     };
 
     fetchProject();
-  }, [projectId, setObservationPoints, selectObservation]);
+    return () => setActiveWorld(null);
+  }, [projectId, setObservationPoints, selectObservation, setActiveWorld]);
 
   if (loading) {
     return (

@@ -150,7 +150,7 @@ export async function PUT(request: NextRequest, { params }: ProjectParams) {
 
   try {
     const body = await request.json();
-    const { title, description } = body;
+    const { title, description, engine } = body;
     // Ensure the project belongs to the user before updating
     const project = await prisma.project.findUnique({
       where: { id: projectId },
@@ -160,7 +160,7 @@ export async function PUT(request: NextRequest, { params }: ProjectParams) {
     }
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
-      data: { title, description },
+      data: { title, description, ...(engine ? { engine } : {}) },
     });
     return NextResponse.json({ project: updatedProject });
   } catch (error) {
