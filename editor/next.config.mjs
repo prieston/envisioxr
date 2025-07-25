@@ -1,6 +1,7 @@
 import process from 'process';
 import withBundleAnalyzer from '@next/bundle-analyzer';
 import withPWA from '@ducanh2912/next-pwa';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -21,12 +22,24 @@ const nextConfig = {
   experimental: {
     esmExternals: 'loose'
   },
-  webpack(config, { isServer }) {
+  // Optimize output for better performance
+  output: 'standalone',
+  // Ensure proper asset handling
+  assetPrefix: process.env.NODE_ENV === 'production' ? undefined : '',
+  webpack(config, { isServer, webpack: _webpack }) {
     config.resolve = {
       ...config.resolve,
       alias: {
         ...config.resolve?.alias,
         '@': '.',
+      },
+      fallback: {
+        ...config.resolve?.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+        stream: false,
+        util: false,
       },
     };
 
@@ -34,8 +47,35 @@ const nextConfig = {
       config.externals.push('sharp');
     }
 
+    // Enhanced Cesium asset handling
+    config.module.rules.push({
+      test: /\.(png|gif|jpg|jpeg|svg|xml|json)$/,
+      include: /node_modules\/cesium/,
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 8192,
+          fallback: {
+            loader: 'file-loader',
+            options: {
+              name: 'static/media/[name].[hash].[ext]',
+            },
+          },
+        },
+      }],
+    });
+
+    // Handle Cesium CSS files specifically
     config.module.rules.push({
       test: /\.css$/,
+      include: /node_modules\/cesium/,
+      use: ['style-loader', 'css-loader'],
+    });
+
+    // Handle other CSS files
+    config.module.rules.push({
+      test: /\.css$/,
+      exclude: /node_modules\/cesium/,
       use: [
         'style-loader',
         {
@@ -59,6 +99,7 @@ const nextConfig = {
       ],
     });
 
+    // Audio file handling
     config.module.rules.push({
       test: /\.(ogg|mp3|wav|mpe?g)$/i,
       exclude: config.exclude,
@@ -77,11 +118,76 @@ const nextConfig = {
       ],
     });
 
+    // Shader file handling
     config.module.rules.push({
       test: /\.(glsl|vs|fs|vert|frag)$/,
       exclude: /node_modules/,
       use: ['raw-loader', 'glslify-loader'],
     });
+
+    // Copy Cesium static assets with improved configuration (matching working example)
+    config.plugins.push(
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: 'node_modules/cesium/Build/Cesium/Workers',
+            to: 'public/cesium/Workers',
+            info: { minimized: true },
+          },
+          {
+            from: 'node_modules/cesium/Build/Cesium/ThirdParty',
+            to: 'public/cesium/ThirdParty',
+            info: { minimized: true },
+          },
+          {
+            from: 'node_modules/cesium/Build/Cesium/Assets',
+            to: 'public/cesium/Assets',
+            info: { minimized: true },
+          },
+          {
+            from: 'node_modules/cesium/Build/Cesium/Widgets',
+            to: 'public/cesium/Widgets',
+            info: { minimized: true },
+          },
+        ],
+      })
+    );
+
+    // Enhanced webpack optimization for Cesium
+    if (!isServer) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          ...config.optimization?.splitChunks,
+          chunks: 'all',
+          cacheGroups: {
+            ...config.optimization?.splitChunks?.cacheGroups,
+            cesium: {
+              test: /[\\/]node_modules[\\/]cesium[\\/]/,
+              name: 'cesium',
+              chunks: 'all',
+              priority: 10,
+              enforce: true,
+            },
+            three: {
+              test: /[\\/]node_modules[\\/]three[\\/]/,
+              name: 'three',
+              chunks: 'all',
+              priority: 9,
+            },
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 5,
+            },
+          },
+        },
+        runtimeChunk: {
+          name: 'runtime',
+        },
+      };
+    }
 
     return config;
   },
