@@ -68,10 +68,13 @@ interface SceneState {
   cesiumViewer: any | null;
   cesiumInstance: any | null;
 
+  // Cesium Basemap
+  basemapType: "cesium" | "google" | "google-photorealistic" | "bing" | "none";
+
   // Environment Settings
   gridEnabled: boolean;
   ambientLightIntensity: number;
-  skyboxType: "default" | "hdri" | "gradient" | "none";
+  skyboxType: "default" | "hdri" | "gradient" | "none" | "stars";
   showTiles: boolean;
   magnetEnabled: boolean;
 
@@ -96,13 +99,20 @@ interface SceneState {
   // Environment Actions
   setGridEnabled: (enabled: boolean) => void;
   setAmbientLightIntensity: (intensity: number) => void;
-  setSkyboxType: (type: "default" | "hdri" | "gradient" | "none") => void;
+  setSkyboxType: (
+    type: "default" | "hdri" | "gradient" | "none" | "stars"
+  ) => void;
   setShowTiles: (show: boolean) => void;
   setMagnetEnabled: (enabled: boolean) => void;
 
   // Cesium Viewer Actions
   setCesiumViewer: (viewer: any) => void;
   setCesiumInstance: (instance: any) => void;
+
+  // Cesium Basemap Actions
+  setBasemapType: (
+    type: "cesium" | "google" | "google-photorealistic" | "bing" | "none"
+  ) => void;
 
   // View Mode Actions
   setViewMode: (mode: ViewMode) => void;
@@ -227,6 +237,7 @@ const useSceneStore = create<SceneState>((set) => ({
   cesiumIonAssets: [],
   cesiumViewer: null,
   cesiumInstance: null,
+  basemapType: "cesium",
 
   // Environment Settings Initial State
   gridEnabled: true,
@@ -261,6 +272,9 @@ const useSceneStore = create<SceneState>((set) => ({
   // Cesium Viewer Actions
   setCesiumViewer: (viewer) => set({ cesiumViewer: viewer }),
   setCesiumInstance: (instance) => set({ cesiumInstance: instance }),
+
+  // Cesium Basemap Actions
+  setBasemapType: (type) => set({ basemapType: type }),
 
   // View Mode Actions
   setViewMode: (mode) => set({ viewMode: mode }),

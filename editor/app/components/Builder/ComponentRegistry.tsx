@@ -8,6 +8,11 @@ import PropertiesPanel from "./PropertiesPanel";
 import AssetLibraryPanel from "./AssetLibraryPanel";
 import LogoHeader from "../AppBar/LogoHeader";
 import ReportGenerator from "../Report/ReportGenerator";
+import BasemapSelector from "../Environment/BasemapSelector";
+import ThreeJSLocationSearchSection from "./ThreeJSLocationSearchSection";
+import CesiumLocationSearchSection from "./CesiumLocationSearchSection";
+import CesiumBasemapSelector from "./CesiumBasemapSelector";
+import CesiumSkyboxSelector from "./CesiumSkyboxSelector";
 
 export const componentRegistry: Record<string, React.ComponentType<any>> = {
   ViewModeControls: ViewModeControls,
@@ -19,6 +24,11 @@ export const componentRegistry: Record<string, React.ComponentType<any>> = {
   AssetLibraryPanel: AssetLibraryPanel,
   LogoHeader: LogoHeader,
   ReportGenerator: ReportGenerator,
+  BasemapSelector: BasemapSelector,
+  ThreeJSLocationSearchSection: ThreeJSLocationSearchSection,
+  CesiumLocationSearchSection: CesiumLocationSearchSection,
+  CesiumBasemapSelector: CesiumBasemapSelector,
+  CesiumSkyboxSelector: CesiumSkyboxSelector,
 };
 
 export const getComponent = (
