@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { styled } from "@mui/material/styles";
 import {
   Box,
@@ -49,6 +49,7 @@ const SearchContainer = styled(Box)(() => ({
 
 const EnvironmentPanel: React.FC = () => {
   const engine = useWorldStore((s) => s.engine);
+  const [currentTileset, setCurrentTileset] = useState<any>(null);
   const {
     gridEnabled,
     setGridEnabled,
@@ -95,10 +96,27 @@ const EnvironmentPanel: React.FC = () => {
   );
 
   const handleBasemapChange = useCallback(
-    (basemapType: "cesium" | "google" | "bing" | "none") => {
+    async (
+      basemapType:
+        | "cesium"
+        | "google"
+        | "google-photorealistic"
+        | "bing"
+        | "none"
+    ) => {
       if (!cesiumViewer || !cesiumInstance) {
         console.warn("Cesium viewer or instance not available");
         return;
+      }
+
+      // Clean up any existing 3D tileset
+      if (currentTileset) {
+        try {
+          cesiumViewer.scene.primitives.remove(currentTileset);
+          setCurrentTileset(null);
+        } catch (error) {
+          console.warn("Error removing existing tileset:", error);
+        }
       }
 
       try {
@@ -106,11 +124,23 @@ const EnvironmentPanel: React.FC = () => {
           case "cesium": {
             try {
               cesiumViewer.imageryLayers.removeAll();
+              // Use the default imagery provider that was set during viewer creation
               cesiumViewer.imageryLayers.addImageryProvider(
-                cesiumInstance.createWorldImagery()
+                new cesiumInstance.IonImageryProvider({ assetId: 2 })
               );
             } catch (error) {
               console.error("Error setting Cesium World Imagery:", error);
+              // Fallback to a simple URL template provider
+              try {
+                cesiumViewer.imageryLayers.addImageryProvider(
+                  new cesiumInstance.UrlTemplateImageryProvider({
+                    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    credit: "© OpenStreetMap contributors",
+                  })
+                );
+              } catch (fallbackError) {
+                console.error("Error setting fallback imagery:", fallbackError);
+              }
             }
             break;
           }
@@ -128,16 +158,62 @@ const EnvironmentPanel: React.FC = () => {
             }
             break;
           }
+          case "google-photorealistic": {
+            const cesiumKey =
+              process.env.NEXT_PUBLIC_CESIUM_ION_KEY ||
+              process.env.NEXT_PUBLIC_CESIUM_TOKEN;
+            if (!cesiumKey) {
+              console.warn(
+                "Cesium Ion key not found. Please set NEXT_PUBLIC_CESIUM_ION_KEY environment variable."
+              );
+              // Fall back to OpenStreetMap if Cesium key is not available
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  credit: "© OpenStreetMap contributors",
+                })
+              );
+              return;
+            }
+            try {
+              // Remove existing imagery layers
+              cesiumViewer.imageryLayers.removeAll();
+
+              // Add Google Photorealistic 3D tiles through Cesium Ion
+              // Asset ID 2275207 is Google Photorealistic 3D
+              const tileset =
+                await cesiumInstance.Cesium3DTileset.fromIonAssetId(2275207);
+
+              // Add the tileset to the scene
+              cesiumViewer.scene.primitives.add(tileset);
+              setCurrentTileset(tileset);
+            } catch (error) {
+              console.error("Error setting Google Photorealistic:", error);
+              // Fall back to OpenStreetMap on error
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  credit: "© OpenStreetMap contributors",
+                })
+              );
+            }
+            break;
+          }
           case "bing": {
             const bingKey = process.env.NEXT_PUBLIC_BING_MAPS_KEY;
             if (!bingKey) {
               console.warn(
                 "Bing Maps API key not found. Please set NEXT_PUBLIC_BING_MAPS_KEY environment variable."
               );
-              // Fall back to Cesium World Imagery if Bing key is not available
+              // Fall back to OpenStreetMap if Bing key is not available
               cesiumViewer.imageryLayers.removeAll();
               cesiumViewer.imageryLayers.addImageryProvider(
-                cesiumInstance.createWorldImagery()
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  credit: "© OpenStreetMap contributors",
+                })
               );
               return;
             }
@@ -152,10 +228,13 @@ const EnvironmentPanel: React.FC = () => {
               );
             } catch (error) {
               console.error("Error setting Bing Maps:", error);
-              // Fall back to Cesium World Imagery on error
+              // Fall back to OpenStreetMap on error
               cesiumViewer.imageryLayers.removeAll();
               cesiumViewer.imageryLayers.addImageryProvider(
-                cesiumInstance.createWorldImagery()
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  credit: "© OpenStreetMap contributors",
+                })
               );
             }
             break;
@@ -173,7 +252,7 @@ const EnvironmentPanel: React.FC = () => {
         console.error("Error changing basemap:", error);
       }
     },
-    [cesiumViewer, cesiumInstance]
+    [cesiumViewer, cesiumInstance, currentTileset]
   );
 
   return (
