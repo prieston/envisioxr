@@ -13,6 +13,9 @@ import ThreeJSLocationSearchSection from "./ThreeJSLocationSearchSection";
 import CesiumLocationSearchSection from "./CesiumLocationSearchSection";
 import CesiumBasemapSelector from "./CesiumBasemapSelector";
 import CesiumSkyboxSelector from "./CesiumSkyboxSelector";
+import { CesiumViewModeControls } from "./CesiumControls";
+import CesiumCameraSettings from "./CesiumCameraSettings";
+import CesiumSimulationInstructions from "./CesiumSimulationInstructions";
 
 export const componentRegistry: Record<string, React.ComponentType<any>> = {
   ViewModeControls: ViewModeControls,
@@ -29,6 +32,9 @@ export const componentRegistry: Record<string, React.ComponentType<any>> = {
   CesiumLocationSearchSection: CesiumLocationSearchSection,
   CesiumBasemapSelector: CesiumBasemapSelector,
   CesiumSkyboxSelector: CesiumSkyboxSelector,
+  CesiumViewModeControls: CesiumViewModeControls,
+  CesiumCameraSettings: CesiumCameraSettings,
+  CesiumSimulationInstructions: CesiumSimulationInstructions,
 };
 
 export const getComponent = (
