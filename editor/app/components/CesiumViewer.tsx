@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import useWorldStore from "../hooks/useWorldStore";
+import useSceneStore from "../hooks/useSceneStore";
 import CesiumPerformanceOptimizer from "./CesiumPerformanceOptimizer";
-import BasemapSelector from "./BasemapSelector";
 
 // Extend Window interface for Cesium
 declare global {
@@ -21,6 +21,8 @@ if (typeof window !== "undefined") {
 export default function CesiumViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const world = useWorldStore((s) => s.activeWorld);
+  const setCesiumViewer = useSceneStore((s) => s.setCesiumViewer);
+  const setCesiumInstance = useSceneStore((s) => s.setCesiumInstance);
   const viewerRef = useRef<any>(null);
   const cesiumRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,66 +51,6 @@ export default function CesiumViewer() {
     }
   };
 
-  // Function to change basemap
-  const changeBasemap = useCallback(
-    (basemapType: "cesium" | "google" | "bing" | "none") => {
-      if (!viewerRef.current || !cesiumRef.current) return;
-
-      const Cesium = cesiumRef.current;
-
-      try {
-        switch (basemapType) {
-          case "cesium":
-            viewerRef.current.imageryLayers.removeAll();
-            viewerRef.current.imageryLayers.addImageryProvider(
-              Cesium.createWorldImagery()
-            );
-            console.log(
-              `[CesiumViewer ${instanceId.current}] Switched to Cesium World Imagery`
-            );
-            break;
-          case "google":
-            viewerRef.current.imageryLayers.removeAll();
-            viewerRef.current.imageryLayers.addImageryProvider(
-              new Cesium.UrlTemplateImageryProvider({
-                url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-                credit: "Google Satellite",
-              })
-            );
-            console.log(
-              `[CesiumViewer ${instanceId.current}] Switched to Google Satellite`
-            );
-            break;
-          case "bing":
-            viewerRef.current.imageryLayers.removeAll();
-            viewerRef.current.imageryLayers.addImageryProvider(
-              new Cesium.BingMapsImageryProvider({
-                url: "https://dev.virtualearth.net",
-                key: process.env.NEXT_PUBLIC_BING_MAPS_KEY || "",
-                mapStyle: Cesium.BingMapsStyle.AERIAL_WITH_LABELS,
-              })
-            );
-            console.log(
-              `[CesiumViewer ${instanceId.current}] Switched to Bing Maps`
-            );
-            break;
-          case "none":
-            viewerRef.current.imageryLayers.removeAll();
-            console.log(
-              `[CesiumViewer ${instanceId.current}] Removed all imagery layers`
-            );
-            break;
-        }
-      } catch (error) {
-        console.error(
-          `[CesiumViewer ${instanceId.current}] Error changing basemap:`,
-          error
-        );
-      }
-    },
-    [instanceId]
-  );
-
   useEffect(() => {
     console.log(`[CesiumViewer ${instanceId.current}] Initializing...`);
 
@@ -134,6 +76,7 @@ export default function CesiumViewer() {
         try {
           Cesium = await import("cesium");
           cesiumRef.current = Cesium;
+          setCesiumInstance(Cesium);
           console.log(
             `[CesiumViewer ${instanceId.current}] Cesium imported successfully`
           );
@@ -193,11 +136,17 @@ export default function CesiumViewer() {
           targetFrameRate: 60,
           // Add Cesium World Imagery as default basemap
           imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }),
+          // Remove credits and attribution
+          creditContainer: undefined,
+          creditViewport: undefined,
         });
 
         console.log(
           `[CesiumViewer ${instanceId.current}] Cesium Viewer created successfully`
         );
+
+        // Store viewer reference in the store
+        setCesiumViewer(viewerRef.current);
 
         // Set terrain provider after viewer creation with error handling
         try {
@@ -223,6 +172,34 @@ export default function CesiumViewer() {
         // Set up error handling for the viewer
         viewerRef.current.scene.globe.enableLighting = false;
         viewerRef.current.scene.debugShowFramesPerSecond = false;
+
+        // Apply custom styling to ensure full size and hide credits
+        const viewerElement = viewerRef.current.cesiumWidget.container;
+        if (viewerElement) {
+          // Make the viewer take full size
+          viewerElement.style.width = "100%";
+          viewerElement.style.height = "100%";
+
+          // Hide credit elements
+          const creditElements = viewerElement.querySelectorAll(
+            ".cesium-viewer-bottom, .cesium-credit-text, .cesium-credit-logoContainer, .cesium-credit-expand-link"
+          );
+          creditElements.forEach((element: any) => {
+            element.style.display = "none";
+          });
+
+          // Ensure canvas takes full size
+          const canvas = viewerElement.querySelector("canvas");
+          if (canvas) {
+            canvas.style.width = "100%";
+            canvas.style.height = "100%";
+            canvas.style.position = "absolute";
+            canvas.style.top = "0";
+            canvas.style.left = "0";
+            canvas.style.right = "0";
+            canvas.style.bottom = "0";
+          }
+        }
 
         setIsLoading(false);
         console.log(
@@ -355,12 +332,47 @@ export default function CesiumViewer() {
     }
   }, [world, isLoading]);
 
-  // Expose changeBasemap function through ref
+  // Effect to ensure styling is applied after viewer is ready
   useEffect(() => {
-    if (viewerRef.current) {
-      (viewerRef.current as any).changeBasemap = changeBasemap;
+    if (viewerRef.current && !isLoading) {
+      const applyStyling = () => {
+        const viewerElement = viewerRef.current.cesiumWidget.container;
+        if (viewerElement) {
+          // Make the viewer take full size
+          viewerElement.style.width = "100%";
+          viewerElement.style.height = "100%";
+
+          // Hide credit elements
+          const creditElements = viewerElement.querySelectorAll(
+            ".cesium-viewer-bottom, .cesium-credit-text, .cesium-credit-logoContainer, .cesium-credit-expand-link"
+          );
+          creditElements.forEach((element: any) => {
+            element.style.display = "none";
+          });
+
+          // Ensure canvas takes full size
+          const canvas = viewerElement.querySelector("canvas");
+          if (canvas) {
+            canvas.style.width = "100%";
+            canvas.style.height = "100%";
+            canvas.style.position = "absolute";
+            canvas.style.top = "0";
+            canvas.style.left = "0";
+            canvas.style.right = "0";
+            canvas.style.bottom = "0";
+          }
+        }
+      };
+
+      // Apply styling immediately
+      applyStyling();
+
+      // Also apply after a short delay to catch any dynamic elements
+      const timeoutId = setTimeout(applyStyling, 100);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [changeBasemap]);
+  }, [isLoading]);
 
   if (error) {
     return (
@@ -393,6 +405,7 @@ export default function CesiumViewer() {
           left: 0,
           right: 0,
           bottom: 0,
+          overflow: "hidden",
         }}
         ref={containerRef}
         className={isLoading ? "opacity-50" : ""}
@@ -400,11 +413,6 @@ export default function CesiumViewer() {
       {viewerRef.current && (
         <CesiumPerformanceOptimizer viewer={viewerRef.current} />
       )}
-      <BasemapSelector
-        onBasemapChange={changeBasemap}
-        currentBasemap="cesium"
-        disabled={isLoading || !viewerRef.current}
-      />
     </>
   );
 }
