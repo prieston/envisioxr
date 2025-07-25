@@ -7,6 +7,10 @@ import {
   Button,
   Typography,
   CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
@@ -18,6 +22,7 @@ const EditProjectPage = () => {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [engine, setEngine] = useState("three");
   const [loading, setLoading] = useState(true);
 
   // Fetch project details on mount
@@ -34,6 +39,7 @@ const EditProjectPage = () => {
         const project = data.project;
         setTitle(project.title);
         setDescription(project.description || "");
+        setEngine(project.engine || "three");
       } catch (error) {
         console.error("Error fetching project:", error);
       } finally {
@@ -51,7 +57,7 @@ const EditProjectPage = () => {
         credentials: "include",
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description }),
+        body: JSON.stringify({ title, description, engine }),
       });
 
       if (!res.ok) {
@@ -107,6 +113,33 @@ const EditProjectPage = () => {
             multiline
             rows={4}
           />
+          <FormControl fullWidth>
+            <InputLabel id="engine-select-label">Rendering Engine</InputLabel>
+            <Select
+              labelId="engine-select-label"
+              id="engine-select"
+              value={engine}
+              label="Rendering Engine"
+              onChange={(e) => setEngine(e.target.value)}
+            >
+              <MenuItem value="three">
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography>Three.js</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    - 3D scene with custom models and effects
+                  </Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="cesium">
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography>Cesium</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    - 3D globe with terrain and geospatial data
+                  </Typography>
+                </Box>
+              </MenuItem>
+            </Select>
+          </FormControl>
           <Button variant="contained" onClick={handleSave}>
             Save Changes
           </Button>
