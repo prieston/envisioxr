@@ -1,44 +1,46 @@
+// DroneFlightController.ts
 import * as Cesium from "cesium";
 import {
   BaseCameraController,
   CameraControllerConfig,
 } from "../core/BaseCameraController";
-import { MOVEMENT_KEYS, ROTATION_KEYS } from "../constants";
+import { MOVEMENT_KEYS } from "../constants";
 
 /**
- * Flight controller with 6DOF movement
- * Features:
- * - WASD for forward/back/strafe movement
- * - Space/Shift for up/down movement
- * - Arrow keys for pitch/yaw rotation
- * - Mouse look support
- * - Realistic flight physics with momentum
- * - No ground collision (free flight)
+ * Drone flight controller
+ * - Pointer-lock mouselook (yaw/pitch), no roll
+ * - WASD = horizontal move relative to view
+ * - Space = up, Shift = down
+ * - Smooth damping + per-axis speed limits
  */
-export class FlightController extends BaseCameraController {
-  private velocity: Cesium.Cartesian3 = new Cesium.Cartesian3(0, 0, 0);
-  private angularVelocity: Cesium.Cartesian3 = new Cesium.Cartesian3(0, 0, 0);
-  private isMouseLookEnabled: boolean = false;
+export class DroneFlightController extends BaseCameraController {
+  // Physics state uses Base.physicsState.velocity (full 3D)
 
-  // Flight physics constants
-  private readonly maxSpeed: number = 50;
-  private readonly acceleration: number = 25;
-  private readonly friction: number = 0.95;
-  private readonly angularAcceleration: number = 0.1;
-  private readonly angularFriction: number = 0.9;
-  private readonly mouseSensitivity: number = 0.001;
+  // Drone feel / limits (internal)
+  private drone = {
+    accelHoriz: 135, // m/s^2 horizontal (7.5x faster acceleration)
+    accelVert: 90, // m/s^2 vertical (7.5x faster acceleration)
+    maxHorizSpeed: 240, // m/s (9.6x faster max speed)
+    maxVertSpeed: 120, // m/s up/down (10x faster vertical)
+    dampActive: 0.985, // per fixed-step (when input present)
+    dampIdle: 0.92, // per fixed-step (no input)
+    minAGL: 1.0, // meters above terrain (safety floor)
+  };
 
   constructor(
-    cesiumViewer: Cesium.Viewer | null,
+    viewer: Cesium.Viewer | null,
     config: Partial<CameraControllerConfig> = {}
   ) {
-    super(cesiumViewer, {
-      speed: 25,
-      maxSpeed: 50,
-      acceleration: 25,
-      friction: 0.95,
-      height: 0,
-      sensitivity: 0.001,
+    super(viewer, {
+      speed: 0,
+      maxSpeed: 240, // match new max speed
+      acceleration: 135, // match new acceleration
+      friction: 0.92,
+      jumpForce: 0,
+      gravity: 0, // handled manually (free-fly)
+      height: 1.6, // eye height when clamping to ground
+      sensitivity: 0.0016, // mouse sensitivity (tweak to taste)
+      debugMode: false,
       ...config,
     });
   }
@@ -46,400 +48,373 @@ export class FlightController extends BaseCameraController {
   initialize(): void {
     if (!this.cesiumViewer) return;
 
-    // Set up event listeners
-    this.keyDownHandler = this.handleKeyDown;
-    this.keyUpHandler = this.handleKeyUp;
-    this.mouseMoveHandler = this.handleMouseMove;
-    this.mouseDownHandler = this.handleMouseDown;
-    this.pointerLockChangeHandler = this.handlePointerLockChange;
+    // Bind DOM handlers (pointer lock like FPW)
+    this.keyDownHandler = (e) => this.handleKeyDown(e);
+    this.keyUpHandler = (e) => this.handleKeyUp(e);
+    this.mouseMoveHandler = (e) => this.handleMouseMove(e);
+    this.mouseDownHandler = (e) => this.handleMouseDown(e);
+    this.mouseUpHandler = (e) => this.handleMouseUp(e);
+    this.pointerLockChangeHandler = () => this.handlePointerLockChange();
 
-    // Add event listeners
     document.addEventListener("keydown", this.keyDownHandler);
     document.addEventListener("keyup", this.keyUpHandler);
     document.addEventListener("mousemove", this.mouseMoveHandler);
-    this.cesiumViewer.canvas.addEventListener(
-      "mousedown",
-      this.mouseDownHandler
-    );
     document.addEventListener(
       "pointerlockchange",
       this.pointerLockChangeHandler
     );
 
-    // Disable default Cesium camera controls
-    const controller = this.cesiumViewer.scene.screenSpaceCameraController;
-    controller.enableRotate = false;
-    controller.enableTranslate = false;
-    controller.enableZoom = false;
-    controller.enableTilt = false;
+    // Click canvas to request pointer lock
+    this.cesiumViewer.canvas.addEventListener(
+      "mousedown",
+      this.mouseDownHandler!
+    );
+    this.cesiumViewer.canvas.addEventListener("mouseup", this.mouseUpHandler!);
+
+    // Disable default Cesium camera interactions
+    const ctrl = this.cesiumViewer.scene.screenSpaceCameraController;
+    ctrl.enableRotate = false;
+    ctrl.enableTranslate = false;
+    ctrl.enableZoom = false;
+    ctrl.enableTilt = false;
+
+    // Initialize pose from current camera
+    this.inputState.keys.clear();
+    this.initializeFromCamera();
 
     this.enabled = true;
-
-    if (this.config.debugMode) {
-      console.log("[FlightController] Initialized");
-    }
   }
 
   update(deltaTime: number): void {
     if (!this.enabled || !this.camera) return;
 
-    this.updateCameraState();
-    this.handleMovement(deltaTime);
-    this.handleRotation(deltaTime);
-    this.handleMouseLook();
-    this.applyPhysics(deltaTime);
-    this.applyCameraState();
+    const clamped = Math.min(deltaTime, 0.05);
+    this.fixedUpdate(clamped, 1 / 120, 6, (h) => this.stepOnce(h));
 
-    // Reset mouse delta after processing
+    // Apply yaw/pitch once per frame from accumulated mouse delta
+    this.applyYawPitch();
     this.inputState.mouseDelta = { x: 0, y: 0 };
   }
 
   dispose(): void {
-    // Remove event listeners
-    if (this.keyDownHandler) {
+    if (this.keyDownHandler)
       document.removeEventListener("keydown", this.keyDownHandler);
-    }
-    if (this.keyUpHandler) {
+    if (this.keyUpHandler)
       document.removeEventListener("keyup", this.keyUpHandler);
-    }
-    if (this.mouseMoveHandler) {
+    if (this.mouseMoveHandler)
       document.removeEventListener("mousemove", this.mouseMoveHandler);
-    }
+    if (this.pointerLockChangeHandler)
+      document.removeEventListener(
+        "pointerlockchange",
+        this.pointerLockChangeHandler
+      );
+
     if (this.mouseDownHandler && this.cesiumViewer) {
       this.cesiumViewer.canvas.removeEventListener(
         "mousedown",
         this.mouseDownHandler
       );
-    }
-    if (this.pointerLockChangeHandler) {
-      document.removeEventListener(
-        "pointerlockchange",
-        this.pointerLockChangeHandler
+      this.cesiumViewer.canvas.removeEventListener(
+        "mouseup",
+        this.mouseUpHandler!
       );
     }
 
-    // Re-enable default Cesium camera controls
     if (this.cesiumViewer) {
-      const controller = this.cesiumViewer.scene.screenSpaceCameraController;
-      controller.enableRotate = true;
-      controller.enableTranslate = true;
-      controller.enableZoom = true;
-      controller.enableTilt = true;
+      const ctrl = this.cesiumViewer.scene.screenSpaceCameraController;
+      ctrl.enableRotate = true;
+      ctrl.enableTranslate = true;
+      ctrl.enableZoom = true;
+      ctrl.enableTilt = true;
     }
-
     this.enabled = false;
-
-    if (this.config.debugMode) {
-      console.log("[FlightController] Disposed");
-    }
   }
 
-  /**
-   * Handle linear movement (WASD + Space/Shift)
-   */
-  private handleMovement(deltaTime: number): void {
-    // Calculate movement input
-    const moveInput = new Cesium.Cartesian3(0, 0, 0);
+  /** Fixed-step integration */
+  private stepOnce(h: number) {
+    // --- Build inputs ---
+    const moveF =
+      (this.inputState.keys.has(MOVEMENT_KEYS.FORWARD) ? 1 : 0) +
+      (this.inputState.keys.has(MOVEMENT_KEYS.BACKWARD) ? -1 : 0);
+    const moveR =
+      (this.inputState.keys.has(MOVEMENT_KEYS.RIGHT) ? 1 : 0) +
+      (this.inputState.keys.has(MOVEMENT_KEYS.LEFT) ? -1 : 0);
+    const moveU =
+      (this.inputState.keys.has(MOVEMENT_KEYS.JUMP) ? 1 : 0) + // Space -> up
+      (this.inputState.keys.has("ShiftLeft") ||
+      this.inputState.keys.has("ShiftRight")
+        ? -1
+        : 0); // Shift -> down
 
-    if (this.inputState.keys.has(MOVEMENT_KEYS.FORWARD)) moveInput.z -= 1;
-    if (this.inputState.keys.has(MOVEMENT_KEYS.BACKWARD)) moveInput.z += 1;
-    if (this.inputState.keys.has(MOVEMENT_KEYS.LEFT)) moveInput.x -= 1;
-    if (this.inputState.keys.has(MOVEMENT_KEYS.RIGHT)) moveInput.x += 1;
-    if (this.inputState.keys.has(MOVEMENT_KEYS.JUMP)) moveInput.y += 1; // Up
-    if (this.inputState.keys.has(MOVEMENT_KEYS.CROUCH)) moveInput.y -= 1; // Down
+    // --- Local ENU basis at current position ---
+    const { east, north, up } = this.enuBasisAt(this.cameraState.position);
 
-    // Normalize input
-    if (Cesium.Cartesian3.magnitude(moveInput) > 0) {
-      Cesium.Cartesian3.normalize(moveInput, moveInput);
-    }
-
-    // Calculate world-space movement direction
-    const worldMoveDir = this.calculateWorldMovementDirection(moveInput);
-
-    // Apply acceleration
-    if (Cesium.Cartesian3.magnitude(worldMoveDir) > 0) {
-      Cesium.Cartesian3.normalize(worldMoveDir, worldMoveDir);
-      const acceleration = Cesium.Cartesian3.multiplyByScalar(
-        worldMoveDir,
-        this.acceleration * deltaTime,
+    // View-relative horizontal basis:
+    // forward = camera direction projected onto tangent plane
+    const dir = this.cameraState.direction;
+    const dirDotUp = Cesium.Cartesian3.dot(dir, up);
+    const forwardHoriz = Cesium.Cartesian3.normalize(
+      Cesium.Cartesian3.subtract(
+        dir,
+        Cesium.Cartesian3.multiplyByScalar(
+          up,
+          dirDotUp,
+          new Cesium.Cartesian3()
+        ),
         new Cesium.Cartesian3()
-      );
-      Cesium.Cartesian3.add(this.velocity, acceleration, this.velocity);
-    } else {
-      // Apply friction when not moving
-      this.velocity = Cesium.Cartesian3.multiplyByScalar(
-        this.velocity,
-        this.friction,
-        this.velocity
-      );
-    }
-
-    // Limit speed
-    if (Cesium.Cartesian3.magnitude(this.velocity) > this.maxSpeed) {
-      Cesium.Cartesian3.normalize(this.velocity, this.velocity);
-      Cesium.Cartesian3.multiplyByScalar(
-        this.velocity,
-        this.maxSpeed,
-        this.velocity
-      );
-    }
-  }
-
-  /**
-   * Handle rotation (Arrow keys)
-   */
-  private handleRotation(deltaTime: number): void {
-    // Calculate rotation input
-    const rotationInput = new Cesium.Cartesian3(0, 0, 0);
-
-    if (this.inputState.keys.has(ROTATION_KEYS.LOOK_UP)) rotationInput.x += 1;
-    if (this.inputState.keys.has(ROTATION_KEYS.LOOK_DOWN)) rotationInput.x -= 1;
-    if (this.inputState.keys.has(ROTATION_KEYS.LOOK_LEFT)) rotationInput.y += 1;
-    if (this.inputState.keys.has(ROTATION_KEYS.LOOK_RIGHT))
-      rotationInput.y -= 1;
-
-    // Apply angular acceleration
-    if (Cesium.Cartesian3.magnitude(rotationInput) > 0) {
-      Cesium.Cartesian3.normalize(rotationInput, rotationInput);
-      const angularAcceleration = Cesium.Cartesian3.multiplyByScalar(
-        rotationInput,
-        this.angularAcceleration * deltaTime,
-        new Cesium.Cartesian3()
-      );
-      Cesium.Cartesian3.add(
-        this.angularVelocity,
-        angularAcceleration,
-        this.angularVelocity
-      );
-    } else {
-      // Apply angular friction
-      this.angularVelocity = Cesium.Cartesian3.multiplyByScalar(
-        this.angularVelocity,
-        this.angularFriction,
-        this.angularVelocity
-      );
-    }
-  }
-
-  /**
-   * Handle mouse look
-   */
-  private handleMouseLook(): void {
-    if (!this.isMouseLookEnabled || !this.inputState.isPointerLocked) return;
-
-    const mouseDelta = this.inputState.mouseDelta;
-    if (mouseDelta.x === 0 && mouseDelta.y === 0) return;
-
-    // Calculate rotation from mouse movement
-    const yawDelta = -mouseDelta.x * this.mouseSensitivity;
-    const pitchDelta = -mouseDelta.y * this.mouseSensitivity;
-
-    // Update yaw and pitch
-    this.cameraState.yaw += yawDelta;
-    this.cameraState.pitch += pitchDelta;
-
-    // Clamp pitch to prevent over-rotation
-    this.cameraState.pitch = Math.max(
-      -Math.PI / 2 + 0.1,
-      Math.min(Math.PI / 2 - 0.1, this.cameraState.pitch)
-    );
-
-    // Update camera orientation
-    this.updateCameraOrientation();
-  }
-
-  /**
-   * Apply physics to camera
-   */
-  private applyPhysics(deltaTime: number): void {
-    // Apply linear velocity
-    const movement = Cesium.Cartesian3.multiplyByScalar(
-      this.velocity,
-      deltaTime,
+      ),
       new Cesium.Cartesian3()
     );
-    this.cameraState.position = Cesium.Cartesian3.add(
+    // right = forward × up
+    const rightHoriz = Cesium.Cartesian3.normalize(
+      Cesium.Cartesian3.cross(forwardHoriz, up, new Cesium.Cartesian3()),
+      new Cesium.Cartesian3()
+    );
+
+    // --- Desired accelerations ---
+    const aHoriz = new Cesium.Cartesian3(0, 0, 0);
+    if (moveF !== 0) {
+      Cesium.Cartesian3.add(
+        aHoriz,
+        Cesium.Cartesian3.multiplyByScalar(
+          forwardHoriz,
+          moveF,
+          new Cesium.Cartesian3()
+        ),
+        aHoriz
+      );
+    }
+    if (moveR !== 0) {
+      Cesium.Cartesian3.add(
+        aHoriz,
+        Cesium.Cartesian3.multiplyByScalar(
+          rightHoriz,
+          moveR,
+          new Cesium.Cartesian3()
+        ),
+        aHoriz
+      );
+    }
+    if (Cesium.Cartesian3.magnitude(aHoriz) > 0) {
+      Cesium.Cartesian3.normalize(aHoriz, aHoriz);
+      Cesium.Cartesian3.multiplyByScalar(aHoriz, this.drone.accelHoriz, aHoriz);
+    }
+
+    const aVert =
+      moveU !== 0
+        ? Cesium.Cartesian3.multiplyByScalar(
+            up,
+            moveU * this.drone.accelVert,
+            new Cesium.Cartesian3()
+          )
+        : new Cesium.Cartesian3(0, 0, 0);
+
+    // --- Update velocity with damping ---
+    // Mild damping if there is input, stronger if idle.
+    const anyInput = moveF !== 0 || moveR !== 0 || moveU !== 0;
+    const damp = anyInput ? this.drone.dampActive : this.drone.dampIdle;
+    this.physicsState.velocity = Cesium.Cartesian3.multiplyByScalar(
+      this.physicsState.velocity,
+      damp,
+      new Cesium.Cartesian3()
+    );
+
+    // Integrate acceleration
+    const aTotal = Cesium.Cartesian3.add(
+      aHoriz,
+      aVert,
+      new Cesium.Cartesian3()
+    );
+    Cesium.Cartesian3.add(
+      this.physicsState.velocity,
+      Cesium.Cartesian3.multiplyByScalar(aTotal, h, new Cesium.Cartesian3()),
+      this.physicsState.velocity
+    );
+
+    // --- Clamp speeds (separate horizontal vs vertical) ---
+    const v = this.physicsState.velocity;
+    const vDotUp = Cesium.Cartesian3.dot(v, up);
+    let vHoriz = Cesium.Cartesian3.subtract(
+      v,
+      Cesium.Cartesian3.multiplyByScalar(up, vDotUp, new Cesium.Cartesian3()),
+      new Cesium.Cartesian3()
+    );
+    const vHorizMag = Cesium.Cartesian3.magnitude(vHoriz);
+    if (vHorizMag > this.drone.maxHorizSpeed) {
+      vHoriz = Cesium.Cartesian3.multiplyByScalar(
+        Cesium.Cartesian3.normalize(vHoriz, new Cesium.Cartesian3()),
+        this.drone.maxHorizSpeed,
+        vHoriz
+      );
+    }
+    const vVert = Cesium.Math.clamp(
+      vDotUp,
+      -this.drone.maxVertSpeed,
+      this.drone.maxVertSpeed
+    );
+    // Recompose velocity
+    this.physicsState.velocity = Cesium.Cartesian3.add(
+      vHoriz,
+      Cesium.Cartesian3.multiplyByScalar(up, vVert, new Cesium.Cartesian3()),
+      new Cesium.Cartesian3()
+    );
+
+    // --- Integrate position ---
+    const delta = Cesium.Cartesian3.multiplyByScalar(
+      this.physicsState.velocity,
+      h,
+      new Cesium.Cartesian3()
+    );
+    let proposed = Cesium.Cartesian3.add(
       this.cameraState.position,
-      movement,
+      delta,
       new Cesium.Cartesian3()
     );
 
-    // Apply angular velocity
-    this.cameraState.yaw += this.angularVelocity.y * deltaTime;
-    this.cameraState.pitch += this.angularVelocity.x * deltaTime;
-    this.cameraState.roll += this.angularVelocity.z * deltaTime;
-
-    // Clamp pitch
-    this.cameraState.pitch = Math.max(
-      -Math.PI / 2 + 0.1,
-      Math.min(Math.PI / 2 - 0.1, this.cameraState.pitch)
-    );
-
-    // Update camera orientation
-    this.updateCameraOrientation();
-  }
-
-  /**
-   * Calculate world-space movement direction from input
-   */
-  private calculateWorldMovementDirection(
-    moveInput: Cesium.Cartesian3
-  ): Cesium.Cartesian3 {
-    const worldMoveDir = new Cesium.Cartesian3(0, 0, 0);
-
-    // Forward/backward movement
-    if (moveInput.z !== 0) {
-      Cesium.Cartesian3.add(
-        worldMoveDir,
-        Cesium.Cartesian3.multiplyByScalar(
-          this.cameraState.direction,
-          -moveInput.z,
-          new Cesium.Cartesian3()
-        ),
-        worldMoveDir
-      );
-    }
-
-    // Strafe movement
-    if (moveInput.x !== 0) {
-      Cesium.Cartesian3.add(
-        worldMoveDir,
-        Cesium.Cartesian3.multiplyByScalar(
-          this.cameraState.right,
-          moveInput.x,
-          new Cesium.Cartesian3()
-        ),
-        worldMoveDir
-      );
-    }
-
-    // Up/down movement
-    if (moveInput.y !== 0) {
-      Cesium.Cartesian3.add(
-        worldMoveDir,
-        Cesium.Cartesian3.multiplyByScalar(
-          this.cameraState.up,
-          moveInput.y,
-          new Cesium.Cartesian3()
-        ),
-        worldMoveDir
-      );
-    }
-
-    return worldMoveDir;
-  }
-
-  /**
-   * Update camera orientation from yaw, pitch, roll
-   */
-  private updateCameraOrientation(): void {
-    // Calculate direction vector from yaw and pitch
-    this.cameraState.direction = new Cesium.Cartesian3(
-      Math.cos(this.cameraState.pitch) * Math.cos(this.cameraState.yaw),
-      Math.cos(this.cameraState.pitch) * Math.sin(this.cameraState.yaw),
-      Math.sin(this.cameraState.pitch)
-    );
-
-    // Calculate right vector
-    this.cameraState.right = Cesium.Cartesian3.cross(
-      this.cameraState.direction,
-      new Cesium.Cartesian3(0, 0, 1),
-      new Cesium.Cartesian3()
-    );
-    Cesium.Cartesian3.normalize(this.cameraState.right, this.cameraState.right);
-
-    // Calculate up vector
-    this.cameraState.up = Cesium.Cartesian3.cross(
-      this.cameraState.right,
-      this.cameraState.direction,
-      new Cesium.Cartesian3()
-    );
-    Cesium.Cartesian3.normalize(this.cameraState.up, this.cameraState.up);
-  }
-
-  /**
-   * Handle mouse down - toggle mouse look
-   */
-  protected onMouseDown(event: MouseEvent): void {
-    if (event.button === 0) {
-      // Left mouse button
-      if (this.isMouseLookEnabled) {
-        this.exitPointerLock();
-        this.isMouseLookEnabled = false;
-      } else {
-        this.requestPointerLock();
-        this.isMouseLookEnabled = true;
+    // --- Optional AGL clamp (don't go below terrain + margin) ---
+    const globe = this.cesiumViewer!.scene.globe;
+    const ellipsoid = globe.ellipsoid;
+    const carto = Cesium.Cartographic.fromCartesian(proposed, ellipsoid);
+    if (carto) {
+      const terrain = globe.getHeight(carto);
+      if (terrain !== undefined) {
+        const minH = terrain + this.drone.minAGL + this.config.height;
+        if (carto.height < minH) {
+          // clamp and kill downward velocity
+          carto.height = minH;
+          proposed = Cesium.Cartesian3.fromRadians(
+            carto.longitude,
+            carto.latitude,
+            carto.height
+          );
+          // remove downward component
+          const vNewDotUp = Cesium.Cartesian3.dot(
+            this.physicsState.velocity,
+            up
+          );
+          if (vNewDotUp < 0) {
+            // zero vertical if descending
+            this.physicsState.velocity = vHoriz; // vertical set to 0
+          }
+        }
       }
     }
+
+    this.cameraState.position = proposed;
+
+    // Orientation is handled in applyYawPitch() per-frame; keep up = ENU up
+    this.cameraState.up = up;
+
+    // Apply to Cesium
+    this.applyCameraState();
   }
 
-  /**
-   * Handle key down
-   */
-  protected onKeyDown(event: KeyboardEvent): void {
-    // Prevent default for movement and rotation keys
-    const movementKeys = Object.values(MOVEMENT_KEYS);
-    const rotationKeys = Object.values(ROTATION_KEYS);
+  /** Apply ENU yaw/pitch (pointer-locked only) */
+  private applyYawPitch() {
+    const dx = this.inputState.mouseDelta.x;
+    const dy = this.inputState.mouseDelta.y;
 
-    if (
-      movementKeys.includes(event.code as any) ||
-      rotationKeys.includes(event.code as any)
-    ) {
-      event.preventDefault();
-    }
-  }
+    if (dx !== 0 || dy !== 0) {
+      const yawDelta = dx * this.config.sensitivity;
+      const pitchDelta = -dy * this.config.sensitivity;
 
-  /**
-   * Handle key up
-   */
-  protected onKeyUp(event: KeyboardEvent): void {
-    // Handle any key up logic here
-  }
-
-  /**
-   * Handle mouse move
-   */
-  protected onMouseMove(event: MouseEvent): void {
-    // Mouse movement is handled in handleMouseLook()
-  }
-
-  /**
-   * Handle pointer lock change
-   */
-  protected onPointerLockChange(): void {
-    this.isMouseLookEnabled = this.inputState.isPointerLocked;
-
-    if (this.config.debugMode) {
-      console.log(
-        "[FlightController] Mouse look:",
-        this.isMouseLookEnabled ? "enabled" : "disabled"
+      this.cameraState.yaw = Cesium.Math.negativePiToPi(
+        this.cameraState.yaw + yawDelta
+      );
+      this.cameraState.pitch = Cesium.Math.clamp(
+        this.cameraState.pitch + pitchDelta,
+        -Cesium.Math.PI_OVER_TWO + 0.05,
+        Cesium.Math.PI_OVER_TWO - 0.05
       );
     }
+
+    // Compute world direction from ENU yaw/pitch, keep roll = 0
+    const { east, north, up } = this.enuBasisAt(this.cameraState.position);
+    const dirLocal = new Cesium.Cartesian3(
+      Math.cos(this.cameraState.pitch) * Math.sin(this.cameraState.yaw), // x=east
+      Math.cos(this.cameraState.pitch) * Math.cos(this.cameraState.yaw), // y=north
+      Math.sin(this.cameraState.pitch) // z=up
+    );
+    const dirWorld = new Cesium.Cartesian3(
+      east.x * dirLocal.x + north.x * dirLocal.y + up.x * dirLocal.z,
+      east.y * dirLocal.x + north.y * dirLocal.y + up.y * dirLocal.z,
+      east.z * dirLocal.x + north.z * dirLocal.y + up.z * dirLocal.z
+    );
+    Cesium.Cartesian3.normalize(dirWorld, dirWorld);
+
+    this.cameraState.direction = dirWorld;
+    this.cameraState.up = up;
+    this.cameraState.right = Cesium.Cartesian3.normalize(
+      Cesium.Cartesian3.cross(
+        this.cameraState.direction,
+        this.cameraState.up,
+        new Cesium.Cartesian3()
+      ),
+      new Cesium.Cartesian3()
+    );
+
+    this.applyCameraState();
   }
 
-  /**
-   * Get current velocity
-   */
-  getVelocity(): Cesium.Cartesian3 {
-    return this.velocity.clone();
+  /** Initialize position & yaw/pitch from the current Cesium camera */
+  private initializeFromCamera() {
+    if (!this.camera || !this.cesiumViewer) return;
+
+    // Start from current camera position; ensure we are above terrain by minAGL
+    const globe = this.cesiumViewer.scene.globe;
+    const pos = Cesium.Cartesian3.clone(this.camera.position);
+    const c = Cesium.Cartographic.fromCartesian(pos, globe.ellipsoid);
+    if (!c) return;
+
+    const terrain = globe.getHeight(c);
+    const minH = (terrain ?? c.height) + this.drone.minAGL + this.config.height;
+    if (c.height < minH) c.height = minH;
+
+    this.cameraState.position = Cesium.Cartesian3.fromRadians(
+      c.longitude,
+      c.latitude,
+      c.height
+    );
+
+    // Yaw/pitch from current direction in ENU
+    const { east, north, up } = this.enuBasisAt(this.cameraState.position);
+    const d = Cesium.Cartesian3.normalize(
+      Cesium.Cartesian3.clone(this.camera.direction),
+      new Cesium.Cartesian3()
+    );
+    const ex = Cesium.Cartesian3.dot(d, east);
+    const ny = Cesium.Cartesian3.dot(d, north);
+    const uz = Cesium.Cartesian3.dot(d, up);
+
+    this.cameraState.yaw = Math.atan2(ex, ny);
+    this.cameraState.pitch = Cesium.Math.clamp(
+      Math.asin(uz),
+      -Cesium.Math.PI_OVER_TWO + 0.05,
+      Cesium.Math.PI_OVER_TWO - 0.05
+    );
+
+    // Set initial orientation
+    this.applyYawPitch();
+    // Reset velocity
+    this.physicsState.velocity = new Cesium.Cartesian3(0, 0, 0);
   }
 
-  /**
-   * Get current speed
-   */
-  getSpeed(): number {
-    return Cesium.Cartesian3.magnitude(this.velocity);
-  }
+  // === Hooks ===
+  protected onMouseDown = (e: MouseEvent) => {
+    if (e.button === 0) this.requestPointerLock();
+  };
 
-  /**
-   * Set mouse look enabled
-   */
-  setMouseLookEnabled(enabled: boolean): void {
-    this.isMouseLookEnabled = enabled;
-    if (enabled) {
-      this.requestPointerLock();
-    } else {
-      this.exitPointerLock();
-    }
-  }
+  protected onKeyDown = (e: KeyboardEvent) => {
+    // Prevent page scroll / browser shortcuts for flight keys
+    const codes = new Set<string>([
+      MOVEMENT_KEYS.FORWARD,
+      MOVEMENT_KEYS.BACKWARD,
+      MOVEMENT_KEYS.LEFT,
+      MOVEMENT_KEYS.RIGHT,
+      MOVEMENT_KEYS.JUMP, // Space -> up
+      "ShiftLeft",
+      "ShiftRight", // down
+    ]);
+    if (codes.has(e.code)) e.preventDefault();
+  };
 }
