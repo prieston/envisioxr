@@ -6,11 +6,13 @@ import { Box, Tabs, Tab } from "@mui/material";
 import { useDropzone } from "react-dropzone";
 import { showToast } from "@/app/utils/toastUtils";
 import * as THREE from "three";
+
 import { clientEnv } from "@/lib/env/client";
 import useSceneStore from "../../hooks/useSceneStore";
 import useWorldStore from "../../hooks/useWorldStore";
 import { getRightPanelConfig } from "../../config/panelConfigFactory";
 import SettingRenderer from "./SettingRenderer";
+import { getPositionAtScreenPoint } from "../../utils/cesiumPositioningUtils";
 
 // Styled container for the RightPanel with conditional styles based on previewMode
 interface RightPanelContainerProps {
@@ -46,20 +48,20 @@ const TabPanel = styled(Box)(({ theme }) => ({
 const RightPanelNew: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [tabIndex, setTabIndex] = useState(0);
-  const [userAssets, setUserAssets] = useState([]);
-  const [previewFile, setPreviewFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [screenshot, setScreenshot] = useState(null);
+  const [userAssets, setUserAssets] = useState<any[]>([]);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [screenshot, setScreenshot] = useState<string | null>(null);
   const [friendlyName, setFriendlyName] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [deletingAssetId, setDeletingAssetId] = useState(null);
+  const [deletingAssetId, setDeletingAssetId] = useState<string | null>(null);
   const [selectingPosition, setSelectingPosition] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<
     [number, number, number] | null
   >(null);
-  const [pendingModel, setPendingModel] = useState(null);
-  const [metadata, setMetadata] = useState([]);
+  const [pendingModel, setPendingModel] = useState<any>(null);
+  const [metadata, setMetadata] = useState<any[]>([]);
   const [isObservationModel, setIsObservationModel] = useState(false);
   const [observationProperties, setObservationProperties] = useState({
     fov: 90,
@@ -69,6 +71,29 @@ const RightPanelNew: React.FC = () => {
 
   const { previewMode } = useSceneStore();
   const { engine } = useWorldStore();
+
+  // Setup dropzone for file uploads
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: {
+      "model/gltf-binary": [".glb"],
+      "model/gltf+json": [".gltf"],
+      "model/obj": [".obj"],
+      "model/fbx": [".fbx"],
+      "model/collada": [".dae"],
+    },
+    onDrop: (acceptedFiles) => {
+      if (acceptedFiles.length > 0) {
+        const file = acceptedFiles[0];
+        setPreviewFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+        setFriendlyName(file.name.replace(/\.[^/.]+$/, "")); // Remove extension
+      }
+    },
+    maxFiles: 1,
+  });
+
+  // Calculate if confirm button should be disabled
+  const isConfirmDisabled = !previewFile || !friendlyName.trim() || uploading;
 
   // Get all the state values and setters that the configuration depends on
   const {
@@ -101,36 +126,82 @@ const RightPanelNew: React.FC = () => {
 
   // Handle position selection mode
   useEffect(() => {
-    if (!selectingPosition || !orbitControlsRef || !scene) return;
+    if (!selectingPosition) return;
 
     const handleClick = (event) => {
-      const rect = event.target.getBoundingClientRect();
-      const mouse = new THREE.Vector2();
-      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      if (engine === "three") {
+        // Three.js position selection using raycasting
+        if (!orbitControlsRef || !scene) return;
 
-      // Update the raycaster
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(mouse, orbitControlsRef.object);
+        const rect = event.target.getBoundingClientRect();
+        const mouse = new THREE.Vector2();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-      // Get all objects in the scene
-      const allObjects = [];
-      scene.traverse((object) => {
-        if ((object as THREE.Mesh).isMesh) {
-          allObjects.push(object);
+        // Update the raycaster
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, orbitControlsRef.object);
+
+        // Get all objects in the scene
+        const allObjects = [];
+        scene.traverse((object) => {
+          if ((object as THREE.Mesh).isMesh) {
+            allObjects.push(object);
+          }
+        });
+
+        // Find intersections with all objects
+        const intersects = raycaster.intersectObjects(allObjects, true);
+
+        if (intersects.length > 0) {
+          const hitPoint = intersects[0].point;
+          setSelectedPosition([hitPoint.x, hitPoint.y, hitPoint.z]);
+          setSelectingPosition(false);
+          showToast("Position selected!");
+        } else {
+          showToast("No surface detected at click point");
         }
-      });
+      } else if (engine === "cesium") {
+        // Enhanced Cesium position selection using advanced positioning utility
+        const { cesiumViewer } = useSceneStore.getState();
+        if (!cesiumViewer) return;
 
-      // Find intersections with all objects
-      const intersects = raycaster.intersectObjects(allObjects, true);
+        // Get canvas-relative coordinates instead of screen coordinates
+        const canvas = event.target as HTMLCanvasElement;
+        const rect = canvas.getBoundingClientRect();
+        const canvasX = event.clientX - rect.left;
+        const canvasY = event.clientY - rect.top;
 
-      if (intersects.length > 0) {
-        const hitPoint = intersects[0].point;
-        setSelectedPosition([hitPoint.x, hitPoint.y, hitPoint.z]);
-        setSelectingPosition(false); // Close the first box
-        showToast("Position selected!");
-      } else {
-        showToast("No surface detected at click point");
+        const positioningResult = getPositionAtScreenPoint(
+          cesiumViewer,
+          canvasX,
+          canvasY,
+          {
+            prefer3DTiles: true,
+            preferTerrain: true,
+            maxTerrainDistance: 1000,
+            fallbackToEllipsoid: true,
+          }
+        );
+
+        if (positioningResult) {
+          const [longitude, latitude, height] = positioningResult.position;
+
+          if (process.env.NODE_ENV === "development") {
+            console.log(
+              `[RightPanel] Picked position at ${longitude}, ${latitude}, ${height} (${positioningResult.surfaceType}, ${positioningResult.accuracy} accuracy)`
+            );
+          }
+
+          // Store geographic coordinates for Cesium
+          setSelectedPosition([longitude, latitude, height]);
+          setSelectingPosition(false);
+          showToast(
+            `Position selected on ${positioningResult.surfaceType} (${positioningResult.accuracy} accuracy)!`
+          );
+        } else {
+          showToast("No surface detected at click point");
+        }
       }
     };
 
@@ -148,33 +219,75 @@ const RightPanelNew: React.FC = () => {
         canvas.style.cursor = "auto";
       }
     };
-  }, [selectingPosition, orbitControlsRef, scene]);
+  }, [selectingPosition, orbitControlsRef, scene, engine]);
 
   // Add a new effect to handle position updates after initial selection
   useEffect(() => {
-    if (!selectedPosition || !orbitControlsRef || !scene) return;
+    if (!selectedPosition) return;
 
     const handleClick = (event) => {
-      const rect = event.target.getBoundingClientRect();
-      const mouse = new THREE.Vector2();
-      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      if (engine === "three") {
+        // Three.js position updates
+        if (!orbitControlsRef || !scene) return;
 
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(mouse, orbitControlsRef.object);
+        const rect = event.target.getBoundingClientRect();
+        const mouse = new THREE.Vector2();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-      const allObjects = [];
-      scene.traverse((object) => {
-        if ((object as THREE.Mesh).isMesh) {
-          allObjects.push(object);
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, orbitControlsRef.object);
+
+        const allObjects = [];
+        scene.traverse((object) => {
+          if ((object as THREE.Mesh).isMesh) {
+            allObjects.push(object);
+          }
+        });
+
+        const intersects = raycaster.intersectObjects(allObjects, true);
+        if (intersects.length > 0) {
+          const hitPoint = intersects[0].point;
+          setSelectedPosition([hitPoint.x, hitPoint.y, hitPoint.z]);
+          showToast("Position updated!");
         }
-      });
+      } else if (engine === "cesium") {
+        // Enhanced Cesium position updates using advanced positioning utility
+        const { cesiumViewer } = useSceneStore.getState();
+        if (!cesiumViewer) return;
 
-      const intersects = raycaster.intersectObjects(allObjects, true);
-      if (intersects.length > 0) {
-        const hitPoint = intersects[0].point;
-        setSelectedPosition([hitPoint.x, hitPoint.y, hitPoint.z]);
-        showToast("Position updated!");
+        // Get canvas-relative coordinates instead of screen coordinates
+        const canvas = event.target as HTMLCanvasElement;
+        const rect = canvas.getBoundingClientRect();
+        const canvasX = event.clientX - rect.left;
+        const canvasY = event.clientY - rect.top;
+
+        const positioningResult = getPositionAtScreenPoint(
+          cesiumViewer,
+          canvasX,
+          canvasY,
+          {
+            prefer3DTiles: true,
+            preferTerrain: true,
+            maxTerrainDistance: 1000,
+            fallbackToEllipsoid: true,
+          }
+        );
+
+        if (positioningResult) {
+          const [longitude, latitude, height] = positioningResult.position;
+
+          if (process.env.NODE_ENV === "development") {
+            console.log(
+              `[RightPanel] Updated position at ${longitude}, ${latitude}, ${height} (${positioningResult.surfaceType}, ${positioningResult.accuracy} accuracy)`
+            );
+          }
+
+          setSelectedPosition([longitude, latitude, height]);
+          showToast(
+            `Position updated on ${positioningResult.surfaceType} (${positioningResult.accuracy} accuracy)!`
+          );
+        }
       }
     };
 
@@ -190,9 +303,9 @@ const RightPanelNew: React.FC = () => {
         canvas.style.cursor = "auto";
       }
     };
-  }, [selectedPosition, orbitControlsRef, scene]);
+  }, [selectedPosition, orbitControlsRef, scene, engine]);
 
-  const handleModelSelect = (model) => {
+  const handleModelSelect = (model: any) => {
     // Store the model temporarily
     const pendingModel = {
       name: model.name,
@@ -231,20 +344,6 @@ const RightPanelNew: React.FC = () => {
       setDeletingAssetId(null);
     }
   };
-
-  const { getRootProps, getInputProps } = useDropzone({
-    accept: { "model/gltf-binary": [".glb"] },
-    multiple: false,
-    onDrop: (acceptedFiles) => {
-      if (acceptedFiles.length > 0) {
-        const file = acceptedFiles[0];
-        const objectUrl = URL.createObjectURL(file);
-        setPreviewFile(file);
-        setPreviewUrl(objectUrl);
-        setScreenshot(null);
-      }
-    },
-  });
 
   const dataURLtoBlob = (dataurl) => {
     const arr = dataurl.split(",");
@@ -383,11 +482,19 @@ const RightPanelNew: React.FC = () => {
     }
   };
 
-  const isConfirmDisabled = !screenshot || !friendlyName || uploading;
-
   // Add new handler for confirming model placement
   const handleConfirmModelPlacement = () => {
     if (pendingModel && selectedPosition) {
+      // Store the coordinates as-is - Cesium coordinates for Cesium, local coordinates for Three.js
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `[RightPanel] Adding model with position:`,
+          selectedPosition,
+          `Engine:`,
+          engine
+        );
+      }
+
       addModel({
         ...pendingModel,
         position: selectedPosition,

@@ -1,7 +1,63 @@
-import React, { useCallback, useEffect } from "react";
-import { Box, Typography, FormControl, Select, MenuItem } from "@mui/material";
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  Component,
+  ErrorInfo,
+  ReactNode,
+} from "react";
+import {
+  Box,
+  Typography,
+  FormControl,
+  Select,
+  MenuItem,
+  CircularProgress,
+  SelectChangeEvent,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import useSceneStore from "../../hooks/useSceneStore";
+
+// Cesium is loaded as a module, not a global variable
+
+// Error Boundary Component
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+class SkyboxErrorBoundary extends Component<
+  { children: ReactNode },
+  ErrorBoundaryState
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("SkyboxErrorBoundary caught an error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Box sx={{ p: 2, border: "1px solid red", borderRadius: 1 }}>
+          <Typography variant="caption" color="error">
+            Error in skybox selector:{" "}
+            {this.state.error?.message || "Unknown error"}
+          </Typography>
+        </Box>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 const Container = styled(Box)(({ theme }) => ({
   "& > *:not(:last-child)": {
@@ -16,8 +72,8 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
 }));
 
 interface CesiumSkyboxSelectorProps {
-  value: "default" | "none" | "stars";
-  onChange: (value: "default" | "none" | "stars") => void;
+  value: "default" | "none";
+  onChange: (value: "default" | "none") => void;
   disabled?: boolean;
 }
 
@@ -26,86 +82,138 @@ const CesiumSkyboxSelector: React.FC<CesiumSkyboxSelectorProps> = ({
   onChange,
   disabled = false,
 }) => {
-  const { cesiumViewer } = useSceneStore();
+  const { cesiumViewer, cesiumInstance } = useSceneStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Debug: Log the current value when component renders
+  useEffect(() => {
+    // console.log("CesiumSkyboxSelector rendered with value:", value);
+  }, [value]);
 
   const handleSkyboxChange = useCallback(
-    (skyboxType: "default" | "none" | "stars") => {
+    (skyboxType: "default" | "none") => {
       if (!cesiumViewer) {
-        console.warn("Cesium viewer not available");
+        setError("Cesium viewer not available");
         return;
       }
 
+      if (!cesiumInstance) {
+        setError("Cesium library not loaded yet. Please wait...");
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
       try {
+        // Applying skybox change
+
+        // Check if scene and its properties exist
+        if (!cesiumViewer.scene) {
+          throw new Error("Cesium scene not available");
+        }
+
         switch (skyboxType) {
           case "default": {
-            // Enable the default Cesium sky by setting showSkyBox to true
-            cesiumViewer.scene.skyBox.show = true;
-            cesiumViewer.scene.skyAtmosphere.show = true;
-            break;
-          }
-          case "stars": {
-            // Enable stars skybox and disable atmosphere
-            cesiumViewer.scene.skyBox.show = true;
-            cesiumViewer.scene.skyAtmosphere.show = false;
-            // Set the skybox to use the stars texture
-            cesiumViewer.scene.skyBox = new Cesium.SkyBox({
-              sources: {
-                positiveX:
-                  "https://cesium.com/public/stars/stars_positive_x.jpg",
-                negativeX:
-                  "https://cesium.com/public/stars/stars_negative_x.jpg",
-                positiveY:
-                  "https://cesium.com/public/stars/stars_positive_y.jpg",
-                negativeY:
-                  "https://cesium.com/public/stars/stars_negative_y.jpg",
-                positiveZ:
-                  "https://cesium.com/public/stars/stars_positive_z.jpg",
-                negativeZ:
-                  "https://cesium.com/public/stars/stars_negative_z.jpg",
-              },
-            });
+            // Show both skybox (with stars) and atmosphere
+            if (cesiumViewer.scene.skyBox) {
+              cesiumViewer.scene.skyBox.show = true;
+            }
+            if (cesiumViewer.scene.skyAtmosphere) {
+              cesiumViewer.scene.skyAtmosphere.show = true;
+            }
             break;
           }
           case "none": {
-            // Disable the sky and atmosphere by setting show to false
-            cesiumViewer.scene.skyBox.show = false;
-            cesiumViewer.scene.skyAtmosphere.show = false;
+            // Hide both skybox and atmosphere
+            if (cesiumViewer.scene.skyBox) {
+              cesiumViewer.scene.skyBox.show = false;
+            }
+            if (cesiumViewer.scene.skyAtmosphere) {
+              cesiumViewer.scene.skyAtmosphere.show = false;
+            }
             break;
           }
         }
+
+        // Force a render to ensure the changes are visible
+        if (cesiumViewer.scene.requestRender) {
+          cesiumViewer.scene.requestRender();
+        }
+
+        // Skybox change applied successfully
         onChange(skyboxType);
       } catch (error) {
         console.error("Error changing skybox:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        setError(`Failed to change skybox: ${errorMessage}`);
+      } finally {
+        setIsLoading(false);
       }
     },
-    [cesiumViewer, onChange]
+    [cesiumViewer, cesiumInstance, onChange]
   );
 
-  // Apply the current skybox setting when component mounts or value changes
+  // Apply initial skybox setting when component mounts
   useEffect(() => {
-    if (cesiumViewer && value) {
+    if (cesiumViewer && cesiumInstance && value) {
+      // console.log("Applying initial skybox:", value);
       handleSkyboxChange(value);
     }
-  }, [cesiumViewer, value, handleSkyboxChange]);
+  }, [cesiumViewer, cesiumInstance]); // Only run when cesium is ready
+
+  const handleSelectChange = (e: SelectChangeEvent<"default" | "none">) => {
+    try {
+      const newValue = e.target.value as "default" | "none";
+      handleSkyboxChange(newValue);
+    } catch (error) {
+      console.error("Error in skybox onChange:", error);
+      setError("Failed to change skybox selection");
+    }
+  };
 
   return (
     <Container>
       <SectionTitle>Skybox Type</SectionTitle>
-      <FormControl fullWidth size="small" disabled={disabled}>
+      <FormControl
+        fullWidth
+        size="small"
+        disabled={disabled || isLoading || !cesiumInstance}
+      >
         <Select
           value={value}
-          onChange={(e) =>
-            handleSkyboxChange(e.target.value as "default" | "none" | "stars")
-          }
+          onChange={handleSelectChange}
           displayEmpty
+          startAdornment={isLoading ? <CircularProgress size={16} /> : null}
         >
           <MenuItem value="default">Default Sky</MenuItem>
-          <MenuItem value="stars">Stars</MenuItem>
           <MenuItem value="none">No Sky</MenuItem>
         </Select>
       </FormControl>
+      {!cesiumInstance && !error && (
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+          Loading Cesium...
+        </Typography>
+      )}
+      {error && (
+        <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+          {error}
+        </Typography>
+      )}
     </Container>
   );
 };
 
-export default CesiumSkyboxSelector;
+const CesiumSkyboxSelectorWithErrorBoundary: React.FC<
+  CesiumSkyboxSelectorProps
+> = (props) => {
+  return (
+    <SkyboxErrorBoundary>
+      <CesiumSkyboxSelector {...props} />
+    </SkyboxErrorBoundary>
+  );
+};
+
+export default CesiumSkyboxSelectorWithErrorBoundary;

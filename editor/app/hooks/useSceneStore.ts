@@ -75,7 +75,7 @@ interface SceneState {
   // Environment Settings
   gridEnabled: boolean;
   ambientLightIntensity: number;
-  skyboxType: "default" | "hdri" | "gradient" | "none" | "stars";
+  skyboxType: "default" | "none";
   showTiles: boolean;
   magnetEnabled: boolean;
 
@@ -100,9 +100,7 @@ interface SceneState {
   // Environment Actions
   setGridEnabled: (enabled: boolean) => void;
   setAmbientLightIntensity: (intensity: number) => void;
-  setSkyboxType: (
-    type: "default" | "hdri" | "gradient" | "none" | "stars"
-  ) => void;
+  setSkyboxType: (type: "default" | "none") => void;
   setShowTiles: (show: boolean) => void;
   setMagnetEnabled: (enabled: boolean) => void;
 

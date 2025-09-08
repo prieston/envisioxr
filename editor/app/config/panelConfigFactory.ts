@@ -16,10 +16,8 @@ import useWorldStore from "../hooks/useWorldStore";
 export const getLeftPanelConfig = (
   gridEnabled: boolean,
   setGridEnabled: (enabled: boolean) => void,
-  skyboxType: "default" | "hdri" | "gradient" | "none",
-  setSkyboxType: (
-    type: "default" | "hdri" | "gradient" | "none" | "stars"
-  ) => void,
+  skyboxType: "default" | "none",
+  setSkyboxType: (type: "default" | "none") => void,
   ambientLightIntensity: number,
   setAmbientLightIntensity: (intensity: number) => void,
   basemapType?: "cesium" | "google" | "google-photorealistic" | "bing" | "none",
