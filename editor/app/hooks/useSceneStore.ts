@@ -110,7 +110,7 @@ interface SceneState {
 
   // Cesium Basemap Actions
   setBasemapType: (
-    type: "cesium" | "google" | "google-photorealistic" | "bing" | "none"
+    type: "cesium" | "google" | "google-photorealistic" | "none"
   ) => void;
 
   // View Mode Actions
@@ -591,40 +591,54 @@ const useSceneStore = create<SceneState>((set) => ({
   flyToCesiumIonAsset: (assetId) => {
     const state = useSceneStore.getState();
     const asset = state.cesiumIonAssets.find((a) => a.id === assetId);
-    const orbitControls = state.orbitControlsRef;
+    const cesiumViewer = state.cesiumViewer;
+    const cesiumInstance = state.cesiumInstance;
 
-    if (!asset || !orbitControls) return;
+    if (!asset || !cesiumViewer || !cesiumInstance) {
+      console.warn(
+        "Asset, Cesium viewer, or Cesium instance not available for fly-to"
+      );
+      return;
+    }
 
-    // Find the asset wrapper in the scene
-    const scene = state.scene;
-    if (!scene) return;
+    // Find the tileset in the Cesium scene primitives
+    const primitives = cesiumViewer.scene.primitives;
+    let targetTileset = null;
 
-    // Look for the asset wrapper by traversing the scene
-    let assetWrapper = null;
-    scene.traverse((object) => {
-      if (object.userData && object.userData.assetId === assetId) {
-        assetWrapper = object;
+    for (let i = 0; i < primitives.length; i++) {
+      const primitive = primitives.get(i);
+      if (
+        primitive &&
+        primitive.constructor &&
+        primitive.constructor.name === "Cesium3DTileset" &&
+        primitive.assetId === parseInt(asset.assetId)
+      ) {
+        targetTileset = primitive;
+        break;
       }
-    });
+    }
 
-    if (assetWrapper) {
-      // Get the asset's position and bounding sphere
-      const boundingBox = new THREE.Box3().setFromObject(assetWrapper);
-      const center = boundingBox.getCenter(new THREE.Vector3());
-      const size = boundingBox.getSize(new THREE.Vector3());
+    if (!targetTileset) {
+      console.warn(
+        `[CesiumIon] Could not find tileset for asset: ${asset.name} (${asset.assetId})`
+      );
+      return;
+    }
 
-      // Calculate a good camera distance based on the asset size
-      const maxDimension = Math.max(size.x, size.y, size.z);
-      const distance = Math.max(maxDimension * 3, 100); // At least 100 units away
-
-      // Set camera position
-      const cameraPosition = center
-        .clone()
-        .add(new THREE.Vector3(distance, distance * 0.6, distance));
-
-      orbitControls.object.position.copy(cameraPosition);
-      orbitControls.target.copy(center);
-      orbitControls.update();
+    // Use Cesium's built-in flyTo method - much simpler!
+    try {
+      cesiumViewer.flyTo(targetTileset, {
+        duration: 2.0,
+        offset: new cesiumInstance.HeadingPitchRange(0, -0.5, 1000),
+      });
+      console.log(
+        `[CesiumIon] Flying to asset: ${asset.name} (${asset.assetId})`
+      );
+    } catch (error) {
+      console.error(
+        `[CesiumIon] Error flying to asset: ${asset.name} (${asset.assetId}):`,
+        error
+      );
     }
   },
 }));
