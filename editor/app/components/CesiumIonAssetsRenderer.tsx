@@ -63,6 +63,14 @@ const CesiumIonAssetsRenderer: React.FC = () => {
         parseInt(asset.assetId)
       );
 
+      // Validate that the tileset was created successfully
+      if (!tileset) {
+        throw new Error("Failed to create tileset - tileset is null/undefined");
+      }
+
+      // Set the assetId property for easy identification
+      tileset.assetId = parseInt(asset.assetId);
+
       // Add the tileset to the scene using Cesium's recommended pattern
       cesiumViewer.scene.primitives.add(tileset);
 
@@ -82,21 +90,37 @@ const CesiumIonAssetsRenderer: React.FC = () => {
       tilesetRefs.current.set(asset.id, wrapper);
 
       // Set up event listeners
-      tileset.readyPromise
-        .then(() => {
-          console.log("[CesiumIon] Tileset ready for asset", asset.assetId);
+      if (tileset.readyPromise) {
+        tileset.readyPromise
+          .then(() => {
+            console.log("[CesiumIon] Tileset ready for asset", asset.assetId);
 
-          // Auto-center camera on the tileset
-          if (tileset.boundingSphere) {
-            cesiumViewer.camera.viewBoundingSphere(tileset.boundingSphere, {
-              duration: 2.0,
-            });
-            console.log("[CesiumIon] Camera centered on asset:", asset.assetId);
-          }
-        })
-        .catch((error: any) => {
-          console.error("[CesiumIon] Error loading tileset:", error);
-        });
+            // Auto-center camera on the tileset using Cesium's built-in method
+            try {
+              cesiumViewer.flyTo(tileset, {
+                duration: 2.0,
+                offset: new cesiumInstance.HeadingPitchRange(0, -0.5, 1000),
+              });
+              console.log(
+                "[CesiumIon] Camera centered on asset:",
+                asset.assetId
+              );
+            } catch (error) {
+              console.warn(
+                "[CesiumIon] Error centering camera on asset:",
+                asset.assetId,
+                error
+              );
+            }
+          })
+          .catch((error: any) => {
+            console.error("[CesiumIon] Error loading tileset:", error);
+          });
+      } else {
+        console.warn(
+          "[CesiumIon] Tileset does not have readyPromise, skipping auto-center"
+        );
+      }
 
       // Restore original token
       cesiumInstance.Ion.defaultAccessToken = originalToken;

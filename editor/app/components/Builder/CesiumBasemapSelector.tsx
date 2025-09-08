@@ -54,9 +54,28 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
       onBasemapChange(basemapType);
 
       try {
-        // Always remove existing imagery layers and 3D tilesets first
+        // Always remove existing imagery layers first
         cesiumViewer.imageryLayers.removeAll();
-        cesiumViewer.scene.primitives.removeAll();
+
+        // Remove only basemap-related primitives (Google Photorealistic tilesets)
+        // Keep custom Cesium assets intact
+        const primitives = cesiumViewer.scene.primitives;
+        for (let i = primitives.length - 1; i >= 0; i--) {
+          const primitive = primitives.get(i);
+          // Only remove Cesium3DTileset primitives that are basemap-related
+          // Custom assets should be preserved
+          if (
+            primitive &&
+            primitive.constructor &&
+            primitive.constructor.name === "Cesium3DTileset"
+          ) {
+            // Check if this is a Google Photorealistic tileset (asset ID 2275207)
+            // or other basemap-related tilesets
+            if (primitive.assetId === 2275207) {
+              primitives.remove(primitive);
+            }
+          }
+        }
 
         switch (basemapType) {
           case "cesium": {
