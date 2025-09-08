@@ -70,7 +70,7 @@ interface SceneState {
   cesiumInstance: any | null;
 
   // Cesium Basemap
-  basemapType: "cesium" | "google" | "google-photorealistic" | "bing" | "none";
+  basemapType: "cesium" | "google" | "google-photorealistic" | "none";
 
   // Environment Settings
   gridEnabled: boolean;
@@ -236,7 +236,7 @@ const useSceneStore = create<SceneState>((set) => ({
   cesiumIonAssets: [],
   cesiumViewer: null,
   cesiumInstance: null,
-  basemapType: "cesium",
+  basemapType: "none",
 
   // Environment Settings Initial State
   gridEnabled: true,

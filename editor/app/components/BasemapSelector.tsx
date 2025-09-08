@@ -10,14 +10,12 @@ interface BasemapSelectorProps {
 
 export default function BasemapSelector({
   onBasemapChange,
-  currentBasemap = "cesium",
+  currentBasemap = "none",
   disabled = false,
 }: BasemapSelectorProps) {
   const [selectedBasemap, setSelectedBasemap] = useState(currentBasemap);
 
-  const handleBasemapChange = (
-    basemapType: "cesium" | "google" | "bing" | "none"
-  ) => {
+  const handleBasemapChange = (basemapType: "cesium" | "google" | "none") => {
     setSelectedBasemap(basemapType);
     onBasemapChange(basemapType);
   };
@@ -49,16 +47,6 @@ export default function BasemapSelector({
           }`}
         >
           Google Satellite
-        </button>
-        <button
-          onClick={() => handleBasemapChange("bing")}
-          className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors ${
-            selectedBasemap === "bing"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-700 hover:bg-gray-600 text-gray-200"
-          }`}
-        >
-          Bing Maps
         </button>
         <button
           onClick={() => handleBasemapChange("none")}
