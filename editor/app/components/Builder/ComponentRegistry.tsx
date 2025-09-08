@@ -13,7 +13,7 @@ import ThreeJSLocationSearchSection from "./ThreeJSLocationSearchSection";
 import CesiumLocationSearchSection from "./CesiumLocationSearchSection";
 import CesiumBasemapSelector from "./CesiumBasemapSelector";
 import CesiumSkyboxSelector from "./CesiumSkyboxSelector";
-import { CesiumViewModeControls } from "./CesiumControls";
+import CesiumViewModeControls from "./CesiumViewModeControlsNew";
 import CesiumCameraSettings from "./CesiumCameraSettings";
 import CesiumSimulationInstructions from "./CesiumSimulationInstructions";
 

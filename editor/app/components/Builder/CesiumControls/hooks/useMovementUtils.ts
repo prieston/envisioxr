@@ -139,23 +139,15 @@ export const useMovementUtils = (getPressedKeys: () => Set<string>) => {
 
         // Apply ground detection for walk and car modes
         if (mode === "firstPerson" || mode === "car") {
-          // For now, use direct movement to test if the issue is with ground detection
-          if (process.env.NODE_ENV === "development") {
-            console.log(`[Movement] Using direct movement for testing`);
-          }
-          camera.position = newPosition;
-
-          // TODO: Re-enable ground detection once basic movement works
-          /*
-          const groundHeight = getGroundHeight(newPosition, true);
-          if (groundHeight !== null) {
+          const groundHeight = _getGroundHeight(newPosition, true);
+          if (groundHeight !== null && cesiumViewer) {
             const cartographic =
               cesiumViewer.scene.globe.ellipsoid.cartesianToCartographic(
                 newPosition
               );
             if (cartographic) {
               const heightOffset =
-                mode === "firstPerson" ? params.walkHeight : params.carHeight;
+                mode === "firstPerson" ? _params.walkHeight : _params.carHeight;
               cartographic.height = groundHeight + heightOffset;
               const groundPosition =
                 cesiumViewer.scene.globe.ellipsoid.cartographicToCartesian(
@@ -167,12 +159,13 @@ export const useMovementUtils = (getPressedKeys: () => Set<string>) => {
             }
           } else {
             // Fallback: move without ground detection
-            if (process.env.NODE_ENV === 'development') {
-              console.log(`[Movement] No ground height found, using direct movement`);
+            if (process.env.NODE_ENV === "development") {
+              console.log(
+                `[Movement] No ground height found, using direct movement`
+              );
             }
             camera.position = newPosition;
           }
-          */
         } else {
           camera.position = newPosition;
         }

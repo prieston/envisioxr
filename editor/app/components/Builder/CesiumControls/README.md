@@ -1,165 +1,213 @@
-# Cesium Controls Module
+# Cesium Camera Control System
 
-A modular, performant, and maintainable control system for Cesium 3D navigation.
+A comprehensive, reusable camera control system for Cesium.js that provides different simulation modes with realistic physics and intuitive controls.
 
-## 📁 Structure
+## Features
 
-```
-CesiumControls/
-├── index.ts                    # Main exports
-├── types.ts                    # TypeScript interfaces and types
-├── constants.ts                # Configuration constants
-├── CesiumViewModeControls.tsx  # Main component
-├── README.md                   # This file
-├── components/
-│   └── StyledComponents.tsx    # MUI styled components
-└── hooks/
-    ├── useSimulationParams.ts  # Simulation configuration
-    ├── useKeyboardControls.ts  # Keyboard input management
-    ├── useGroundDetection.ts   # Terrain interaction
-    ├── useMovementUtils.ts     # Movement calculations
-    ├── useCarSimulation.ts     # Car-specific logic
-    ├── useSimulation.ts        # Main simulation loop
-    └── useMouseControls.ts     # Mouse input handling
-```
+### 🚶 Walk Simulation (First Person)
 
-## 🎯 Features
+- **Mouse Look**: Pointer lock for natural head movement
+- **WASD Movement**: Forward/back/strafe with physics
+- **Jumping**: Space key with gravity and ground detection
+- **Crouching**: Shift key for lower height
+- **Ground Following**: Automatic terrain collision detection
 
-### Simulation Modes
+### 🚗 Car Simulation
 
-- **Orbit**: Standard Cesium camera controls
-- **Explore**: Free camera exploration
-- **First Person**: FPS-style movement with ground detection
-- **Car**: Vehicle simulation with realistic steering
-- **Flight**: 3D aerial navigation
-- **Settings**: Configuration mode
+- **Realistic Steering**: Arrow keys for turning with speed-based physics
+- **WASD Movement**: Forward/back with acceleration/deceleration
+- **Ground Following**: Stays on terrain with proper height
+- **No Mouse Look**: Camera follows car direction naturally
 
-### Key Features
+### ✈️ Flight Simulation
 
-- ✅ **Ground Detection**: Realistic terrain following
-- ✅ **Slope Prevention**: Prevents climbing steep terrain
-- ✅ **Mouse Look**: First-person camera control
-- ✅ **Car Steering**: Realistic vehicle physics
-- ✅ **Performance Optimized**: 60fps animation loop
-- ✅ **Type Safe**: Full TypeScript support
-- ✅ **Modular**: Reusable hooks and components
+- **6DOF Movement**: Full 3D movement with WASD + Space/Shift
+- **Mouse Look**: Optional pointer lock for camera control
+- **Arrow Keys**: Pitch/yaw rotation
+- **Physics**: Momentum and friction for realistic flight
+- **Free Flight**: No ground collision, true 3D navigation
 
-## 🚀 Usage
+### 🎯 Orbit/Explore
+
+- **Standard Cesium Controls**: Default camera behavior
+- **Smooth Transitions**: Seamless switching between modes
+
+## Architecture
+
+### Base System
+
+- **BaseCameraController**: Abstract base class for all controllers
+- **CameraControllerManager**: Manages switching between modes
+- **useCameraControllerManager**: React hook for easy integration
+
+### Controllers
+
+- **FirstPersonWalkController**: Walk simulation with physics
+- **CarController**: Vehicle simulation with steering
+- **FlightController**: 3D flight with 6DOF movement
+
+## Usage
+
+### Basic Integration
 
 ```tsx
-import { CesiumViewModeControls } from "./CesiumControls";
+import { useCameraControllerManager } from "./CesiumControls/hooks/useCameraControllerManager";
 
-const MyComponent = () => {
-  const [viewMode, setViewMode] = useState("orbit");
+function MyCesiumComponent() {
+  const { cesiumViewer } = useSceneStore();
+  const { switchToMode, isModeActive } =
+    useCameraControllerManager(cesiumViewer);
 
   return (
-    <CesiumViewModeControls viewMode={viewMode} setViewMode={setViewMode} />
+    <div>
+      <button onClick={() => switchToMode("firstPerson")}>Walk Mode</button>
+      <button onClick={() => switchToMode("car")}>Drive Mode</button>
+      <button onClick={() => switchToMode("flight")}>Fly Mode</button>
+    </div>
   );
-};
+}
 ```
 
-## 🎮 Controls
+### Advanced Configuration
 
-### First Person Mode
+```tsx
+const { updateControllerConfig } = useCameraControllerManager(cesiumViewer);
+
+// Configure walk simulation
+updateControllerConfig("firstPerson", {
+  speed: 8,
+  maxSpeed: 15,
+  jumpForce: 10,
+  sensitivity: 0.001,
+  debugMode: true,
+});
+
+// Configure car simulation
+updateControllerConfig("car", {
+  maxSpeed: 25,
+  acceleration: 20,
+  height: 2.0,
+});
+```
+
+## Controls
+
+### Walk Mode
 
 - **WASD**: Movement
-- **Mouse**: Look around
-- **Space/Shift**: Jump/crouch
+- **Mouse**: Look around (with pointer lock)
+- **Space**: Jump
+- **Shift**: Crouch
 
 ### Car Mode
 
-- **W**: Forward
-- **S**: Reverse
-- **W+A**: Turn left
-- **W+D**: Turn right
+- **WASD**: Forward/back movement
+- **Arrow Keys**: Steering
+- **No Mouse**: Camera follows car direction
 
 ### Flight Mode
 
-- **WASD**: Movement
-- **Arrow Keys**: Rotation
-- **Space/Shift**: Climb/descend
+- **WASD**: Forward/back/strafe
+- **Space/Shift**: Up/down
+- **Arrow Keys**: Pitch/yaw rotation
+- **Mouse**: Optional look around (with pointer lock)
 
-## 🔧 Customization
+## Configuration Options
 
-### Simulation Parameters
-
-```tsx
-import { useSimulationParams } from "./hooks/useSimulationParams";
-
-const params = useSimulationParams();
-// Modify params.walkSpeed, params.carSpeed, etc.
+```typescript
+interface CameraControllerConfig {
+  speed: number; // Base movement speed
+  maxSpeed: number; // Maximum speed limit
+  acceleration: number; // Acceleration rate
+  friction: number; // Friction coefficient (0-1)
+  jumpForce: number; // Jump strength (walk mode)
+  gravity: number; // Gravity strength (walk mode)
+  height: number; // Height above ground
+  sensitivity: number; // Mouse sensitivity
+  debugMode: boolean; // Enable debug logging
+}
 ```
 
-### Ground Detection
+## Benefits
 
-```tsx
-import { useGroundDetection } from "./hooks/useGroundDetection";
+### ✅ Reusable Architecture
 
-const { getGroundHeight } = useGroundDetection(cesiumViewer);
+- Extensible base system
+- Easy to add new simulation modes
+- Consistent API across all controllers
+
+### ✅ Realistic Physics
+
+- Proper momentum and acceleration
+- Ground collision detection
+- Gravity and jumping mechanics
+
+### ✅ Intuitive Controls
+
+- Mode-specific control schemes
+- Pointer lock for first-person modes
+- Smooth transitions between modes
+
+### ✅ Performance Optimized
+
+- Efficient animation loops
+- Minimal memory footprint
+- Smooth 60fps operation
+
+## Extending the System
+
+### Adding a New Controller
+
+```typescript
+export class MyCustomController extends BaseCameraController {
+  initialize(): void {
+    // Set up your controller
+  }
+
+  update(deltaTime: number): void {
+    // Update logic here
+  }
+
+  dispose(): void {
+    // Cleanup
+  }
+}
 ```
 
-## 🧪 Testing
+### Registering with Manager
 
-### Unit Tests
-
-```tsx
-// Test keyboard controls
-describe("useKeyboardControls", () => {
-  it("should track pressed keys correctly");
-  it("should clear keys on cleanup");
-});
-
-// Test ground detection
-describe("useGroundDetection", () => {
-  it("should handle terrain data correctly");
-  it("should prevent movement on steep slopes");
-});
+```typescript
+// In CameraControllerManager
+this.controllers.set(
+  "myMode",
+  new MyCustomController(this.cesiumViewer, config)
+);
 ```
 
-### Integration Tests
+## Troubleshooting
 
-```tsx
-// Test component integration
-describe("CesiumViewModeControls", () => {
-  it("should switch modes correctly");
-  it("should handle keyboard input");
-  it("should integrate with Cesium viewer");
-});
+### Common Issues
+
+1. **Pointer Lock Not Working**
+
+   - Ensure user interaction (click) before requesting pointer lock
+   - Check browser security policies
+
+2. **Ground Detection Issues**
+
+   - Verify terrain is loaded
+   - Check ground height calculation
+
+3. **Performance Issues**
+   - Reduce update frequency
+   - Disable debug mode in production
+
+### Debug Mode
+
+Enable debug logging:
+
+```typescript
+updateControllerConfig("firstPerson", { debugMode: true });
 ```
 
-## 📈 Performance
-
-- **Optimized Animation Loop**: 60fps with proper cleanup
-- **Memoized Calculations**: Prevents unnecessary re-renders
-- **Efficient Ground Detection**: Cached terrain queries
-- **Production Mode**: Debug logging only in development
-
-## 🔄 Migration
-
-To migrate from the old single-file component:
-
-1. Replace the import:
-
-   ```tsx
-   // Old
-   import CesiumViewModeControls from "./CesiumViewModeControls";
-
-   // New
-   import { CesiumViewModeControls } from "./CesiumControls";
-   ```
-
-2. Update any direct hook usage to use the new modular hooks
-
-## 🤝 Contributing
-
-When adding new features:
-
-1. **Create new hooks** in the `hooks/` directory
-2. **Add types** to `types.ts`
-3. **Add constants** to `constants.ts`
-4. **Update documentation** in this README
-5. **Add tests** for new functionality
-
-## 📝 License
-
-This module is part of the EnvisioXR project.
+This will log detailed information about controller state and physics calculations.

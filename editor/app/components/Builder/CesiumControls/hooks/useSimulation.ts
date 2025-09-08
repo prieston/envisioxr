@@ -2,6 +2,7 @@ import { useRef, useCallback } from "react";
 import * as Cesium from "cesium";
 import { SimulationMode, SimulationParams } from "../types";
 import { SIMULATION_MODES } from "../constants";
+import { useFirstPersonWalk } from "./useFirstPersonWalk";
 
 /**
  * Hook for managing simulation state and animation
@@ -45,6 +46,13 @@ export const useSimulation = (
     params: SimulationParams
   ) => void
 ) => {
+  // Initialize enhanced walk simulation
+  const { applyWalkMovement, resetPhysics } = useFirstPersonWalk(
+    cesiumViewer,
+    getGroundHeight,
+    getPressedKeys,
+    params
+  );
   const animationFrameId = useRef<number | null>(null);
   const isSimulating = useRef(false);
   const currentMode = useRef<SimulationMode>("orbit");
@@ -79,34 +87,8 @@ export const useSimulation = (
 
     // Handle movement based on mode
     if (mode === SIMULATION_MODES.FIRST_PERSON) {
-      // First Person: WASD for strafe movement, mouse for look
-      const moveVector = { x: 0, y: 0, z: 0 };
-      const keys = getPressedKeys();
-
-      if (keys.has("KeyW")) moveVector.z = -1; // Forward
-      if (keys.has("KeyS")) moveVector.z = 1; // Backward
-      if (keys.has("KeyA")) moveVector.x = -1; // Strafe left
-      if (keys.has("KeyD")) moveVector.x = 1; // Strafe right
-      if (keys.has("Space")) moveVector.y = 1; // Jump
-      if (keys.has("ShiftLeft")) moveVector.y = -1; // Crouch
-
-      // Debug logging
-      if (
-        process.env.NODE_ENV === "development" &&
-        (moveVector.x !== 0 || moveVector.y !== 0 || moveVector.z !== 0)
-      ) {
-        console.log(`[First Person] Movement:`, moveVector, `Speed:`, speed);
-      }
-
-      applyMovement(
-        camera,
-        cesiumViewer,
-        moveVector,
-        speed,
-        mode,
-        getGroundHeight,
-        params
-      );
+      // Use enhanced first-person walk simulation
+      applyWalkMovement(camera, 0.016); // 60fps timing
     } else if (mode === SIMULATION_MODES.CAR) {
       handleCarMovement(camera, cesiumViewer, speed, getGroundHeight, params);
     } else if (mode === SIMULATION_MODES.FLIGHT) {

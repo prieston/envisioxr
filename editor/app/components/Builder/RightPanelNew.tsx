@@ -128,6 +128,14 @@ const RightPanelNew: React.FC = () => {
   useEffect(() => {
     if (!selectingPosition) return;
 
+    // Don't interfere with first-person mode
+    if (viewMode === "firstPerson") {
+      console.log(
+        "[RightPanel] Skipping position selection - first-person mode active"
+      );
+      return;
+    }
+
     const handleClick = (event) => {
       if (engine === "three") {
         // Three.js position selection using raycasting
@@ -219,7 +227,7 @@ const RightPanelNew: React.FC = () => {
         canvas.style.cursor = "auto";
       }
     };
-  }, [selectingPosition, orbitControlsRef, scene, engine]);
+  }, [selectingPosition, orbitControlsRef, scene, engine, viewMode]);
 
   // Add a new effect to handle position updates after initial selection
   useEffect(() => {
