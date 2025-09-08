@@ -118,9 +118,12 @@ const CesiumViewModeControls: React.FC<CesiumViewModeControlsProps> = ({
         setViewMode?.(mode);
 
         // Handle pointer lock based on mode
-        if (mode === "firstPerson" && cesiumViewer?.canvas) {
+        if (
+          (mode === "firstPerson" || mode === "flight") &&
+          cesiumViewer?.canvas
+        ) {
           console.log(
-            "[CesiumViewModeControls] Auto-requesting pointer lock for first-person mode"
+            `[CesiumViewModeControls] Auto-requesting pointer lock for ${mode} mode`
           );
           // Use a small delay to ensure the controller is initialized
           setTimeout(() => {
@@ -133,10 +136,14 @@ const CesiumViewModeControls: React.FC<CesiumViewModeControlsProps> = ({
               });
             }
           }, 100);
-        } else if (mode !== "firstPerson" && document.pointerLockElement) {
-          // Exit pointer lock when switching away from first-person mode
+        } else if (
+          mode !== "firstPerson" &&
+          mode !== "flight" &&
+          document.pointerLockElement
+        ) {
+          // Exit pointer lock when switching away from pointer-lock modes
           console.log(
-            "[CesiumViewModeControls] Exiting pointer lock - switching away from first-person mode"
+            "[CesiumViewModeControls] Exiting pointer lock - switching away from pointer-lock mode"
           );
           document.exitPointerLock();
         }
@@ -207,7 +214,7 @@ const CesiumViewModeControls: React.FC<CesiumViewModeControlsProps> = ({
             <DirectionsCarFilled />
           </ViewModeButton>
         </Tooltip>
-        <Tooltip title="Flight Mode (WASD + Arrow Keys)">
+        <Tooltip title="Drone Flight Mode (WASD + Mouse + Space/Shift)">
           <ViewModeButton
             className={viewMode === "flight" ? "active" : ""}
             onClick={() => handleViewModeChange("flight")}

@@ -5,7 +5,7 @@ import {
 } from "./BaseCameraController";
 import { FirstPersonWalkController } from "../controllers/FirstPersonWalkController";
 import { CarDriveController } from "../controllers/CarDriveController";
-import { FlightController } from "../controllers/FlightController";
+import { DroneFlightController } from "../controllers/FlightController";
 import { SimulationMode } from "../types";
 
 /**
@@ -56,12 +56,12 @@ export class CameraControllerManager {
     };
 
     const flightConfig: Partial<CameraControllerConfig> = {
-      speed: 25,
-      maxSpeed: 50,
-      acceleration: 25,
-      friction: 0.95,
-      height: 0,
-      sensitivity: 0.001,
+      speed: 0, // not used by drone controller
+      maxSpeed: 240, // reference only, drone has its own limits
+      acceleration: 135, // not used, drone uses forces
+      friction: 0.92, // not used, drone uses damping
+      height: 1.6, // eye height when clamping to ground
+      sensitivity: 0.0016, // mouse sensitivity
       debugMode: process.env.NODE_ENV === "development",
     };
 
@@ -76,7 +76,7 @@ export class CameraControllerManager {
     );
     this.controllers.set(
       "flight",
-      new FlightController(this.cesiumViewer, flightConfig)
+      new DroneFlightController(this.cesiumViewer, flightConfig)
     );
 
     if (process.env.NODE_ENV === "development") {
