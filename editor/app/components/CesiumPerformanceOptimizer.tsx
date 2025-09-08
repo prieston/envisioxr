@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import useSceneStore from "../hooks/useSceneStore";
 
 interface CesiumPerformanceOptimizerProps {
   viewer: any;
@@ -17,6 +18,8 @@ export default function CesiumPerformanceOptimizer({
     frameRateMonitor: any;
     memoryMonitor: any;
   }>({ frameRateMonitor: null, memoryMonitor: null });
+
+  const { skyboxType } = useSceneStore();
 
   useEffect(() => {
     if (!viewer) return;
@@ -35,7 +38,14 @@ export default function CesiumPerformanceOptimizer({
 
       // Optimize scene settings
       scene.fog.enabled = false;
-      scene.skyAtmosphere.show = false;
+      // Apply skybox settings based on current store state
+      if (skyboxType === "default") {
+        if (scene.skyBox) scene.skyBox.show = true;
+        if (scene.skyAtmosphere) scene.skyAtmosphere.show = true;
+      } else if (skyboxType === "none") {
+        if (scene.skyBox) scene.skyBox.show = false;
+        if (scene.skyAtmosphere) scene.skyAtmosphere.show = false;
+      }
       scene.sun.show = false;
       scene.moon.show = false;
 
@@ -154,7 +164,7 @@ export default function CesiumPerformanceOptimizer({
         cancelAnimationFrame(optimizationRef.current.frameRateMonitor);
       }
     };
-  }, [viewer]);
+  }, [viewer, skyboxType]);
 
   return null; // This component doesn't render anything
 }

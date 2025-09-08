@@ -149,6 +149,26 @@ export default function CesiumViewer() {
         // Store viewer reference in the store
         setCesiumViewer(viewerRef.current);
 
+        // Set initial skybox configuration based on store state
+        const { skyboxType } = useSceneStore.getState();
+        if (skyboxType === "default") {
+          // Show both skybox (with stars) and atmosphere
+          if (viewerRef.current.scene.skyBox) {
+            viewerRef.current.scene.skyBox.show = true;
+          }
+          if (viewerRef.current.scene.skyAtmosphere) {
+            viewerRef.current.scene.skyAtmosphere.show = true;
+          }
+        } else if (skyboxType === "none") {
+          // Hide both skybox and atmosphere
+          if (viewerRef.current.scene.skyBox) {
+            viewerRef.current.scene.skyBox.show = false;
+          }
+          if (viewerRef.current.scene.skyAtmosphere) {
+            viewerRef.current.scene.skyAtmosphere.show = false;
+          }
+        }
+
         // Set terrain provider after viewer creation with error handling
         try {
           console.log(

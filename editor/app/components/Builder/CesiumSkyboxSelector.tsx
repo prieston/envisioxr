@@ -156,13 +156,13 @@ const CesiumSkyboxSelector: React.FC<CesiumSkyboxSelectorProps> = ({
     [cesiumViewer, cesiumInstance, onChange]
   );
 
-  // Apply initial skybox setting when component mounts
+  // Apply skybox setting when value changes (initial setting is handled in CesiumViewer)
   useEffect(() => {
     if (cesiumViewer && cesiumInstance && value) {
-      // console.log("Applying initial skybox:", value);
+      // console.log("Applying skybox change:", value);
       handleSkyboxChange(value);
     }
-  }, [cesiumViewer, cesiumInstance]); // Only run when cesium is ready
+  }, [cesiumViewer, cesiumInstance, value, handleSkyboxChange]); // Include value and handleSkyboxChange
 
   const handleSelectChange = (e: SelectChangeEvent<"default" | "none">) => {
     try {

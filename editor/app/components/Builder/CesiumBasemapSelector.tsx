@@ -27,7 +27,7 @@ const StyledButtonGroup = styled(ButtonGroup)(({ theme }) => ({
 
 interface CesiumBasemapSelectorProps {
   onBasemapChange: (
-    basemapType: "cesium" | "google" | "google-photorealistic" | "bing" | "none"
+    basemapType: "cesium" | "google" | "google-photorealistic" | "none"
   ) => void;
   currentBasemap?: string;
   disabled?: boolean;
@@ -35,7 +35,7 @@ interface CesiumBasemapSelectorProps {
 
 const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
   onBasemapChange,
-  currentBasemap = "cesium",
+  currentBasemap = "none",
   disabled = false,
 }) => {
   const [selectedBasemap, setSelectedBasemap] = useState(currentBasemap);
@@ -43,12 +43,7 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
 
   const handleBasemapChange = useCallback(
     async (
-      basemapType:
-        | "cesium"
-        | "google"
-        | "google-photorealistic"
-        | "bing"
-        | "none"
+      basemapType: "cesium" | "google" | "google-photorealistic" | "none"
     ) => {
       if (!cesiumViewer || !cesiumInstance) {
         console.warn("Cesium viewer or instance not available");
@@ -139,20 +134,6 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
             }
             break;
           }
-          case "bing": {
-            try {
-              cesiumViewer.imageryLayers.removeAll();
-              cesiumViewer.imageryLayers.addImageryProvider(
-                new cesiumInstance.UrlTemplateImageryProvider({
-                  url: "https://ecn.t3.tiles.virtualearth.net/tiles/a{q}.jpeg?g=1",
-                  credit: "Bing Maps",
-                })
-              );
-            } catch (error) {
-              console.error("Error setting Bing Maps:", error);
-            }
-            break;
-          }
           case "none": {
             cesiumViewer.imageryLayers.removeAll();
             break;
@@ -199,12 +180,6 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
           }
         >
           Google Photorealistic
-        </Button>
-        <Button
-          onClick={() => handleBasemapChange("bing")}
-          variant={selectedBasemap === "bing" ? "contained" : "outlined"}
-        >
-          Bing Maps
         </Button>
         <Button
           onClick={() => handleBasemapChange("none")}
