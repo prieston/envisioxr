@@ -16,7 +16,8 @@ const sanitizeSceneData = (
   observationPoints,
   selectedAssetId,
   selectedLocation,
-  showTiles
+  showTiles,
+  basemapType
 ) => {
   // Ensure we have valid arrays to work with
   const safeObjects = Array.isArray(objects) ? objects : [];
@@ -100,6 +101,7 @@ const sanitizeSceneData = (
     selectedAssetId: selectedAssetId || "2275207",
     selectedLocation: cleanSelectedLocation,
     showTiles,
+    basemapType: basemapType || "cesium",
   };
 };
 
@@ -139,6 +141,7 @@ export default function BuilderPage() {
             selectedAssetId,
             selectedLocation,
             showTiles,
+            basemapType,
           } = data.project.sceneData;
 
           if (Array.isArray(objects)) {
@@ -155,6 +158,9 @@ export default function BuilderPage() {
           }
           if (selectedLocation) {
             useSceneStore.setState({ selectedLocation });
+          }
+          if (basemapType) {
+            useSceneStore.setState({ basemapType });
           }
         }
       } catch (error) {
@@ -184,7 +190,8 @@ export default function BuilderPage() {
         storeState.observationPoints,
         storeState.selectedAssetId,
         storeState.selectedLocation,
-        storeState.showTiles
+        storeState.showTiles,
+        storeState.basemapType
       );
 
       const response = await fetch(`/api/projects/${projectId}`, {

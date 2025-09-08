@@ -32,14 +32,18 @@ export default function Scene() {
         }
         setProject(data.project);
 
-        // Initialize selectedAssetId and selectedLocation
+        // Initialize selectedAssetId, selectedLocation, and basemapType
         if (data.project.sceneData) {
-          const { selectedAssetId, selectedLocation } = data.project.sceneData;
+          const { selectedAssetId, selectedLocation, basemapType } =
+            data.project.sceneData;
           if (selectedAssetId) {
             useSceneStore.setState({ selectedAssetId });
           }
           if (selectedLocation) {
             useSceneStore.setState({ selectedLocation });
+          }
+          if (basemapType) {
+            useSceneStore.setState({ basemapType });
           }
         }
       } catch (error) {

@@ -76,9 +76,9 @@ const PublishedScenePage = () => {
           }
         }
 
-        // Initialize selectedAssetId and selectedLocation
+        // Initialize selectedAssetId, selectedLocation, and basemapType
         if (data.project.sceneData) {
-          const { selectedAssetId, selectedLocation, showTiles } =
+          const { selectedAssetId, selectedLocation, showTiles, basemapType } =
             data.project.sceneData;
           if (selectedAssetId) {
             useSceneStore.setState({
@@ -88,6 +88,9 @@ const PublishedScenePage = () => {
           }
           if (selectedLocation) {
             useSceneStore.setState({ selectedLocation });
+          }
+          if (basemapType) {
+            useSceneStore.setState({ basemapType });
           }
         }
       } catch (error) {
