@@ -54,10 +54,13 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
       onBasemapChange(basemapType);
 
       try {
+        // Always remove existing imagery layers and 3D tilesets first
+        cesiumViewer.imageryLayers.removeAll();
+        cesiumViewer.scene.primitives.removeAll();
+
         switch (basemapType) {
           case "cesium": {
             try {
-              cesiumViewer.imageryLayers.removeAll();
               // Use the default imagery provider that was set during viewer creation
               cesiumViewer.imageryLayers.addImageryProvider(
                 new cesiumInstance.IonImageryProvider({ assetId: 2 })
@@ -80,7 +83,6 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
           }
           case "google": {
             try {
-              cesiumViewer.imageryLayers.removeAll();
               cesiumViewer.imageryLayers.addImageryProvider(
                 new cesiumInstance.UrlTemplateImageryProvider({
                   url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
@@ -101,7 +103,6 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
                 "Cesium Ion key not found. Please set NEXT_PUBLIC_CESIUM_ION_KEY environment variable."
               );
               // Fall back to OpenStreetMap if Cesium key is not available
-              cesiumViewer.imageryLayers.removeAll();
               cesiumViewer.imageryLayers.addImageryProvider(
                 new cesiumInstance.UrlTemplateImageryProvider({
                   url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -111,9 +112,6 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
               return;
             }
             try {
-              // Remove existing imagery layers
-              cesiumViewer.imageryLayers.removeAll();
-
               // Add Google Photorealistic 3D tiles through Cesium Ion
               // Asset ID 2275207 is Google Photorealistic 3D
               const tileset =
@@ -124,7 +122,6 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
             } catch (error) {
               console.error("Error setting Google Photorealistic:", error);
               // Fall back to OpenStreetMap on error
-              cesiumViewer.imageryLayers.removeAll();
               cesiumViewer.imageryLayers.addImageryProvider(
                 new cesiumInstance.UrlTemplateImageryProvider({
                   url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -135,7 +132,7 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
             break;
           }
           case "none": {
-            cesiumViewer.imageryLayers.removeAll();
+            // No imagery or primitives needed for "none" - already cleared above
             break;
           }
         }
