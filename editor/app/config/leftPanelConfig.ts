@@ -7,10 +7,8 @@ import CesiumLocationSearchSection from "../components/Builder/CesiumLocationSea
 export const createThreeJSLeftPanelConfig = (
   gridEnabled: boolean,
   setGridEnabled: (enabled: boolean) => void,
-  skyboxType: "default" | "hdri" | "gradient" | "none" | "stars",
-  setSkyboxType: (
-    type: "default" | "hdri" | "gradient" | "none" | "stars"
-  ) => void,
+  skyboxType: "default" | "none",
+  setSkyboxType: (type: "default" | "none") => void,
   ambientLightIntensity: number,
   setAmbientLightIntensity: (intensity: number) => void
 ): PanelConfiguration => {
@@ -83,10 +81,8 @@ export const createThreeJSLeftPanelConfig = (
 export const createCesiumLeftPanelConfig = (
   gridEnabled: boolean,
   setGridEnabled: (enabled: boolean) => void,
-  skyboxType: "default" | "hdri" | "gradient" | "none" | "stars",
-  setSkyboxType: (
-    type: "default" | "hdri" | "gradient" | "none" | "stars"
-  ) => void,
+  skyboxType: "default" | "none",
+  setSkyboxType: (type: "default" | "none") => void,
   ambientLightIntensity: number,
   setAmbientLightIntensity: (intensity: number) => void,
   basemapType: "cesium" | "google" | "google-photorealistic" | "bing" | "none",

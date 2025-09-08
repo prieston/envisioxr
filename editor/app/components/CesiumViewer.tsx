@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import useWorldStore from "../hooks/useWorldStore";
 import useSceneStore from "../hooks/useSceneStore";
 import CesiumPerformanceOptimizer from "./CesiumPerformanceOptimizer";
+import CesiumIonAssetsRenderer from "./CesiumIonAssetsRenderer";
 
 // Extend Window interface for Cesium
 declare global {
@@ -238,7 +239,10 @@ export default function CesiumViewer() {
     };
   }, []);
 
-  // Render entities whenever world data changes
+  // Get objects from scene store
+  const objects = useSceneStore((state) => state.objects);
+
+  // Render entities whenever world data or scene objects change
   useEffect(() => {
     const viewer = viewerRef.current;
     const Cesium = cesiumRef.current;
@@ -246,8 +250,13 @@ export default function CesiumViewer() {
 
     try {
       console.log(`[CesiumViewer ${instanceId.current}] Rendering entities...`);
+      console.log(
+        `[CesiumViewer ${instanceId.current}] Objects count: ${objects.length}`
+      );
+      if (objects.length > 0) {
+        console.log(`[CesiumViewer ${instanceId.current}] Objects:`, objects);
+      }
       viewer.entities.removeAll();
-      const objects = (world?.sceneData?.objects as any[]) || [];
 
       // Add test data if no objects exist
       if (objects.length === 0) {
@@ -299,25 +308,192 @@ export default function CesiumViewer() {
         objects.forEach((obj) => {
           const [x = 0, y = 0, z = 0] = obj.position || [];
 
-          // Place simple points in space
-          viewer.entities.add({
-            position: Cesium.Cartesian3.fromElements(x, y, z),
-            point: {
-              pixelSize: 10,
-              color: Cesium.Color.RED,
-              outlineColor: Cesium.Color.WHITE,
-              outlineWidth: 2,
-            },
-            label: {
-              text: obj.name || "Object",
-              font: "12pt sans-serif",
-              fillColor: Cesium.Color.WHITE,
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 2,
-              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              pixelOffset: new Cesium.Cartesian2(0, -30),
-            },
-          });
+          if (process.env.NODE_ENV === "development") {
+            console.log(
+              `[CesiumViewer] 🔍 Processing object: ${obj.name || "unnamed"}`
+            );
+            console.log(`[CesiumViewer]   Position: [${x}, ${y}, ${z}]`);
+            console.log(`[CesiumViewer]   URL: ${obj.url || "none"}`);
+            console.log(`[CesiumViewer]   Type: ${obj.type || "none"}`);
+            console.log(`[CesiumViewer]   Has position: ${!!obj.position}`);
+            console.log(
+              `[CesiumViewer]   Position length: ${obj.position?.length || 0}`
+            );
+          }
+
+          // Skip objects without positions
+          if (!obj.position || obj.position.length !== 3) {
+            if (process.env.NODE_ENV === "development") {
+              console.log(
+                `[CesiumViewer] Skipping object ${obj.name} - no valid position`
+              );
+            }
+            return;
+          }
+
+          // Determine if these are geographic coordinates (Cesium) or local coordinates (Three.js)
+          // Geographic coordinates typically have longitude between -180 and 180, latitude between -90 and 90
+          const isGeographic = x >= -180 && x <= 180 && y >= -90 && y <= 90;
+
+          let longitude, latitude, height;
+
+          if (isGeographic) {
+            // These are already geographic coordinates (from Cesium placement)
+            longitude = x;
+            latitude = y;
+            height = z;
+            if (process.env.NODE_ENV === "development") {
+              console.log(
+                `[CesiumViewer] Using geographic coordinates: ${longitude}, ${latitude}, ${height}`
+              );
+            }
+          } else {
+            // These are local coordinates (from Three.js placement) - convert to geographic
+            longitude = x / (111320 * Math.cos((35 * Math.PI) / 180));
+            latitude = y / 110540;
+            height = z;
+            if (process.env.NODE_ENV === "development") {
+              console.log(
+                `[CesiumViewer] Converted local to geographic: ${x},${y},${z} -> ${longitude}, ${latitude}, ${height}`
+              );
+            }
+          }
+
+          // Check if this is a 3D model file (not tiles)
+          const isModelFile =
+            obj.url &&
+            obj.type &&
+            (obj.type.includes("gltf") ||
+              obj.type.includes("glb") ||
+              obj.type.includes("obj") ||
+              obj.type.includes("fbx") ||
+              obj.type.includes("dae") ||
+              obj.url.toLowerCase().includes(".gltf") ||
+              obj.url.toLowerCase().includes(".glb") ||
+              obj.url.toLowerCase().includes(".obj") ||
+              obj.url.toLowerCase().includes(".fbx") ||
+              obj.url.toLowerCase().includes(".dae"));
+
+          if (isModelFile) {
+            // Render 3D models
+            if (process.env.NODE_ENV === "development") {
+              console.log(`[CesiumViewer] === MODEL LOADING DEBUG ===`);
+              console.log(`[CesiumViewer] Model name: ${obj.name}`);
+              console.log(`[CesiumViewer] Model URL: ${obj.url}`);
+              console.log(`[CesiumViewer] Model type: ${obj.type}`);
+              console.log(`[CesiumViewer] Model scale: ${obj.scale}`);
+              console.log(
+                `[CesiumViewer] Model position: [${longitude}, ${latitude}, ${height}]`
+              );
+              console.log(
+                `[CesiumViewer] Is geographic coordinates: ${isGeographic}`
+              );
+              console.log(`[CesiumViewer] ================================`);
+            }
+
+            try {
+              const entity = viewer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(
+                  longitude,
+                  latitude,
+                  height
+                ),
+                model: {
+                  uri: obj.url,
+                  scale: obj.scale ? obj.scale[0] : 1.0, // Use original scale or default to 1.0
+                  // Add proper orientation to prevent upside-down models
+                  heading: 0.0,
+                  pitch: 0.0,
+                  roll: 0.0,
+                  // Use absolute height for precise positioning
+                  // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                },
+                label: {
+                  text: obj.name || "Model",
+                  font: "12pt sans-serif",
+                  fillColor: Cesium.Color.WHITE,
+                  outlineColor: Cesium.Color.BLACK,
+                  outlineWidth: 2,
+                  style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                  pixelOffset: new Cesium.Cartesian2(0, -30),
+                },
+              });
+
+              if (process.env.NODE_ENV === "development") {
+                console.log(`[CesiumViewer] ✅ SUCCESS: Model entity created`);
+                console.log(`[CesiumViewer] Entity ID: ${entity.id}`);
+                console.log(
+                  `[CesiumViewer] Entity position: ${entity.position?.getValue()}`
+                );
+                console.log(
+                  `[CesiumViewer] Entity model URI: ${entity.model?.uri?.getValue()}`
+                );
+                console.log(
+                  `[CesiumViewer] Expected position: [${longitude}, ${latitude}, ${height}]`
+                );
+              }
+            } catch (error) {
+              console.error(
+                `[CesiumViewer] ❌ FAILED to load model ${obj.name}:`,
+                error
+              );
+              console.error(`[CesiumViewer] Error details:`, {
+                name: obj.name,
+                url: obj.url,
+                type: obj.type,
+                position: [longitude, latitude, height],
+                error: error.message,
+                stack: error.stack,
+              });
+              // Fallback to point if model loading fails
+              viewer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(
+                  longitude,
+                  latitude,
+                  height
+                ),
+                point: {
+                  pixelSize: 10,
+                  color: Cesium.Color.RED,
+                  outlineColor: Cesium.Color.WHITE,
+                  outlineWidth: 2,
+                },
+                label: {
+                  text: obj.name || "Object",
+                  font: "12pt sans-serif",
+                  fillColor: Cesium.Color.WHITE,
+                  outlineColor: Cesium.Color.BLACK,
+                  outlineWidth: 2,
+                  style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                  pixelOffset: new Cesium.Cartesian2(0, -30),
+                },
+              });
+            }
+          } else {
+            // Place simple points for objects without models
+            viewer.entities.add({
+              position: Cesium.Cartesian3.fromDegrees(
+                longitude,
+                latitude,
+                height
+              ),
+              point: {
+                pixelSize: 10,
+                color: Cesium.Color.RED,
+                outlineColor: Cesium.Color.WHITE,
+                outlineWidth: 2,
+              },
+              label: {
+                text: obj.name || "Object",
+                font: "12pt sans-serif",
+                fillColor: Cesium.Color.WHITE,
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 2,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                pixelOffset: new Cesium.Cartesian2(0, -30),
+              },
+            });
+          }
         });
       }
       const totalEntities = objects.length === 0 ? 2 : objects.length;
@@ -330,7 +506,7 @@ export default function CesiumViewer() {
         err
       );
     }
-  }, [world, isLoading]);
+  }, [world, isLoading, objects]);
 
   // Effect to ensure styling is applied after viewer is ready
   useEffect(() => {
@@ -411,7 +587,10 @@ export default function CesiumViewer() {
         className={isLoading ? "opacity-50" : ""}
       />
       {viewerRef.current && (
-        <CesiumPerformanceOptimizer viewer={viewerRef.current} />
+        <>
+          <CesiumPerformanceOptimizer viewer={viewerRef.current} />
+          <CesiumIonAssetsRenderer />
+        </>
       )}
     </>
   );

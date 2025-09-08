@@ -43,28 +43,6 @@ const TilesComponent = dynamic(
   }
 );
 
-// Create a dynamic import for the Cesium Ion Assets Renderer
-const CesiumIonAssetsRenderer = dynamic(
-  () => import("../../../app/components/CesiumIonAssetsRenderer"),
-  {
-    ssr: false,
-    loading: () => (
-      <Html center>
-        <div
-          style={{
-            color: "white",
-            background: "rgba(0,0,0,0.7)",
-            padding: "20px",
-            borderRadius: "10px",
-          }}
-        >
-          Loading Cesium Ion Assets...
-        </div>
-      </Html>
-    ),
-  }
-);
-
 // Create a component to handle deselection
 const DeselectionHandler = () => {
   const { scene, camera, gl } = useThree();
@@ -203,8 +181,7 @@ export default function Scene({
               />
             )}
 
-            {/* Render multiple Cesium Ion assets */}
-            <CesiumIonAssetsRenderer />
+            {/* Cesium Ion assets are handled by CesiumIonAssetsRenderer in Cesium engine mode */}
 
             {/* Environment Elements */}
             {skyboxType === "default" && (
