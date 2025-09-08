@@ -5,6 +5,10 @@ import useWorldStore from "../hooks/useWorldStore";
 import useSceneStore from "../hooks/useSceneStore";
 import CesiumPerformanceOptimizer from "./CesiumPerformanceOptimizer";
 import CesiumIonAssetsRenderer from "./CesiumIonAssetsRenderer";
+import CesiumCameraCaptureHandler from "./Builder/CesiumCameraCaptureHandler";
+import CesiumObservationPointHandler from "./Builder/CesiumObservationPointHandler";
+import CesiumCameraSpringController from "./Builder/CesiumCameraSpringController";
+import CesiumPreviewModeController from "./Builder/CesiumPreviewModeController";
 
 // Extend Window interface for Cesium
 declare global {
@@ -18,6 +22,86 @@ if (typeof window !== "undefined") {
   window.CESIUM_BASE_URL = "/cesium/";
   console.log("[CesiumViewer] Set CESIUM_BASE_URL to:", window.CESIUM_BASE_URL);
 }
+
+// Utility function to apply basemap type
+const applyBasemapType = async (
+  viewer: any,
+  Cesium: any,
+  basemapType: "cesium" | "google" | "google-photorealistic" | "none"
+) => {
+  try {
+    // Always remove existing imagery layers first
+    viewer.imageryLayers.removeAll();
+
+    // Remove only basemap-related primitives (Google Photorealistic tilesets)
+    const primitives = viewer.scene.primitives;
+    for (let i = primitives.length - 1; i >= 0; i--) {
+      const primitive = primitives.get(i);
+      if (
+        primitive &&
+        primitive.constructor &&
+        primitive.constructor.name === "Cesium3DTileset"
+      ) {
+        if (primitive.assetId === 2275207) {
+          primitives.remove(primitive);
+        }
+      }
+    }
+
+    switch (basemapType) {
+      case "google": {
+        try {
+          // Add Google Satellite imagery
+          viewer.imageryLayers.addImageryProvider(
+            new Cesium.UrlTemplateImageryProvider({
+              url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+              credit: "© Google",
+            })
+          );
+        } catch (error) {
+          console.error("Error setting Google Satellite:", error);
+        }
+        break;
+      }
+      case "google-photorealistic": {
+        const cesiumKey =
+          process.env.NEXT_PUBLIC_CESIUM_ION_KEY ||
+          process.env.NEXT_PUBLIC_CESIUM_TOKEN;
+        if (!cesiumKey) {
+          console.warn(
+            "Cesium Ion key not found. Falling back to OpenStreetMap."
+          );
+          viewer.imageryLayers.addImageryProvider(
+            new Cesium.UrlTemplateImageryProvider({
+              url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+              credit: "© OpenStreetMap contributors",
+            })
+          );
+          return;
+        }
+        try {
+          const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207);
+          viewer.scene.primitives.add(tileset);
+        } catch (error) {
+          console.error("Error setting Google Photorealistic:", error);
+          viewer.imageryLayers.addImageryProvider(
+            new Cesium.UrlTemplateImageryProvider({
+              url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+              credit: "© OpenStreetMap contributors",
+            })
+          );
+        }
+        break;
+      }
+      case "none": {
+        // No imagery or primitives needed for "none"
+        break;
+      }
+    }
+  } catch (error) {
+    console.error("Error applying basemap:", error);
+  }
+};
 
 export default function CesiumViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -150,7 +234,7 @@ export default function CesiumViewer() {
         setCesiumViewer(viewerRef.current);
 
         // Set initial skybox configuration based on store state
-        const { skyboxType } = useSceneStore.getState();
+        const { skyboxType, basemapType } = useSceneStore.getState();
         if (skyboxType === "default") {
           // Show both skybox (with stars) and atmosphere
           if (viewerRef.current.scene.skyBox) {
@@ -167,6 +251,15 @@ export default function CesiumViewer() {
           if (viewerRef.current.scene.skyAtmosphere) {
             viewerRef.current.scene.skyAtmosphere.show = false;
           }
+        }
+
+        // Apply saved basemap type if it's not the default
+        if (basemapType && basemapType !== "cesium") {
+          console.log(
+            `[CesiumViewer ${instanceId.current}] Applying saved basemap: ${basemapType}`
+          );
+          // Apply the basemap change using the same logic as the basemap selector
+          applyBasemapType(viewerRef.current, Cesium, basemapType);
         }
 
         // Set terrain provider after viewer creation with error handling
@@ -610,6 +703,10 @@ export default function CesiumViewer() {
         <>
           <CesiumPerformanceOptimizer viewer={viewerRef.current} />
           <CesiumIonAssetsRenderer />
+          <CesiumCameraCaptureHandler />
+          <CesiumObservationPointHandler />
+          <CesiumCameraSpringController />
+          <CesiumPreviewModeController />
         </>
       )}
     </>
