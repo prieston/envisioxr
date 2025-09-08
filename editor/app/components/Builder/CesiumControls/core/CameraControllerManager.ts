@@ -4,7 +4,7 @@ import {
   CameraControllerConfig,
 } from "./BaseCameraController";
 import { FirstPersonWalkController } from "../controllers/FirstPersonWalkController";
-import { CarController } from "../controllers/CarController";
+import { CarDriveController } from "../controllers/CarDriveController";
 import { FlightController } from "../controllers/FlightController";
 import { SimulationMode } from "../types";
 
@@ -46,12 +46,12 @@ export class CameraControllerManager {
     };
 
     const carConfig: Partial<CameraControllerConfig> = {
-      speed: 15,
-      maxSpeed: 20,
-      acceleration: 15,
-      friction: 0.9,
-      height: 1.5,
-      sensitivity: 0.01,
+      speed: 0, // not used by car controller
+      maxSpeed: 45, // reference only, car has its own limits
+      acceleration: 0, // not used, car uses forces
+      friction: 0.98, // not used, car uses drag/rolling
+      height: 1.4, // driver eye height
+      sensitivity: 0.001, // not used (no mouse lock)
       debugMode: process.env.NODE_ENV === "development",
     };
 
@@ -72,7 +72,7 @@ export class CameraControllerManager {
     );
     this.controllers.set(
       "car",
-      new CarController(this.cesiumViewer, carConfig)
+      new CarDriveController(this.cesiumViewer, carConfig)
     );
     this.controllers.set(
       "flight",
