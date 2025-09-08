@@ -32,10 +32,14 @@ export default function Scene() {
         }
         setProject(data.project);
 
-        // Initialize selectedAssetId, selectedLocation, and basemapType
+        // Initialize selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
         if (data.project.sceneData) {
-          const { selectedAssetId, selectedLocation, basemapType } =
-            data.project.sceneData;
+          const {
+            selectedAssetId,
+            selectedLocation,
+            basemapType,
+            cesiumIonAssets,
+          } = data.project.sceneData;
           if (selectedAssetId) {
             useSceneStore.setState({ selectedAssetId });
           }
@@ -44,6 +48,9 @@ export default function Scene() {
           }
           if (basemapType) {
             useSceneStore.setState({ basemapType });
+          }
+          if (Array.isArray(cesiumIonAssets)) {
+            useSceneStore.setState({ cesiumIonAssets });
           }
         }
       } catch (error) {

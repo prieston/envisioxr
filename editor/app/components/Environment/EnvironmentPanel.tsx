@@ -180,8 +180,16 @@ const EnvironmentPanel: React.FC = () => {
               // Remove existing imagery layers
               cesiumViewer.imageryLayers.removeAll();
 
-              // Add Google Photorealistic 3D tiles through Cesium Ion
-              // Asset ID 2275207 is Google Photorealistic 3D
+              // Add Google Satellite imagery as the base layer for Google Photorealistic
+              // This prevents the blue "no imagery" background from showing
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                  credit: "© Google",
+                })
+              );
+
+              // Add Google Photorealistic 3D tiles on top
               const tileset =
                 await cesiumInstance.Cesium3DTileset.fromIonAssetId(2275207);
 
