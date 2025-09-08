@@ -17,7 +17,8 @@ const sanitizeSceneData = (
   selectedAssetId,
   selectedLocation,
   showTiles,
-  basemapType
+  basemapType,
+  cesiumIonAssets
 ) => {
   // Ensure we have valid arrays to work with
   const safeObjects = Array.isArray(objects) ? objects : [];
@@ -102,6 +103,7 @@ const sanitizeSceneData = (
     selectedLocation: cleanSelectedLocation,
     showTiles,
     basemapType: basemapType || "cesium",
+    cesiumIonAssets: Array.isArray(cesiumIonAssets) ? cesiumIonAssets : [],
   };
 };
 
@@ -142,6 +144,7 @@ export default function BuilderPage() {
             selectedLocation,
             showTiles,
             basemapType,
+            cesiumIonAssets,
           } = data.project.sceneData;
 
           if (Array.isArray(objects)) {
@@ -161,6 +164,9 @@ export default function BuilderPage() {
           }
           if (basemapType) {
             useSceneStore.setState({ basemapType });
+          }
+          if (Array.isArray(cesiumIonAssets)) {
+            useSceneStore.setState({ cesiumIonAssets });
           }
         }
       } catch (error) {
@@ -191,7 +197,8 @@ export default function BuilderPage() {
         storeState.selectedAssetId,
         storeState.selectedLocation,
         storeState.showTiles,
-        storeState.basemapType
+        storeState.basemapType,
+        storeState.cesiumIonAssets
       );
 
       const response = await fetch(`/api/projects/${projectId}`, {

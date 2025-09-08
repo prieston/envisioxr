@@ -76,10 +76,15 @@ const PublishedScenePage = () => {
           }
         }
 
-        // Initialize selectedAssetId, selectedLocation, and basemapType
+        // Initialize selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
         if (data.project.sceneData) {
-          const { selectedAssetId, selectedLocation, showTiles, basemapType } =
-            data.project.sceneData;
+          const {
+            selectedAssetId,
+            selectedLocation,
+            showTiles,
+            basemapType,
+            cesiumIonAssets,
+          } = data.project.sceneData;
           if (selectedAssetId) {
             useSceneStore.setState({
               selectedAssetId,
@@ -91,6 +96,9 @@ const PublishedScenePage = () => {
           }
           if (basemapType) {
             useSceneStore.setState({ basemapType });
+          }
+          if (Array.isArray(cesiumIonAssets)) {
+            useSceneStore.setState({ cesiumIonAssets });
           }
         }
       } catch (error) {
