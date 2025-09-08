@@ -1,3 +1,4 @@
+// CarDriveController.ts
 import * as Cesium from "cesium";
 import {
   BaseCameraController,
@@ -6,19 +7,14 @@ import {
 import { MOVEMENT_KEYS } from "../constants";
 
 /**
- * Car / drive controller
- * - Kinematic bicycle-style turning (wheelbase + steer angle)
- * - W/S = throttle forward/back
- * - A/D = steer left/right (with return-to-center)
- * - Space = brake (strong decel), Shift = boost (more engine force + higher max speed)
- * - Movement follows local ENU tangent plane (works at any latitude)
- * - Terrain height smoothing + sticky target to avoid camera jitter
+ * Car / drive controller (no mouse lock)
+ * W/S = throttle, A/D = steer, Space = brake, Shift = boost
  */
 export class CarDriveController extends BaseCameraController {
   // --- car state ---
   private speed = 0; // m/s (+ forward, - reverse)
-  private heading = 0; // radians (ENU yaw; 0 = North, + toward East)
-  private steer = 0; // radians (front wheel steer angle, left negative)
+  private heading = 0; // ENU yaw (rad, 0=N, +→E)
+  private steer = 0; // front-wheel steer angle (rad, left negative)
 
   // --- terrain state ---
   private lastGroundHeight = 0;
@@ -26,40 +22,49 @@ export class CarDriveController extends BaseCameraController {
   private lastTargetHeight: number | null = null;
   private wasGrounded = true;
 
-  // --- car parameters (can be overridden via ctor config passthrough) ---
+  // --- DOM cleanup
+  private blurHandler?: () => void;
+  private visHandler?: () => void;
+
+  // --- car parameters ---
   private car = {
-    wheelBase: 2.8, // meters
-    maxSteer: Cesium.Math.toRadians(12), // rad - much more conservative steering
-    steerRate: Cesium.Math.toRadians(30), // rad/s toward max - much slower steering
-    steerReturnRate: Cesium.Math.toRadians(60), // rad/s back to zero - slower return
+    // geometry / steering
+    wheelBase: 2.7, // m
+    maxSteer: Cesium.Math.toRadians(18), // rad
+    steerRate: Cesium.Math.toRadians(10), // rad/s toward max
+    steerReturnRate: Cesium.Math.toRadians(180), // rad/s back to zero
 
+    // forces (N) and resistances
     mass: 1400, // kg
-    engineForce: 5500, // N (≈ 0-100 in ~ a few s)
-    brakeForce: 20000, // N strong brake
-    dragCoef: 0.8, // quadratic drag (~aero) - much higher drag
-    rollingFriction: 8.0, // linear decel m/s^2-ish - much higher friction
+    engineForce: 9000, // N (punchier launch)
+    engineBrakeForce: 2600, // N (applies when throttle=0)
+    brakeForce: 22000, // N (Space)
+    dragCoef: 0.6, // N / (m/s)^2 (quadratic)
+    viscousCoef: 180, // N per (m/s) (linear damping, helps low-speed stop)
+    muRoll: 0.02, // rolling resistance coeff (F = μ m g)
 
+    // speeds
     maxFwdSpeed: 45, // m/s (~160 km/h)
-    maxRevSpeed: 15, // m/s
-    boostFactor: 1.7, // x engineForce and x max speed when Shift held
+    maxRevSpeed: 14, // m/s
+    boostFactor: 1.6, // x engineForce & max speeds when Shift
 
-    groundClear: 0.45, // meters above ground to place the camera
+    // camera placement
+    groundClear: 0.45, // m above ground in addition to eye height
   };
 
   constructor(
-    cesiumViewer: Cesium.Viewer | null,
+    viewer: Cesium.Viewer | null,
     config: Partial<CameraControllerConfig> = {}
   ) {
-    super(cesiumViewer, {
-      // Base fields we actually use here: maxSpeed is only used for reference; we keep our own limits above.
+    super(viewer, {
       speed: 0,
       maxSpeed: 45,
-      acceleration: 0, // not used; car uses forces
-      friction: 0.98, // not used; car uses drag/rolling
-      jumpForce: 0, // N/A
-      gravity: -9.81, // vertical handled by terrain lock
+      acceleration: 0,
+      friction: 1,
+      jumpForce: 0,
+      gravity: -9.81,
       height: 1.4, // driver eye height
-      sensitivity: 0.001, // not used (no mouse lock)
+      sensitivity: 0.001, // unused here
       debugMode: false,
       ...config,
     });
@@ -68,12 +73,19 @@ export class CarDriveController extends BaseCameraController {
   initialize(): void {
     if (!this.cesiumViewer) return;
 
-    // Keyboard only (no pointer lock for car)
+    // Keys only
     this.keyDownHandler = (e) => this.handleKeyDown(e);
     this.keyUpHandler = (e) => this.handleKeyUp(e);
-
     document.addEventListener("keydown", this.keyDownHandler);
     document.addEventListener("keyup", this.keyUpHandler);
+
+    // Clear stuck keys on blur / hide
+    this.blurHandler = () => this.inputState.keys.clear();
+    this.visHandler = () => {
+      if (document.hidden) this.inputState.keys.clear();
+    };
+    window.addEventListener("blur", this.blurHandler);
+    document.addEventListener("visibilitychange", this.visHandler);
 
     // Disable Cesium default camera
     const ctrl = this.cesiumViewer.scene.screenSpaceCameraController;
@@ -84,15 +96,12 @@ export class CarDriveController extends BaseCameraController {
 
     this.inputState.keys.clear();
     this.initializePoseFromCurrentCamera();
-
     this.enabled = true;
   }
 
-  update(deltaTime: number): void {
+  update(dt: number): void {
     if (!this.enabled || !this.camera) return;
-
-    // stable fixed step
-    const clamped = Math.min(deltaTime, 0.05);
+    const clamped = Math.min(dt, 0.05);
     this.fixedUpdate(clamped, 1 / 120, 6, (h) => this.stepOnce(h));
   }
 
@@ -101,6 +110,9 @@ export class CarDriveController extends BaseCameraController {
       document.removeEventListener("keydown", this.keyDownHandler);
     if (this.keyUpHandler)
       document.removeEventListener("keyup", this.keyUpHandler);
+    if (this.blurHandler) window.removeEventListener("blur", this.blurHandler);
+    if (this.visHandler)
+      document.removeEventListener("visibilitychange", this.visHandler);
 
     if (this.cesiumViewer) {
       const ctrl = this.cesiumViewer.scene.screenSpaceCameraController;
@@ -121,12 +133,12 @@ export class CarDriveController extends BaseCameraController {
     const steerInput =
       (this.inputState.keys.has(MOVEMENT_KEYS.LEFT) ? -1 : 0) +
       (this.inputState.keys.has(MOVEMENT_KEYS.RIGHT) ? 1 : 0);
-    const braking = this.inputState.keys.has(MOVEMENT_KEYS.JUMP); // Space = brake
+    const braking = this.inputState.keys.has(MOVEMENT_KEYS.JUMP); // Space
     const boosting =
       this.inputState.keys.has("ShiftLeft") ||
       this.inputState.keys.has("ShiftRight");
 
-    // 2) Steering dynamics (rate-limited with return to center)
+    // 2) Steering (rate-limited, returns to center)
     if (steerInput !== 0) {
       this.steer += steerInput * this.car.steerRate * h;
       this.steer = Cesium.Math.clamp(
@@ -135,7 +147,6 @@ export class CarDriveController extends BaseCameraController {
         this.car.maxSteer
       );
     } else {
-      // return to zero
       const sgn = Math.sign(this.steer);
       const mag = Math.max(
         0,
@@ -145,52 +156,58 @@ export class CarDriveController extends BaseCameraController {
       if (Math.abs(this.steer) < 1e-4) this.steer = 0;
     }
 
-    // 3) Longitudinal dynamics
+    // 3) Longitudinal forces (N)
     const boostMul = boosting ? this.car.boostFactor : 1;
-    const F_engine = throttle * (this.car.engineForce * boostMul); // N (can be negative for reverse)
 
-    // Improved braking - always brake when space is held, regardless of throttle
+    // engine drive (positive or negative with S)
+    const F_engine = throttle * (this.car.engineForce * boostMul);
+
+    // engine braking (ONLY when no throttle & not braking)
+    const F_engineBrake =
+      throttle === 0 && !braking && this.speed !== 0
+        ? -Math.sign(this.speed) * this.car.engineBrakeForce
+        : 0;
+
+    // service brake
     const F_brake = braking
-      ? -Math.sign(this.speed || 1) * this.car.brakeForce
+      ? -Math.sign(this.speed || throttle || 1) * this.car.brakeForce
       : 0;
 
-    // Always apply drag and rolling friction (these are always present)
-    const F_drag = -this.car.dragCoef * this.speed * Math.abs(this.speed); // quad drag
-    const F_roll = -this.car.rollingFriction * Math.sign(this.speed); // linear friction (always opposes motion)
+    // resistances
+    const F_drag = -this.car.dragCoef * this.speed * Math.abs(this.speed); // ~v^2
+    const F_visc = -this.car.viscousCoef * this.speed; // ~v
+    const F_roll =
+      this.speed !== 0
+        ? -this.car.muRoll * this.car.mass * 9.81 * Math.sign(this.speed) // μ m g
+        : 0;
 
-    // total force along car forward
-    const F_total = F_engine + F_brake + F_drag + F_roll;
+    const F_total =
+      F_engine + F_engineBrake + F_brake + F_drag + F_visc + F_roll;
     const a = F_total / this.car.mass;
 
     this.speed += a * h;
 
-    // Cap speeds
+    // limit speeds
     const maxFwd = this.car.maxFwdSpeed * boostMul;
-    const maxRev = this.car.maxRevSpeed * (boostMul * 0.8); // small boost in reverse if you want
+    const maxRev = this.car.maxRevSpeed * (boostMul * 0.9);
     if (this.speed > maxFwd) this.speed = maxFwd;
     if (this.speed < -maxRev) this.speed = -maxRev;
 
-    // Strong deadzone - car should stop quickly when no input
-    const deadzone = 0.1; // 0.1 m/s = 0.36 km/h
-    if (throttle === 0 && !braking && Math.abs(this.speed) < deadzone) {
+    // snap to zero when nearly stopped and no input
+    if (throttle === 0 && !braking && Math.abs(this.speed) < 0.15)
       this.speed = 0;
-    }
 
-    // 4) Heading update (kinematic bicycle)
-    // Reverse automatically flips turn sense because speed is negative.
+    // 4) Heading (kinematic bicycle). Reverse flips turn sense automatically.
     const yawRate = (this.speed / this.car.wheelBase) * Math.tan(this.steer); // rad/s
     this.heading = Cesium.Math.negativePiToPi(this.heading + yawRate * h);
 
-    // 5) Compute ENU basis & forward on tangent plane
+    // 5) ENU basis & forward on tangent plane
     const { east, north, up } = this.enuBasisAt(this.cameraState.position);
-
-    // Car forward in ENU local (x=east, y=north)
     const fLocal = new Cesium.Cartesian3(
       Math.sin(this.heading),
       Math.cos(this.heading),
       0
     );
-    // to world
     const forward = new Cesium.Cartesian3(
       east.x * fLocal.x + north.x * fLocal.y,
       east.y * fLocal.x + north.y * fLocal.y,
@@ -220,7 +237,7 @@ export class CarDriveController extends BaseCameraController {
     const resolved = this.resolveGround(proposed);
     this.cameraState.position = resolved;
 
-    // 8) Set camera orientation (look straight along car forward; keep level with local up)
+    // 8) Camera orientation along heading
     this.cameraState.direction = forward;
     this.cameraState.up = up;
     this.cameraState.right = Cesium.Cartesian3.normalize(
@@ -231,11 +248,10 @@ export class CarDriveController extends BaseCameraController {
       ),
       new Cesium.Cartesian3()
     );
-
     this.applyCameraState();
   }
 
-  // ---- terrain helpers (same idea as in FPW) ----
+  // ---- terrain helpers ----
   private resolveGround(proposed: Cesium.Cartesian3): Cesium.Cartesian3 {
     const globe = this.cesiumViewer!.scene.globe;
     const ellipsoid = globe.ellipsoid;
@@ -244,8 +260,7 @@ export class CarDriveController extends BaseCameraController {
 
     const hRaw = globe.getHeight(carto);
     if (hRaw !== undefined) {
-      // gentle smoothing so we don't chase every tile refinement
-      const a = 0.15;
+      const a = 0.15; // smoothing
       if (Number.isNaN(this.smoothedGroundHeight))
         this.smoothedGroundHeight = hRaw;
       else this.smoothedGroundHeight += a * (hRaw - this.smoothedGroundHeight);
@@ -253,14 +268,11 @@ export class CarDriveController extends BaseCameraController {
       const targetRaw =
         this.smoothedGroundHeight + this.config.height + this.car.groundClear;
       const HOLD_BAND = 0.15;
-
       if (this.lastTargetHeight == null) this.lastTargetHeight = targetRaw;
       else if (Math.abs(targetRaw - this.lastTargetHeight) > HOLD_BAND)
         this.lastTargetHeight = targetRaw;
 
-      const target = this.lastTargetHeight;
-      carto.height = target;
-
+      carto.height = this.lastTargetHeight!;
       const landed = Cesium.Cartesian3.fromRadians(
         carto.longitude,
         carto.latitude,
@@ -272,7 +284,7 @@ export class CarDriveController extends BaseCameraController {
       return landed;
     }
 
-    // No terrain yet — keep altitude
+    // no terrain yet
     this.physicsState.isGrounded = true;
     this.wasGrounded = true;
     return proposed;
@@ -298,13 +310,12 @@ export class CarDriveController extends BaseCameraController {
       c.height
     );
 
-    // derive heading from current direction projected into ENU
+    // heading from current view direction projected to tangent plane
     const { east, north, up } = this.enuBasisAt(this.cameraState.position);
     const dirWorld = Cesium.Cartesian3.normalize(
       Cesium.Cartesian3.clone(this.camera.direction),
       new Cesium.Cartesian3()
     );
-    // remove vertical to get horizontal forward
     const dDotUp = Cesium.Cartesian3.dot(dirWorld, up);
     const dHoriz = Cesium.Cartesian3.normalize(
       Cesium.Cartesian3.subtract(
@@ -318,7 +329,7 @@ export class CarDriveController extends BaseCameraController {
     const ny = Cesium.Cartesian3.dot(dHoriz, north);
     this.heading = Math.atan2(ex, ny);
 
-    // initialize camera orientation along heading
+    // orient camera along heading
     const fLocal = new Cesium.Cartesian3(
       Math.sin(this.heading),
       Math.cos(this.heading),
@@ -343,19 +354,18 @@ export class CarDriveController extends BaseCameraController {
     );
     this.applyCameraState();
 
-    // zero motion
     this.speed = 0;
     this.steer = 0;
   }
 
-  // ---- key handling (prevent page scroll for driving keys) ----
+  // prevent page scroll
   protected onKeyDown = (e: KeyboardEvent) => {
     const codes = new Set<string>([
       MOVEMENT_KEYS.FORWARD,
       MOVEMENT_KEYS.BACKWARD,
       MOVEMENT_KEYS.LEFT,
       MOVEMENT_KEYS.RIGHT,
-      MOVEMENT_KEYS.JUMP, // used as brake here
+      MOVEMENT_KEYS.JUMP, // brake
       "ShiftLeft",
       "ShiftRight",
     ]);
