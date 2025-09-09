@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { styled } from "@mui/material/styles";
 import {
   Box,
@@ -10,8 +10,10 @@ import {
   Slider,
 } from "@mui/material";
 import useSceneStore from "../../hooks/useSceneStore";
+import useWorldStore from "../../hooks/useWorldStore";
 import LocationSearch from "../LocationSearch";
 import CesiumIonAssetsManager from "./CesiumIonAssetsManager";
+import BasemapSelector from "./BasemapSelector";
 
 const Container = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
@@ -46,6 +48,8 @@ const SearchContainer = styled(Box)(() => ({
 }));
 
 const EnvironmentPanel: React.FC = () => {
+  const engine = useWorldStore((s) => s.engine);
+  const [currentTileset, setCurrentTileset] = useState<any>(null);
   const {
     gridEnabled,
     setGridEnabled,
@@ -60,6 +64,8 @@ const EnvironmentPanel: React.FC = () => {
     setSelectedAssetId,
     setSelectedLocation,
     tilesRenderer,
+    cesiumViewer,
+    cesiumInstance,
   } = useSceneStore();
 
   const handleAssetSelect = useCallback(
@@ -87,6 +93,174 @@ const EnvironmentPanel: React.FC = () => {
       setAmbientLightIntensity(value as number);
     },
     [setAmbientLightIntensity]
+  );
+
+  const handleBasemapChange = useCallback(
+    async (
+      basemapType:
+        | "cesium"
+        | "google"
+        | "google-photorealistic"
+        | "bing"
+        | "none"
+    ) => {
+      if (!cesiumViewer || !cesiumInstance) {
+        console.warn("Cesium viewer or instance not available");
+        return;
+      }
+
+      // Clean up any existing 3D tileset
+      if (currentTileset) {
+        try {
+          cesiumViewer.scene.primitives.remove(currentTileset);
+          setCurrentTileset(null);
+        } catch (error) {
+          console.warn("Error removing existing tileset:", error);
+        }
+      }
+
+      try {
+        switch (basemapType) {
+          case "cesium": {
+            try {
+              cesiumViewer.imageryLayers.removeAll();
+              // Use the default imagery provider that was set during viewer creation
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.IonImageryProvider({ assetId: 2 })
+              );
+            } catch (error) {
+              console.error("Error setting Cesium World Imagery:", error);
+              // Fallback to a simple URL template provider
+              try {
+                cesiumViewer.imageryLayers.addImageryProvider(
+                  new cesiumInstance.UrlTemplateImageryProvider({
+                    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    credit: "© OpenStreetMap contributors",
+                  })
+                );
+              } catch (fallbackError) {
+                console.error("Error setting fallback imagery:", fallbackError);
+              }
+            }
+            break;
+          }
+          case "google": {
+            try {
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                  credit: "Google Satellite",
+                })
+              );
+            } catch (error) {
+              console.error("Error setting Google Satellite:", error);
+            }
+            break;
+          }
+          case "google-photorealistic": {
+            const cesiumKey =
+              process.env.NEXT_PUBLIC_CESIUM_ION_KEY ||
+              process.env.NEXT_PUBLIC_CESIUM_TOKEN;
+            if (!cesiumKey) {
+              console.warn(
+                "Cesium Ion key not found. Please set NEXT_PUBLIC_CESIUM_ION_KEY environment variable."
+              );
+              // Fall back to OpenStreetMap if Cesium key is not available
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  credit: "© OpenStreetMap contributors",
+                })
+              );
+              return;
+            }
+            try {
+              // Remove existing imagery layers
+              cesiumViewer.imageryLayers.removeAll();
+
+              // Add Google Satellite imagery as the base layer for Google Photorealistic
+              // This prevents the blue "no imagery" background from showing
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                  credit: "© Google",
+                })
+              );
+
+              // Add Google Photorealistic 3D tiles on top
+              const tileset =
+                await cesiumInstance.Cesium3DTileset.fromIonAssetId(2275207);
+
+              // Add the tileset to the scene
+              cesiumViewer.scene.primitives.add(tileset);
+              setCurrentTileset(tileset);
+            } catch (error) {
+              console.error("Error setting Google Photorealistic:", error);
+              // Fall back to OpenStreetMap on error
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  credit: "© OpenStreetMap contributors",
+                })
+              );
+            }
+            break;
+          }
+          case "bing": {
+            const bingKey = process.env.NEXT_PUBLIC_BING_MAPS_KEY;
+            if (!bingKey) {
+              console.warn(
+                "Bing Maps API key not found. Please set NEXT_PUBLIC_BING_MAPS_KEY environment variable."
+              );
+              // Fall back to OpenStreetMap if Bing key is not available
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  credit: "© OpenStreetMap contributors",
+                })
+              );
+              return;
+            }
+            try {
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.BingMapsImageryProvider({
+                  url: "https://dev.virtualearth.net",
+                  key: bingKey,
+                  mapStyle: cesiumInstance.BingMapsStyle.AERIAL_WITH_LABELS,
+                })
+              );
+            } catch (error) {
+              console.error("Error setting Bing Maps:", error);
+              // Fall back to OpenStreetMap on error
+              cesiumViewer.imageryLayers.removeAll();
+              cesiumViewer.imageryLayers.addImageryProvider(
+                new cesiumInstance.UrlTemplateImageryProvider({
+                  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  credit: "© OpenStreetMap contributors",
+                })
+              );
+            }
+            break;
+          }
+          case "none": {
+            try {
+              cesiumViewer.imageryLayers.removeAll();
+            } catch (error) {
+              console.error("Error removing imagery layers:", error);
+            }
+            break;
+          }
+        }
+      } catch (error) {
+        console.error("Error changing basemap:", error);
+      }
+    },
+    [cesiumViewer, cesiumInstance, currentTileset]
   );
 
   return (
@@ -192,6 +366,17 @@ const EnvironmentPanel: React.FC = () => {
       <Section>
         <CesiumIonAssetsManager />
       </Section>
+
+      {/* Basemap Selector - Only show for Cesium engine */}
+      {engine === "cesium" && (
+        <Section>
+          <BasemapSelector
+            onBasemapChange={handleBasemapChange}
+            currentBasemap="cesium"
+            disabled={!cesiumViewer || !cesiumInstance}
+          />
+        </Section>
+      )}
     </Container>
   );
 };

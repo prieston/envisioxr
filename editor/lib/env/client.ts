@@ -18,9 +18,11 @@ const clientSchema = z.object({
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z
     .string()
     .min(1, "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is required"),
+  // Cesium Ion (support both naming conventions)
   NEXT_PUBLIC_CESIUM_ION_KEY: z
     .string()
     .min(1, "NEXT_PUBLIC_CESIUM_ION_KEY is required"),
+  NEXT_PUBLIC_CESIUM_TOKEN: z.string().optional(),
 });
 
 export const clientEnv = clientSchema.parse({
@@ -31,4 +33,5 @@ export const clientEnv = clientSchema.parse({
   NEXT_PUBLIC_DO_SPACES_BUCKET: process.env.NEXT_PUBLIC_DO_SPACES_BUCKET,
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   NEXT_PUBLIC_CESIUM_ION_KEY: process.env.NEXT_PUBLIC_CESIUM_ION_KEY,
+  NEXT_PUBLIC_CESIUM_TOKEN: process.env.NEXT_PUBLIC_CESIUM_TOKEN,
 });
