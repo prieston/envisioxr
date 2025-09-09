@@ -22,7 +22,7 @@ export { CameraControllerManager } from "./core/CameraControllerManager";
 export { BaseCameraController } from "./core/BaseCameraController";
 export { FirstPersonWalkController } from "./controllers/FirstPersonWalkController";
 export { CarController } from "./controllers/CarController";
-export { FlightController } from "./controllers/FlightController";
+export { DroneFlightController } from "./controllers/FlightController";
 
 // Styled components
 export * from "./components/StyledComponents";

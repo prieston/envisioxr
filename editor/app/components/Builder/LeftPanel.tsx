@@ -14,7 +14,6 @@ import {
   Button,
   Menu,
   MenuItem,
-  Typography,
   Tabs,
   Tab,
 } from "@mui/material";
@@ -109,13 +108,6 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     color: theme.palette.text.primary,
   },
-}));
-
-const PanelTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "1rem",
-  fontWeight: 500,
-  marginBottom: theme.spacing(2),
-  color: theme.palette.text.primary,
 }));
 
 const TabPanel = styled(Box)(({ theme }) => ({

@@ -23,7 +23,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, description, engine = 'three' } = body;
+    const {
+      title,
+      description,
+      engine = "three",
+    } = body as {
+      title?: string;
+      description?: string;
+      engine?: "three" | "cesium";
+    };
 
     const project = await prisma.project.create({
       data: {

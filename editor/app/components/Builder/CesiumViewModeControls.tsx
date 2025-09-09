@@ -144,13 +144,10 @@ const useKeyboardControls = () => {
 
   const getPressedKeys = useCallback(() => keys.current, []);
 
-  const clearKeys = useCallback(() => keys.current.clear(), []);
-
   return {
     handleKeyDown,
     handleKeyUp,
     getPressedKeys,
-    clearKeys,
   };
 };
 
@@ -582,8 +579,7 @@ const useSimulation = (
       cancelAnimationFrame(animationFrameId.current);
       animationFrameId.current = null;
     }
-    clearKeys();
-  }, [clearKeys]);
+  }, []);
 
   /**
    * Set current simulation mode
@@ -598,26 +594,6 @@ const useSimulation = (
     setCurrentMode,
     isSimulating: isSimulating.current,
   };
-};
-
-/**
- * Hook for managing mouse movement in first-person mode
- */
-const useMouseControls = (cesiumViewer: Cesium.Viewer | null) => {
-  /**
-   * Handle mouse movement for first-person look
-   */
-  const handleMouseMove = useCallback(
-    (event: MouseEvent) => {
-      if (!cesiumViewer) return;
-
-      // This would need to be connected to the simulation state
-      // For now, we'll implement it in the main component
-    },
-    [cesiumViewer]
-  );
-
-  return { handleMouseMove };
 };
 
 // ============================================================================
@@ -643,45 +619,25 @@ const CesiumViewModeControls: React.FC<CesiumViewModeControlsProps> = ({
 
   // Initialize hooks
   const params = useSimulationParams();
-  const { handleKeyDown, handleKeyUp, getPressedKeys, clearKeys } =
-    useKeyboardControls();
+  const { handleKeyDown, handleKeyUp, getPressedKeys } = useKeyboardControls();
   const { handlePointerLockChange } = usePointerLock();
-  const { getGroundHeight, getCurrentGroundHeight } =
-    useGroundDetection(cesiumViewer);
+  const { getGroundHeight } = useGroundDetection(cesiumViewer);
   const { startSimulation, stopSimulation, setCurrentMode } = useSimulation(
     cesiumViewer,
     getGroundHeight,
     getPressedKeys,
     params
   );
-  const { handleMouseMove } = useMouseControls(cesiumViewer);
 
   /**
    * Handle mouse movement for first-person look
    */
   const handleFirstPersonMouseMove = useCallback(
-    (event: MouseEvent) => {
+    (_event: MouseEvent) => {
       if (!cesiumViewer) return;
 
       // This would need to be connected to the simulation state
       // For now, we'll keep it simple
-      const sensitivity = 0.002;
-      const camera = cesiumViewer.camera;
-
-      // Yaw (left/right)
-      camera.rotate(camera.up, -event.movementX * sensitivity);
-
-      // Pitch (up/down) - clamp to avoid over-rotation
-      const currentPitch = Math.asin(camera.direction.z);
-      const newPitch = currentPitch - event.movementY * sensitivity;
-      const clampedPitch = Math.max(
-        -Math.PI / 2 + 0.1,
-        Math.min(Math.PI / 2 - 0.1, newPitch)
-      );
-
-      // Apply pitch rotation
-      const right = camera.right;
-      camera.rotate(right, clampedPitch - currentPitch);
     },
     [cesiumViewer]
   );

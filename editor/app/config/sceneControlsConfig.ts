@@ -41,9 +41,8 @@ export const createThreeJSSceneControlsConfig = (
 };
 
 export const createCesiumSceneControlsConfig = (
-  selectedObject: any,
-  transformMode: TransformMode,
-  magnetEnabled: boolean = false
+  _selectedObject: any,
+  _transformMode: TransformMode
 ): SceneControlsConfiguration => {
   return {
     id: "scene-controls",

@@ -27,17 +27,37 @@ interface MetadataField {
   value: string;
 }
 
+interface AssetModel {
+  id: string;
+  name: string;
+  url: string;
+  fileUrl?: string;
+  fileType?: string;
+  type?: string;
+  assetId?: string;
+  thumbnail?: string;
+  originalFilename?: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface DropzoneProps {
+  isDragActive: boolean;
+  isDragReject: boolean;
+  getRootProps: () => Record<string, unknown>;
+  getInputProps: () => Record<string, unknown>;
+}
+
 interface AssetLibraryPanelProps {
   tabIndex: number;
   setTabIndex: (index: number) => void;
-  userAssets: any[];
+  userAssets: AssetModel[];
   deletingAssetId: string | null;
   handleDeleteModel: (assetId: string) => Promise<void>;
-  handleModelSelect: (model: any) => void;
+  handleModelSelect: (model: AssetModel) => void;
   selectingPosition: boolean;
   setSelectingPosition: (selecting: boolean) => void;
   selectedPosition: Vector3Tuple | null;
-  pendingModel: any;
+  pendingModel: AssetModel | null;
   handleConfirmModelPlacement: () => void;
   handleCancelModelPlacement: () => void;
   previewUrl: string | null;
@@ -52,8 +72,8 @@ interface AssetLibraryPanelProps {
   uploadProgress: number;
   isConfirmDisabled: boolean;
   handleConfirmUpload: () => void;
-  getRootProps: any;
-  getInputProps: any;
+  getRootProps: DropzoneProps["getRootProps"];
+  getInputProps: DropzoneProps["getInputProps"];
   metadata: MetadataField[];
   setMetadata: (metadata: MetadataField[]) => void;
   isObservationModel: boolean;
@@ -226,6 +246,7 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                       variant="contained"
                       onClick={() => {
                         handleModelSelect({
+                          id: model.id,
                           name: model.originalFilename,
                           url: model.fileUrl,
                           type: model.fileType,

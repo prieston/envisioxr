@@ -10,7 +10,6 @@ import {
   Explore,
 } from "@mui/icons-material";
 import { SimulationMode } from "./CesiumControls/types";
-import { SIMULATION_MODES } from "./CesiumControls/constants";
 import useSceneStore from "../../hooks/useSceneStore";
 import { useCameraControllerManager } from "./CesiumControls/hooks/useCameraControllerManager";
 
@@ -85,7 +84,7 @@ const CesiumViewModeControls: React.FC<CesiumViewModeControlsProps> = ({
   disabled = false,
 }) => {
   const { cesiumViewer } = useSceneStore();
-  const { switchToMode, isModeActive, isInitialized } =
+  const { switchToMode, isInitialized } =
     useCameraControllerManager(cesiumViewer);
 
   // Debug logging

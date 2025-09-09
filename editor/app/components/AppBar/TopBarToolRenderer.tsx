@@ -16,8 +16,14 @@ const TopBarToolRenderer: React.FC<TopBarToolRendererProps> = ({ tool }) => {
 
   // Handle custom components
   if (tool.type === "custom" && tool.customComponent) {
-    const CustomComponent = getComponent(tool.customComponent);
-    if (CustomComponent) {
+    if (typeof tool.customComponent === "string") {
+      const CustomComponent = getComponent(tool.customComponent);
+      if (CustomComponent) {
+        return <CustomComponent {...tool.customProps} />;
+      }
+    } else {
+      // It's already a React component
+      const CustomComponent = tool.customComponent;
       return <CustomComponent {...tool.customProps} />;
     }
     return null;
