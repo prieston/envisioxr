@@ -262,19 +262,24 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       if (cesiumViewer && selectedObject?.position) {
         const [longitude, latitude, height] = selectedObject.position;
 
-        // Fly to the model position
-        cesiumViewer.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(
-            longitude,
-            latitude,
-            height + 100
-          ), // Add some height for better view
-          orientation: {
-            heading: 0.0,
-            pitch: -Math.PI / 4, // Look down at 45 degrees
-            roll: 0.0,
-          },
-          duration: 2.0, // 2 second flight
+        // Use Cesium's built-in flyTo with a bounding sphere approach
+        const modelPosition = Cesium.Cartesian3.fromDegrees(
+          longitude,
+          latitude,
+          height
+        );
+
+        // Create a bounding sphere around the model for better viewing
+        const boundingSphere = new Cesium.BoundingSphere(modelPosition, 50); // 50m radius
+
+        // Fly to the bounding sphere with a good viewing angle
+        cesiumViewer.camera.flyToBoundingSphere(boundingSphere, {
+          duration: 2.0,
+          offset: new Cesium.HeadingPitchRange(
+            0.0, // heading
+            -Cesium.Math.PI_OVER_FOUR, // pitch (45 degrees down)
+            100.0 // range (distance from target)
+          ),
         });
 
         if (process.env.NODE_ENV === "development") {
@@ -294,21 +299,32 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 
         // Calculate a dynamic offset based on the object's size
         const maxDimension = Math.max(size.x, size.y, size.z);
-        const distance = Math.max(maxDimension * 2, 10); // At least 10 units away
+        const distance = Math.max(maxDimension * 2.5, 15); // Increased distance for better view
+
+        // Create a more natural viewing angle offset
         const offset = new THREE.Vector3(
-          distance,
-          distance * 0.6, // Slightly lower than the distance
-          distance
+          distance * 0.7, // Slightly closer on X axis
+          distance * 0.8, // Higher up for better perspective
+          distance * 0.7 // Slightly closer on Z axis
         );
 
         // Set the camera position
         orbitControlsRef.object.position.copy(targetPosition).add(offset);
 
-        // Set the orbit controls target to the object
+        // Set the orbit controls target to the object center
         orbitControlsRef.target.copy(targetPosition);
+
+        // Make the camera look at the target
+        orbitControlsRef.object.lookAt(targetPosition);
 
         // Update the controls
         orbitControlsRef.update();
+
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `[PropertiesPanel] Flying to Three.js model at: ${targetPosition.x}, ${targetPosition.y}, ${targetPosition.z}`
+          );
+        }
       }
     }
   };
