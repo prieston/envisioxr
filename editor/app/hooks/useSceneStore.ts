@@ -293,8 +293,17 @@ const useSceneStore = create<SceneState>((set) => ({
       const camera = state.orbitControlsRef?.object;
 
       let position: [number, number, number] = [0, 0, 0];
+      let coordinateSystem = "local"; // Default to local coordinates
+
       if (state.scene && camera) {
         position = findIntersectionPoint(state.scene, camera);
+      } else if (model.position) {
+        position = model.position;
+        // Determine coordinate system based on position values
+        const [x, y, z] = model.position;
+        const isGeographic =
+          x >= -180 && x <= 180 && y >= -90 && y <= 90 && Math.abs(z) < 50000;
+        coordinateSystem = isGeographic ? "geographic" : "local";
       }
 
       const newModel = {
@@ -302,12 +311,15 @@ const useSceneStore = create<SceneState>((set) => ({
         name: model.name || "",
         url: model.url || "",
         type: model.type || "model",
-        position: model.position || position,
+        position: position,
         rotation: model.rotation || [0, 0, 0],
         scale: model.scale || [1, 1, 1],
         apiKey: model.apiKey,
         assetId: model.assetId,
         material: model.material || { color: "#ffffff" },
+        coordinateSystem: coordinateSystem, // Add coordinate system metadata
+        isObservationModel: model.isObservationModel || false,
+        observationProperties: model.observationProperties,
       };
       return { objects: [...state.objects, newModel] };
     }),
