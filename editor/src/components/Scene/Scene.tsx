@@ -11,7 +11,7 @@ import {
   SceneLights,
   SceneObjects,
   SceneObservationPoints,
-  SceneTransformControls,
+  SceneTransformControlsNew,
   CameraPOVCaptureHandler,
   ObservationPointHandler,
   CameraSpringController,
@@ -37,28 +37,6 @@ const TilesComponent = dynamic(
           }}
         >
           Loading 3D Tiles components...
-        </div>
-      </Html>
-    ),
-  }
-);
-
-// Create a dynamic import for the Cesium Ion Assets Renderer
-const CesiumIonAssetsRenderer = dynamic(
-  () => import("../../../app/components/CesiumIonAssetsRenderer"),
-  {
-    ssr: false,
-    loading: () => (
-      <Html center>
-        <div
-          style={{
-            color: "white",
-            background: "rgba(0,0,0,0.7)",
-            padding: "20px",
-            borderRadius: "10px",
-          }}
-        >
-          Loading Cesium Ion Assets...
         </div>
       </Html>
     ),
@@ -203,8 +181,7 @@ export default function Scene({
               />
             )}
 
-            {/* Render multiple Cesium Ion assets */}
-            <CesiumIonAssetsRenderer />
+            {/* Cesium Ion assets are handled by CesiumIonAssetsRenderer in Cesium engine mode */}
 
             {/* Environment Elements */}
             {skyboxType === "default" && (
@@ -244,7 +221,7 @@ export default function Scene({
               enableXR={enableXR}
               renderObservationPoints={renderObservationPoints}
             />
-            <SceneTransformControls
+            <SceneTransformControlsNew
               selectedObject={selectedObject}
               transformControlsRef={transformControlsRef}
             />
