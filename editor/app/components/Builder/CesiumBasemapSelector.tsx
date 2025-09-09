@@ -71,15 +71,9 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
             // This is the only basemap-related tileset we manage
             if (primitive.assetId === 2275207) {
               primitives.remove(primitive);
-              console.log(
-                "[CesiumBasemapSelector] Removed basemap tileset:",
-                primitive.assetId
-              );
+              // Removed basemap tileset: primitive.assetId
             } else {
-              console.log(
-                "[CesiumBasemapSelector] Preserved custom asset:",
-                primitive.assetId || "unknown"
-              );
+              // Preserved custom asset: primitive.assetId || "unknown"
             }
           }
         }
@@ -156,12 +150,9 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
 
               // Add the tileset to the scene
               cesiumViewer.scene.primitives.add(tileset);
-              console.log(
-                "[CesiumBasemapSelector] Added Google Photorealistic tileset with assetId:",
-                tileset.assetId
-              );
+              // Added Google Photorealistic tileset with assetId: tileset.assetId
             } catch (error) {
-              console.error("Error setting Google Photorealistic:", error);
+              // Error setting Google Photorealistic: error
               // Fall back to OpenStreetMap on error
               cesiumViewer.imageryLayers.addImageryProvider(
                 new cesiumInstance.UrlTemplateImageryProvider({

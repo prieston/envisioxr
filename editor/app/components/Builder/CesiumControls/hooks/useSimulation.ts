@@ -47,7 +47,7 @@ export const useSimulation = (
   ) => void
 ) => {
   // Initialize enhanced walk simulation
-  const { applyWalkMovement, resetPhysics } = useFirstPersonWalk(
+  const { applyWalkMovement } = useFirstPersonWalk(
     cesiumViewer,
     getGroundHeight,
     getPressedKeys,

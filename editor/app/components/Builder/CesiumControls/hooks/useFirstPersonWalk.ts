@@ -54,7 +54,6 @@ export const useFirstPersonWalk = (
       // Get camera orientation
       const direction = camera.direction.clone();
       const right = camera.right.clone();
-      const up = camera.up.clone();
 
       // Calculate world-space movement direction
       const worldMoveDir = new Cesium.Cartesian3(0, 0, 0);

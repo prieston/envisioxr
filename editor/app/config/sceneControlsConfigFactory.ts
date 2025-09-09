@@ -21,11 +21,7 @@ export const getSceneControlsConfig = (
         magnetEnabled
       );
     case "cesium":
-      return createCesiumSceneControlsConfig(
-        selectedObject,
-        transformMode,
-        magnetEnabled
-      );
+      return createCesiumSceneControlsConfig(selectedObject, transformMode);
     default:
       return createThreeJSSceneControlsConfig(
         selectedObject,

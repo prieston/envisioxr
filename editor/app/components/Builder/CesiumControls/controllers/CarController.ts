@@ -71,12 +71,12 @@ export class CarController extends BaseCameraController {
     }
   }
 
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     if (!this.enabled || !this.camera) return;
 
     this.updateCameraState();
-    this.handleCarMovement(deltaTime);
-    this.handleSteering(deltaTime);
+    this.handleCarMovement(_deltaTime);
+    this.handleSteering(_deltaTime);
     this.handleGroundFollowing();
     this.updateCameraPosition();
     this.applyCameraState();
@@ -110,7 +110,7 @@ export class CarController extends BaseCameraController {
   /**
    * Handle car movement with realistic physics
    */
-  private handleCarMovement(deltaTime: number): void {
+  private handleCarMovement(_deltaTime: number): void {
     // Determine target speed based on input
     this.targetSpeed = 0;
     this.isMoving = false;
@@ -130,14 +130,14 @@ export class CarController extends BaseCameraController {
       this.currentSpeed = this.lerp(
         this.currentSpeed,
         this.targetSpeed,
-        acceleration * deltaTime
+        acceleration * _deltaTime
       );
     } else {
       // Apply friction when not moving
       this.currentSpeed = this.lerp(
         this.currentSpeed,
         0,
-        this.deceleration * deltaTime
+        this.deceleration * _deltaTime
       );
     }
 
@@ -145,7 +145,7 @@ export class CarController extends BaseCameraController {
     if (Math.abs(this.currentSpeed) > 0.1) {
       const movement = Cesium.Cartesian3.multiplyByScalar(
         this.carDirection,
-        this.currentSpeed * deltaTime,
+        this.currentSpeed * _deltaTime,
         new Cesium.Cartesian3()
       );
       this.cameraState.position = Cesium.Cartesian3.add(
@@ -159,7 +159,7 @@ export class CarController extends BaseCameraController {
   /**
    * Handle car steering
    */
-  private handleSteering(deltaTime: number): void {
+  private handleSteering(_deltaTime: number): void {
     // Only allow steering when moving
     if (!this.isMoving || Math.abs(this.currentSpeed) < 0.5) return;
 
@@ -272,7 +272,7 @@ export class CarController extends BaseCameraController {
   /**
    * Handle key up
    */
-  protected onKeyUp(event: KeyboardEvent): void {
+  protected onKeyUp(_event: KeyboardEvent): void {
     // Handle any key up logic here
   }
 

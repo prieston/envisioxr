@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { styled } from "@mui/material/styles";
 import { Box, Divider } from "@mui/material";
 import useSceneStore from "../../hooks/useSceneStore";

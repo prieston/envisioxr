@@ -147,7 +147,7 @@ export class DroneFlightController extends BaseCameraController {
         : 0); // Shift -> down
 
     // --- Local ENU basis at current position ---
-    const { east, north, up } = this.enuBasisAt(this.cameraState.position);
+    const { up } = this.enuBasisAt(this.cameraState.position);
 
     // View-relative horizontal basis:
     // forward = camera direction projected onto tangent plane
