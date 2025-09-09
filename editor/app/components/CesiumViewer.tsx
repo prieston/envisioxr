@@ -473,8 +473,14 @@ export default function CesiumViewer() {
           }
 
           // Determine if these are geographic coordinates (Cesium) or local coordinates (Three.js)
-          // Geographic coordinates typically have longitude between -180 and 180, latitude between -90 and 90
-          const isGeographic = x >= -180 && x <= 180 && y >= -90 && y <= 90;
+          // Use coordinate system metadata if available, otherwise detect based on values
+          const isGeographic =
+            obj.coordinateSystem === "geographic" ||
+            (x >= -180 &&
+              x <= 180 &&
+              y >= -90 &&
+              y <= 90 &&
+              Math.abs(z) < 50000); // Height should be reasonable for geographic coordinates
 
           let longitude, latitude, height;
 
@@ -490,9 +496,21 @@ export default function CesiumViewer() {
             }
           } else {
             // These are local coordinates (from Three.js placement) - convert to geographic
-            longitude = x / (111320 * Math.cos((35 * Math.PI) / 180));
-            latitude = y / 110540;
-            height = z;
+            // Use a more accurate conversion method
+            const earthRadius = 6378137.0; // Earth's radius in meters
+            const referenceLat = 35.6586; // Default reference latitude (Tokyo)
+            const referenceLon = 139.7454; // Default reference longitude (Tokyo)
+
+            // Convert local coordinates to geographic offsets
+            const latOffset = (x / earthRadius) * (180 / Math.PI);
+            const lonOffset =
+              (z / (earthRadius * Math.cos((referenceLat * Math.PI) / 180))) *
+              (180 / Math.PI);
+
+            longitude = referenceLon + lonOffset;
+            latitude = referenceLat + latOffset;
+            height = z; // Use z directly as height
+
             if (process.env.NODE_ENV === "development") {
               console.log(
                 `[CesiumViewer] Converted local to geographic: ${x},${y},${z} -> ${longitude}, ${latitude}, ${height}`
