@@ -9,6 +9,7 @@ import CesiumCameraCaptureHandler from "./Builder/CesiumCameraCaptureHandler";
 import CesiumObservationPointHandler from "./Builder/CesiumObservationPointHandler";
 import CesiumCameraSpringController from "./Builder/CesiumCameraSpringController";
 import CesiumPreviewModeController from "./Builder/CesiumPreviewModeController";
+import CesiumViewshedAnalysis from "./Builder/CesiumViewshedAnalysis";
 
 // Extend Window interface for Cesium
 declare global {
@@ -753,6 +754,34 @@ export default function CesiumViewer() {
           <CesiumObservationPointHandler />
           <CesiumCameraSpringController />
           <CesiumPreviewModeController />
+          {/* Render viewshed analysis for observation models */}
+          {objects
+            .filter(
+              (obj) => obj.isObservationModel && obj.observationProperties
+            )
+            .map((obj) => {
+              const [longitude, latitude, height] = obj.position || [0, 0, 0];
+              const [heading, pitch, roll] = obj.rotation || [0, 0, 0];
+              const fov = obj.observationProperties?.fov || 90;
+              const radius = obj.observationProperties?.visibilityRadius || 100;
+              const showViewshed =
+                obj.observationProperties?.showCalculatedArea || false;
+              const showCone =
+                obj.observationProperties?.showVisibleArea || false;
+
+              return (
+                <CesiumViewshedAnalysis
+                  key={`viewshed-${obj.id}`}
+                  position={[longitude, latitude, height]}
+                  rotation={[heading, pitch, roll]}
+                  fov={fov}
+                  radius={radius}
+                  showViewshed={showViewshed}
+                  showCone={showCone}
+                  objectId={obj.id}
+                />
+              );
+            })}
         </>
       )}
     </>
