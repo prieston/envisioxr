@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, TextField, Button, Typography } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 
@@ -9,6 +18,7 @@ const CreateProjectPage = () => {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [engine, setEngine] = useState("three");
 
   const handleSave = async () => {
     try {
@@ -19,6 +29,7 @@ const CreateProjectPage = () => {
         body: JSON.stringify({
           title,
           description,
+          engine,
         }),
       });
       if (!res.ok) {
@@ -55,6 +66,33 @@ const CreateProjectPage = () => {
             multiline
             rows={4}
           />
+          <FormControl fullWidth>
+            <InputLabel id="engine-select-label">Rendering Engine</InputLabel>
+            <Select
+              labelId="engine-select-label"
+              id="engine-select"
+              value={engine}
+              label="Rendering Engine"
+              onChange={(e) => setEngine(e.target.value)}
+            >
+              <MenuItem value="three">
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography>Three.js</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    - 3D scene with custom models and effects
+                  </Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="cesium">
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography>Cesium</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    - 3D globe with terrain and geospatial data
+                  </Typography>
+                </Box>
+              </MenuItem>
+            </Select>
+          </FormControl>
           <Button variant="contained" onClick={handleSave}>
             Save Project
           </Button>

@@ -6,6 +6,7 @@ import { CircularProgress, Typography } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import useSceneStore from "@/app/hooks/useSceneStore";
+import useWorldStore from "@/app/hooks/useWorldStore";
 import MobileLayout from "@/app/components/PublishPage/MobileLayout";
 import DesktopLayout from "@/app/components/PublishPage/DesktopLayout";
 
@@ -25,6 +26,7 @@ const PublishedScenePage = () => {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const setActiveWorld = useWorldStore((s) => s.setActiveWorld);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -59,6 +61,7 @@ const PublishedScenePage = () => {
           throw new Error("Project not published");
         }
         setProject(data.project);
+        setActiveWorld(data.project);
 
         // Initialize observation points from project data
         if (
@@ -73,10 +76,15 @@ const PublishedScenePage = () => {
           }
         }
 
-        // Initialize selectedAssetId and selectedLocation
+        // Initialize selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
         if (data.project.sceneData) {
-          const { selectedAssetId, selectedLocation, showTiles } =
-            data.project.sceneData;
+          const {
+            selectedAssetId,
+            selectedLocation,
+            showTiles,
+            basemapType,
+            cesiumIonAssets,
+          } = data.project.sceneData;
           if (selectedAssetId) {
             useSceneStore.setState({
               selectedAssetId,
@@ -85,6 +93,12 @@ const PublishedScenePage = () => {
           }
           if (selectedLocation) {
             useSceneStore.setState({ selectedLocation });
+          }
+          if (basemapType) {
+            useSceneStore.setState({ basemapType });
+          }
+          if (Array.isArray(cesiumIonAssets)) {
+            useSceneStore.setState({ cesiumIonAssets });
           }
         }
       } catch (error) {
@@ -95,7 +109,8 @@ const PublishedScenePage = () => {
     };
 
     fetchProject();
-  }, [projectId, setObservationPoints, selectObservation]);
+    return () => setActiveWorld(null);
+  }, [projectId, setObservationPoints, selectObservation, setActiveWorld]);
 
   if (loading) {
     return (

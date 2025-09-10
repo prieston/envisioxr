@@ -11,7 +11,7 @@ import {
   SceneLights,
   SceneObjects,
   SceneObservationPoints,
-  SceneTransformControls,
+  SceneTransformControlsNew,
   CameraPOVCaptureHandler,
   ObservationPointHandler,
   CameraSpringController,
@@ -106,6 +106,7 @@ export default function Scene({
   const selectedAssetId = useSceneStore((state) => state.selectedAssetId);
   const selectedLocation = useSceneStore((state) => state.selectedLocation);
   const showTiles = useSceneStore((state) => state.showTiles);
+  const cesiumIonAssets = useSceneStore((state) => state.cesiumIonAssets);
 
   // Refs
   const transformControlsRef = useRef<any>(null);
@@ -119,6 +120,7 @@ export default function Scene({
   const setSelectedLocation = useSceneStore(
     (state) => state.setSelectedLocation
   );
+  const setCesiumIonAssets = useSceneStore((state) => state.setCesiumIonAssets);
 
   // Initialize scene data
   useEffect(() => {
@@ -127,6 +129,7 @@ export default function Scene({
       setObservationPoints(initialSceneData.observationPoints || []);
       setSelectedAssetId(initialSceneData.selectedAssetId || "2275207");
       setSelectedLocation(initialSceneData.selectedLocation || null);
+      setCesiumIonAssets(initialSceneData.cesiumIonAssets || []);
     }
   }, [
     initialSceneData,
@@ -134,6 +137,7 @@ export default function Scene({
     setObservationPoints,
     setSelectedAssetId,
     setSelectedLocation,
+    setCesiumIonAssets,
   ]);
 
   // Update scene data
@@ -142,11 +146,19 @@ export default function Scene({
       onSceneDataChange({
         objects,
         observationPoints,
-        selectedAssetId: useSceneStore.getState().selectedAssetId,
-        selectedLocation: useSceneStore.getState().selectedLocation,
+        selectedAssetId,
+        selectedLocation,
+        cesiumIonAssets,
       });
     }
-  }, [objects, observationPoints, onSceneDataChange]);
+  }, [
+    objects,
+    observationPoints,
+    selectedAssetId,
+    selectedLocation,
+    cesiumIonAssets,
+    onSceneDataChange,
+  ]);
 
   return (
     <>
@@ -168,6 +180,8 @@ export default function Scene({
                 longitude={selectedLocation?.longitude}
               />
             )}
+
+            {/* Cesium Ion assets are handled by CesiumIonAssetsRenderer in Cesium engine mode */}
 
             {/* Environment Elements */}
             {skyboxType === "default" && (
@@ -207,7 +221,7 @@ export default function Scene({
               enableXR={enableXR}
               renderObservationPoints={renderObservationPoints}
             />
-            <SceneTransformControls
+            <SceneTransformControlsNew
               selectedObject={selectedObject}
               transformControlsRef={transformControlsRef}
             />

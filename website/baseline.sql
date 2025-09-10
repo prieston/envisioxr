@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "Engine" AS ENUM ('three', 'cesium');
+
 -- CreateTable
 CREATE TABLE "Account" (
     "id" TEXT NOT NULL,
@@ -57,6 +60,7 @@ CREATE TABLE "Project" (
     "title" TEXT NOT NULL,
     "description" TEXT,
     "sceneData" JSONB NOT NULL,
+    "engine" "Engine" NOT NULL DEFAULT 'three',
     "isPublished" BOOLEAN NOT NULL DEFAULT false,
     "publishedUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

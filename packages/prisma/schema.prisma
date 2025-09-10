@@ -70,6 +70,7 @@ model Project {
   description  String?
   // sceneData stores your scene's configuration in JSON format.
   sceneData    Json
+  engine       Engine   @default(three)
   // isPublished indicates whether the project is public.
   isPublished  Boolean  @default(false)
   // publishedUrl could be generated based on the project ID or a slug.
@@ -81,6 +82,11 @@ model Project {
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   // Optional relation to assets (if you attach models to a project).
   assets Asset[]
+}
+
+enum Engine {
+  three
+  cesium
 }
 
 model Asset {

@@ -6,6 +6,7 @@ import {
   Typography,
   Button,
   IconButton,
+  Chip,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { styled } from "@mui/material/styles";
@@ -61,10 +62,44 @@ const MenuButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
+const EngineChip = styled(Chip)({
+  position: "absolute",
+  top: 8,
+  left: 8,
+  fontSize: "0.7rem",
+  height: "20px",
+  "& .MuiChip-label": {
+    padding: "0 6px",
+  },
+});
+
+const ThreeJsChip = styled(EngineChip)({
+  backgroundColor: "rgba(255, 150, 0, 0.2)",
+  color: "#ff9600",
+  border: "1px solid #ff9600",
+});
+
+const CesiumChip = styled(EngineChip)({
+  backgroundColor: "rgba(0, 150, 255, 0.2)",
+  color: "#0096ff",
+  border: "1px solid #0096ff",
+});
+
 const ProjectCard = ({ project, onGoToBuilder, onMenuOpen }) => {
+  const getEngineLabel = (engine) => {
+    return engine === "cesium" ? "Cesium" : "Three.js";
+  };
+
+  const EngineIndicator =
+    project.engine === "cesium" ? CesiumChip : ThreeJsChip;
+
   return (
     <GlassCard>
-      <CardContent sx={{ pb: 2 }}>
+      <EngineIndicator
+        label={getEngineLabel(project.engine || "three")}
+        size="small"
+      />
+      <CardContent sx={{ pb: 2, pt: 4 }}>
         <CardTitle variant="h6">{project.title}</CardTitle>
         <CardDescription variant="body2">
           {project.description || "No description provided"}

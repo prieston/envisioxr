@@ -18,6 +18,14 @@ export interface Model {
   [key: string]: any; // For any additional properties
 }
 
+export interface CesiumIonAsset {
+  id: string;
+  name: string;
+  apiKey: string;
+  assetId: string;
+  enabled: boolean;
+}
+
 export interface ObservationPoint {
   id: number;
   title: string;
@@ -35,6 +43,7 @@ export interface SceneProps {
       latitude: number;
       longitude: number;
     } | null;
+    cesiumIonAssets?: CesiumIonAsset[];
   };
   renderObservationPoints?: boolean;
   onSceneDataChange?: (data: {
@@ -45,6 +54,7 @@ export interface SceneProps {
       latitude: number;
       longitude: number;
     } | null;
+    cesiumIonAssets: CesiumIonAsset[];
   }) => void;
   enableXR?: boolean;
   isPublishMode?: boolean;
