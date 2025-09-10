@@ -45,6 +45,7 @@
     "@types/three": "^0.175.0",
     "autoprefixer": "^10.4.16",
     "cesium": "^1.131.0",
+    "copy-webpack-plugin": "^13.0.0",
     "css-loader": "^7.1.2",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.0.4",
@@ -80,7 +81,5 @@
     "zod": "^3.24.2",
     "zustand": "^5.0.3"
   },
-  "devDependencies": {
-    "copy-webpack-plugin": "^13.0.0"
-  }
+  "devDependencies": {}
 }
