@@ -21,10 +21,7 @@
     "vercel:build:editor": "pnpm prisma:generate && pnpm prisma:migrate:deploy && pnpm build:editor"
   },
   "devDependencies": {},
-  "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
-  },
+  "engines": { "node": ">=20 <23", "pnpm": ">=9" },
   "resolutions": {
     "next": "^14.1.0"
   },
@@ -40,5 +37,5 @@
     "prettier": "^3.2.5",
     "typescript": "^5.3.3"
   },
-  "packageManager": "pnpm@8.0.0"
+  "packageManager": "pnpm@9.12.3"
 }

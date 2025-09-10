@@ -52,6 +52,7 @@
     "eslint-plugin-tailwindcss": "^3.13.0",
     "file-loader": "^6.2.0",
     "formidable": "^3.5.2",
+    "fs-extra": "^11.3.0",
     "glsl-random": "^0.0.5",
     "glslify": "^7.1.1",
     "glslify-loader": "^2.0.0",
@@ -80,7 +81,6 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "copy-webpack-plugin": "^13.0.0",
-    "fs-extra": "^11.3.0"
+    "copy-webpack-plugin": "^13.0.0"
   }
 }
