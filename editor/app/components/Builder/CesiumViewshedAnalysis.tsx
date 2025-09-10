@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import * as Cesium from "cesium";
 import useSceneStore from "../../hooks/useSceneStore";
 
@@ -25,24 +25,24 @@ const CesiumViewshedAnalysis: React.FC<CesiumViewshedAnalysisProps> = ({
 }) => {
   const { cesiumViewer, cesiumInstance } = useSceneStore();
   const viewshedPrimitiveRef = useRef<Cesium.Primitive | null>(null);
-  const conePrimitiveRef = useRef<Cesium.Primitive | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
+  const conePrimitiveRef = useRef<Cesium.Entity | null>(null);
 
   // Clean up primitives and entities
   const cleanupPrimitives = () => {
     if (cesiumViewer && viewshedPrimitiveRef.current) {
-      cesiumViewer.scene.primitives.remove(viewshedPrimitiveRef.current);
+      // Remove all viewshed point entities
+      const entities = cesiumViewer.entities.values;
+      for (let i = entities.length - 1; i >= 0; i--) {
+        const entity = entities[i];
+        if (entity.id && entity.id.startsWith(`viewshed-point-${objectId}-`)) {
+          cesiumViewer.entities.remove(entity);
+        }
+      }
       viewshedPrimitiveRef.current = null;
     }
     if (cesiumViewer && conePrimitiveRef.current) {
-      // Handle both primitives and entities
-      if (conePrimitiveRef.current.id) {
-        // It's an entity
-        cesiumViewer.entities.removeById(conePrimitiveRef.current.id);
-      } else {
-        // It's a primitive
-        cesiumViewer.scene.primitives.remove(conePrimitiveRef.current);
-      }
+      // It's an entity
+      cesiumViewer.entities.remove(conePrimitiveRef.current);
       conePrimitiveRef.current = null;
     }
   };
@@ -78,14 +78,13 @@ const CesiumViewshedAnalysis: React.FC<CesiumViewshedAnalysisProps> = ({
     });
 
     // Store reference for cleanup
-    conePrimitiveRef.current = coneEntity as any;
+    conePrimitiveRef.current = coneEntity;
   };
 
   // Perform viewshed analysis
   const performViewshedAnalysis = async () => {
     if (!cesiumViewer || !cesiumInstance || !showViewshed) return;
 
-    setIsCalculating(true);
     cleanupPrimitives();
 
     try {
@@ -167,13 +166,9 @@ const CesiumViewshedAnalysis: React.FC<CesiumViewshedAnalysisProps> = ({
         createViewshedVisualization(visiblePoints);
       }
 
-      console.log(
-        `Viewshed analysis complete: ${visiblePoints.length} visible points found`
-      );
+      // Viewshed analysis complete
     } catch (error) {
       console.error("Error performing viewshed analysis:", error);
-    } finally {
-      setIsCalculating(false);
     }
   };
 
@@ -185,41 +180,56 @@ const CesiumViewshedAnalysis: React.FC<CesiumViewshedAnalysisProps> = ({
   ): Promise<boolean> => {
     try {
       // Use Cesium's sampleTerrainMostDetailed for accurate terrain sampling
-      const positions = [start, end];
+      const cartographicPositions = [
+        Cesium.Cartographic.fromCartesian(start),
+        Cesium.Cartographic.fromCartesian(end),
+      ];
       const terrainProvider = viewer.terrainProvider;
 
       if (terrainProvider && terrainProvider.availability) {
         const updatedPositions = await Cesium.sampleTerrainMostDetailed(
           terrainProvider,
-          positions
+          cartographicPositions
         );
+
+        // Convert back to Cartesian3
+        const cartesianPositions = [
+          Cesium.Cartesian3.fromRadians(
+            updatedPositions[0].longitude,
+            updatedPositions[0].latitude,
+            updatedPositions[0].height
+          ),
+          Cesium.Cartesian3.fromRadians(
+            updatedPositions[1].longitude,
+            updatedPositions[1].latitude,
+            updatedPositions[1].height
+          ),
+        ];
 
         // Check if there are any obstacles between the points
         const direction = Cesium.Cartesian3.subtract(
-          updatedPositions[1],
-          updatedPositions[0],
+          cartesianPositions[1],
+          cartesianPositions[0],
           new Cesium.Cartesian3()
         );
         const distance = Cesium.Cartesian3.magnitude(direction);
-        const normalizedDirection = Cesium.Cartesian3.normalize(
-          direction,
-          new Cesium.Cartesian3()
-        );
 
         // Sample points along the line
         const sampleCount = Math.floor(distance / 10); // Sample every 10 meters
         for (let i = 1; i < sampleCount; i++) {
           const t = i / sampleCount;
           const samplePoint = Cesium.Cartesian3.lerp(
-            updatedPositions[0],
-            updatedPositions[1],
+            cartesianPositions[0],
+            cartesianPositions[1],
             t,
             new Cesium.Cartesian3()
           );
 
           // Check if the sample point is above terrain
           const terrainHeight = await getTerrainHeight(viewer, samplePoint);
-          if (terrainHeight && samplePoint.height < terrainHeight + 2) {
+          const sampleCartographic =
+            Cesium.Cartographic.fromCartesian(samplePoint);
+          if (terrainHeight && sampleCartographic.height < terrainHeight + 2) {
             // 2m buffer
             return false; // Line of sight blocked
           }
@@ -259,43 +269,37 @@ const CesiumViewshedAnalysis: React.FC<CesiumViewshedAnalysisProps> = ({
   const createViewshedVisualization = (visiblePoints: Cesium.Cartesian3[]) => {
     if (!cesiumViewer || !cesiumInstance) return;
 
-    // Create point cloud geometry
-    const positions = new Float32Array(visiblePoints.length * 3);
+    // Create individual point entities for better control
+    const pointEntities: Cesium.Entity[] = [];
+
     for (let i = 0; i < visiblePoints.length; i++) {
       const point = visiblePoints[i];
-      positions[i * 3] = point.x;
-      positions[i * 3 + 1] = point.y;
-      positions[i * 3 + 2] = point.z;
+      const cartographic = Cesium.Cartographic.fromCartesian(point);
+
+      const pointEntity = cesiumViewer.entities.add({
+        id: `viewshed-point-${objectId}-${i}`,
+        position: Cesium.Cartesian3.fromRadians(
+          cartographic.longitude,
+          cartographic.latitude,
+          cartographic.height
+        ),
+        point: {
+          pixelSize: 3,
+          color: Cesium.Color.YELLOW.withAlpha(0.8),
+          outlineColor: Cesium.Color.YELLOW,
+          outlineWidth: 1,
+          heightReference: Cesium.HeightReference.NONE,
+        },
+      });
+
+      pointEntities.push(pointEntity);
     }
 
-    const geometry = new Cesium.Geometry({
-      attributes: {
-        position: new Cesium.GeometryAttribute({
-          componentDatatype: Cesium.ComponentDatatype.DOUBLE,
-          componentsPerAttribute: 3,
-          values: positions,
-        }),
-      },
-      primitiveType: Cesium.PrimitiveType.POINTS,
-    });
-
-    const geometryInstance = new Cesium.GeometryInstance({
-      geometry: geometry,
-      id: `viewshed-points-${objectId}`,
-    });
-
-    const viewshedPrimitive = new Cesium.Primitive({
-      geometryInstances: geometryInstance,
-      appearance: new Cesium.PointPrimitiveAppearance({
-        material: Cesium.Material.fromType("Color", {
-          color: Cesium.Color.YELLOW.withAlpha(0.8),
-        }),
-        pointSize: 3.0,
-      }),
-    });
-
-    cesiumViewer.scene.primitives.add(viewshedPrimitive);
-    viewshedPrimitiveRef.current = viewshedPrimitive;
+    // Store the first entity as reference for cleanup
+    if (pointEntities.length > 0) {
+      viewshedPrimitiveRef.current =
+        pointEntities[0] as unknown as Cesium.Primitive;
+    }
   };
 
   // Effect for cone visualization

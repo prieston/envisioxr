@@ -30,7 +30,7 @@ const CesiumAdvancedViewshedAnalysis: React.FC<
   sensorType = "cone",
   analysisQuality = "medium",
 }) => {
-  const { cesiumViewer, cesiumInstance } = useSceneStore();
+  const { cesiumViewer } = useSceneStore();
   const [isCalculating, setIsCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -196,7 +196,7 @@ const CesiumAdvancedViewshedAnalysis: React.FC<
       const quality = qualitySettings[analysisQuality];
 
       // Create sensor configuration based on type
-      let sensorConfig: any = {
+      const sensorConfig: any = {
         type: sensorType,
         position: Cesium.Cartesian3.fromDegrees(longitude, latitude, height),
         heading: heading,

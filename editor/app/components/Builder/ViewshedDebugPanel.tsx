@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Box, Typography, Paper, Button } from "@mui/material";
+import * as Cesium from "cesium";
 import useSceneStore from "../../hooks/useSceneStore";
 
 const ViewshedDebugPanel: React.FC = () => {
@@ -49,7 +50,7 @@ const ViewshedDebugPanel: React.FC = () => {
           roll: 0,
           fov: Math.PI / 4, // 45 degrees
           range: 1000,
-          color: { red: 0, green: 1, blue: 0, alpha: 0.3 },
+          color: Cesium.Color.LIME.withAlpha(0.3),
         });
 
         console.log("Test sensor created:", testSensor);

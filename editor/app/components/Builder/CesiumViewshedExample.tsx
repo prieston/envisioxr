@@ -141,7 +141,7 @@ const CesiumViewshedExample: React.FC<CesiumViewshedExampleProps> = ({
       }
 
       // Create sensor configuration
-      let sensorConfig: any = {
+      const sensorConfig: any = {
         type: sensorType,
         position: Cesium.Cartesian3.fromDegrees(longitude, latitude, height),
         heading: heading,

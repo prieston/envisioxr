@@ -9,7 +9,6 @@ import {
   CircularProgress,
   Switch,
   FormControlLabel,
-  Slider,
 } from "@mui/material";
 import { Camera, FlightTakeoff } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";

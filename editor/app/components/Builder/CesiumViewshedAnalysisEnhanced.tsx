@@ -18,7 +18,7 @@ interface CesiumViewshedAnalysisEnhancedProps {
 const CesiumViewshedAnalysisEnhanced: React.FC<
   CesiumViewshedAnalysisEnhancedProps
 > = ({ position, rotation, fov, radius, showViewshed, showCone, objectId }) => {
-  const { cesiumViewer, cesiumInstance } = useSceneStore();
+  const { cesiumViewer } = useSceneStore();
   const [isCalculating, setIsCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
