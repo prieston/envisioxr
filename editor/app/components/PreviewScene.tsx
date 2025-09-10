@@ -1,6 +1,10 @@
 "use client";
 import React from "react";
 import Scene from "../../src/components/Scene/Scene";
+import dynamic from "next/dynamic";
+import useWorldStore from "../hooks/useWorldStore";
+
+const CesiumViewer = dynamic(() => import("./CesiumViewer"), { ssr: false });
 
 interface SceneData {
   objects?: any[];
@@ -25,6 +29,7 @@ const PreviewScene = ({
   enableXR?: boolean;
   isPublishMode?: boolean;
 }) => {
+  const engine = useWorldStore((s) => s.engine);
   return (
     <div
       style={{
@@ -35,13 +40,17 @@ const PreviewScene = ({
         overflow: "hidden",
       }}
     >
-      <Scene
-        initialSceneData={initialSceneData}
-        renderObservationPoints={renderObservationPoints}
-        onSceneDataChange={onSceneDataChange}
-        enableXR={enableXR}
-        isPublishMode={isPublishMode}
-      />
+      {engine === "cesium" ? (
+        <CesiumViewer />
+      ) : (
+        <Scene
+          initialSceneData={initialSceneData}
+          renderObservationPoints={renderObservationPoints}
+          onSceneDataChange={onSceneDataChange}
+          enableXR={enableXR}
+          isPublishMode={isPublishMode}
+        />
+      )}
     </div>
   );
 };

@@ -3,6 +3,14 @@ import { create } from "zustand";
 import * as THREE from "three";
 import { v4 as uuidv4 } from "uuid";
 
+interface CesiumIonAsset {
+  id: string;
+  name: string;
+  apiKey: string;
+  assetId: string;
+  enabled: boolean;
+}
+
 interface Model {
   id: string;
   position: [number, number, number];
@@ -31,6 +39,7 @@ interface ObservationPoint {
 
 export type ViewMode =
   | "orbit"
+  | "explore"
   | "firstPerson"
   | "thirdPerson"
   | "flight"
@@ -53,10 +62,20 @@ interface SceneState {
   } | null;
   tilesRenderer: any | null;
 
+  // Cesium Ion Assets
+  cesiumIonAssets: CesiumIonAsset[];
+
+  // Cesium Viewer
+  cesiumViewer: any | null;
+  cesiumInstance: any | null;
+
+  // Cesium Basemap
+  basemapType: "cesium" | "google" | "google-photorealistic" | "none";
+
   // Environment Settings
   gridEnabled: boolean;
   ambientLightIntensity: number;
-  skyboxType: "default" | "hdri" | "gradient" | "none";
+  skyboxType: "default" | "none";
   showTiles: boolean;
   magnetEnabled: boolean;
 
@@ -81,9 +100,18 @@ interface SceneState {
   // Environment Actions
   setGridEnabled: (enabled: boolean) => void;
   setAmbientLightIntensity: (intensity: number) => void;
-  setSkyboxType: (type: "default" | "hdri" | "gradient" | "none") => void;
+  setSkyboxType: (type: "default" | "none") => void;
   setShowTiles: (show: boolean) => void;
   setMagnetEnabled: (enabled: boolean) => void;
+
+  // Cesium Viewer Actions
+  setCesiumViewer: (viewer: any) => void;
+  setCesiumInstance: (instance: any) => void;
+
+  // Cesium Basemap Actions
+  setBasemapType: (
+    type: "cesium" | "google" | "google-photorealistic" | "none"
+  ) => void;
 
   // View Mode Actions
   setViewMode: (mode: ViewMode) => void;
@@ -157,6 +185,14 @@ interface SceneState {
   // Visibility Area Calculation Actions
   startVisibilityCalculation: (objectId: string) => void;
   finishVisibilityCalculation: (objectId: string) => void;
+
+  // Cesium Ion Asset Actions
+  addCesiumIonAsset: (asset: Omit<CesiumIonAsset, "id">) => void;
+  removeCesiumIonAsset: (id: string) => void;
+  updateCesiumIonAsset: (id: string, updates: Partial<CesiumIonAsset>) => void;
+  toggleCesiumIonAsset: (id: string) => void;
+  setCesiumIonAssets: (assets: CesiumIonAsset[]) => void;
+  flyToCesiumIonAsset: (assetId: string) => void;
 }
 
 const findIntersectionPoint = (
@@ -197,6 +233,10 @@ const useSceneStore = create<SceneState>((set) => ({
   orbitControlsRef: null,
   scene: null,
   tilesRenderer: null,
+  cesiumIonAssets: [],
+  cesiumViewer: null,
+  cesiumInstance: null,
+  basemapType: "none",
 
   // Environment Settings Initial State
   gridEnabled: true,
@@ -227,6 +267,13 @@ const useSceneStore = create<SceneState>((set) => ({
   setSkyboxType: (type) => set({ skyboxType: type }),
   setShowTiles: (show) => set({ showTiles: show }),
   setMagnetEnabled: (enabled) => set({ magnetEnabled: enabled }),
+
+  // Cesium Viewer Actions
+  setCesiumViewer: (viewer) => set({ cesiumViewer: viewer }),
+  setCesiumInstance: (instance) => set({ cesiumInstance: instance }),
+
+  // Cesium Basemap Actions
+  setBasemapType: (type) => set({ basemapType: type }),
 
   // View Mode Actions
   setViewMode: (mode) => set({ viewMode: mode }),
@@ -445,6 +492,7 @@ const useSceneStore = create<SceneState>((set) => ({
       isPlaying: false,
       playbackSpeed: 1,
       tilesRenderer: null,
+      cesiumIonAssets: [],
     }),
 
   setOrbitControlsRef: (ref) => set({ orbitControlsRef: ref }),
@@ -516,6 +564,82 @@ const useSceneStore = create<SceneState>((set) => ({
   },
   finishVisibilityCalculation: (_objectId) => {
     set({ isCalculatingVisibility: false });
+  },
+
+  // Cesium Ion Asset Actions
+  addCesiumIonAsset: (asset) =>
+    set((state) => ({
+      cesiumIonAssets: [...state.cesiumIonAssets, { ...asset, id: uuidv4() }],
+    })),
+  removeCesiumIonAsset: (id) =>
+    set((state) => ({
+      cesiumIonAssets: state.cesiumIonAssets.filter((asset) => asset.id !== id),
+    })),
+  updateCesiumIonAsset: (id, updates) =>
+    set((state) => ({
+      cesiumIonAssets: state.cesiumIonAssets.map((asset) =>
+        asset.id === id ? { ...asset, ...updates } : asset
+      ),
+    })),
+  toggleCesiumIonAsset: (id) =>
+    set((state) => ({
+      cesiumIonAssets: state.cesiumIonAssets.map((asset) =>
+        asset.id === id ? { ...asset, enabled: !asset.enabled } : asset
+      ),
+    })),
+  setCesiumIonAssets: (assets) => set({ cesiumIonAssets: assets }),
+  flyToCesiumIonAsset: (assetId) => {
+    const state = useSceneStore.getState();
+    const asset = state.cesiumIonAssets.find((a) => a.id === assetId);
+    const cesiumViewer = state.cesiumViewer;
+    const cesiumInstance = state.cesiumInstance;
+
+    if (!asset || !cesiumViewer || !cesiumInstance) {
+      console.warn(
+        "Asset, Cesium viewer, or Cesium instance not available for fly-to"
+      );
+      return;
+    }
+
+    // Find the tileset in the Cesium scene primitives
+    const primitives = cesiumViewer.scene.primitives;
+    let targetTileset = null;
+
+    for (let i = 0; i < primitives.length; i++) {
+      const primitive = primitives.get(i);
+      if (
+        primitive &&
+        primitive.constructor &&
+        primitive.constructor.name === "Cesium3DTileset" &&
+        primitive.assetId === parseInt(asset.assetId)
+      ) {
+        targetTileset = primitive;
+        break;
+      }
+    }
+
+    if (!targetTileset) {
+      console.warn(
+        `[CesiumIon] Could not find tileset for asset: ${asset.name} (${asset.assetId})`
+      );
+      return;
+    }
+
+    // Use Cesium's built-in flyTo method - much simpler!
+    try {
+      cesiumViewer.flyTo(targetTileset, {
+        duration: 2.0,
+        offset: new cesiumInstance.HeadingPitchRange(0, -0.5, 1000),
+      });
+      console.log(
+        `[CesiumIon] Flying to asset: ${asset.name} (${asset.assetId})`
+      );
+    } catch (error) {
+      console.error(
+        `[CesiumIon] Error flying to asset: ${asset.name} (${asset.assetId}):`,
+        error
+      );
+    }
   },
 }));
 

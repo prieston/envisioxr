@@ -13,7 +13,9 @@ import {
 } from "@mui/material";
 import { Camera, FlightTakeoff } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
+import useWorldStore from "../../hooks/useWorldStore";
 import * as THREE from "three";
+import * as Cesium from "cesium";
 import useSWR from "swr";
 import { localToGeographic } from "../../utils/coordinateUtils";
 
@@ -252,30 +254,62 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   };
 
   const handleFlyToObject = () => {
-    if (selectedObject?.ref && orbitControlsRef) {
-      // Get the object's position and bounding box
-      const targetPosition = selectedObject.ref.position.clone();
-      const boundingBox = new THREE.Box3().setFromObject(selectedObject.ref);
-      const size = new THREE.Vector3();
-      boundingBox.getSize(size);
+    const { engine } = useWorldStore.getState();
 
-      // Calculate a dynamic offset based on the object's size
-      const maxDimension = Math.max(size.x, size.y, size.z);
-      const distance = Math.max(maxDimension * 2, 10); // At least 10 units away
-      const offset = new THREE.Vector3(
-        distance,
-        distance * 0.6, // Slightly lower than the distance
-        distance
-      );
+    if (engine === "cesium") {
+      // Cesium fly-to logic
+      const { cesiumViewer } = useSceneStore.getState();
+      if (cesiumViewer && selectedObject?.position) {
+        const [longitude, latitude, height] = selectedObject.position;
 
-      // Set the camera position
-      orbitControlsRef.object.position.copy(targetPosition).add(offset);
+        // Fly to the model position
+        cesiumViewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(
+            longitude,
+            latitude,
+            height + 100
+          ), // Add some height for better view
+          orientation: {
+            heading: 0.0,
+            pitch: -Math.PI / 4, // Look down at 45 degrees
+            roll: 0.0,
+          },
+          duration: 2.0, // 2 second flight
+        });
 
-      // Set the orbit controls target to the object
-      orbitControlsRef.target.copy(targetPosition);
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `[PropertiesPanel] Flying to Cesium model at: ${longitude}, ${latitude}, ${height}`
+          );
+        }
+      }
+    } else {
+      // Three.js fly-to logic
+      if (selectedObject?.ref && orbitControlsRef) {
+        // Get the object's position and bounding box
+        const targetPosition = selectedObject.ref.position.clone();
+        const boundingBox = new THREE.Box3().setFromObject(selectedObject.ref);
+        const size = new THREE.Vector3();
+        boundingBox.getSize(size);
 
-      // Update the controls
-      orbitControlsRef.update();
+        // Calculate a dynamic offset based on the object's size
+        const maxDimension = Math.max(size.x, size.y, size.z);
+        const distance = Math.max(maxDimension * 2, 10); // At least 10 units away
+        const offset = new THREE.Vector3(
+          distance,
+          distance * 0.6, // Slightly lower than the distance
+          distance
+        );
+
+        // Set the camera position
+        orbitControlsRef.object.position.copy(targetPosition).add(offset);
+
+        // Set the orbit controls target to the object
+        orbitControlsRef.target.copy(targetPosition);
+
+        // Update the controls
+        orbitControlsRef.update();
+      }
     }
   };
 

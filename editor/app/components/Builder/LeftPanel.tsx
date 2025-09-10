@@ -14,7 +14,6 @@ import {
   Button,
   Menu,
   MenuItem,
-  Typography,
   Tabs,
   Tab,
 } from "@mui/material";
@@ -111,13 +110,6 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
-const PanelTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "1rem",
-  fontWeight: 500,
-  marginBottom: theme.spacing(2),
-  color: theme.palette.text.primary,
-}));
-
 const TabPanel = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
   height: "calc(100% - 48px)", // 48px is the height of the tabs
@@ -207,7 +199,6 @@ const LeftPanel = () => {
       {/* Assets Tab */}
       {activeTab === 0 && (
         <TabPanel>
-          <PanelTitle>Scene Objects</PanelTitle>
           <StyledList>
             {objects.map((object) => (
               <ObjectListItem
