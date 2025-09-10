@@ -9,7 +9,7 @@ import CesiumCameraCaptureHandler from "./Builder/CesiumCameraCaptureHandler";
 import CesiumObservationPointHandler from "./Builder/CesiumObservationPointHandler";
 import CesiumCameraSpringController from "./Builder/CesiumCameraSpringController";
 import CesiumPreviewModeController from "./Builder/CesiumPreviewModeController";
-import CesiumViewshedAnalysis from "./Builder/CesiumViewshedAnalysis";
+import CesiumSDKViewshedAnalysis from "./Builder/CesiumSDKViewshedAnalysis";
 
 // Extend Window interface for Cesium
 declare global {
@@ -21,7 +21,6 @@ declare global {
 // Set Cesium base URL immediately when module loads
 if (typeof window !== "undefined") {
   window.CESIUM_BASE_URL = "/cesium/";
-  console.log("[CesiumViewer] Set CESIUM_BASE_URL to:", window.CESIUM_BASE_URL);
 }
 
 // Utility function to apply basemap type
@@ -48,15 +47,6 @@ const applyBasemapType = async (
         // This is the only basemap-related tileset we manage
         if (primitive.assetId === 2275207) {
           primitives.remove(primitive);
-          console.log(
-            "[CesiumViewer] Removed basemap tileset:",
-            primitive.assetId
-          );
-        } else {
-          console.log(
-            "[CesiumViewer] Preserved custom asset:",
-            primitive.assetId || "unknown"
-          );
         }
       }
     }
@@ -107,10 +97,6 @@ const applyBasemapType = async (
           // Set the assetId property for easy identification
           tileset.assetId = 2275207;
           viewer.scene.primitives.add(tileset);
-          console.log(
-            "[CesiumViewer] Added Google Photorealistic tileset with assetId:",
-            tileset.assetId
-          );
         } catch (error) {
           console.error("Error setting Google Photorealistic:", error);
           viewer.imageryLayers.addImageryProvider(
@@ -153,9 +139,6 @@ export default function CesiumViewer() {
         // Clean up any primitives that may have been added
         viewerRef.current.entities.removeAll();
         viewerRef.current.scene.primitives.removeAll();
-        console.log(
-          `[CesiumViewer ${instanceId.current}] Cleaned up primitives`
-        );
       } catch (error) {
         console.warn(
           `[CesiumViewer ${instanceId.current}] Error during cleanup:`,
@@ -166,10 +149,8 @@ export default function CesiumViewer() {
   };
 
   useEffect(() => {
-    console.log(`[CesiumViewer ${instanceId.current}] Initializing...`);
-
     if (!containerRef.current || viewerRef.current || isInitializing.current) {
-      console.log(
+      console.warn(
         `[CesiumViewer ${instanceId.current}] Skipping initialization - container, viewer exists, or already initializing`
       );
       return;
@@ -179,9 +160,6 @@ export default function CesiumViewer() {
 
     const initializeCesium = async () => {
       try {
-        console.log(
-          `[CesiumViewer ${instanceId.current}] Starting Cesium initialization...`
-        );
         setIsLoading(true);
         setError(null);
 
@@ -191,9 +169,6 @@ export default function CesiumViewer() {
           Cesium = await import("cesium");
           cesiumRef.current = Cesium;
           setCesiumInstance(Cesium);
-          console.log(
-            `[CesiumViewer ${instanceId.current}] Cesium imported successfully`
-          );
         } catch (importError) {
           console.error(
             `[CesiumViewer ${instanceId.current}] Failed to import Cesium:`,
@@ -220,15 +195,8 @@ export default function CesiumViewer() {
           );
         }
         Cesium.Ion.defaultAccessToken = ionToken || "";
-        console.log(
-          `[CesiumViewer ${instanceId.current}] Cesium Ion token set:`,
-          !!Cesium.Ion.defaultAccessToken
-        );
 
         const { Viewer } = Cesium;
-        console.log(
-          `[CesiumViewer ${instanceId.current}] Creating Cesium Viewer...`
-        );
 
         // Create viewer with optimized configuration
         viewerRef.current = new Viewer(containerRef.current, {
@@ -255,10 +223,6 @@ export default function CesiumViewer() {
           creditViewport: undefined,
         });
 
-        console.log(
-          `[CesiumViewer ${instanceId.current}] Cesium Viewer created successfully`
-        );
-
         // Store viewer reference in the store
         setCesiumViewer(viewerRef.current);
 
@@ -284,26 +248,17 @@ export default function CesiumViewer() {
 
         // Apply saved basemap type if it's not the default
         if (basemapType && basemapType !== "cesium") {
-          console.log(
-            `[CesiumViewer ${instanceId.current}] Applying saved basemap: ${basemapType}`
-          );
           // Apply the basemap change using the same logic as the basemap selector
           applyBasemapType(viewerRef.current, Cesium, basemapType);
         }
 
         // Set terrain provider after viewer creation with error handling
         try {
-          console.log(
-            `[CesiumViewer ${instanceId.current}] Loading world terrain...`
-          );
           const terrainProvider = await Cesium.createWorldTerrainAsync({
             requestWaterMask: true,
             requestVertexNormals: true,
           });
           viewerRef.current.terrainProvider = terrainProvider;
-          console.log(
-            `[CesiumViewer ${instanceId.current}] World terrain loaded successfully`
-          );
         } catch (terrainError) {
           console.warn(
             `[CesiumViewer ${instanceId.current}] Failed to load world terrain:`,
@@ -345,9 +300,6 @@ export default function CesiumViewer() {
         }
 
         setIsLoading(false);
-        console.log(
-          `[CesiumViewer ${instanceId.current}] Initialization complete`
-        );
       } catch (err) {
         console.error(
           `[CesiumViewer ${instanceId.current}] Failed to initialize Cesium:`,
@@ -365,7 +317,6 @@ export default function CesiumViewer() {
     initializeCesium();
 
     return () => {
-      console.log(`[CesiumViewer ${instanceId.current}] Cleaning up...`);
       cleanupPrimitives();
       if (viewerRef.current) {
         try {
@@ -391,21 +342,10 @@ export default function CesiumViewer() {
     if (!viewer || !Cesium || isLoading) return;
 
     try {
-      console.log(`[CesiumViewer ${instanceId.current}] Rendering entities...`);
-      console.log(
-        `[CesiumViewer ${instanceId.current}] Objects count: ${objects.length}`
-      );
-      if (objects.length > 0) {
-        console.log(`[CesiumViewer ${instanceId.current}] Objects:`, objects);
-      }
       viewer.entities.removeAll();
 
       // Add test data if no objects exist
       if (objects.length === 0) {
-        console.log(
-          `[CesiumViewer ${instanceId.current}] Adding test entities...`
-        );
-
         // Add a test point at a known location (New York City)
         viewer.entities.add({
           position: Cesium.Cartesian3.fromDegrees(-74.006, 40.7128, 100),
@@ -450,26 +390,8 @@ export default function CesiumViewer() {
         objects.forEach((obj) => {
           const [x = 0, y = 0, z = 0] = obj.position || [];
 
-          if (process.env.NODE_ENV === "development") {
-            console.log(
-              `[CesiumViewer] 🔍 Processing object: ${obj.name || "unnamed"}`
-            );
-            console.log(`[CesiumViewer]   Position: [${x}, ${y}, ${z}]`);
-            console.log(`[CesiumViewer]   URL: ${obj.url || "none"}`);
-            console.log(`[CesiumViewer]   Type: ${obj.type || "none"}`);
-            console.log(`[CesiumViewer]   Has position: ${!!obj.position}`);
-            console.log(
-              `[CesiumViewer]   Position length: ${obj.position?.length || 0}`
-            );
-          }
-
           // Skip objects without positions
           if (!obj.position || obj.position.length !== 3) {
-            if (process.env.NODE_ENV === "development") {
-              console.log(
-                `[CesiumViewer] Skipping object ${obj.name} - no valid position`
-              );
-            }
             return;
           }
 
@@ -490,11 +412,6 @@ export default function CesiumViewer() {
             longitude = x;
             latitude = y;
             height = z;
-            if (process.env.NODE_ENV === "development") {
-              console.log(
-                `[CesiumViewer] Using geographic coordinates: ${longitude}, ${latitude}, ${height}`
-              );
-            }
           } else {
             // These are local coordinates (from Three.js placement) - convert to geographic
             // Use a more accurate conversion method
@@ -511,12 +428,6 @@ export default function CesiumViewer() {
             longitude = referenceLon + lonOffset;
             latitude = referenceLat + latOffset;
             height = z; // Use z directly as height
-
-            if (process.env.NODE_ENV === "development") {
-              console.log(
-                `[CesiumViewer] Converted local to geographic: ${x},${y},${z} -> ${longitude}, ${latitude}, ${height}`
-              );
-            }
           }
 
           // Check if this is a 3D model file (not tiles)
@@ -535,24 +446,8 @@ export default function CesiumViewer() {
               obj.url.toLowerCase().includes(".dae"));
 
           if (isModelFile) {
-            // Render 3D models
-            if (process.env.NODE_ENV === "development") {
-              console.log(`[CesiumViewer] === MODEL LOADING DEBUG ===`);
-              console.log(`[CesiumViewer] Model name: ${obj.name}`);
-              console.log(`[CesiumViewer] Model URL: ${obj.url}`);
-              console.log(`[CesiumViewer] Model type: ${obj.type}`);
-              console.log(`[CesiumViewer] Model scale: ${obj.scale}`);
-              console.log(
-                `[CesiumViewer] Model position: [${longitude}, ${latitude}, ${height}]`
-              );
-              console.log(
-                `[CesiumViewer] Is geographic coordinates: ${isGeographic}`
-              );
-              console.log(`[CesiumViewer] ================================`);
-            }
-
             try {
-              const entity = viewer.entities.add({
+              viewer.entities.add({
                 position: Cesium.Cartesian3.fromDegrees(
                   longitude,
                   latitude,
@@ -567,6 +462,13 @@ export default function CesiumViewer() {
                   roll: 0.0,
                   // Use absolute height for precise positioning
                   // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                  // Ensure GLB models are always visible and not hidden by other entities
+                  distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+                    0.0,
+                    Number.MAX_VALUE
+                  ),
+                  // Add proper depth testing to prevent hiding
+                  disableDepthTestDistance: Number.POSITIVE_INFINITY,
                 },
                 label: {
                   text: obj.name || "Model",
@@ -578,20 +480,6 @@ export default function CesiumViewer() {
                   pixelOffset: new Cesium.Cartesian2(0, -30),
                 },
               });
-
-              if (process.env.NODE_ENV === "development") {
-                console.log(`[CesiumViewer] ✅ SUCCESS: Model entity created`);
-                console.log(`[CesiumViewer] Entity ID: ${entity.id}`);
-                console.log(
-                  `[CesiumViewer] Entity position: ${entity.position?.getValue()}`
-                );
-                console.log(
-                  `[CesiumViewer] Entity model URI: ${entity.model?.uri?.getValue()}`
-                );
-                console.log(
-                  `[CesiumViewer] Expected position: [${longitude}, ${latitude}, ${height}]`
-                );
-              }
             } catch (error) {
               console.error(
                 `[CesiumViewer] ❌ FAILED to load model ${obj.name}:`,
@@ -656,10 +544,6 @@ export default function CesiumViewer() {
           }
         });
       }
-      const totalEntities = objects.length === 0 ? 2 : objects.length;
-      console.log(
-        `[CesiumViewer ${instanceId.current}] Rendered ${totalEntities} entities`
-      );
     } catch (err) {
       console.error(
         `[CesiumViewer ${instanceId.current}] Error rendering entities:`,
@@ -762,22 +646,40 @@ export default function CesiumViewer() {
             .map((obj) => {
               const [longitude, latitude, height] = obj.position || [0, 0, 0];
               const [heading, pitch, roll] = obj.rotation || [0, 0, 0];
-              const fov = obj.observationProperties?.fov || 90;
-              const radius = obj.observationProperties?.visibilityRadius || 100;
-              const showViewshed =
-                obj.observationProperties?.showCalculatedArea || false;
-              const showCone =
-                obj.observationProperties?.showVisibleArea || false;
+
+              // Use the new observation properties structure with better defaults
+              const observationProps = {
+                sensorType: obj.observationProperties?.sensorType || "cone",
+                fov: obj.observationProperties?.fov || 60,
+                fovH: obj.observationProperties?.fovH,
+                fovV: obj.observationProperties?.fovV,
+                maxPolar: obj.observationProperties?.maxPolar,
+                visibilityRadius:
+                  obj.observationProperties?.visibilityRadius || 500,
+                showSensorGeometry:
+                  obj.observationProperties?.showSensorGeometry ?? true, // Default to true
+                showViewshed: obj.observationProperties?.showViewshed || false,
+                sensorColor:
+                  obj.observationProperties?.sensorColor || "#00ff00",
+                viewshedColor:
+                  obj.observationProperties?.viewshedColor || "#0080ff",
+                analysisQuality:
+                  obj.observationProperties?.analysisQuality || "medium",
+                raysAzimuth: obj.observationProperties?.raysAzimuth || 120,
+                raysElevation: obj.observationProperties?.raysElevation || 8,
+                clearance: obj.observationProperties?.clearance || 2.0,
+                stepCount: obj.observationProperties?.stepCount || 64,
+                enableTransformEditor:
+                  obj.observationProperties?.enableTransformEditor ?? true, // Default to true
+                gizmoMode: obj.observationProperties?.gizmoMode || "translate", // Default to translate
+              };
 
               return (
-                <CesiumViewshedAnalysis
+                <CesiumSDKViewshedAnalysis
                   key={`viewshed-${obj.id}`}
                   position={[longitude, latitude, height]}
                   rotation={[heading, pitch, roll]}
-                  fov={fov}
-                  radius={radius}
-                  showViewshed={showViewshed}
-                  showCone={showCone}
+                  observationProperties={observationProps}
                   objectId={obj.id}
                 />
               );

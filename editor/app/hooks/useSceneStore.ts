@@ -340,22 +340,84 @@ const useSceneStore = create<SceneState>((set) => ({
 
   updateObjectProperty: (id, property, value) => {
     set((state) => {
-      const updatedObjects = state.objects.map((obj) =>
-        obj.id === id
-          ? {
+      const updatedObjects = state.objects.map((obj) => {
+        if (obj.id === id) {
+          // Handle nested property updates
+          if (property.includes(".")) {
+            const [parent, child] = property.split(".");
+
+            // Special handling for observation properties initialization
+            if (
+              parent === "observationProperties" &&
+              !obj.observationProperties
+            ) {
+              // Initialize observation properties with SDK defaults
+              return {
+                ...obj,
+                observationProperties: {
+                  sensorType: "cone",
+                  fov: 60, // More reasonable default FOV
+                  visibilityRadius: 500, // More reasonable default range
+                  showSensorGeometry: true,
+                  showViewshed: false,
+                  analysisQuality: "medium",
+                  enableTransformEditor: true,
+                  sensorColor: "#00ff00",
+                  viewshedColor: "#0080ff",
+                  clearance: 2.0,
+                  raysAzimuth: 120, // Set default values for better performance
+                  raysElevation: 8,
+                  stepCount: 64,
+                  [child]: value,
+                },
+              };
+            }
+
+            return {
+              ...obj,
+              [parent]: {
+                ...obj[parent],
+                [child]: value,
+              },
+            };
+          }
+
+          // Special handling for isObservationModel toggle
+          if (
+            property === "isObservationModel" &&
+            value === true &&
+            !obj.observationProperties
+          ) {
+            return {
               ...obj,
               [property]: value,
-            }
-          : obj
-      );
+              observationProperties: {
+                sensorType: "cone",
+                fov: 60, // More reasonable default FOV
+                visibilityRadius: 500, // More reasonable default range
+                showSensorGeometry: true,
+                showViewshed: false,
+                analysisQuality: "medium",
+                enableTransformEditor: true,
+                sensorColor: "#00ff00",
+                viewshedColor: "#0080ff",
+                clearance: 2.0,
+                raysAzimuth: 120, // Set default values for better performance
+                raysElevation: 8,
+                stepCount: 64,
+              },
+            };
+          }
+
+          return { ...obj, [property]: value };
+        }
+        return obj;
+      });
 
       // Also update selectedObject if it matches the id
       const updatedSelectedObject =
         state.selectedObject?.id === id
-          ? {
-              ...state.selectedObject,
-              [property]: value,
-            }
+          ? updatedObjects.find((obj) => obj.id === id)
           : state.selectedObject;
 
       return {

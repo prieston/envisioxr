@@ -11,9 +11,29 @@ export interface Model {
   component?: string;
   isObservationModel?: boolean;
   observationProperties?: {
+    // Sensor Configuration
+    sensorType: "cone" | "rectangle" | "dome" | "custom";
     fov: number; // Field of view in degrees (10-360)
-    showVisibleArea: boolean;
+    fovH?: number; // Horizontal FOV for rectangle sensors
+    fovV?: number; // Vertical FOV for rectangle sensors
+    maxPolar?: number; // Max polar angle for dome sensors (degrees)
     visibilityRadius: number; // Radius in meters
+
+    // Visualization Options
+    showSensorGeometry: boolean; // Show the sensor cone/rectangle/dome
+    showViewshed: boolean; // Show calculated viewshed polygon
+    sensorColor?: string; // Color for sensor geometry
+    viewshedColor?: string; // Color for viewshed polygon
+
+    // Analysis Options
+    analysisQuality: "low" | "medium" | "high";
+    raysAzimuth?: number; // Number of azimuth samples
+    raysElevation?: number; // Number of elevation slices
+    clearance?: number; // Clearance above terrain (meters)
+    stepCount?: number; // Samples per ray
+
+    // Transform Editor
+    enableTransformEditor: boolean; // Enable gizmo for sensor manipulation
   };
   [key: string]: any; // For any additional properties
 }

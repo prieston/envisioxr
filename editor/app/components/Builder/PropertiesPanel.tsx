@@ -18,6 +18,7 @@ import * as THREE from "three";
 import * as Cesium from "cesium";
 import useSWR from "swr";
 import { localToGeographic } from "../../utils/coordinateUtils";
+import SDKObservationPropertiesPanel from "./SDKObservationPropertiesPanel";
 
 // Types for props
 // You may want to import these from your types file
@@ -412,13 +413,24 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               control={
                 <Switch
                   checked={selectedObject.isObservationModel || false}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     updateObjectProperty(
                       selectedObject.id,
                       "isObservationModel",
                       e.target.checked
-                    )
-                  }
+                    );
+                    // If enabling observation model and no properties exist, initialize them
+                    if (
+                      e.target.checked &&
+                      !selectedObject.observationProperties
+                    ) {
+                      updateObjectProperty(
+                        selectedObject.id,
+                        "observationProperties.sensorType",
+                        "cone"
+                      );
+                    }
+                  }}
                 />
               }
               label="Observation Model"
@@ -437,115 +449,16 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         </PropertyGroup>
 
         {selectedObject.isObservationModel && (
-          <PropertyGroup>
-            <Typography variant="subtitle1" gutterBottom>
-              Observation Properties
-            </Typography>
-            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Field of View (degrees)
-                </Typography>
-                <Slider
-                  value={selectedObject.observationProperties?.fov || 90}
-                  min={10}
-                  max={360}
-                  onChange={(_, value) =>
-                    handlePropertyChange(
-                      "observationProperties.fov",
-                      value as number
-                    )
-                  }
-                  valueLabelDisplay="auto"
-                />
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Visibility Radius (meters)
-                </Typography>
-                <Slider
-                  value={
-                    selectedObject.observationProperties?.visibilityRadius ||
-                    100
-                  }
-                  min={10}
-                  max={1000}
-                  onChange={(_, value) =>
-                    handlePropertyChange(
-                      "observationProperties.visibilityRadius",
-                      value as number
-                    )
-                  }
-                  valueLabelDisplay="auto"
-                />
-              </Box>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={
-                      selectedObject.observationProperties?.showVisibleArea ||
-                      false
-                    }
-                    onChange={(e) =>
-                      handlePropertyChange(
-                        "observationProperties.showVisibleArea",
-                        e.target.checked
-                      )
-                    }
-                  />
-                }
-                label="Show Cone"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={
-                      selectedObject.observationProperties
-                        ?.showCalculatedArea || false
-                    }
-                    onChange={(e) => {
-                      handlePropertyChange(
-                        "observationProperties.showCalculatedArea",
-                        e.target.checked
-                      );
-                    }}
-                  />
-                }
-                label="Show Calculated Area"
-              />
-              <Box sx={{ mb: 2, mt: 2 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Grid Density (points per side)
-                </Typography>
-                <Slider
-                  value={
-                    selectedObject.observationProperties?.gridDensity || 10
-                  }
-                  min={5}
-                  max={100}
-                  onChange={(_, value) =>
-                    handlePropertyChange(
-                      "observationProperties.gridDensity",
-                      value as number
-                    )
-                  }
-                  valueLabelDisplay="auto"
-                />
-              </Box>
-              <Button
-                variant="contained"
-                fullWidth
-                sx={{ mt: 1 }}
-                onClick={() => {
-                  useSceneStore
-                    .getState()
-                    .startVisibilityCalculation(selectedObject.id);
-                }}
-              >
-                Calculate Visible Area
-              </Button>
-            </Paper>
-          </PropertyGroup>
+          <SDKObservationPropertiesPanel
+            selectedObject={selectedObject}
+            onPropertyChange={handlePropertyChange}
+            onCalculateViewshed={() => {
+              useSceneStore
+                .getState()
+                .startVisibilityCalculation(selectedObject.id);
+            }}
+            isCalculating={useSceneStore.getState().isCalculatingVisibility}
+          />
         )}
 
         <PropertyGroup>
