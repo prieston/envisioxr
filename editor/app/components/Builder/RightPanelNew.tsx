@@ -6,6 +6,7 @@ import { Box, Tabs, Tab } from "@mui/material";
 import { useDropzone } from "react-dropzone";
 import { showToast } from "@/app/utils/toastUtils";
 import * as THREE from "three";
+import * as Cesium from "cesium";
 
 import { clientEnv } from "@/lib/env/client";
 import useSceneStore from "../../hooks/useSceneStore";
@@ -127,191 +128,82 @@ const RightPanelNew: React.FC = () => {
   // Handle position selection mode
   useEffect(() => {
     if (!selectingPosition) return;
+    if (viewMode === "firstPerson") return;
 
-    // Don't interfere with first-person mode
-    if (viewMode === "firstPerson") {
-      console.log(
-        "[RightPanel] Skipping position selection - first-person mode active"
-      );
-      return;
-    }
+    const { cesiumViewer } = useSceneStore.getState();
 
-    const handleClick = (event) => {
-      if (engine === "three") {
-        // Three.js position selection using raycasting
-        if (!orbitControlsRef || !scene) return;
+    // THREE.JS BRANCH (DOM listener on renderer canvas)
+    if (engine === "three") {
+      const canvas: HTMLCanvasElement =
+        // if you keep a renderer ref, use it here instead of querySelector
+        ((scene as any)?.renderer?.domElement as HTMLCanvasElement) ||
+        (document.querySelector("canvas") as HTMLCanvasElement);
 
-        const rect = event.target.getBoundingClientRect();
-        const mouse = new THREE.Vector2();
-        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      if (!canvas || !orbitControlsRef || !scene) return;
 
-        // Update the raycaster
+      const handleClick = (event: MouseEvent) => {
+        const rect = (event.target as HTMLElement).getBoundingClientRect();
+        const mouse = new THREE.Vector2(
+          ((event.clientX - rect.left) / rect.width) * 2 - 1,
+          -((event.clientY - rect.top) / rect.height) * 2 + 1
+        );
         const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(mouse, orbitControlsRef.object);
+        raycaster.setFromCamera(mouse, (orbitControlsRef as any).object);
 
-        // Get all objects in the scene
-        const allObjects = [];
-        scene.traverse((object) => {
-          if ((object as THREE.Mesh).isMesh) {
-            allObjects.push(object);
-          }
-        });
+        const all: THREE.Object3D[] = [];
+        scene.traverse((o) => ((o as THREE.Mesh).isMesh ? all.push(o) : null));
+        const hits = raycaster.intersectObjects(all, true);
 
-        // Find intersections with all objects
-        const intersects = raycaster.intersectObjects(allObjects, true);
-
-        if (intersects.length > 0) {
-          const hitPoint = intersects[0].point;
-          setSelectedPosition([hitPoint.x, hitPoint.y, hitPoint.z]);
-          setSelectingPosition(false);
-          showToast("Position selected!");
+        if (hits.length > 0) {
+          const p = hits[0].point;
+          setSelectedPosition([p.x, p.y, p.z]);
+          showToast("Position set!");
         } else {
           showToast("No surface detected at click point");
         }
-      } else if (engine === "cesium") {
-        // Enhanced Cesium position selection using advanced positioning utility
-        const { cesiumViewer } = useSceneStore.getState();
-        if (!cesiumViewer) return;
+      };
 
-        // Get canvas-relative coordinates instead of screen coordinates
-        const canvas = event.target as HTMLCanvasElement;
-        const rect = canvas.getBoundingClientRect();
-        const canvasX = event.clientX - rect.left;
-        const canvasY = event.clientY - rect.top;
+      canvas.addEventListener("click", handleClick);
+      const prev = canvas.style.cursor;
+      canvas.style.cursor = "crosshair";
 
-        const positioningResult = getPositionAtScreenPoint(
-          cesiumViewer,
-          canvasX,
-          canvasY,
-          {
-            prefer3DTiles: true,
-            preferTerrain: true,
-            maxTerrainDistance: 1000,
-            fallbackToEllipsoid: true,
-          }
-        );
+      return () => {
+        canvas.removeEventListener("click", handleClick);
+        canvas.style.cursor = prev || "auto";
+      };
+    }
 
-        if (positioningResult) {
-          const [longitude, latitude, height] = positioningResult.position;
+    // CESIUM BRANCH (ScreenSpaceEventHandler on Cesium canvas)
+    if (engine === "cesium" && cesiumViewer) {
+      const handler = new Cesium.ScreenSpaceEventHandler(cesiumViewer.canvas);
 
-          if (process.env.NODE_ENV === "development") {
-            console.log(
-              `[RightPanel] Picked position at ${longitude}, ${latitude}, ${height} (${positioningResult.surfaceType}, ${positioningResult.accuracy} accuracy)`
-            );
-          }
+      handler.setInputAction((movement: any) => {
+        const pos = movement.position; // window coords
+        const res = getPositionAtScreenPoint(cesiumViewer, pos.x, pos.y, {
+          prefer3DTiles: true,
+          preferTerrain: true,
+          maxTerrainDistance: 5000,
+          fallbackToEllipsoid: true,
+        });
 
-          // Store geographic coordinates for Cesium
-          setSelectedPosition([longitude, latitude, height]);
-          setSelectingPosition(false);
-          showToast(
-            `Position selected on ${positioningResult.surfaceType} (${positioningResult.accuracy} accuracy)!`
-          );
+        if (res) {
+          const [lon, lat, h] = res.position;
+          setSelectedPosition([lon, lat, h]);
+          showToast(`Position set on ${res.surfaceType} (${res.accuracy})`);
         } else {
           showToast("No surface detected at click point");
         }
-      }
-    };
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-    const canvas = document.querySelector("canvas");
-    if (canvas) {
-      canvas.addEventListener("click", handleClick);
-      canvas.style.cursor = "crosshair";
-    } else {
-      console.log("Canvas element not found");
+      const prev = cesiumViewer.canvas.style.cursor;
+      cesiumViewer.canvas.style.cursor = "crosshair";
+
+      return () => {
+        handler.destroy();
+        cesiumViewer.canvas.style.cursor = prev || "auto";
+      };
     }
-
-    return () => {
-      if (canvas) {
-        canvas.removeEventListener("click", handleClick);
-        canvas.style.cursor = "auto";
-      }
-    };
-  }, [selectingPosition, orbitControlsRef, scene, engine, viewMode]);
-
-  // Add a new effect to handle position updates after initial selection
-  useEffect(() => {
-    if (!selectedPosition) return;
-
-    const handleClick = (event) => {
-      if (engine === "three") {
-        // Three.js position updates
-        if (!orbitControlsRef || !scene) return;
-
-        const rect = event.target.getBoundingClientRect();
-        const mouse = new THREE.Vector2();
-        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(mouse, orbitControlsRef.object);
-
-        const allObjects = [];
-        scene.traverse((object) => {
-          if ((object as THREE.Mesh).isMesh) {
-            allObjects.push(object);
-          }
-        });
-
-        const intersects = raycaster.intersectObjects(allObjects, true);
-        if (intersects.length > 0) {
-          const hitPoint = intersects[0].point;
-          setSelectedPosition([hitPoint.x, hitPoint.y, hitPoint.z]);
-          showToast("Position updated!");
-        }
-      } else if (engine === "cesium") {
-        // Enhanced Cesium position updates using advanced positioning utility
-        const { cesiumViewer } = useSceneStore.getState();
-        if (!cesiumViewer) return;
-
-        // Get canvas-relative coordinates instead of screen coordinates
-        const canvas = event.target as HTMLCanvasElement;
-        const rect = canvas.getBoundingClientRect();
-        const canvasX = event.clientX - rect.left;
-        const canvasY = event.clientY - rect.top;
-
-        const positioningResult = getPositionAtScreenPoint(
-          cesiumViewer,
-          canvasX,
-          canvasY,
-          {
-            prefer3DTiles: true,
-            preferTerrain: true,
-            maxTerrainDistance: 1000,
-            fallbackToEllipsoid: true,
-          }
-        );
-
-        if (positioningResult) {
-          const [longitude, latitude, height] = positioningResult.position;
-
-          if (process.env.NODE_ENV === "development") {
-            console.log(
-              `[RightPanel] Updated position at ${longitude}, ${latitude}, ${height} (${positioningResult.surfaceType}, ${positioningResult.accuracy} accuracy)`
-            );
-          }
-
-          setSelectedPosition([longitude, latitude, height]);
-          showToast(
-            `Position updated on ${positioningResult.surfaceType} (${positioningResult.accuracy} accuracy)!`
-          );
-        }
-      }
-    };
-
-    const canvas = document.querySelector("canvas");
-    if (canvas) {
-      canvas.addEventListener("click", handleClick);
-      canvas.style.cursor = "crosshair";
-    }
-
-    return () => {
-      if (canvas) {
-        canvas.removeEventListener("click", handleClick);
-        canvas.style.cursor = "auto";
-      }
-    };
-  }, [selectedPosition, orbitControlsRef, scene, engine]);
+  }, [selectingPosition, engine, viewMode, orbitControlsRef, scene]);
 
   const handleModelSelect = (model: any) => {
     // Store the model temporarily
