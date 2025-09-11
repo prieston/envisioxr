@@ -293,8 +293,17 @@ const useSceneStore = create<SceneState>((set) => ({
       const camera = state.orbitControlsRef?.object;
 
       let position: [number, number, number] = [0, 0, 0];
+      let coordinateSystem = "local"; // Default to local coordinates
+
       if (state.scene && camera) {
         position = findIntersectionPoint(state.scene, camera);
+      } else if (model.position) {
+        position = model.position;
+        // Determine coordinate system based on position values
+        const [x, y, z] = model.position;
+        const isGeographic =
+          x >= -180 && x <= 180 && y >= -90 && y <= 90 && Math.abs(z) < 50000;
+        coordinateSystem = isGeographic ? "geographic" : "local";
       }
 
       const newModel = {
@@ -302,12 +311,15 @@ const useSceneStore = create<SceneState>((set) => ({
         name: model.name || "",
         url: model.url || "",
         type: model.type || "model",
-        position: model.position || position,
+        position: position,
         rotation: model.rotation || [0, 0, 0],
         scale: model.scale || [1, 1, 1],
         apiKey: model.apiKey,
         assetId: model.assetId,
         material: model.material || { color: "#ffffff" },
+        coordinateSystem: coordinateSystem, // Add coordinate system metadata
+        isObservationModel: model.isObservationModel || false,
+        observationProperties: model.observationProperties,
       };
       return { objects: [...state.objects, newModel] };
     }),
@@ -328,22 +340,84 @@ const useSceneStore = create<SceneState>((set) => ({
 
   updateObjectProperty: (id, property, value) => {
     set((state) => {
-      const updatedObjects = state.objects.map((obj) =>
-        obj.id === id
-          ? {
+      const updatedObjects = state.objects.map((obj) => {
+        if (obj.id === id) {
+          // Handle nested property updates
+          if (property.includes(".")) {
+            const [parent, child] = property.split(".");
+
+            // Special handling for observation properties initialization
+            if (
+              parent === "observationProperties" &&
+              !obj.observationProperties
+            ) {
+              // Initialize observation properties with SDK defaults
+              return {
+                ...obj,
+                observationProperties: {
+                  sensorType: "cone",
+                  fov: 60, // More reasonable default FOV
+                  visibilityRadius: 500, // More reasonable default range
+                  showSensorGeometry: true,
+                  showViewshed: false,
+                  analysisQuality: "medium",
+                  enableTransformEditor: true,
+                  sensorColor: "#00ff00",
+                  viewshedColor: "#0080ff",
+                  clearance: 2.0,
+                  raysAzimuth: 120, // Set default values for better performance
+                  raysElevation: 8,
+                  stepCount: 64,
+                  [child]: value,
+                },
+              };
+            }
+
+            return {
+              ...obj,
+              [parent]: {
+                ...obj[parent],
+                [child]: value,
+              },
+            };
+          }
+
+          // Special handling for isObservationModel toggle
+          if (
+            property === "isObservationModel" &&
+            value === true &&
+            !obj.observationProperties
+          ) {
+            return {
               ...obj,
               [property]: value,
-            }
-          : obj
-      );
+              observationProperties: {
+                sensorType: "cone",
+                fov: 60, // More reasonable default FOV
+                visibilityRadius: 500, // More reasonable default range
+                showSensorGeometry: true,
+                showViewshed: false,
+                analysisQuality: "medium",
+                enableTransformEditor: true,
+                sensorColor: "#00ff00",
+                viewshedColor: "#0080ff",
+                clearance: 2.0,
+                raysAzimuth: 120, // Set default values for better performance
+                raysElevation: 8,
+                stepCount: 64,
+              },
+            };
+          }
+
+          return { ...obj, [property]: value };
+        }
+        return obj;
+      });
 
       // Also update selectedObject if it matches the id
       const updatedSelectedObject =
         state.selectedObject?.id === id
-          ? {
-              ...state.selectedObject,
-              [property]: value,
-            }
+          ? updatedObjects.find((obj) => obj.id === id)
           : state.selectedObject;
 
       return {
