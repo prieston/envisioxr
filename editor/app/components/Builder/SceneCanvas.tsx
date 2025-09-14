@@ -31,6 +31,7 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
         display: "flex",
         flexGrow: 1,
         overflow: "hidden",
+        pointerEvents: "auto", // Allow panning and interaction with the canvas
       }}
     >
       {engine === "cesium" ? (

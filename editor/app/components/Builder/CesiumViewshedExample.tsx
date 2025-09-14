@@ -227,10 +227,11 @@ const CesiumViewshedExample: React.FC<CesiumViewshedExampleProps> = ({
         position: "absolute",
         top: "10px",
         left: "10px",
-        background: "rgba(0, 0, 0, 0.8)",
-        color: "white",
+        background: "var(--color-surface-2)",
+        color: "var(--color-text-primary)",
         padding: "16px",
         borderRadius: "8px",
+        border: "1px solid var(--color-border)",
         fontSize: "14px",
         zIndex: 1000,
         minWidth: "300px",
@@ -302,7 +303,9 @@ const CesiumViewshedExample: React.FC<CesiumViewshedExampleProps> = ({
             padding: "8px",
             borderRadius: "4px",
             border: "none",
-            background: isAnalysisActive ? "#f44336" : "#4CAF50",
+            background: isAnalysisActive
+              ? "var(--color-error)"
+              : "var(--color-success)",
             color: "white",
             cursor: "pointer",
           }}
@@ -317,7 +320,9 @@ const CesiumViewshedExample: React.FC<CesiumViewshedExampleProps> = ({
             padding: "8px",
             borderRadius: "4px",
             border: "none",
-            background: isCalculating ? "#666" : "#2196F3",
+            background: isCalculating
+              ? "rgba(255,255,255,0.2)"
+              : "var(--color-info)",
             color: "white",
             cursor: isCalculating ? "not-allowed" : "pointer",
           }}
@@ -330,7 +335,7 @@ const CesiumViewshedExample: React.FC<CesiumViewshedExampleProps> = ({
       {analysisResults && (
         <div
           style={{
-            background: "rgba(255, 255, 255, 0.1)",
+            background: "rgba(255, 255, 255, 0.06)",
             padding: "8px",
             borderRadius: "4px",
             fontSize: "12px",
@@ -351,7 +356,7 @@ const CesiumViewshedExample: React.FC<CesiumViewshedExampleProps> = ({
         style={{
           marginTop: "12px",
           fontSize: "11px",
-          color: "#ccc",
+          color: "var(--color-text-secondary)",
           lineHeight: "1.4",
         }}
       >

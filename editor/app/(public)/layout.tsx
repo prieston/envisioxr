@@ -1,6 +1,4 @@
 import "@/global.css";
-import { ThemeProvider, CssBaseline } from "@mui/material";
-import theme from "../../lib/theme";
 import ClientProvider from "../../lib/ClientProvider";
 import { ToastContainer } from "react-toastify";
 
@@ -13,13 +11,17 @@ export const metadata = {
 export default function PublicLayout({ children }) {
   return (
     <html lang="en">
-      <head />
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var m=localStorage.getItem('editor-theme-mode');if(m==='dark'){document.documentElement.classList.add('dark');}else if(m==='light'){document.documentElement.classList.remove('dark');}}catch(e){}})();",
+          }}
+        />
+      </head>
       <body>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <ClientProvider>{children}</ClientProvider>
-          <ToastContainer position="bottom-right" autoClose={3000} />
-        </ThemeProvider>
+        <ClientProvider>{children}</ClientProvider>
+        <ToastContainer position="bottom-right" autoClose={3000} />
       </body>
     </html>
   );

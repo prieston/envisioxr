@@ -22,11 +22,14 @@ const ViewModeSection = styled(Box, {
 })<{ previewMode: boolean }>(({ theme, previewMode }) => ({
   display: "flex",
   flexDirection: "column",
-  gap: theme.spacing(1),
+  gap: theme.spacing(0.5),
   padding: theme.spacing(1),
-  backgroundColor: previewMode ? "rgba(0, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.6)",
-  borderRadius: theme.spacing(1),
-  backdropFilter: "blur(10px)",
+  backgroundColor: "transparent",
+  borderRadius: 0,
+  pointerEvents: previewMode ? "none" : "auto",
+  opacity: previewMode ? 0.5 : 1,
+  filter: previewMode ? "grayscale(100%)" : "none",
+  transition: "opacity 0.3s ease, filter 0.3s ease",
 }));
 
 const ViewModeRow = styled(Box)(({ theme }) => ({
@@ -36,23 +39,24 @@ const ViewModeRow = styled(Box)(({ theme }) => ({
 }));
 
 const ViewModeButton = styled(Button)(({ theme }) => ({
-  minWidth: "auto",
+  minWidth: 40,
+  height: 40,
   padding: theme.spacing(0.5),
   backgroundColor: "transparent",
-  color: theme.palette.common.white,
-  border: `1px solid rgba(255, 255, 255, 0.3)`,
-  borderRadius: theme.spacing(0.5),
+  color: "inherit",
+  border: "none",
+  borderRadius: 0,
+  boxShadow: "none",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   "&:hover": {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderColor: "rgba(255, 255, 255, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.04)",
+    color: "inherit",
   },
   "&.active": {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
-    borderColor: theme.palette.primary.main,
+    backgroundColor: "rgba(37, 99, 235, 0.12)",
+    color: "#2563eb",
     "&:hover": {
-      backgroundColor: theme.palette.primary.dark,
-      borderColor: theme.palette.primary.dark,
+      backgroundColor: "rgba(37, 99, 235, 0.16)",
     },
   },
 }));

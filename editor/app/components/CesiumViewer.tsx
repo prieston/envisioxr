@@ -198,6 +198,22 @@ export default function CesiumViewer() {
 
         const { Viewer } = Cesium;
 
+        // Ensure container has proper dimensions before Cesium initialization
+        if (containerRef.current) {
+          const container = containerRef.current;
+          const rect = container.getBoundingClientRect();
+
+          // Set explicit dimensions to prevent 300x300 default
+          if (rect.width > 0 && rect.height > 0) {
+            container.style.width = `${rect.width}px`;
+            container.style.height = `${rect.height}px`;
+          } else {
+            // Fallback to 100% if dimensions not available
+            container.style.width = "100%";
+            container.style.height = "100%";
+          }
+        }
+
         // Create viewer with optimized configuration
         viewerRef.current = new Viewer(containerRef.current, {
           // Disable all UI widgets and controls for better performance
@@ -344,48 +360,7 @@ export default function CesiumViewer() {
     try {
       viewer.entities.removeAll();
 
-      // Add test data if no objects exist
-      if (objects.length === 0) {
-        // Add a test point at a known location (New York City)
-        viewer.entities.add({
-          position: Cesium.Cartesian3.fromDegrees(-74.006, 40.7128, 100),
-          point: {
-            pixelSize: 15,
-            color: Cesium.Color.YELLOW,
-            outlineColor: Cesium.Color.WHITE,
-            outlineWidth: 2,
-          },
-          label: {
-            text: "Test Point - NYC",
-            font: "14pt sans-serif",
-            fillColor: Cesium.Color.WHITE,
-            outlineColor: Cesium.Color.BLACK,
-            outlineWidth: 2,
-            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            pixelOffset: new Cesium.Cartesian2(0, -40),
-          },
-        });
-
-        // Add another test point (London)
-        viewer.entities.add({
-          position: Cesium.Cartesian3.fromDegrees(-0.1276, 51.5074, 100),
-          point: {
-            pixelSize: 15,
-            color: Cesium.Color.CYAN,
-            outlineColor: Cesium.Color.WHITE,
-            outlineWidth: 2,
-          },
-          label: {
-            text: "Test Point - London",
-            font: "14pt sans-serif",
-            fillColor: Cesium.Color.WHITE,
-            outlineColor: Cesium.Color.BLACK,
-            outlineWidth: 2,
-            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            pixelOffset: new Cesium.Cartesian2(0, -40),
-          },
-        });
-      } else {
+      if (objects.length > 0) {
         // Render actual objects from world data
         objects.forEach((obj) => {
           const [x = 0, y = 0, z = 0] = obj.position || [];
@@ -581,6 +556,11 @@ export default function CesiumViewer() {
             canvas.style.right = "0";
             canvas.style.bottom = "0";
           }
+
+          // Force Cesium to resize immediately to prevent the 300x300 flash
+          if (viewerRef.current.cesiumWidget) {
+            viewerRef.current.cesiumWidget.resize();
+          }
         }
       };
 
@@ -590,7 +570,23 @@ export default function CesiumViewer() {
       // Also apply after a short delay to catch any dynamic elements
       const timeoutId = setTimeout(applyStyling, 100);
 
-      return () => clearTimeout(timeoutId);
+      // Set up ResizeObserver to handle container size changes
+      let resizeObserver: ResizeObserver | null = null;
+      if (containerRef.current && window.ResizeObserver) {
+        resizeObserver = new ResizeObserver(() => {
+          if (viewerRef.current?.cesiumWidget) {
+            viewerRef.current.cesiumWidget.resize();
+          }
+        });
+        resizeObserver.observe(containerRef.current);
+      }
+
+      return () => {
+        clearTimeout(timeoutId);
+        if (resizeObserver) {
+          resizeObserver.disconnect();
+        }
+      };
     }
   }, [isLoading]);
 
@@ -626,6 +622,8 @@ export default function CesiumViewer() {
           right: 0,
           bottom: 0,
           overflow: "hidden",
+          minWidth: "100%",
+          minHeight: "100%",
         }}
         ref={containerRef}
         className={isLoading ? "opacity-50" : ""}

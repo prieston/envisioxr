@@ -16,9 +16,15 @@ import { getComponent } from "./ComponentRegistry";
 
 const SettingContainer = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(2),
+  padding: theme.spacing(1.5),
   "&:last-child": {
     marginBottom: 0,
   },
+}));
+
+const CustomSettingContainer = styled(Box)(() => ({
+  display: "flex",
+  alignItems: "center",
 }));
 
 const SettingLabel = styled(Typography)(({ theme }) => ({
@@ -183,16 +189,19 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
     return null;
   }
 
+  const Container =
+    setting.type === "custom" ? CustomSettingContainer : SettingContainer;
+
   return (
-    <SettingContainer>
-      {setting.type !== "button" && (
+    <Container>
+      {setting.type !== "button" && setting.type !== "custom" && (
         <SettingLabel>{setting.label}</SettingLabel>
       )}
-      {setting.description && (
+      {setting.description && setting.type !== "custom" && (
         <SettingDescription>{setting.description}</SettingDescription>
       )}
       {renderComponent()}
-    </SettingContainer>
+    </Container>
   );
 };
 

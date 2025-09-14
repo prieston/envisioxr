@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Box, Typography, Paper, Button } from "@mui/material";
-import * as Cesium from "cesium";
+// import * as Cesium from "cesium";
 import useSceneStore from "../../hooks/useSceneStore";
 
 const ViewshedDebugPanel: React.FC = () => {
@@ -31,35 +31,6 @@ const ViewshedDebugPanel: React.FC = () => {
     }
   };
 
-  const testSensorCreation = () => {
-    if (!cesiumViewer) {
-      console.log("No CesiumViewer available");
-      return;
-    }
-
-    // Import the SDK dynamically to test
-    import("../../utils/CesiumSDK")
-      .then(({ Sensors }) => {
-        console.log("Testing sensor creation...");
-
-        const testSensor = Sensors.createCone(cesiumViewer, {
-          id: "test-sensor",
-          position: cesiumViewer.camera.position,
-          heading: 0,
-          pitch: 0,
-          roll: 0,
-          fov: Math.PI / 4, // 45 degrees
-          range: 1000,
-          color: Cesium.Color.LIME.withAlpha(0.3),
-        });
-
-        console.log("Test sensor created:", testSensor);
-      })
-      .catch((err) => {
-        console.error("Error importing SDK:", err);
-      });
-  };
-
   return (
     <Paper sx={{ p: 2, m: 2, maxWidth: 400 }}>
       <Typography variant="h6" gutterBottom>
@@ -86,9 +57,6 @@ const ViewshedDebugPanel: React.FC = () => {
       <Box sx={{ display: "flex", gap: 1, flexDirection: "column" }}>
         <Button variant="outlined" onClick={logDebugInfo}>
           Log Debug Info
-        </Button>
-        <Button variant="outlined" onClick={testSensorCreation}>
-          Test Sensor Creation
         </Button>
       </Box>
 
