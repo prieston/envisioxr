@@ -21,10 +21,10 @@ const RightPanelContainer = styled(Box, {
 })<RightPanelContainerProps>(({ theme, previewMode }) => ({
   width: "400px",
   height: "100%",
-  backgroundColor: "#121212",
+  backgroundColor: theme.palette.background.paper,
   color: theme.palette.text.primary,
   padding: theme.spacing(2),
-  borderLeft: "1px solid rgba(255, 255, 255, 0.08)",
+  borderLeft: `1px solid ${theme.palette.divider}`,
   userSelect: "none",
   pointerEvents: previewMode ? "none" : "auto",
   opacity: previewMode ? 0.5 : 1,

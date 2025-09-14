@@ -1,29 +1,55 @@
 import { styled } from "@mui/material/styles";
 import { AppBar, Toolbar, Box, Button } from "@mui/material";
 
-export const AppBarContainer = styled(AppBar)(() => ({
-  backgroundColor: "#121212",
-  backdropFilter: "blur(8px)",
-  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-  boxShadow: "none",
-  zIndex: 1200,
+export const AppBarContainer = styled(AppBar)(({ theme }) => ({
+  backgroundColor: "var(--glass-bg, rgba(255, 255, 255, 0.8)) !important",
+  backdropFilter: "blur(20px) saturate(130%) !important",
+  WebkitBackdropFilter: "blur(20px) saturate(130%) !important",
+  border: "none !important",
+  borderRadius: "var(--glass-border-radius, 16px) !important",
+  boxShadow: "var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.15)) !important",
+  zIndex: 1300,
+  position: "fixed",
+  top: "16px",
+  left: "16px",
+  right: "16px",
+  width: "calc(100% - 32px)",
+  marginBottom: "8px",
+  transform: "translateZ(0)",
+  willChange: "backdrop-filter",
+  transition: "opacity 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
+  pointerEvents: "auto", // Allow interactions with the app bar
   "& .MuiPaper-root": {
-    backgroundColor: "#121212",
-    "--Paper-overlay": "none !important",
+    backgroundColor: "transparent !important",
   },
   "&.MuiPaper-root": {
-    backgroundColor: "#121212",
-    "--Paper-overlay": "none !important",
+    backgroundColor: "transparent !important",
   },
-  "&::after": {
+  "&.MuiAppBar-root": {
+    backgroundColor: "var(--glass-bg, rgba(255, 255, 255, 0.8)) !important",
+    backdropFilter: "blur(20px) saturate(130%) !important",
+    WebkitBackdropFilter: "blur(20px) saturate(130%) !important",
+    border: "none !important",
+    borderRadius: "var(--glass-border-radius, 16px) !important",
+    boxShadow: "var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.15)) !important",
+  },
+  "&::before": {
     content: '""',
     position: "absolute",
+    top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    height: "1px",
+    borderRadius: "inherit",
     background:
-      "linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent)",
+      "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)",
+    pointerEvents: "none",
+    zIndex: -1,
+  },
+  /* Dark mode gradient overlay */
+  "html.dark &::before": {
+    background:
+      "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)",
   },
 }));
 
@@ -33,23 +59,34 @@ export const ToolbarContainer = styled(Toolbar)(() => ({
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
+  backgroundColor: "transparent !important",
+  color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95)) !important",
+  "&.MuiToolbar-root": {
+    backgroundColor: "transparent !important",
+    color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95)) !important",
+  },
+  "& .MuiPaper-root": {
+    backgroundColor: "transparent !important",
+  },
 }));
 
 export const LeftSection = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   gap: theme.spacing(1),
+  color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
 }));
 
 export const RightSection = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   gap: theme.spacing(1),
+  color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
 }));
 
 export const MinimalButton = styled(Button)(({ theme }) => ({
   backgroundColor: "transparent",
-  color: theme.palette.text.primary,
+  color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
   border: "none",
   padding: "4px 8px",
   minWidth: "64px",
@@ -64,18 +101,20 @@ export const MinimalButton = styled(Button)(({ theme }) => ({
   },
   "&:hover": {
     backgroundColor: "transparent",
-    color: theme.palette.text.primary,
+    color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
   },
   "&.Mui-disabled": {
-    color: "rgba(255, 255, 255, 0.3)",
+    color: "var(--glass-text-secondary, rgba(15, 23, 42, 0.5))",
   },
 }));
 
 export const MinimalButtonActive = styled(MinimalButton)<{ active?: boolean }>(
   ({ theme, active }) => ({
-    color: active ? theme.palette.text.primary : theme.palette.text.secondary,
+    color: active
+      ? "var(--glass-text-primary, rgba(15, 23, 42, 0.95))"
+      : "var(--glass-text-secondary, rgba(15, 23, 42, 0.7))",
     "&:hover": {
-      color: theme.palette.text.primary,
+      color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
     },
   })
 );

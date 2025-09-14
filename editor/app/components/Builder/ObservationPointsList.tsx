@@ -37,18 +37,36 @@ const ObservationCard = styled(Card)(({ theme }) => ({
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer",
-  background: "rgba(255, 255, 255, 0.05)",
-  backdropFilter: "blur(10px)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
-  transition: "all 0.2s ease",
+  borderRadius: 0,
+  marginBottom: 0,
+  marginLeft: 0,
+  marginRight: 0,
+  padding: 0,
+  backgroundColor: "transparent",
+  color: "inherit",
+  border: "none",
+  boxShadow: "none",
+  transition: "background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  position: "relative",
+  "&:not(:last-child)::after": {
+    content: '""',
+    position: "absolute",
+    right: 0,
+    top: "50%",
+    transform: "translateY(-50%)",
+    width: "1px",
+    height: "60%",
+    background:
+      "linear-gradient(to bottom, transparent, rgba(37, 99, 235, 0.2), transparent)",
+  },
   "&:hover": {
-    transform: "translateY(-2px)",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
+    color: "#2563eb",
   },
   "&.selected": {
-    border: `2px solid ${theme.palette.primary.main}`,
-    backgroundColor: "rgba(76, 95, 213, 0.1)",
+    color: "#2563eb",
+    "&:hover": {
+      color: "#2563eb",
+    },
   },
 }));
 
@@ -97,29 +115,15 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
 
   return (
     <ObservationSection previewMode={previewMode || false}>
-      {observationPoints?.map((point, index) => (
-        <ObservationCard
-          key={point.id}
-          className={
-            (previewMode && index === previewIndex) ||
-            (!previewMode && selectedObservation?.id === point.id)
-              ? "selected"
-              : ""
-          }
-          onClick={() => handleObservationClick(point, index)}
-        >
-          <CardContent>
-            <Typography variant="subtitle2" noWrap>
-              {point.title || "Untitled"}
-            </Typography>
-          </CardContent>
-        </ObservationCard>
-      ))}
       <ObservationCard
         onClick={addObservationPoint}
         sx={{
-          border: "2px dashed rgba(255, 255, 255, 0.2)",
+          border: "2px dashed rgba(37, 99, 235, 0.3)",
           backgroundColor: "transparent",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 1,
         }}
       >
         <CardContent
@@ -134,6 +138,36 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
           <Typography variant="caption">Add Point</Typography>
         </CardContent>
       </ObservationCard>
+      {observationPoints?.map((point, index) => (
+        <ObservationCard
+          key={point.id}
+          className={
+            (previewMode && index === previewIndex) ||
+            (!previewMode && selectedObservation?.id === point.id)
+              ? "selected"
+              : ""
+          }
+          onClick={() => handleObservationClick(point, index)}
+        >
+          <CardContent
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              width: "100%",
+              padding: "8px 16px",
+              "&:last-child": {
+                paddingBottom: "8px",
+              },
+            }}
+          >
+            <Typography variant="subtitle2" noWrap>
+              {point.title || "Untitled"}
+            </Typography>
+          </CardContent>
+        </ObservationCard>
+      ))}
     </ObservationSection>
   );
 };
