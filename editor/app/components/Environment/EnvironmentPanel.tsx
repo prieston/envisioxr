@@ -112,7 +112,9 @@ const EnvironmentPanel: React.FC = () => {
       // Clean up any existing 3D tileset
       if (currentTileset) {
         try {
-          cesiumViewer.scene.primitives.remove(currentTileset);
+          if (cesiumViewer && cesiumViewer.scene && cesiumViewer.scene.primitives) {
+            cesiumViewer.scene.primitives.remove(currentTileset);
+          }
           setCurrentTileset(null);
         } catch (error) {
           console.warn("Error removing existing tileset:", error);
@@ -194,7 +196,9 @@ const EnvironmentPanel: React.FC = () => {
                 await cesiumInstance.Cesium3DTileset.fromIonAssetId(2275207);
 
               // Add the tileset to the scene
-              cesiumViewer.scene.primitives.add(tileset);
+              if (cesiumViewer.scene && cesiumViewer.scene.primitives) {
+                cesiumViewer.scene.primitives.add(tileset);
+              }
               setCurrentTileset(tileset);
             } catch (error) {
               console.error("Error setting Google Photorealistic:", error);

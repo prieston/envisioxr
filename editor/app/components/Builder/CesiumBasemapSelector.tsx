@@ -60,6 +60,9 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
 
         // Remove only basemap-related Cesium3DTileset primitives (Google Photorealistic)
         // Preserve custom Cesium Ion assets
+        if (!cesiumViewer || !cesiumViewer.scene || !cesiumViewer.scene.primitives) {
+          return;
+        }
         const primitives = cesiumViewer.scene.primitives;
         for (let i = primitives.length - 1; i >= 0; i--) {
           const primitive = primitives.get(i);
@@ -142,7 +145,9 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
               tileset.assetId = 2275207;
 
               // Add the tileset to the scene
-              cesiumViewer.scene.primitives.add(tileset);
+              if (cesiumViewer.scene && cesiumViewer.scene.primitives) {
+                cesiumViewer.scene.primitives.add(tileset);
+              }
               // Added Google Photorealistic tileset with assetId: tileset.assetId
             } catch (error) {
               // Error setting Google Photorealistic: error
