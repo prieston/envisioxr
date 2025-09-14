@@ -11,7 +11,45 @@ import {
 const ControlSection = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
-  gap: theme.spacing(1),
+  gap: theme.spacing(0.5),
+}));
+
+const StyledIconButton = styled(IconButton)(({ theme }) => ({
+  minWidth: 40,
+  height: 40,
+  borderRadius: 0,
+  backgroundColor: "transparent",
+  color: "inherit",
+  border: "none",
+  boxShadow: "none",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  position: "relative",
+  "&:hover": {
+    backgroundColor: "rgba(0, 0, 0, 0.04)",
+    color: "inherit",
+  },
+  "&.active": {
+    backgroundColor: "rgba(37, 99, 235, 0.12)",
+    color: "#2563eb",
+  },
+  "&:disabled": {
+    backgroundColor: "transparent",
+    color: "rgba(255, 255, 255, 0.3)",
+    "&:hover": {
+      backgroundColor: "transparent",
+    },
+  },
+  "&:not(:last-child)::after": {
+    content: '""',
+    position: "absolute",
+    right: -4,
+    top: "50%",
+    transform: "translateY(-50%)",
+    width: "1px",
+    height: "60%",
+    background:
+      "linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.1), transparent)",
+  },
 }));
 
 interface PlaybackControlsProps {
@@ -88,33 +126,30 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
     <ControlSection>
       <Tooltip title="Previous Point">
         <span>
-          <IconButton
-            size="small"
+          <StyledIconButton
             onClick={handlePrevObservation}
             disabled={!hasPrevPoint}
           >
             <NavigateBefore />
-          </IconButton>
+          </StyledIconButton>
         </span>
       </Tooltip>
       <Tooltip title={isPlaying ? "Stop" : "Play"}>
-        <IconButton
-          size="small"
+        <StyledIconButton
           onClick={handlePlayback}
           disabled={!observationPoints || observationPoints.length === 0}
         >
           {isPlaying ? <Stop /> : <PlayArrow />}
-        </IconButton>
+        </StyledIconButton>
       </Tooltip>
       <Tooltip title="Next Point">
         <span>
-          <IconButton
-            size="small"
+          <StyledIconButton
             onClick={handleNextObservation}
             disabled={!hasNextPoint}
           >
             <NavigateNext />
-          </IconButton>
+          </StyledIconButton>
         </span>
       </Tooltip>
     </ControlSection>

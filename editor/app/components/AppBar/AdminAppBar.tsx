@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Divider } from "@mui/material";
+import { Divider, IconButton } from "@mui/material";
 import LogoHeader from "./LogoHeader.tsx";
 import useSceneStore from "@/app/hooks/useSceneStore.ts";
 import {
@@ -13,17 +13,22 @@ import {
 import BuilderTools from "./BuilderTools.tsx";
 import BuilderActions from "./BuilderActions.tsx";
 import PublishDialog from "./PublishDialog.tsx";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 
 interface AdminAppBarProps {
   mode?: string;
   onSave?: () => Promise<void>;
   onPublish?: () => Promise<void>;
+  onHelpClick?: () => void;
+  showHelpPulse?: boolean;
 }
 
 const AdminAppBar: React.FC<AdminAppBarProps> = ({
   mode = "builder",
   onSave,
   onPublish,
+  onHelpClick,
+  showHelpPulse = false,
 }) => {
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
   const { transformMode, setTransformMode, selectedObject } = useSceneStore();
@@ -64,6 +69,35 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
                 onSave={onSave}
                 onPublish={() => setOpenPublishDialog(true)}
               />
+            )}
+            {mode === "simple" && (
+              <IconButton
+                onClick={onHelpClick}
+                sx={{
+                  color: "var(--glass-text-secondary, #646464)",
+                  animation: showHelpPulse ? "pulse 2s infinite" : "none",
+                  "&:hover": {
+                    animation: "none",
+                    backgroundColor: "rgba(37, 99, 235, 0.1)",
+                    color: "var(--glass-text-primary, #2563eb)",
+                    transform: "scale(1.1)",
+                  },
+                  transition: "transform 0.2s ease",
+                  "@keyframes pulse": {
+                    "0%": {
+                      transform: "scale(1)",
+                    },
+                    "50%": {
+                      transform: "scale(1.1)",
+                    },
+                    "100%": {
+                      transform: "scale(1)",
+                    },
+                  },
+                }}
+              >
+                <HelpOutlineIcon />
+              </IconButton>
             )}
           </RightSection>
         </ToolbarContainer>

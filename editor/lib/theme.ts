@@ -2,67 +2,94 @@
 
 import { createTheme, Theme } from "@mui/material/styles";
 
-const theme: Theme = createTheme({
-  palette: {
-    mode: "dark",
-    primary: {
-      main: "#4c5fd5", // Electric blue accent
-    },
-    secondary: {
-      main: "#ff4f4f", // Vivid red accent
-    },
-    background: {
-      default: "#121212", // 🔥 Set the full background to #121212
-      paper: "#121212", // Panels background (slightly lighter)
-    },
-    text: {
-      primary: "#ffffff",
-      secondary: "#b0b0b0",
-    },
-    divider: "rgba(255, 255, 255, 0.1)",
-  },
-  typography: {
-    fontFamily: `"Inter", "Roboto", "Arial", sans-serif`,
-    h1: { fontWeight: 700, fontSize: "2.5rem", color: "#ffffff" },
-    h2: { fontWeight: 600, fontSize: "2rem", color: "#ffffff" },
-    h3: { fontWeight: 500, fontSize: "1.75rem", color: "#f5f5f5" },
-    body1: { fontSize: "1rem", color: "#b0b0b0" },
-    button: { textTransform: "none", fontWeight: 600 },
-  },
-  components: {
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          backgroundColor: "#121212",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-        },
-      },
-    },
-    MuiDrawer: {
-      styleOverrides: {
-        paper: {
-          backgroundColor: "#121212", // Ensures left & right panels match
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: "8px",
-          padding: "10px 16px",
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          backgroundColor: "#121212",
-          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-          borderRadius: "12px",
-        },
-      },
-    },
-  },
-});
+export type ThemeMode = "light" | "dark";
 
+export const createAppTheme = (mode: ThemeMode): Theme =>
+  createTheme({
+    palette: {
+      mode,
+      primary: {
+        main: "#2563eb", // Vibrant, alive, trustworthy blue
+      },
+      secondary: {
+        main: "#646464",
+      },
+      background: {
+        default: mode === "dark" ? "#0b0f1a" : "#ffffff",
+        paper: mode === "dark" ? "#0f172a" : "#f8fafc",
+      },
+      text: {
+        primary: mode === "dark" ? "#e5e7eb" : "#0f172a",
+        secondary: mode === "dark" ? "#94a3b8" : "#475569",
+      },
+      divider:
+        mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(15, 23, 42, 0.12)",
+    },
+    typography: {
+      fontFamily: `"Montserrat", "Inter", "Roboto", "Arial", sans-serif`,
+      h1: {
+        fontWeight: 700,
+        fontSize: "2.5rem",
+        color: "var(--color-text-primary)",
+      },
+      h2: {
+        fontWeight: 600,
+        fontSize: "2rem",
+        color: "var(--color-text-primary)",
+      },
+      h3: {
+        fontWeight: 500,
+        fontSize: "1.75rem",
+        color: "var(--color-text-primary)",
+      },
+      body1: { fontSize: "1rem", color: "var(--color-text-secondary)" },
+      button: { textTransform: "none", fontWeight: 600 },
+    },
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          body: {
+            backgroundColor: "var(--color-bg)",
+            color: "var(--color-text-primary)",
+          },
+        },
+      },
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            backgroundColor: "var(--color-bg)",
+            borderBottom: "1px solid var(--color-border)",
+          },
+        },
+      },
+      MuiDrawer: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: "var(--color-surface-1)",
+            borderRight: "1px solid var(--color-border)",
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: "8px",
+            padding: "10px 16px",
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            backgroundColor: "var(--color-surface-2)",
+            boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+            borderRadius: "12px",
+            border: "1px solid var(--color-border)",
+          },
+        },
+      },
+    },
+  });
+
+const theme: Theme = createAppTheme("light");
 export default theme;

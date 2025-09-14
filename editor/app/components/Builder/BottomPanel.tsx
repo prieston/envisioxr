@@ -10,6 +10,8 @@ import {
   Tooltip,
   Divider,
   Button,
+  List,
+  ListItem,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import {
@@ -124,18 +126,119 @@ const ObservationCard = styled(Card)(({ theme }) => ({
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer",
-  background: "rgba(255, 255, 255, 0.05)",
-  backdropFilter: "blur(10px)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
-  transition: "all 0.2s ease",
+  position: "relative",
+  overflow: "hidden",
+  background: "rgba(255, 255, 255, 0.8)",
+  backdropFilter: "blur(20px) saturate(130%)",
+  WebkitBackdropFilter: "blur(20px) saturate(130%)",
+  border: "1px solid rgba(37, 99, 235, 0.3)",
+  borderRadius: "12px",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   "&:hover": {
-    transform: "translateY(-2px)",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
+    background: "rgba(37, 99, 235, 0.1)",
   },
   "&.selected": {
-    border: `2px solid ${theme.palette.primary.main}`,
-    backgroundColor: "rgba(76, 95, 213, 0.1)",
+    background: "rgba(37, 99, 235, 0.12)",
+    borderColor: "#2563eb",
+  },
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background:
+      "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.1) 100%)",
+    opacity: 0,
+    transform: "scale(0.95)",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    zIndex: -1,
+  },
+  "&:hover::before": {
+    opacity: 1,
+    transform: "scale(1)",
+  },
+}));
+
+const StyledCardContent = styled(CardContent)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "100%",
+  width: "100%",
+  padding: theme.spacing(1),
+  "&:last-child": {
+    paddingBottom: theme.spacing(1),
+  },
+}));
+
+const StyledTypography = styled(Typography)(({ theme }) => ({
+  fontSize: "0.9rem",
+  fontWeight: 500,
+  color: "inherit",
+}));
+
+const StyledList = styled(List)(({ theme }) => ({
+  padding: 0,
+}));
+
+const ObservationListItem = styled(ListItem)<{ selected: boolean }>(
+  ({ theme, selected }) => ({
+    cursor: "pointer",
+    borderRadius: 0,
+    minWidth: 150,
+    height: 60,
+    marginBottom: theme.spacing(0.5),
+    marginLeft: `-${theme.spacing(2)}`,
+    marginRight: `-${theme.spacing(2)}`,
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
+    paddingTop: theme.spacing(1.5),
+    paddingBottom: theme.spacing(1.5),
+    backgroundColor: selected ? "rgba(37, 99, 235, 0.12)" : "transparent",
+    color: selected ? "#2563eb" : "inherit",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    border: "none",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    position: "relative",
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      backgroundColor: "transparent",
+      transition: "background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+      zIndex: -1,
+    },
+    "&:hover": {
+      marginLeft: `-${theme.spacing(1.5)}`,
+      marginRight: `-${theme.spacing(1.5)}`,
+      "&::before": {
+        backgroundColor: selected
+          ? "rgba(37, 99, 235, 0.16)"
+          : "rgba(37, 99, 235, 0.08)",
+      },
+      color: selected ? "#2563eb" : "#2563eb",
+      transform: "translateX(4px)",
+    },
+    "&:active": {
+      transform: "translateX(2px)",
+    },
+    background: "red !important",
+  })
+);
+
+const AddButton = styled(IconButton)(({ theme }) => ({
+  marginLeft: "auto",
+  color: "var(--glass-text-secondary, rgba(15, 23, 42, 0.7))",
+  "&:hover": {
+    color: "#2563eb",
+    backgroundColor: "rgba(37, 99, 235, 0.1)",
   },
 }));
 
@@ -306,43 +409,24 @@ const BottomPanel = () => {
 
       {/* Observation Points */}
       <ObservationSection previewMode={previewMode}>
+        <ObservationListItem selected={false} onClick={addObservationPoint}>
+          <AddIcon />
+          <StyledTypography variant="caption">Add Point</StyledTypography>
+        </ObservationListItem>
         {observationPoints.map((point, index) => (
-          <ObservationCard
+          <ObservationListItem
             key={point.id}
-            className={
+            selected={
               (previewMode && index === previewIndex) ||
               (!previewMode && selectedObservation?.id === point.id)
-                ? "selected"
-                : ""
             }
             onClick={() => handleObservationClick(point, index)}
           >
-            <CardContent>
-              <Typography variant="subtitle2" noWrap>
-                {point.title || "Untitled"}
-              </Typography>
-            </CardContent>
-          </ObservationCard>
+            <StyledTypography variant="subtitle2" noWrap>
+              {point.title || "Untitled"}
+            </StyledTypography>
+          </ObservationListItem>
         ))}
-        <ObservationCard
-          onClick={addObservationPoint}
-          sx={{
-            border: "2px dashed rgba(255, 255, 255, 0.2)",
-            backgroundColor: "transparent",
-          }}
-        >
-          <CardContent
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            <AddIcon />
-            <Typography variant="caption">Add Point</Typography>
-          </CardContent>
-        </ObservationCard>
       </ObservationSection>
     </BottomPanelContainer>
   );

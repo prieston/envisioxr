@@ -21,6 +21,10 @@ const SettingContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
+const CustomSettingContainer = styled(Box)(() => ({
+  marginBottom: 0, // No margin for custom components
+}));
+
 const SettingLabel = styled(Typography)(({ theme }) => ({
   fontSize: "0.9rem",
   fontWeight: 500,
@@ -183,16 +187,19 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
     return null;
   }
 
+  const Container =
+    setting.type === "custom" ? CustomSettingContainer : SettingContainer;
+
   return (
-    <SettingContainer>
-      {setting.type !== "button" && (
+    <Container>
+      {setting.type !== "button" && setting.type !== "custom" && (
         <SettingLabel>{setting.label}</SettingLabel>
       )}
-      {setting.description && (
+      {setting.description && setting.type !== "custom" && (
         <SettingDescription>{setting.description}</SettingDescription>
       )}
       {renderComponent()}
-    </SettingContainer>
+    </Container>
   );
 };
 
