@@ -349,6 +349,21 @@ const RightPanel: React.FC = () => {
       }
       const postData = await postRes.json();
       showToast(`Uploaded ${friendlyName} successfully.`);
+
+      // Add the new model to the userAssets list
+      const newModel = {
+        id: postData.asset.id,
+        originalFilename: friendlyName,
+        fileUrl: postData.asset.fileUrl,
+        fileType: previewFile.type,
+        thumbnail: thumbnailUpload.publicUrl,
+        metadata: metadataWithObservation.reduce((acc, item) => {
+          acc[item.label] = item.value;
+          return acc;
+        }, {}),
+      };
+      setUserAssets((prev) => [...prev, newModel]);
+
       handleModelSelect({
         name: friendlyName,
         url: postData.asset.fileUrl,

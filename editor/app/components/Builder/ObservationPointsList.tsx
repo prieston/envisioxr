@@ -139,6 +139,10 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
             flexDirection: "column",
             alignItems: "center",
             gap: 1,
+            paddingBottom: 0,
+            "&:last-child": {
+              paddingBottom: "16px",
+            },
           }}
         >
           <AddCircleOutline />
