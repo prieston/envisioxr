@@ -10,9 +10,10 @@ const Container = styled(Box)(({ theme }) => ({
 }));
 
 const SectionTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "1rem",
+  fontSize: "0.9rem",
   fontWeight: 500,
-  marginBottom: theme.spacing(2),
+  marginBottom: theme.spacing(1),
+  color: theme.palette.text.primary,
 }));
 
 const StyledButtonGroup = styled(ButtonGroup)(({ theme }) => ({

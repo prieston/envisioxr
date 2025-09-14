@@ -36,6 +36,7 @@ const ObjectListItem = styled(ListItem)<{ selected: boolean }>(
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    flex: 1, // Make item flex to fill available space
     border: "none", // Remove border
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smoother animation
     position: "relative",
@@ -51,8 +52,6 @@ const ObjectListItem = styled(ListItem)<{ selected: boolean }>(
       zIndex: -1,
     },
     "&:hover": {
-      marginLeft: `-${theme.spacing(1.5)}`, // Animate margin on hover
-      marginRight: `-${theme.spacing(1.5)}`, // Animate margin on hover
       "&::before": {
         backgroundColor: selected
           ? "rgba(37, 99, 235, 0.16)"
@@ -135,7 +134,7 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{ width: "100%" }}>
       <StyledList>
         {objects.map((object) => (
           <ObjectListItem

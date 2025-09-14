@@ -434,7 +434,10 @@ const RightPanel: React.FC = () => {
 
       {/* Properties Tab */}
       {activeTab === 0 && (
-        <Box sx={{ flex: 1, overflow: "auto", pb: 2 }}>
+        <Box
+          sx={{ flex: 1, overflow: "auto", pb: 2, flexDirection: "column" }}
+          className="lorena"
+        >
           <PropertiesPanel
             selectedObject={selectedObject}
             selectedObservation={selectedObservation}

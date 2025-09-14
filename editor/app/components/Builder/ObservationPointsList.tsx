@@ -7,6 +7,7 @@ const ObservationSection = styled(Box, {
   shouldForwardProp: (prop) => prop !== "previewMode",
 })<{ previewMode: boolean }>(({ theme, previewMode }) => ({
   display: "flex",
+  alignItems: "center",
   gap: theme.spacing(1),
   overflowX: "auto",
   overflowY: "hidden",
@@ -15,6 +16,7 @@ const ObservationSection = styled(Box, {
   minWidth: 0,
   flexShrink: 1,
   maxWidth: "calc(100vw - 400px)",
+  height: "100%",
   pointerEvents: previewMode ? "none" : "auto",
   opacity: previewMode ? 0.5 : 1,
   filter: previewMode ? "grayscale(100%)" : "none",
@@ -36,7 +38,7 @@ const ObservationSection = styled(Box, {
   },
 }));
 
-const ObservationCard = styled(Card)(({ theme }) => ({
+const ObservationCard = styled(Card)(() => ({
   minWidth: 120,
   height: 60,
   display: "flex",

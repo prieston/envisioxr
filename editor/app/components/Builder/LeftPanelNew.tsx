@@ -58,7 +58,7 @@ const LeftPanelContainer = styled(Box, {
 
 const TabPanel = styled(Box)(({ theme }) => ({
   padding: 0, // Remove padding from tab panel
-  height: "calc(100% - 48px)", // 48px is the height of the tabs
+  height: "calc(100% - 40px)", // 40px is the height of the tabs (32px + 8px margin)
   overflow: "auto",
   maxHeight: "calc(100vh - 200px)", // Ensure it doesn't exceed viewport
   "&::-webkit-scrollbar": {
@@ -133,12 +133,26 @@ const LeftPanelNew: React.FC = () => {
         sx={{
           borderBottom: 1,
           borderColor: "divider",
-          mb: 2,
+          mb: 1,
+          minHeight: "32px",
           "& .MuiTab-root": {
             color: "text.secondary",
+            minHeight: "32px",
+            padding: "4px 8px",
+            fontSize: "0.875rem",
+            flexDirection: "row",
+            gap: "4px",
+            justifyContent: "center",
+            marginBottom: "6px",
             "&.Mui-selected": {
               color: "primary.main",
             },
+            "& .MuiSvgIcon-root": {
+              marginBottom: 0,
+            },
+          },
+          "& .MuiTabs-indicator": {
+            height: "2px",
           },
         }}
       >
