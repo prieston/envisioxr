@@ -13,7 +13,7 @@ export default function ThemeToggleButton() {
         onClick={toggle}
         color="inherit"
         size="small"
-        sx={(theme) => ({
+        sx={(_theme) => ({
           backgroundColor:
             mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "transparent",
           "&:hover": {

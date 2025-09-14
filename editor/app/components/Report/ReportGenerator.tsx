@@ -193,7 +193,9 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
 
       // Add each object to the table
       for (const obj of objects) {
-        const position = obj.position ? `(${obj.position.join(", ")})` : "N/A";
+        const position = obj.position
+          ? `(${obj.position.map((coord) => coord.toFixed(4)).join(", ")})`
+          : "N/A";
         let location = "N/A";
         let metadata = null;
 

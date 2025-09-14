@@ -3,7 +3,7 @@ import { Card, CardContent, Typography, Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 
-const GlassCard = styled(Card)(({ theme }) => ({
+const GlassCard = styled(Card)(({ theme: _theme }) => ({
   width: 300,
   display: "flex",
   justifyContent: "center",
@@ -49,16 +49,16 @@ const GlassCard = styled(Card)(({ theme }) => ({
   },
 }));
 
-const StyledCardContent = styled(CardContent)(({ theme }) => ({
+const StyledCardContent = styled(CardContent)(({ theme: _theme }) => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: theme.spacing(1),
+  gap: _theme.spacing(1),
   position: "relative",
   zIndex: 1,
 }));
 
-const AddIconWrapper = styled(Box)(({ theme }) => ({
+const AddIconWrapper = styled(Box)(({ theme: _theme }) => ({
   width: 48,
   height: 48,
   borderRadius: "50%",
@@ -93,9 +93,9 @@ const AddIconWrapper = styled(Box)(({ theme }) => ({
   },
 }));
 
-const CreateProjectCard = ({ onClick, selected, onSelect }) => {
-  const handleCardClick = (e) => {
-    onSelect?.();
+const CreateProjectCard = ({ onClick, selected, onSelect: _onSelect }) => {
+  const handleCardClick = (_e) => {
+    _onSelect?.();
     onClick?.();
   };
 

@@ -56,7 +56,7 @@ const LeftPanelContainer = styled(Box, {
   },
 }));
 
-const TabPanel = styled(Box)(({ theme }) => ({
+const TabPanel = styled(Box)(({ theme: _theme }) => ({
   padding: 0, // Remove padding from tab panel
   height: "calc(100% - 40px)", // 40px is the height of the tabs (32px + 8px margin)
   overflow: "auto",

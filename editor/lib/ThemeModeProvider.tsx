@@ -24,7 +24,7 @@ export default function ThemeModeProvider({
 }: {
   children: ReactNode;
 }) {
-  const [mode, setMode] = useState<ThemeMode>("light");
+  const [mode] = useState<ThemeMode>("light");
 
   // Always use light mode
   useEffect(() => {
