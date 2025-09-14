@@ -7,32 +7,38 @@ const ObservationSection = styled(Box, {
   shouldForwardProp: (prop) => prop !== "previewMode",
 })<{ previewMode: boolean }>(({ theme, previewMode }) => ({
   display: "flex",
-  gap: theme.spacing(2),
+  gap: theme.spacing(1),
   overflowX: "auto",
-  padding: theme.spacing(1),
+  overflowY: "hidden",
+  padding: theme.spacing(0.5),
+  width: "100%",
+  minWidth: 0,
+  flexShrink: 1,
+  maxWidth: "calc(100vw - 400px)",
   pointerEvents: previewMode ? "none" : "auto",
   opacity: previewMode ? 0.5 : 1,
   filter: previewMode ? "grayscale(100%)" : "none",
   transition: "opacity 0.3s ease, filter 0.3s ease",
+  scrollBehavior: "smooth",
   "&::-webkit-scrollbar": {
     height: "6px",
   },
   "&::-webkit-scrollbar-track": {
-    background: "rgba(255, 255, 255, 0.05)",
+    background: "rgba(0, 0, 0, 0.1)",
     borderRadius: "3px",
   },
   "&::-webkit-scrollbar-thumb": {
-    background: "rgba(255, 255, 255, 0.2)",
+    background: "rgba(37, 99, 235, 0.3)",
     borderRadius: "3px",
     "&:hover": {
-      background: "rgba(255, 255, 255, 0.3)",
+      background: "rgba(37, 99, 235, 0.5)",
     },
   },
 }));
 
 const ObservationCard = styled(Card)(({ theme }) => ({
-  minWidth: 150,
-  height: 80,
+  minWidth: 120,
+  height: 60,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -118,7 +124,6 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
       <ObservationCard
         onClick={addObservationPoint}
         sx={{
-          border: "2px dashed rgba(37, 99, 235, 0.3)",
           backgroundColor: "transparent",
           display: "flex",
           flexDirection: "column",
