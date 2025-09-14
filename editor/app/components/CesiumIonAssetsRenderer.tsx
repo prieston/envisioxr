@@ -80,7 +80,11 @@ const CesiumIonAssetsRenderer: React.FC = () => {
         tileset,
         dispose: () => {
           try {
-            if (cesiumViewer && cesiumViewer.scene && cesiumViewer.scene.primitives) {
+            if (
+              cesiumViewer &&
+              cesiumViewer.scene &&
+              cesiumViewer.scene.primitives
+            ) {
               cesiumViewer.scene.primitives.remove(tileset);
             }
           } catch (error) {
