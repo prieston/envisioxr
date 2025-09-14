@@ -34,9 +34,11 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
   },
   "&:disabled": {
     backgroundColor: "transparent",
-    color: "rgba(255, 255, 255, 0.3)",
+    color: "rgba(0, 0, 0, 0.26)",
+    cursor: "not-allowed",
     "&:hover": {
       backgroundColor: "transparent",
+      color: "rgba(0, 0, 0, 0.26)",
     },
   },
   "&:not(:last-child)::after": {

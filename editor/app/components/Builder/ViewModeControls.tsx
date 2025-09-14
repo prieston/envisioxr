@@ -29,16 +29,25 @@ const ViewModeRow = styled(Box)(({ theme }) => ({
 }));
 
 const ViewModeButton = styled(Button)(({ theme }) => ({
-  minWidth: "auto",
+  minWidth: 40,
+  height: 40,
   padding: theme.spacing(0.5),
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: "rgba(255, 255, 255, 0.05)",
+  borderRadius: 0,
+  backgroundColor: "transparent",
+  color: "inherit",
+  border: "none",
+  boxShadow: "none",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   "&:hover": {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(0, 0, 0, 0.04)",
+    color: "inherit",
   },
   "&.active": {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
+    backgroundColor: "rgba(37, 99, 235, 0.12)",
+    color: "#2563eb",
+    "&:hover": {
+      backgroundColor: "rgba(37, 99, 235, 0.16)",
+    },
   },
   "& .MuiSvgIcon-root": {
     fontSize: "1.2rem",
