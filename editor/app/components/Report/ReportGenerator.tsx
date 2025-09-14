@@ -49,7 +49,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
             }
             .action-button {
               padding: 10px 20px;
-              background-color: #007bff;
+              background-color: #1f2937;
               color: white;
               border: none;
               border-radius: 5px;
@@ -57,7 +57,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
               font-size: 14px;
             }
             .action-button:hover {
-              background-color: #0056b3;
+              background-color: #111827;
             }
             .stats-grid {
               display: grid;
@@ -66,7 +66,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
               margin: 20px 0;
             }
             .stat-card {
-              background: #f8f9fa;
+              background: #f3f4f6;
               padding: 15px;
               border-radius: 5px;
               text-align: center;
@@ -74,10 +74,10 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
             .stat-value {
               font-size: 24px;
               font-weight: bold;
-              color: #007bff;
+              color: #111827;
             }
             .stat-label {
-              color: #666;
+              color: #6b7280;
               margin-top: 5px;
             }
             .chart-container {
@@ -90,38 +90,38 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
               margin: 20px 0;
             }
             th, td {
-              border: 1px solid #ddd;
+              border: 1px solid #e5e7eb;
               padding: 12px;
               text-align: left;
             }
             th {
-              background-color: #f5f5f5;
+              background-color: #f9fafb;
             }
             .map-container {
               width: 100%;
               height: 500px;
               margin: 20px 0;
-              border: 1px solid #ddd;
+              border: 1px solid #e5e7eb;
               border-radius: 5px;
             }
             .metadata-section {
               margin-top: 10px;
               padding: 10px;
-              background-color: #f8f9fa;
+              background-color: #f3f4f6;
               border-radius: 5px;
             }
             .metadata-section h4 {
               margin: 0 0 10px 0;
-              color: #333;
+              color: #111827;
             }
             .metadata-item {
               margin: 5px 0;
               padding: 5px;
-              border-bottom: 1px solid #eee;
+              border-bottom: 1px solid #e5e7eb;
             }
             .metadata-label {
               font-weight: bold;
-              color: #555;
+              color: #374151;
             }
             @media print {
               .header-actions {
@@ -193,7 +193,9 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
 
       // Add each object to the table
       for (const obj of objects) {
-        const position = obj.position ? `(${obj.position.join(", ")})` : "N/A";
+        const position = obj.position
+          ? `(${obj.position.map((coord) => coord.toFixed(4)).join(", ")})`
+          : "N/A";
         let location = "N/A";
         let metadata = null;
 
