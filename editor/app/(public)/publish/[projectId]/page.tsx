@@ -76,15 +76,22 @@ const PublishedScenePage = () => {
           }
         }
 
-        // Initialize selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
+        // Initialize objects, selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
         if (data.project.sceneData) {
           const {
+            objects,
             selectedAssetId,
             selectedLocation,
             showTiles,
             basemapType,
             cesiumIonAssets,
           } = data.project.sceneData;
+
+          // Initialize objects (GLB models, etc.)
+          if (Array.isArray(objects)) {
+            useSceneStore.setState({ objects });
+          }
+
           if (selectedAssetId) {
             useSceneStore.setState({
               selectedAssetId,

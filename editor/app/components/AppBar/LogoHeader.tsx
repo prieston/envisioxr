@@ -13,11 +13,11 @@ export default function LogoHeader() {
     // Check if we're in the browser environment
     if (typeof window !== "undefined") {
       const hostname = window.location.hostname;
-      if (hostname !== "psm.envisioxr.com") {
+      if (hostname === "psm.envisioxr.com") {
         setLogoPath("/images/logo/psm-logo-new.png");
         setIsPSM(true);
       } else {
-        setLogoPath("/images/logo/logo-dark.svg");
+        setLogoPath("/images/logo/logo-light.svg");
         setIsPSM(false);
       }
     }
