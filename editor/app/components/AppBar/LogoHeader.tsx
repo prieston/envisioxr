@@ -11,7 +11,7 @@ export default function LogoHeader() {
     if (typeof window !== "undefined") {
       const hostname = window.location.hostname;
       if (hostname === "psm.envisioxr.com") {
-        setLogoPath("/images/logo/psm-logo.png");
+        setLogoPath("/images/logo/psm-logo-new.png");
       } else {
         setLogoPath("/images/logo/logo-dark.svg");
       }

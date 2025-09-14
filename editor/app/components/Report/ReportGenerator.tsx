@@ -186,6 +186,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
               <th>Type</th>
               <th>Position</th>
               <th>Location</th>
+              <th>Coordinate System</th>
               <th>Description</th>
             </tr>
       `);
@@ -196,12 +197,39 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
         let location = "N/A";
         let metadata = null;
 
-        if (obj.position && tilesRenderer) {
-          const coords = localToGeographic(
-            tilesRenderer,
-            new THREE.Vector3(...obj.position)
-          );
-          location = `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`;
+        if (obj.position && obj.position.length === 3) {
+          const [x, y, z] = obj.position;
+
+          // Use coordinate system metadata if available, otherwise detect
+          const isGeographic =
+            obj.coordinateSystem === "geographic" ||
+            (x >= -180 &&
+              x <= 180 &&
+              y >= -90 &&
+              y <= 90 &&
+              Math.abs(z) < 50000);
+
+          if (isGeographic) {
+            // Already in geographic format (longitude, latitude, height)
+            location = `${y.toFixed(6)}, ${x.toFixed(6)}`;
+          } else if (tilesRenderer) {
+            // Convert from local coordinates to geographic using proper conversion
+            const coords = localToGeographic(
+              tilesRenderer,
+              new THREE.Vector3(x, y, z)
+            );
+            location = `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`;
+          } else {
+            // Fallback: assume local coordinates and use simple conversion
+            const earthRadius = 6378137.0; // Earth's radius in meters
+            const latOffset = (x / earthRadius) * (180 / Math.PI);
+            const lonOffset =
+              (z / (earthRadius * Math.cos((35 * Math.PI) / 180))) *
+              (180 / Math.PI);
+            const latitude = 35.6586 + latOffset; // Default reference latitude
+            const longitude = 139.7454 + lonOffset; // Default reference longitude
+            location = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+          }
         }
 
         // Fetch metadata if assetId exists
@@ -215,12 +243,26 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
           }
         }
 
+        // Determine coordinate system for display
+        const coordinateSystem =
+          obj.coordinateSystem ||
+          (obj.position && obj.position.length === 3
+            ? obj.position[0] >= -180 &&
+              obj.position[0] <= 180 &&
+              obj.position[1] >= -90 &&
+              obj.position[1] <= 90 &&
+              Math.abs(obj.position[2]) < 50000
+              ? "geographic"
+              : "local"
+            : "unknown");
+
         reportWindow.document.write(`
           <tr>
             <td>${obj.name || "Untitled"}</td>
             <td>${obj.type || "Unknown"}</td>
             <td>${position}</td>
             <td>${location}</td>
+            <td>${coordinateSystem}</td>
             <td>
               ${obj.description || ""}
               ${
@@ -297,17 +339,50 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
             // Initialize map
             const mapPoints = ${JSON.stringify(
               objects
-                .filter((obj) => obj.position && obj.type !== "tiles")
+                .filter(
+                  (obj) =>
+                    obj.position &&
+                    obj.type !== "tiles" &&
+                    obj.position.length === 3
+                )
                 .map((obj) => {
-                  const coords = localToGeographic(
-                    tilesRenderer,
-                    new THREE.Vector3(...obj.position)
-                  );
+                  const [x, y, z] = obj.position;
+
+                  // Use coordinate system metadata if available, otherwise detect
+                  const isGeographic =
+                    obj.coordinateSystem === "geographic" ||
+                    (x >= -180 &&
+                      x <= 180 &&
+                      y >= -90 &&
+                      y <= 90 &&
+                      Math.abs(z) < 50000);
+
+                  let longitude, latitude;
+
+                  if (isGeographic) {
+                    // Already in geographic format (longitude, latitude, height)
+                    longitude = x;
+                    latitude = y;
+                  } else {
+                    // Convert from local coordinates to geographic
+                    // This is a simplified conversion - in production you'd want to use proper geodetic conversion
+                    const earthRadius = 6378137.0;
+                    const latOffset = (x / earthRadius) * (180 / Math.PI);
+                    const lonOffset =
+                      (z / (earthRadius * Math.cos((35 * Math.PI) / 180))) *
+                      (180 / Math.PI);
+                    latitude = 35.6586 + latOffset; // Default reference latitude
+                    longitude = 139.7454 + lonOffset; // Default reference longitude
+                  }
+
                   return {
-                    coords: [coords.longitude, coords.latitude],
+                    coords: [longitude, latitude],
                     title: obj.name || "Untitled Model",
                     description: obj.description || "",
                     type: "model",
+                    coordinateSystem:
+                      obj.coordinateSystem ||
+                      (isGeographic ? "geographic" : "local"),
                   };
                 })
             )};
