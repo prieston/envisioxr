@@ -80,7 +80,13 @@ const CesiumIonAssetsRenderer: React.FC = () => {
         tileset,
         dispose: () => {
           try {
-            cesiumViewer.scene.primitives.remove(tileset);
+            if (
+              cesiumViewer &&
+              cesiumViewer.scene &&
+              cesiumViewer.scene.primitives
+            ) {
+              cesiumViewer.scene.primitives.remove(tileset);
+            }
           } catch (error) {
             console.warn("[CesiumIon] Error removing tileset:", error);
           }
