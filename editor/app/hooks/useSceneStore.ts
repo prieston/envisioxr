@@ -684,7 +684,6 @@ const useSceneStore = create<SceneState>((set) => ({
       if (
         primitive &&
         primitive.constructor &&
-        primitive.constructor.name === "Cesium3DTileset" &&
         primitive.assetId === parseInt(asset.assetId)
       ) {
         targetTileset = primitive;
