@@ -4,7 +4,9 @@ import { styled } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 
-const BannerContainer = styled(Box)(({ open }) => ({
+const BannerContainer = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "open",
+})<{ open: boolean }>(({ open }) => ({
   width: "100%",
   maxHeight: open ? "200px" : "0px",
   overflow: "hidden",

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Box, Typography, Paper, Button } from "@mui/material";
-import * as Cesium from "cesium";
+// import * as Cesium from "cesium";
 import useSceneStore from "../../hooks/useSceneStore";
 
 const ViewshedDebugPanel: React.FC = () => {

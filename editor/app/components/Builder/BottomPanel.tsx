@@ -3,14 +3,14 @@
 import React from "react";
 import {
   Box,
-  Card,
-  CardContent,
+  // Card,
+  // CardContent,
   Typography,
   IconButton,
   Tooltip,
   Divider,
   Button,
-  List,
+  // List,
   ListItem,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -119,69 +119,69 @@ const ViewModeButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-const ObservationCard = styled(Card)(({ theme }) => ({
-  minWidth: 150,
-  height: 80,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  cursor: "pointer",
-  position: "relative",
-  overflow: "hidden",
-  background: "rgba(255, 255, 255, 0.8)",
-  backdropFilter: "blur(20px) saturate(130%)",
-  WebkitBackdropFilter: "blur(20px) saturate(130%)",
-  border: "1px solid rgba(37, 99, 235, 0.3)",
-  borderRadius: "12px",
-  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  "&:hover": {
-    background: "rgba(37, 99, 235, 0.1)",
-  },
-  "&.selected": {
-    background: "rgba(37, 99, 235, 0.12)",
-    borderColor: "#2563eb",
-  },
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background:
-      "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.1) 100%)",
-    opacity: 0,
-    transform: "scale(0.95)",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    zIndex: -1,
-  },
-  "&:hover::before": {
-    opacity: 1,
-    transform: "scale(1)",
-  },
-}));
+// const ObservationCard = styled(Card)(({ theme: _theme }) => ({
+//   minWidth: 150,
+//   height: 80,
+//   display: "flex",
+//   alignItems: "center",
+//   justifyContent: "center",
+//   cursor: "pointer",
+//   position: "relative",
+//   overflow: "hidden",
+//   background: "rgba(255, 255, 255, 0.8)",
+//   backdropFilter: "blur(20px) saturate(130%)",
+//   WebkitBackdropFilter: "blur(20px) saturate(130%)",
+//   border: "1px solid rgba(37, 99, 235, 0.3)",
+//   borderRadius: "12px",
+//   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+//   "&:hover": {
+//     background: "rgba(37, 99, 235, 0.1)",
+//   },
+//   "&.selected": {
+//     background: "rgba(37, 99, 235, 0.12)",
+//     borderColor: "#2563eb",
+//   },
+//   "&::before": {
+//     content: '""',
+//     position: "absolute",
+//     top: 0,
+//     left: 0,
+//     right: 0,
+//     bottom: 0,
+//     background:
+//       "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.1) 100%)",
+//     opacity: 0,
+//     transform: "scale(0.95)",
+//     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+//     zIndex: -1,
+//   },
+//   "&:hover::before": {
+//     opacity: 1,
+//     transform: "scale(1)",
+//   },
+// }));
 
-const StyledCardContent = styled(CardContent)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  height: "100%",
-  width: "100%",
-  padding: theme.spacing(1),
-  "&:last-child": {
-    paddingBottom: theme.spacing(1),
-  },
-}));
+// const StyledCardContent = styled(CardContent)(({ theme: _theme }) => ({
+//   display: "flex",
+//   alignItems: "center",
+//   justifyContent: "center",
+//   height: "100%",
+//   width: "100%",
+//   padding: theme.spacing(1),
+//   "&:last-child": {
+//     paddingBottom: theme.spacing(1),
+//   },
+// }));
 
-const StyledTypography = styled(Typography)(({ theme }) => ({
+const StyledTypography = styled(Typography)(({ theme: _theme }) => ({
   fontSize: "0.9rem",
   fontWeight: 500,
   color: "inherit",
 }));
 
-const StyledList = styled(List)(({ theme }) => ({
-  padding: 0,
-}));
+// const StyledList = styled(List)(({ theme: _theme }) => ({
+//   padding: 0,
+// }));
 
 const ObservationListItem = styled(ListItem)<{ selected: boolean }>(
   ({ theme, selected }) => ({
@@ -233,14 +233,14 @@ const ObservationListItem = styled(ListItem)<{ selected: boolean }>(
   })
 );
 
-const AddButton = styled(IconButton)(({ theme }) => ({
-  marginLeft: "auto",
-  color: "var(--glass-text-secondary, rgba(15, 23, 42, 0.7))",
-  "&:hover": {
-    color: "#2563eb",
-    backgroundColor: "rgba(37, 99, 235, 0.1)",
-  },
-}));
+// const AddButton = styled(IconButton)(({ theme: _theme }) => ({
+//   marginLeft: "auto",
+//   color: "var(--glass-text-secondary, rgba(15, 23, 42, 0.7))",
+//   "&:hover": {
+//     color: "#2563eb",
+//     backgroundColor: "rgba(37, 99, 235, 0.1)",
+//   },
+// }));
 
 const BottomPanel = () => {
   const {

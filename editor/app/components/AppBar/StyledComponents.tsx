@@ -1,7 +1,7 @@
 import { styled } from "@mui/material/styles";
 import { AppBar, Toolbar, Box, Button } from "@mui/material";
 
-export const AppBarContainer = styled(AppBar)(({ theme }) => ({
+export const AppBarContainer = styled(AppBar)(({ theme: _theme }) => ({
   backgroundColor: "var(--glass-bg, rgba(255, 255, 255, 0.8)) !important",
   backdropFilter: "blur(20px) saturate(130%) !important",
   WebkitBackdropFilter: "blur(20px) saturate(130%) !important",
@@ -70,21 +70,21 @@ export const ToolbarContainer = styled(Toolbar)(() => ({
   },
 }));
 
-export const LeftSection = styled(Box)(({ theme }) => ({
+export const LeftSection = styled(Box)(({ theme: _theme }) => ({
   display: "flex",
   alignItems: "center",
-  gap: theme.spacing(1),
+  gap: _theme.spacing(1),
   color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
 }));
 
-export const RightSection = styled(Box)(({ theme }) => ({
+export const RightSection = styled(Box)(({ theme: _theme }) => ({
   display: "flex",
   alignItems: "center",
-  gap: theme.spacing(1),
+  gap: _theme.spacing(1),
   color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
 }));
 
-export const MinimalButton = styled(Button)(({ theme }) => ({
+export const MinimalButton = styled(Button)(({ theme: _theme }) => ({
   backgroundColor: "transparent",
   color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
   border: "none",
@@ -109,7 +109,7 @@ export const MinimalButton = styled(Button)(({ theme }) => ({
 }));
 
 export const MinimalButtonActive = styled(MinimalButton)<{ active?: boolean }>(
-  ({ theme, active }) => ({
+  ({ theme: _theme, active }) => ({
     color: active
       ? "var(--glass-text-primary, rgba(15, 23, 42, 0.95))"
       : "var(--glass-text-secondary, rgba(15, 23, 42, 0.7))",

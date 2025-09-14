@@ -12,7 +12,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { styled } from "@mui/material/styles";
 
-const GlassCard = styled(Card)(({ theme }) => ({
+const GlassCard = styled(Card)(({ theme: _theme }) => ({
   width: 300,
   position: "relative",
   overflow: "hidden",
@@ -58,21 +58,21 @@ const GlassCard = styled(Card)(({ theme }) => ({
   },
 }));
 
-const CardTitle = styled(Typography)(({ theme }) => ({
+const CardTitle = styled(Typography)(({ theme: _theme }) => ({
   fontWeight: 600,
-  marginBottom: theme.spacing(1),
-  color: theme.palette.text.primary,
+  marginBottom: _theme.spacing(1),
+  color: _theme.palette.text.primary,
 }));
 
-const CardDescription = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.secondary,
+const CardDescription = styled(Typography)(({ theme: _theme }) => ({
+  color: _theme.palette.text.secondary,
   display: "-webkit-box",
   WebkitLineClamp: 2,
   WebkitBoxOrient: "vertical",
   overflow: "hidden",
 }));
 
-const ActionButton = styled(Button)(({ theme }) => ({
+const ActionButton = styled(Button)(({ theme: _theme }) => ({
   color: "#2563eb",
   background: "transparent",
   border: "none",
@@ -100,14 +100,14 @@ const ActionButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-const MenuButton = styled(IconButton)(({ theme }) => ({
+const MenuButton = styled(IconButton)(({ theme: _theme }) => ({
   position: "absolute",
   top: 8,
   right: 8,
-  color: theme.palette.text.secondary,
+  color: _theme.palette.text.secondary,
   "&:hover": {
     backgroundColor: "rgba(255, 255, 255, 0.08)",
-    color: theme.palette.text.primary,
+    color: _theme.palette.text.primary,
   },
 }));
 
@@ -122,13 +122,13 @@ const EngineChip = styled(Chip)({
   },
 });
 
-const ThreeJsChip = styled(EngineChip)(({ theme }) => ({
+const ThreeJsChip = styled(EngineChip)(({ theme: _theme }) => ({
   backgroundColor: "rgba(245, 158, 11, 0.15)",
   color: "#f59e0b",
   border: "1px solid rgba(245, 158, 11, 0.4)",
 }));
 
-const CesiumChip = styled(EngineChip)(({ theme }) => ({
+const CesiumChip = styled(EngineChip)(({ theme: _theme }) => ({
   backgroundColor: "rgba(99, 102, 241, 0.15)",
   color: "#6366f1",
   border: "1px solid rgba(99, 102, 241, 0.4)",
@@ -139,7 +139,7 @@ const ProjectCard = ({
   onGoToBuilder,
   onMenuOpen,
   selected,
-  onSelect,
+  onSelect: _onSelect,
 }) => {
   const getEngineLabel = (engine) => {
     return engine === "cesium" ? "Cesium" : "Three.js";
