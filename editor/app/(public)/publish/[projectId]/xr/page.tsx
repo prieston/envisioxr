@@ -32,14 +32,21 @@ export default function Scene() {
         }
         setProject(data.project);
 
-        // Initialize selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
+        // Initialize objects, selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
         if (data.project.sceneData) {
           const {
+            objects,
             selectedAssetId,
             selectedLocation,
             basemapType,
             cesiumIonAssets,
           } = data.project.sceneData;
+
+          // Initialize objects (GLB models, etc.)
+          if (Array.isArray(objects)) {
+            useSceneStore.setState({ objects });
+          }
+
           if (selectedAssetId) {
             useSceneStore.setState({ selectedAssetId });
           }

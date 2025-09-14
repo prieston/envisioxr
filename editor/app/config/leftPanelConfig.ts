@@ -18,7 +18,7 @@ export const createThreeJSLeftPanelConfig = (
     tabs: [
       {
         id: "assets",
-        label: "Assets",
+        label: "Scene",
         icon: ViewInAr,
         settings: [
           {
@@ -96,7 +96,7 @@ export const createCesiumLeftPanelConfig = (
     tabs: [
       {
         id: "assets",
-        label: "Assets",
+        label: "Scene",
         icon: ViewInAr,
         settings: [
           {

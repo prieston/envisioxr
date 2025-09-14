@@ -83,7 +83,7 @@ const AdminAppBarNew: React.FC<AdminAppBarNewProps> = ({
 
   return (
     <>
-      <AppBarContainer position="fixed">
+      <AppBarContainer position="fixed" className="glass-panel">
         <ToolbarContainer>
           <LeftSection>
             {leftSection?.tools.map((tool) => (

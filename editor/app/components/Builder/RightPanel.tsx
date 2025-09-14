@@ -21,10 +21,10 @@ const RightPanelContainer = styled(Box, {
 })<RightPanelContainerProps>(({ theme, previewMode }) => ({
   width: "400px",
   height: "100%",
-  backgroundColor: "#121212",
+  backgroundColor: theme.palette.background.paper,
   color: theme.palette.text.primary,
   padding: theme.spacing(2),
-  borderLeft: "1px solid rgba(255, 255, 255, 0.08)",
+  borderLeft: `1px solid ${theme.palette.divider}`,
   userSelect: "none",
   pointerEvents: previewMode ? "none" : "auto",
   opacity: previewMode ? 0.5 : 1,
@@ -349,6 +349,21 @@ const RightPanel: React.FC = () => {
       }
       const postData = await postRes.json();
       showToast(`Uploaded ${friendlyName} successfully.`);
+
+      // Add the new model to the userAssets list
+      const newModel = {
+        id: postData.asset.id,
+        originalFilename: friendlyName,
+        fileUrl: postData.asset.fileUrl,
+        fileType: previewFile.type,
+        thumbnail: thumbnailUpload.publicUrl,
+        metadata: metadataWithObservation.reduce((acc, item) => {
+          acc[item.label] = item.value;
+          return acc;
+        }, {}),
+      };
+      setUserAssets((prev) => [...prev, newModel]);
+
       handleModelSelect({
         name: friendlyName,
         url: postData.asset.fileUrl,
@@ -434,7 +449,10 @@ const RightPanel: React.FC = () => {
 
       {/* Properties Tab */}
       {activeTab === 0 && (
-        <Box sx={{ flex: 1, overflow: "auto", pb: 2 }}>
+        <Box
+          sx={{ flex: 1, overflow: "auto", pb: 2, flexDirection: "column" }}
+          className="lorena"
+        >
           <PropertiesPanel
             selectedObject={selectedObject}
             selectedObservation={selectedObservation}

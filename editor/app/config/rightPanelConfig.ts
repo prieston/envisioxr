@@ -1,3 +1,4 @@
+import { Settings, ViewInAr } from "@mui/icons-material";
 import { PanelConfiguration } from "../types/panelConfig";
 
 export const createThreeJSRightPanelConfig = (
@@ -51,6 +52,7 @@ export const createThreeJSRightPanelConfig = (
       {
         id: "properties",
         label: "Properties",
+        icon: Settings,
         settings: [
           {
             id: "properties-panel",
@@ -74,6 +76,7 @@ export const createThreeJSRightPanelConfig = (
       {
         id: "assets",
         label: "Assets",
+        icon: ViewInAr,
         settings: [
           {
             id: "asset-library-panel",
@@ -172,6 +175,7 @@ export const createCesiumRightPanelConfig = (
       {
         id: "properties",
         label: "Properties",
+        icon: Settings,
         settings: [
           {
             id: "properties-panel",
@@ -195,6 +199,7 @@ export const createCesiumRightPanelConfig = (
       {
         id: "assets",
         label: "Assets",
+        icon: ViewInAr,
         settings: [
           {
             id: "asset-library-panel",

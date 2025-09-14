@@ -170,12 +170,13 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onAssetSelect }) => {
 
   return (
     <Paper
-      elevation={3}
+      elevation={0}
       className="location-search-paper"
       sx={{
         width: "100%",
         maxHeight: "80vh",
         overflow: "auto",
+        backgroundColor: "transparent",
       }}
     >
       <Box sx={{ p: 2 }}>

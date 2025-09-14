@@ -3,35 +3,62 @@ import { Card, CardContent, Typography, Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 
-const GlassCard = styled(Card)(() => ({
+const GlassCard = styled(Card)(({ theme: _theme }) => ({
   width: 300,
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
   cursor: "pointer",
-  background: "#1e1e1e",
-  backdropFilter: "blur(10px)",
-  border: "2px dashed rgba(255, 255, 255, 0.1)",
-  boxShadow:
-    "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-  transition: "all 0.3s ease-in-out",
+  position: "relative",
+  overflow: "hidden",
+  background: "rgba(255, 255, 255, 0.8)",
+  backdropFilter: "blur(20px) saturate(130%)",
+  WebkitBackdropFilter: "blur(20px) saturate(130%)",
+  border: "2px dashed rgba(37, 99, 235, 0.3)",
+  borderRadius: "16px",
+  boxShadow: "0 8px 32px rgba(37, 99, 235, 0.15)",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   "&:hover": {
-    transform: "translateY(-4px)",
+    boxShadow: "0 25px 50px -12px rgba(37, 99, 235, 0.25)",
+    background: "rgba(37, 99, 235, 0.08)",
+  },
+  "&.selected": {
+    background: "rgba(37, 99, 235, 0.15)",
+    borderColor: "#2563eb",
     boxShadow:
-      "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-    border: "2px dashed rgba(255, 255, 255, 0.2)",
-    backgroundColor: "#1e1e1e",
+      "0 20px 25px -5px rgba(37, 99, 235, 0.15), 0 10px 10px -5px rgba(37, 99, 235, 0.06), 0 0 0 2px rgba(37, 99, 235, 0.2)",
+  },
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background:
+      "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.1) 100%)",
+    opacity: 0,
+    transform: "scale(0.95)",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    pointerEvents: "none",
+    zIndex: 1,
+  },
+  "&:hover::before": {
+    opacity: 1,
+    transform: "scale(1)",
   },
 }));
 
-const StyledCardContent = styled(CardContent)(({ theme }) => ({
+const StyledCardContent = styled(CardContent)(({ theme: _theme }) => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: theme.spacing(1),
+  gap: _theme.spacing(1),
+  position: "relative",
+  zIndex: 1,
 }));
 
-const AddIconWrapper = styled(Box)(({ theme }) => ({
+const AddIconWrapper = styled(Box)(({ theme: _theme }) => ({
   width: 48,
   height: 48,
   borderRadius: "50%",
@@ -39,22 +66,50 @@ const AddIconWrapper = styled(Box)(({ theme }) => ({
   alignItems: "center",
   justifyContent: "center",
   backgroundColor: "rgba(255, 255, 255, 0.05)",
-  color: theme.palette.text.primary,
-  transition: "all 0.3s ease-in-out",
+  color: "#2563eb",
+  transition: "all 0.3s ease",
+  position: "relative",
+  overflow: "hidden",
+  zIndex: 2,
   "&:hover": {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
-    transform: "scale(1.1)",
+    color: "#2563eb",
+    boxShadow: "0 0 0 2px rgba(37, 99, 235, 0.2)",
+    "&::before": {
+      transform: "scale(1)",
+    },
+  },
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: "50%",
+    background: "radial-gradient(circle, rgba(37, 99, 235, 0.2), transparent)",
+    transform: "scale(0)",
+    transition: "transform 0.3s ease",
   },
 }));
 
-const CreateProjectCard = ({ onClick }) => {
+const CreateProjectCard = ({ onClick, selected, onSelect: _onSelect }) => {
+  const handleCardClick = (_e) => {
+    _onSelect?.();
+    onClick?.();
+  };
+
   return (
-    <GlassCard onClick={onClick}>
-      <StyledCardContent>
+    <GlassCard
+      className={`glass-card ${selected ? "selected" : ""}`}
+      onClick={handleCardClick}
+    >
+      <StyledCardContent className="glass-card-content">
         <AddIconWrapper>
           <AddIcon sx={{ fontSize: 32 }} />
         </AddIconWrapper>
         <Typography
+          className="glass-card-title"
           variant="h6"
           sx={{
             fontWeight: 600,
@@ -64,6 +119,7 @@ const CreateProjectCard = ({ onClick }) => {
           Create Project
         </Typography>
         <Typography
+          className="glass-card-subtitle"
           variant="body2"
           sx={{
             color: "text.secondary",

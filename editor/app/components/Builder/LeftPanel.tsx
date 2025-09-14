@@ -31,10 +31,10 @@ const LeftPanelContainer = styled(Box, {
 })<LeftPanelContainerProps>(({ theme, previewMode }) => ({
   width: "280px",
   height: "100%",
-  backgroundColor: "#121212",
+  backgroundColor: theme.palette.background.paper,
   color: theme.palette.text.primary,
   padding: theme.spacing(2),
-  borderRight: "1px solid rgba(255, 255, 255, 0.08)",
+  borderRight: `1px solid ${theme.palette.divider}`,
   userSelect: "none",
   pointerEvents: previewMode ? "none" : "auto",
   opacity: previewMode ? 0.5 : 1,
@@ -71,7 +71,8 @@ const ObjectListItem = styled(ListItem)<ObjectListItemProps>(
     alignItems: "center",
     justifyContent: "space-between",
     padding: theme.spacing(1.5),
-    transition: "all 0.2s ease",
+    transition:
+      "opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease",
     border: selectedItem
       ? `1px solid ${theme.palette.primary.main}`
       : "1px solid rgba(255, 255, 255, 0.05)",
@@ -79,7 +80,7 @@ const ObjectListItem = styled(ListItem)<ObjectListItemProps>(
       backgroundColor: selectedItem
         ? "rgba(25, 118, 210, 0.16)"
         : "rgba(255, 255, 255, 0.08)",
-      transform: "translateX(4px)",
+      opacity: 0.9,
       border: selectedItem
         ? `1px solid ${theme.palette.primary.main}`
         : "1px solid rgba(255, 255, 255, 0.2)",

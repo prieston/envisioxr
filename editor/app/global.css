@@ -15,7 +15,208 @@
     margin: 0;
     padding: 0;
     overflow: hidden;
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* Animated background for glass effect */
+.animated-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+}
+
+.animated-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+  animation: backgroundShift 20s ease-in-out infinite;
+}
+
+.animated-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%),
+    linear-gradient(-45deg, transparent 30%, rgba(255, 255, 255, 0.15) 50%, transparent 70%);
+  background-size: 200px 200px, 300px 300px;
+  animation: lightSweep 15s linear infinite;
+}
+
+/* Light particles animation */
+@keyframes lightParticles {
+  0% {
+    transform: translateY(100vh) translateX(0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(100px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes backgroundShift {
+  0%, 100% {
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  33% {
+    transform: translateX(-20px) translateY(-10px) scale(1.1);
+  }
+  66% {
+    transform: translateX(20px) translateY(10px) scale(0.9);
+  }
+}
+
+@keyframes lightSweep {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(0deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(360deg);
+  }
+}
+
+/* Light particles */
+.light-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+  border-radius: 50%;
+  animation: lightParticles 8s linear infinite;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 0 24px rgba(255, 255, 255, 0.4);
+}
+
+.light-particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 8s; }
+.light-particle:nth-child(2) { left: 20%; animation-delay: 1s; animation-duration: 10s; }
+.light-particle:nth-child(3) { left: 30%; animation-delay: 2s; animation-duration: 7s; }
+.light-particle:nth-child(4) { left: 40%; animation-delay: 3s; animation-duration: 9s; }
+.light-particle:nth-child(5) { left: 50%; animation-delay: 4s; animation-duration: 8s; }
+.light-particle:nth-child(6) { left: 60%; animation-delay: 5s; animation-duration: 11s; }
+.light-particle:nth-child(7) { left: 70%; animation-delay: 6s; animation-duration: 6s; }
+.light-particle:nth-child(8) { left: 80%; animation-delay: 7s; animation-duration: 9s; }
+.light-particle:nth-child(9) { left: 90%; animation-delay: 8s; animation-duration: 7s; }
+
+/* Trail effect for particles */
+.light-particle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+  border-radius: 50%;
+  animation: trailEffect 8s linear infinite;
+}
+
+@keyframes trailEffect {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(3) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Design tokens (CSS variables) */
+:root {
+  /* Light (day) */
+  --color-bg: #ffffff;
+  --color-surface-1: #f8fafc;
+  --color-surface-2: #f1f5f9;
+  --color-border: rgba(15, 23, 42, 0.12);
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+
+  --color-primary: #6366f1;
+  --color-primary-400: #818cf8;
+  --color-primary-600: #4f46e5;
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Glass effect tokens - Day Mode */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-bg-fallback: rgba(237, 237, 237, 0.9);
+  --glass-border: rgba(37, 99, 235, 0.3);
+  --glass-shadow: 0 8px 32px rgba(37, 99, 235, 0.15);
+  --glass-backdrop: blur(20px) saturate(130%);
+  --glass-border-radius: 16px;
+  --glass-panel-margin: 16px;
+  --glass-panel-gap: 16px;
+  --glass-text-primary: #2563eb;
+  --glass-text-secondary: #646464;
+  --brand-blue: #2563eb;
+  --brand-gray: #646464;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark {
+  /* Dark (night) overrides */
+  --color-bg: #0b0f1a;
+  --color-surface-1: #0f172a;
+  --color-surface-2: #111827;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-text-primary: #e5e7eb;
+  --color-text-secondary: #94a3b8;
+
+  /* Dark mode glass effect tokens */
+  --glass-bg: rgba(11, 15, 26, 0.8);
+  --glass-bg-fallback: rgba(11, 15, 26, 0.9);
+  --glass-border: rgba(37, 99, 235, 0.4);
+  --glass-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
+  --glass-text-primary: #ffffff;
+  --glass-text-secondary: #646464;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  /* Add a more visible pattern to make glass effect more visible */
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.3) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.3) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.2) 0%, transparent 60%);
+  background-attachment: fixed;
+  background-size: 400px 400px, 300px 300px, 500px 500px;
 }
 
 /* Reset default styles */
@@ -62,4 +263,523 @@ ul, ol {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Glass effect utilities */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-border-radius);
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  z-index: 10;
+  /* Ensure the glass effect is visible */
+  isolation: isolate;
+  /* Force hardware acceleration */
+  transform: translateZ(0);
+  will-change: backdrop-filter;
+  /* Theme-aware text colors */
+  color: var(--glass-text-primary);
+  /* Subtle micro-interactions only */
+  transition: opacity 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* Glass panel text elements */
+.glass-panel h1,
+.glass-panel h2,
+.glass-panel h3,
+.glass-panel h4,
+.glass-panel h5,
+.glass-panel h6 {
+  color: var(--glass-text-primary);
+}
+
+.glass-panel p,
+.glass-panel span,
+.glass-panel div {
+  color: var(--glass-text-primary);
+}
+
+.glass-panel .MuiTypography-root {
+  color: var(--glass-text-primary);
+}
+
+/* Ensure all toolbar content inherits glass effect */
+.glass-panel .MuiToolbar-root,
+.glass-panel .MuiToolbar-root * {
+  color: var(--glass-text-primary) !important;
+  background-color: transparent !important;
+}
+
+.glass-panel .MuiToolbar-root {
+  background-color: transparent !important;
+  color: var(--glass-text-primary) !important;
+}
+
+.glass-panel .MuiDivider-root {
+  border-color: var(--glass-border);
+}
+
+/* Override MUI Paper styles in glass panels */
+.glass-panel .MuiPaper-root {
+  background-color: transparent !important;
+  color: var(--glass-text-primary) !important;
+}
+
+.glass-panel .MuiAppBar-root {
+  background-color: transparent !important;
+}
+
+/* Force glass effect on AppBar specifically */
+.MuiAppBar-root.glass-panel {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.8)) !important;
+  backdrop-filter: blur(20px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(130%) !important;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.3)) !important;
+  border-radius: var(--glass-border-radius, 16px) !important;
+  box-shadow: var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.15)) !important;
+}
+
+/* Override any MUI default styles that might interfere */
+.glass-panel.MuiAppBar-root,
+.glass-panel.MuiAppBar-root.MuiPaper-root {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.8)) !important;
+  backdrop-filter: blur(20px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(130%) !important;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.3)) !important;
+  border-radius: var(--glass-border-radius, 16px) !important;
+  box-shadow: var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.15)) !important;
+}
+
+/* Most specific override for AppBar */
+[class*="MuiAppBar-root"].glass-panel,
+[class*="MuiAppBar-root"][class*="glass-panel"] {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.8)) !important;
+  backdrop-filter: blur(20px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(130%) !important;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.3)) !important;
+  border-radius: var(--glass-border-radius, 16px) !important;
+  box-shadow: var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.15)) !important;
+}
+
+/* Force glass effect on all child elements */
+.glass-panel * {
+  color: inherit;
+}
+
+.glass-panel .MuiButton-root {
+  color: var(--glass-text-primary);
+}
+
+.glass-panel .MuiIconButton-root {
+  color: var(--glass-text-primary);
+}
+
+.glass-panel .MuiSvgIcon-root {
+  color: inherit;
+}
+
+/* Micro-interactions for glass panels */
+.glass-panel:hover {
+  box-shadow: var(--glass-shadow), 0 0 0 1px var(--glass-border);
+  border-color: var(--glass-border);
+}
+
+.glass-panel:focus-within {
+  box-shadow: var(--glass-shadow), 0 0 0 2px var(--glass-border);
+  border-color: var(--glass-border);
+}
+
+/* Unified Card Styles */
+.glass-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  /* Unified glass morphism background */
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-backdrop) !important;
+  -webkit-backdrop-filter: var(--glass-backdrop) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--glass-border-radius) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+
+/* Debug: Make sure cards are visible */
+.glass-card {
+  min-height: 200px;
+}
+
+/* Normal state - transparent background */
+.glass-card:not(.selected):not(:hover) {
+  background: var(--glass-bg) !important;
+  border-color: var(--glass-border) !important;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow:
+    0 25px 50px -12px rgba(37, 99, 235, 0.25),
+    0 0 0 1px rgba(37, 99, 235, 0.5) !important;
+  border-color: rgba(37, 99, 235, 0.5) !important;
+  background: rgba(37, 99, 235, 0.1) !important;
+}
+
+.glass-card.selected {
+  background: rgba(37, 99, 235, 0.12) !important;
+  border-color: #2563eb !important;
+  box-shadow:
+    0 20px 25px -5px rgba(37, 99, 235, 0.15),
+    0 10px 10px -5px rgba(37, 99, 235, 0.06),
+    0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Force hover effects to work */
+.glass-card:hover::before {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+}
+
+/* Special styling for dashed border cards (CreateProjectCard) */
+.glass-card[style*="dashed"]:hover {
+  border-color: rgba(37, 99, 235, 0.6) !important;
+  background: rgba(37, 99, 235, 0.08) !important;
+}
+
+.glass-card[style*="dashed"].selected {
+  border-color: #2563eb !important;
+  background: rgba(37, 99, 235, 0.15) !important;
+}
+
+.glass-card:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.1) 100%);
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.glass-card:hover .glass-card-content {
+  color: var(--glass-text-primary);
+}
+
+.glass-card:hover .glass-card-title {
+  color: var(--glass-text-primary);
+  transform: translateX(4px);
+}
+
+.glass-card:hover .glass-card-subtitle {
+  color: var(--glass-text-secondary);
+  transform: translateX(4px);
+}
+
+/* Button underline animation */
+.glass-card .MuiButton-root {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card .MuiButton-root::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #2563eb;
+  transition: width 0.3s ease;
+}
+
+.glass-card:hover .MuiButton-root::after {
+  width: 100%;
+}
+
+/* Removed conflicting global CSS - using styled components instead */
+
+.glass-card-content {
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-title {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-subtitle {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Link-style button micro-interactions */
+.glass-panel .MuiButton-root {
+  transition: all 0.2s ease;
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-decoration: none;
+  color: var(--glass-text-primary);
+}
+
+.glass-panel .MuiButton-root:hover {
+  color: var(--glass-text-primary);
+  background: transparent !important;
+  box-shadow: none !important;
+  text-decoration: none;
+}
+
+.glass-panel .MuiButton-root:active {
+  transform: scale(0.98);
+}
+
+.glass-panel .MuiButton-root::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--glass-text-primary);
+  transition: width 0.3s ease;
+}
+
+.glass-panel .MuiButton-root:hover::after {
+  width: 100%;
+}
+
+.glass-panel .MuiIconButton-root {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.glass-panel .MuiIconButton-root:hover {
+  color: var(--glass-text-primary);
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 1px var(--glass-border);
+}
+
+.glass-panel .MuiIconButton-root:active {
+  transform: scale(0.95);
+}
+
+/* Form element micro-interactions */
+.glass-panel .MuiTextField-root .MuiOutlinedInput-root {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-panel .MuiTextField-root .MuiOutlinedInput-root:hover {
+  border-color: var(--glass-border);
+}
+
+.glass-panel .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
+  border-color: var(--glass-border);
+  box-shadow: 0 0 0 1px var(--glass-border);
+}
+
+/* Tab micro-interactions */
+.glass-panel .MuiTab-root {
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.glass-panel .MuiTab-root:hover {
+  opacity: 0.8;
+}
+
+.glass-panel .MuiTab-root.Mui-selected {
+  color: var(--glass-text-primary);
+}
+
+/* Divider micro-interactions */
+.glass-panel .MuiDivider-root {
+  transition: border-color 0.2s ease;
+}
+
+.glass-panel .MuiDivider-root:hover {
+  border-color: var(--glass-border);
+}
+
+/* Text hover micro-interactions */
+.glass-panel h1,
+.glass-panel h2,
+.glass-panel h3,
+.glass-panel h4,
+.glass-panel h5,
+.glass-panel h6 {
+  transition: color 0.2s ease;
+  position: relative;
+}
+
+.glass-panel h1:hover,
+.glass-panel h2:hover,
+.glass-panel h3:hover,
+.glass-panel h4:hover,
+.glass-panel h5:hover,
+.glass-panel h6:hover {
+  color: var(--glass-text-primary);
+}
+
+.glass-panel p,
+.glass-panel span,
+.glass-panel div {
+  transition: color 0.2s ease;
+}
+
+.glass-panel p:hover,
+.glass-panel span:hover,
+.glass-panel div:hover {
+  color: var(--glass-text-primary);
+}
+
+/* Link hover effects */
+.glass-panel a {
+  position: relative;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.glass-panel a::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--glass-border), var(--glass-text-primary));
+  transition: width 0.3s ease;
+}
+
+.glass-panel a:hover {
+  color: var(--glass-text-primary);
+}
+
+.glass-panel a:hover::before {
+  width: 100%;
+}
+
+/* List item hover effects */
+.glass-panel .MuiListItem-root {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-panel .MuiListItem-root:hover {
+  color: var(--glass-text-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.glass-panel .MuiListItem-root:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--glass-border), var(--glass-text-primary));
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Fallback for browsers that don't support backdrop-filter */
+@supports not (backdrop-filter: blur(20px)) {
+  .glass-panel {
+    background: var(--glass-bg-fallback);
+  }
+}
+
+/* Force backdrop filter to work */
+@supports (backdrop-filter: blur(20px)) {
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(130%);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
+  }
+}
+
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+html.dark .glass-panel::before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+/* Dark mode specific glass panel adjustments */
+html.dark .glass-panel {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Glass layout container */
+.glass-layout {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.glass-layout::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-bg);
+  z-index: -1;
+}
+
+/* Full viewport canvas container */
+.full-viewport-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+/* Panel spacing utilities */
+.glass-panel + .glass-panel {
+  margin-left: var(--glass-panel-gap);
+}
+
+.glass-layout > * + * {
+  margin-top: var(--glass-panel-gap);
 }

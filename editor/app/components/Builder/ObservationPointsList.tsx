@@ -7,48 +7,74 @@ const ObservationSection = styled(Box, {
   shouldForwardProp: (prop) => prop !== "previewMode",
 })<{ previewMode: boolean }>(({ theme, previewMode }) => ({
   display: "flex",
-  gap: theme.spacing(2),
+  alignItems: "center",
+  gap: theme.spacing(1),
   overflowX: "auto",
-  padding: theme.spacing(1),
+  overflowY: "hidden",
+  padding: theme.spacing(0.5),
+  width: "100%",
+  minWidth: 0,
+  flexShrink: 1,
+  maxWidth: "calc(100vw - 400px)",
+  height: "100%",
   pointerEvents: previewMode ? "none" : "auto",
   opacity: previewMode ? 0.5 : 1,
   filter: previewMode ? "grayscale(100%)" : "none",
   transition: "opacity 0.3s ease, filter 0.3s ease",
+  scrollBehavior: "smooth",
   "&::-webkit-scrollbar": {
     height: "6px",
   },
   "&::-webkit-scrollbar-track": {
-    background: "rgba(255, 255, 255, 0.05)",
+    background: "rgba(0, 0, 0, 0.1)",
     borderRadius: "3px",
   },
   "&::-webkit-scrollbar-thumb": {
-    background: "rgba(255, 255, 255, 0.2)",
+    background: "rgba(37, 99, 235, 0.3)",
     borderRadius: "3px",
     "&:hover": {
-      background: "rgba(255, 255, 255, 0.3)",
+      background: "rgba(37, 99, 235, 0.5)",
     },
   },
 }));
 
-const ObservationCard = styled(Card)(({ theme }) => ({
-  minWidth: 150,
-  height: 80,
+const ObservationCard = styled(Card)(() => ({
+  minWidth: 120,
+  height: 60,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer",
-  background: "rgba(255, 255, 255, 0.05)",
-  backdropFilter: "blur(10px)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
-  transition: "all 0.2s ease",
+  borderRadius: 0,
+  marginBottom: 0,
+  marginLeft: 0,
+  marginRight: 0,
+  padding: 0,
+  backgroundColor: "transparent",
+  color: "inherit",
+  border: "none",
+  boxShadow: "none",
+  transition: "background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  position: "relative",
+  "&:not(:last-child)::after": {
+    content: '""',
+    position: "absolute",
+    right: 0,
+    top: "50%",
+    transform: "translateY(-50%)",
+    width: "1px",
+    height: "60%",
+    background:
+      "linear-gradient(to bottom, transparent, rgba(37, 99, 235, 0.2), transparent)",
+  },
   "&:hover": {
-    transform: "translateY(-2px)",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
+    color: "#2563eb",
   },
   "&.selected": {
-    border: `2px solid ${theme.palette.primary.main}`,
-    backgroundColor: "rgba(76, 95, 213, 0.1)",
+    color: "#2563eb",
+    "&:hover": {
+      color: "#2563eb",
+    },
   },
 }));
 
@@ -97,6 +123,32 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
 
   return (
     <ObservationSection previewMode={previewMode || false}>
+      <ObservationCard
+        onClick={addObservationPoint}
+        sx={{
+          backgroundColor: "transparent",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <CardContent
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 1,
+            paddingBottom: 0,
+            "&:last-child": {
+              paddingBottom: "16px",
+            },
+          }}
+        >
+          <AddCircleOutline />
+          <Typography variant="caption">Add Point</Typography>
+        </CardContent>
+      </ObservationCard>
       {observationPoints?.map((point, index) => (
         <ObservationCard
           key={point.id}
@@ -108,32 +160,25 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
           }
           onClick={() => handleObservationClick(point, index)}
         >
-          <CardContent>
+          <CardContent
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              width: "100%",
+              padding: "8px 16px",
+              "&:last-child": {
+                paddingBottom: "8px",
+              },
+            }}
+          >
             <Typography variant="subtitle2" noWrap>
               {point.title || "Untitled"}
             </Typography>
           </CardContent>
         </ObservationCard>
       ))}
-      <ObservationCard
-        onClick={addObservationPoint}
-        sx={{
-          border: "2px dashed rgba(255, 255, 255, 0.2)",
-          backgroundColor: "transparent",
-        }}
-      >
-        <CardContent
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 1,
-          }}
-        >
-          <AddCircleOutline />
-          <Typography variant="caption">Add Point</Typography>
-        </CardContent>
-      </ObservationCard>
     </ObservationSection>
   );
 };

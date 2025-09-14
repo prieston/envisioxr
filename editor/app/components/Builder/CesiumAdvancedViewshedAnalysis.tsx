@@ -349,10 +349,11 @@ const CesiumAdvancedViewshedAnalysis: React.FC<
           position: "absolute",
           top: "10px",
           left: "10px",
-          background: "rgba(0, 0, 0, 0.8)",
-          color: "white",
+          background: "var(--color-surface-2)",
+          color: "var(--color-text-primary)",
           padding: "12px 16px",
           borderRadius: "6px",
+          border: "1px solid var(--color-border)",
           fontSize: "14px",
           zIndex: 1000,
           minWidth: "200px",
@@ -365,7 +366,7 @@ const CesiumAdvancedViewshedAnalysis: React.FC<
           style={{
             width: "100%",
             height: "4px",
-            background: "rgba(255, 255, 255, 0.2)",
+            background: "rgba(255, 255, 255, 0.12)",
             borderRadius: "2px",
             overflow: "hidden",
           }}
@@ -374,7 +375,8 @@ const CesiumAdvancedViewshedAnalysis: React.FC<
             style={{
               width: `${progress}%`,
               height: "100%",
-              background: "linear-gradient(90deg, #4CAF50, #8BC34A)",
+              background:
+                "linear-gradient(90deg, var(--color-primary), var(--color-primary-400))",
               transition: "width 0.3s ease",
             }}
           />
@@ -391,16 +393,25 @@ const CesiumAdvancedViewshedAnalysis: React.FC<
           position: "absolute",
           top: "10px",
           left: "10px",
-          background: "rgba(255, 0, 0, 0.8)",
-          color: "white",
+          background: "var(--color-surface-2)",
+          color: "var(--color-text-primary)",
           padding: "12px 16px",
           borderRadius: "6px",
+          border: "1px solid var(--color-border)",
           fontSize: "14px",
           zIndex: 1000,
           maxWidth: "300px",
         }}
       >
-        <div style={{ fontWeight: "bold", marginBottom: "4px" }}>Error</div>
+        <div
+          style={{
+            fontWeight: "bold",
+            marginBottom: "4px",
+            color: "var(--color-error)",
+          }}
+        >
+          Error
+        </div>
         <div>{error}</div>
       </div>
     );
@@ -414,10 +425,11 @@ const CesiumAdvancedViewshedAnalysis: React.FC<
           position: "absolute",
           top: "10px",
           right: "10px",
-          background: "rgba(0, 0, 0, 0.8)",
-          color: "white",
+          background: "var(--color-surface-2)",
+          color: "var(--color-text-primary)",
           padding: "12px 16px",
           borderRadius: "6px",
+          border: "1px solid var(--color-border)",
           fontSize: "14px",
           zIndex: 1000,
           minWidth: "200px",
@@ -432,7 +444,7 @@ const CesiumAdvancedViewshedAnalysis: React.FC<
         <div style={{ marginBottom: "4px" }}>
           Total Area: {(analysisResults.totalArea / 1000).toFixed(1)}k m²
         </div>
-        <div style={{ color: "#4CAF50", fontWeight: "bold" }}>
+        <div style={{ color: "var(--color-success)", fontWeight: "bold" }}>
           Visibility: {analysisResults.visibilityPercentage.toFixed(1)}%
         </div>
       </div>

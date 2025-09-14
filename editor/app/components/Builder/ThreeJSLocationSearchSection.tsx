@@ -20,8 +20,8 @@ const SearchContainer = styled(Box)(() => ({
 const LocationInfo = styled(Box)(({ theme }) => ({
   marginTop: theme.spacing(1),
   padding: theme.spacing(1),
-  backgroundColor: "rgba(255, 255, 255, 0.05)",
-  borderRadius: theme.spacing(1),
+  backgroundColor: "rgba(255, 255, 255, 0.03)",
+  borderRadius: "6px",
 }));
 
 interface ThreeJSLocationSearchSectionProps {

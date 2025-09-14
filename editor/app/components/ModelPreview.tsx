@@ -30,7 +30,7 @@ const ModelPreview = ({ fileUrl, type, onScreenshotCaptured }) => {
   return (
     <div style={{ marginBottom: "16px" }}>
       <Canvas
-        style={{ height: 400, background: "#f0f0f0" }}
+        style={{ height: 400, background: "var(--color-surface-1)" }}
         gl={{ preserveDrawingBuffer: true }}
         onCreated={({ gl }) => {
           canvasRef.current = gl.domElement;
@@ -54,7 +54,7 @@ const ModelPreview = ({ fileUrl, type, onScreenshotCaptured }) => {
             alt="Screenshot Preview"
             style={{
               maxWidth: "100%",
-              border: "1px solid #ccc",
+              border: "1px solid var(--color-border)",
               marginTop: 8,
             }}
           />
