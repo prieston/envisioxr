@@ -16,13 +16,15 @@ import { getComponent } from "./ComponentRegistry";
 
 const SettingContainer = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(2),
+  padding: theme.spacing(1.5),
   "&:last-child": {
     marginBottom: 0,
   },
 }));
 
 const CustomSettingContainer = styled(Box)(() => ({
-  marginBottom: 0, // No margin for custom components
+  display: "flex",
+  alignItems: "center",
 }));
 
 const SettingLabel = styled(Typography)(({ theme }) => ({

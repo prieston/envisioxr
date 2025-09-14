@@ -558,16 +558,35 @@ const RightPanelNew: React.FC = () => {
           borderBottom: 1,
           borderColor: "divider",
           flexShrink: 0,
+          mb: 1,
+          minHeight: "32px",
           "& .MuiTab-root": {
             color: "text.secondary",
+            minHeight: "32px",
+            padding: "4px 8px",
+            fontSize: "0.875rem",
+            flexDirection: "row",
+            gap: "4px",
+            marginBottom: "6px",
             "&.Mui-selected": {
               color: "primary.main",
             },
+            "& .MuiSvgIcon-root": {
+              marginBottom: 0,
+            },
+          },
+          "& .MuiTabs-indicator": {
+            height: "2px",
           },
         }}
       >
         {config.tabs.map((tab) => (
-          <Tab key={tab.id} label={tab.label} sx={{ textTransform: "none" }} />
+          <Tab
+            key={tab.id}
+            icon={tab.icon ? <tab.icon /> : undefined}
+            label={tab.label}
+            sx={{ textTransform: "none" }}
+          />
         ))}
       </Tabs>
 

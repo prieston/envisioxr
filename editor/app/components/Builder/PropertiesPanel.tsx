@@ -396,7 +396,14 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 
   if (selectedObject) {
     return (
-      <>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          overflow: "auto",
+        }}
+      >
         <PropertyGroup>
           <Typography variant="subtitle1" gutterBottom>
             Model Information
@@ -638,13 +645,20 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             }
           />
         </PropertyGroup>
-      </>
+      </Box>
     );
   }
 
   if (selectedObservation) {
     return (
-      <>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          overflow: "auto",
+        }}
+      >
         <PropertyGroup>
           <Typography variant="subtitle1" gutterBottom>
             Observation Point Settings
@@ -845,7 +859,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             </Paper>
           </PropertyGroup>
         )}
-      </>
+      </Box>
     );
   }
 

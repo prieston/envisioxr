@@ -32,16 +32,20 @@ const Container = styled(Box)(({ theme }) => ({
 }));
 
 const SectionTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "1rem",
+  fontSize: "0.9rem",
   fontWeight: 500,
-  marginBottom: theme.spacing(2),
+  marginBottom: theme.spacing(1),
+  color: theme.palette.text.primary,
 }));
 
 const AssetListItem = styled(ListItem)(({ theme }) => ({
-  border: `1px solid ${theme.palette.divider}`,
-  borderRadius: theme.spacing(1),
+  borderRadius: "6px",
   marginBottom: theme.spacing(1),
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: "rgba(255, 255, 255, 0.03)",
+  transition: "all 0.2s ease",
+  "&:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+  },
 }));
 
 interface CesiumIonAssetsManagerProps {}

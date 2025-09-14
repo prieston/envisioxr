@@ -11,10 +11,12 @@ import {
 const ControlSection = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
+  justifyContent: "center",
   gap: theme.spacing(0.5),
+  height: "100%",
 }));
 
-const StyledIconButton = styled(IconButton)(({ theme }) => ({
+const StyledIconButton = styled(IconButton)(() => ({
   minWidth: 40,
   height: 40,
   borderRadius: 0,
