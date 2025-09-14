@@ -60,7 +60,11 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
 
         // Remove only basemap-related Cesium3DTileset primitives (Google Photorealistic)
         // Preserve custom Cesium Ion assets
-        if (!cesiumViewer || !cesiumViewer.scene || !cesiumViewer.scene.primitives) {
+        if (
+          !cesiumViewer ||
+          !cesiumViewer.scene ||
+          !cesiumViewer.scene.primitives
+        ) {
           return;
         }
         const primitives = cesiumViewer.scene.primitives;
