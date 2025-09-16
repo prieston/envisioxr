@@ -1,20 +1,14 @@
 /*
   Cesium Ion SDK Integration Module
-  ================================
 
   This module provides full Ion SDK integration with professional sensor visualization,
   advanced measurement tools, and viewshed analysis using the actual Cesium Ion SDK.
 
   Usage:
   import { CesiumIonSDK } from './CesiumIonSDK';
-
   const ionSDK = new CesiumIonSDK(viewer);
   await ionSDK.initialize();
-
-  // Use professional sensors
   const sensor = ionSDK.createRectangularSensor({...});
-
-  // Use advanced measurements
   ionSDK.enableMeasurements();
 */
 
@@ -67,18 +61,8 @@ export class CesiumIonSDK {
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    try {
-      console.log("🚀 Initializing Cesium Ion SDK...");
-
-      // Try to load Ion SDK from local assets
-      await this.loadIonSDKFromLocal();
-
-      this.isInitialized = true;
-      console.log("✅ Cesium Ion SDK initialized successfully");
-    } catch (error) {
-      console.error("❌ Failed to initialize Cesium Ion SDK:", error);
-      throw error;
-    }
+    await this.loadIonSDKFromLocal();
+    this.isInitialized = true;
   }
 
   private async loadIonSDKFromLocal(): Promise<void> {
@@ -90,26 +74,20 @@ export class CesiumIonSDK {
         (window as IonSDKWindow).IonSdkGeometry
       ) {
         this.ionSDKLoaded = true;
-        console.log("✅ Ion SDK already loaded, skipping initialization");
         resolve();
         return;
       }
 
       // Ensure Cesium is available globally before loading Ion SDK
       if (typeof (window as any).Cesium === "undefined") {
-        console.warn(
-          "⚠️ Cesium not available globally, waiting for it to load..."
-        );
         // Wait for Cesium to be available with timeout
         let attempts = 0;
         const maxAttempts = 50; // 5 seconds max wait
         const checkCesium = () => {
           attempts++;
           if (typeof (window as any).Cesium !== "undefined") {
-            console.log("✅ Cesium found globally, loading Ion SDK...");
             this.loadIonSDKScripts(resolve, _reject);
           } else if (attempts >= maxAttempts) {
-            console.error("❌ Timeout waiting for Cesium to load globally");
             _reject(new Error("Cesium not available globally after timeout"));
           } else {
             setTimeout(checkCesium, 100);
@@ -142,10 +120,8 @@ export class CesiumIonSDK {
       const script = document.createElement("script");
       script.src = src;
 
-      // Add error handling for entity redefinition errors
       script.onload = () => {
         loadedCount++;
-        console.log(`✅ Loaded Ion SDK script: ${src}`);
 
         // Check if all required SDK modules are available
         const hasSensors = !!(window as IonSDKWindow).IonSdkSensors;
@@ -160,31 +136,22 @@ export class CesiumIonSDK {
             hasGeometry
           ) {
             this.ionSDKLoaded = true;
-            console.log("✅ All Ion SDK scripts loaded successfully");
             resolve();
           } else if (hasSensors || hasMeasurements || hasGeometry) {
-            console.warn(
-              `⚠️ Some Ion SDK scripts failed to load (${errorCount}/${totalScripts}), but partial functionality available`
-            );
             this.ionSDKLoaded = true; // Still mark as loaded for fallback
             resolve();
           } else {
-            console.error("❌ No Ion SDK modules available after loading");
             reject(new Error("No Ion SDK modules available"));
           }
         }
       };
 
-      script.onerror = (error) => {
+      script.onerror = (_error) => {
         errorCount++;
-        console.error(`❌ Failed to load Ion SDK script: ${src}`, error);
         if (loadedCount + errorCount === totalScripts) {
           if (errorCount === totalScripts) {
             reject(new Error(`All Ion SDK scripts failed to load`));
           } else {
-            console.warn(
-              `⚠️ Some Ion SDK scripts failed to load (${errorCount}/${totalScripts})`
-            );
             this.ionSDKLoaded = true; // Still mark as loaded for fallback
             resolve();
           }
@@ -198,9 +165,6 @@ export class CesiumIonSDK {
           message &&
           message.toString().includes("Cannot redefine property")
         ) {
-          console.warn(
-            `⚠️ Entity redefinition warning (non-critical): ${message}`
-          );
           return true; // Prevent the error from being logged
         }
         if (originalError) {
@@ -213,15 +177,9 @@ export class CesiumIonSDK {
     });
   }
 
-  // Professional Sensor Creation using Ion SDK
+  // Sensor Creation using Ion SDK
   createRectangularSensor(options: IonSensorOptions): any {
-    console.log(
-      "🔧 Creating rectangular sensor, Ion SDK loaded:",
-      this.ionSDKLoaded
-    );
-
     if (!this.ionSDKLoaded || !(window as IonSDKWindow).IonSdkSensors) {
-      console.warn("⚠️ Ion SDK not loaded, using fallback implementation");
       return this.createFallbackRectangularSensor(options);
     }
 
@@ -294,16 +252,12 @@ export class CesiumIonSDK {
     // Add to scene and track visibility
     this.viewer.scene.primitives.add(sensor);
     sensor.show = true; // Track visibility state
-    console.log("✅ Ion SDK Rectangular Sensor created");
 
     return sensor;
   }
 
   createConicSensor(options: IonSensorOptions): any {
-    console.log("🔧 Creating conic sensor, Ion SDK loaded:", this.ionSDKLoaded);
-
     if (!this.ionSDKLoaded || !(window as IonSDKWindow).IonSdkSensors) {
-      console.warn("⚠️ Ion SDK not loaded, using fallback implementation");
       return this.createFallbackConicSensor(options);
     }
 
@@ -375,12 +329,11 @@ export class CesiumIonSDK {
     // Add to scene and track visibility
     this.viewer.scene.primitives.add(sensor);
     sensor.show = true; // Track visibility state
-    console.log("✅ Ion SDK Conic Sensor created");
 
     return sensor;
   }
 
-  // Fallback implementations for when Ion SDK is not available
+  // Fallback implementations
   private createFallbackRectangularSensor(
     options: IonSensorOptions
   ): Cesium.Entity {
@@ -425,7 +378,6 @@ export class CesiumIonSDK {
       },
     });
 
-    console.log("✅ Fallback rectangular sensor created");
     return sensorEntity;
   }
 
@@ -468,20 +420,17 @@ export class CesiumIonSDK {
       },
     });
 
-    console.log("✅ Fallback conic sensor created");
     return sensorEntity;
   }
 
-  // Professional Viewshed Analysis
+  // Viewshed Analysis
   async computeViewshed(
-    sensor: any,
-    options: ViewshedOptions = {}
+    _sensor: any,
+    _options: ViewshedOptions = {}
   ): Promise<{
     polygonEntity: Cesium.Entity | null;
     boundary: Cesium.Cartesian3[];
   }> {
-    console.log("🔧 Ion SDK handles viewshed analysis automatically");
-
     // Ion SDK sensors handle viewshed internally when showViewshed is enabled
     // No additional computation needed - the sensor primitive handles everything
     return {
@@ -490,14 +439,13 @@ export class CesiumIonSDK {
     };
   }
 
-  // Professional Measurement Tools
+  // Measurement Tools
   enableMeasurements(options?: {
     distanceUnits?: any;
     areaUnits?: any;
     volumeUnits?: any;
   }): void {
     if (!this.ionSDKLoaded || !(window as IonSDKWindow).IonSdkMeasurements) {
-      console.warn("⚠️ Ion SDK Measurements not available");
       return;
     }
 
@@ -515,19 +463,17 @@ export class CesiumIonSDK {
 
       this.viewer.extend(measurements.viewerMeasureMixin, { units });
       this.measurementEnabled = true;
-      console.log("✅ Ion SDK Measurements enabled");
     } catch (error) {
-      console.error("❌ Error enabling measurements:", error);
+      // Silently handle error
     }
   }
 
   disableMeasurements(): void {
     if (!this.measurementEnabled) return;
-
-    console.log("⚠️ Measurements cannot be disabled without recreating viewer");
+    // Measurements cannot be disabled without recreating viewer
   }
 
-  // Professional Transform Editor
+  // Transform Editor
   createTransformEditor(
     entity: Cesium.Entity,
     options?: {
@@ -537,7 +483,6 @@ export class CesiumIonSDK {
     }
   ): any {
     if (!this.ionSDKLoaded || !(window as IonSDKWindow).IonSdkMeasurements) {
-      console.warn("⚠️ Ion SDK Transform Editor not available");
       return null;
     }
 
@@ -609,38 +554,58 @@ export class CesiumIonSDK {
         transformEditor.viewModel.headingPitchRoll =
           new Cesium.HeadingPitchRoll(0, 0, 0);
 
-        // Listen for changes
-        const originalActivate = transformEditor.viewModel.activate.bind(
-          transformEditor.viewModel
-        );
-        transformEditor.viewModel.activate = () => {
-          originalActivate();
-          // Set up change listeners
-          const checkForChanges = () => {
-            if (transformEditor.viewModel.active) {
-              const newPosition = transformEditor.viewModel.position;
-              const newHPR = transformEditor.viewModel.headingPitchRoll;
+        // Set up change listeners
+        let lastPosition = entityPosition;
+        let lastHPR = new Cesium.HeadingPitchRoll(0, 0, 0);
+        let lastScale = new Cesium.Cartesian3(1, 1, 1);
 
-              if (
-                newPosition &&
-                !Cesium.Cartesian3.equals(newPosition, entityPosition)
-              ) {
-                options.onChange?.({
-                  translation: newPosition,
-                  rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
-                });
-                entityPosition = newPosition;
-              }
+        const checkForChanges = () => {
+          if (transformEditor.viewModel.active) {
+            const newPosition = transformEditor.viewModel.position;
+            const newHPR = transformEditor.viewModel.headingPitchRoll;
+            const newScale = transformEditor.viewModel.scale;
+
+            // Check for position changes
+            if (
+              newPosition &&
+              !Cesium.Cartesian3.equals(newPosition, lastPosition)
+            ) {
+              options.onChange?.({
+                translation: newPosition,
+                rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
+                scale: [newScale.x, newScale.y, newScale.z],
+              });
+              lastPosition = newPosition;
             }
-            requestAnimationFrame(checkForChanges);
-          };
-          checkForChanges();
+
+            // Check for rotation changes
+            if (newHPR && !Cesium.HeadingPitchRoll.equals(newHPR, lastHPR)) {
+              options.onChange?.({
+                translation: newPosition || lastPosition,
+                rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
+                scale: [newScale.x, newScale.y, newScale.z],
+              });
+              lastHPR = newHPR;
+            }
+
+            // Check for scale changes
+            if (newScale && !Cesium.Cartesian3.equals(newScale, lastScale)) {
+              options.onChange?.({
+                translation: newPosition || lastPosition,
+                rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
+                scale: [newScale.x, newScale.y, newScale.z],
+              });
+              lastScale = newScale;
+            }
+          }
+          requestAnimationFrame(checkForChanges);
         };
+
+        // Start checking for changes
+        checkForChanges();
       }
 
       // Configure the transform editor
-      console.log("🔧 Configuring transform editor...");
-
       // Set the editor mode to translation by default
       transformEditor.viewModel.setModeTranslation();
 
@@ -648,14 +613,7 @@ export class CesiumIonSDK {
       transformEditor.viewModel.enableNonUniformScaling = true;
 
       // Activate the transform editor to show the gizmo controls
-      console.log("🔧 Activating transform editor...");
       transformEditor.viewModel.activate();
-
-      // Log the active state
-      console.log(
-        "🔍 Transform editor active:",
-        transformEditor.viewModel.active
-      );
 
       // Store container reference for cleanup
       (transformEditor as any)._container = container;
@@ -663,27 +621,18 @@ export class CesiumIonSDK {
       // Add methods to the transform editor for easy mode switching
       (transformEditor as any).setModeTranslation = () => {
         transformEditor.viewModel.setModeTranslation();
-        console.log("🔧 Transform mode: Translation");
       };
 
       (transformEditor as any).setModeRotation = () => {
         transformEditor.viewModel.setModeRotation();
-        console.log("🔧 Transform mode: Rotation");
       };
 
       (transformEditor as any).setModeScale = () => {
         transformEditor.viewModel.setModeScale();
-        console.log("🔧 Transform mode: Scale");
       };
-
-      console.log("✅ TransformEditor created successfully");
-      console.log(
-        "🔧 Available modes: setModeTranslation(), setModeRotation(), setModeScale()"
-      );
 
       return transformEditor;
     } catch (error) {
-      console.error("❌ Error creating transform editor:", error);
       return null;
     }
   }

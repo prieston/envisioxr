@@ -58,7 +58,7 @@ const applyBasemapType = async (
             })
           );
         } catch (error) {
-          console.error("Error setting Google Satellite:", error);
+          // Error setting Google Satellite
         }
         break;
       }
@@ -67,9 +67,7 @@ const applyBasemapType = async (
           process.env.NEXT_PUBLIC_CESIUM_ION_KEY ||
           process.env.NEXT_PUBLIC_CESIUM_TOKEN;
         if (!cesiumKey) {
-          console.warn(
-            "Cesium Ion key not found. Falling back to OpenStreetMap."
-          );
+          // Cesium Ion key not found. Falling back to OpenStreetMap.
           viewer.imageryLayers.addImageryProvider(
             new Cesium.UrlTemplateImageryProvider({
               url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -94,7 +92,7 @@ const applyBasemapType = async (
           tileset.assetId = 2275207;
           viewer.scene.primitives.add(tileset);
         } catch (error) {
-          console.error("Error setting Google Photorealistic:", error);
+          // Error setting Google Photorealistic
           viewer.imageryLayers.addImageryProvider(
             new Cesium.UrlTemplateImageryProvider({
               url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -110,7 +108,7 @@ const applyBasemapType = async (
       }
     }
   } catch (error) {
-    console.error("Error applying basemap:", error);
+    // Error applying basemap
   }
 };
 
@@ -137,19 +135,14 @@ export default function CesiumViewer() {
         viewerRef.current.entities.removeAll();
         viewerRef.current.scene.primitives.removeAll();
       } catch (error) {
-        console.warn(
-          `[CesiumViewer ${instanceId.current}] Error during cleanup:`,
-          error
-        );
+        // Error during cleanup
       }
     }
   };
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current || isInitializing.current) {
-      console.warn(
-        `[CesiumViewer ${instanceId.current}] Skipping initialization - container, viewer exists, or already initializing`
-      );
+      // Skipping initialization - container, viewer exists, or already initializing
       return;
     }
 
@@ -169,20 +162,15 @@ export default function CesiumViewer() {
 
           // Make Cesium available globally for Ion SDK
           (window as any).Cesium = Cesium;
-          console.log("✅ Cesium made available globally for Ion SDK");
+          // Cesium made available globally for Ion SDK
         } catch (importError) {
-          console.error(
-            `[CesiumViewer ${instanceId.current}] Failed to import Cesium:`,
-            importError
-          );
+          // Failed to import Cesium
           throw new Error("Failed to load Cesium library");
         }
 
         // Verify CESIUM_BASE_URL is set
         if (!window.CESIUM_BASE_URL) {
-          console.warn(
-            `[CesiumViewer ${instanceId.current}] CESIUM_BASE_URL not set, using default`
-          );
+          // CESIUM_BASE_URL not set, using default
           window.CESIUM_BASE_URL = "/cesium/";
         }
 
@@ -191,9 +179,7 @@ export default function CesiumViewer() {
           process.env.NEXT_PUBLIC_CESIUM_ION_KEY ||
           process.env.NEXT_PUBLIC_CESIUM_TOKEN;
         if (!ionToken) {
-          console.warn(
-            `[CesiumViewer ${instanceId.current}] No Cesium Ion token provided. Set NEXT_PUBLIC_CESIUM_ION_KEY or NEXT_PUBLIC_CESIUM_TOKEN`
-          );
+          // No Cesium Ion token provided. Set NEXT_PUBLIC_CESIUM_ION_KEY or NEXT_PUBLIC_CESIUM_TOKEN
         }
         Cesium.Ion.defaultAccessToken = ionToken || "";
 
@@ -277,10 +263,7 @@ export default function CesiumViewer() {
           });
           viewerRef.current.terrainProvider = terrainProvider;
         } catch (terrainError) {
-          console.warn(
-            `[CesiumViewer ${instanceId.current}] Failed to load world terrain:`,
-            terrainError
-          );
+          // Failed to load world terrain - not critical
           // Continue without terrain - not critical
         }
 
@@ -318,10 +301,7 @@ export default function CesiumViewer() {
 
         setIsLoading(false);
       } catch (err) {
-        console.error(
-          `[CesiumViewer ${instanceId.current}] Failed to initialize Cesium:`,
-          err
-        );
+        // Failed to initialize Cesium
         setError(
           err instanceof Error ? err.message : "Failed to initialize Cesium"
         );
@@ -340,10 +320,7 @@ export default function CesiumViewer() {
           viewerRef.current.destroy();
           viewerRef.current = null;
         } catch (cleanupError) {
-          console.warn(
-            `[CesiumViewer ${instanceId.current}] Error during cleanup:`,
-            cleanupError
-          );
+          // Error during cleanup
         }
       }
     };
@@ -359,7 +336,8 @@ export default function CesiumViewer() {
     if (!viewer || !Cesium || isLoading) return;
 
     try {
-      viewer.entities.removeAll();
+      // Track model entity ids we want to keep this render
+      const keepModelEntityIds = new Set<string>();
 
       if (objects.length > 0) {
         // Render actual objects from world data
@@ -423,59 +401,122 @@ export default function CesiumViewer() {
 
           if (isModelFile) {
             try {
-              viewer.entities.add({
-                position: Cesium.Cartesian3.fromDegrees(
-                  longitude,
-                  latitude,
-                  height
-                ),
-                model: {
-                  uri: obj.url,
-                  scale: obj.scale ? obj.scale[0] : 1.0, // Use original scale or default to 1.0
-                  // Add proper orientation to prevent upside-down models
-                  heading: 0.0,
-                  pitch: 0.0,
-                  roll: 0.0,
-                  // Use absolute height for precise positioning
-                  // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                  // Ensure GLB models are always visible and not hidden by other entities
-                  distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
-                    0.0,
-                    Number.MAX_VALUE
-                  ),
-                  // Add proper depth testing to prevent hiding
-                  disableDepthTestDistance: Number.POSITIVE_INFINITY,
-                },
-                label: {
-                  text: obj.name || "Model",
-                  font: "12pt sans-serif",
-                  fillColor: Cesium.Color.WHITE,
-                  outlineColor: Cesium.Color.BLACK,
-                  outlineWidth: 2,
-                  style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                  pixelOffset: new Cesium.Cartesian2(0, -30),
-                },
-              });
-            } catch (error) {
-              console.error(
-                `[CesiumViewer] ❌ FAILED to load model ${obj.name}:`,
-                error
+              // Get rotation values from the object
+              const [heading = 0, pitch = 0, roll = 0] = obj.rotation || [
+                0, 0, 0,
+              ];
+
+              // Get scale values from the object
+              const [scaleX = 1, scaleY = 1, scaleZ = 1] = obj.scale || [
+                1, 1, 1,
+              ];
+              const uniformScale = Math.max(scaleX, scaleY, scaleZ); // Use max for uniform scaling
+
+              // Compute entity position and orientation (rotation is in radians)
+              const entityPosition = Cesium.Cartesian3.fromDegrees(
+                longitude,
+                latitude,
+                height
               );
-              console.error(`[CesiumViewer] Error details:`, {
-                name: obj.name,
-                url: obj.url,
-                type: obj.type,
-                position: [longitude, latitude, height],
-                error: error.message,
-                stack: error.stack,
-              });
+              const orientation = Cesium.Transforms.headingPitchRollQuaternion(
+                entityPosition,
+                new Cesium.HeadingPitchRoll(heading, pitch, roll),
+                Cesium.Ellipsoid.WGS84
+              );
+
+              const entityId = `model-${obj.id}`;
+              keepModelEntityIds.add(entityId);
+
+              // Create or update entity
+              let entity = viewer.entities.getById(entityId);
+              if (!entity) {
+                entity = viewer.entities.add({
+                  id: entityId,
+                  position: entityPosition,
+                  orientation,
+                  model: {
+                    uri: obj.url,
+                    scale: uniformScale,
+                    distanceDisplayCondition:
+                      new Cesium.DistanceDisplayCondition(
+                        0.0,
+                        Number.MAX_VALUE
+                      ),
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                  },
+                  label: {
+                    text: obj.name || "Model",
+                    font: "12pt sans-serif",
+                    fillColor: Cesium.Color.WHITE,
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 2,
+                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    pixelOffset: new Cesium.Cartesian2(0, -30),
+                  },
+                });
+              } else {
+                // Update existing entity properties
+                entity.position = entityPosition;
+                entity.orientation = orientation;
+                if (entity.model) {
+                  entity.model.uri = obj.url;
+                  (entity.model as any).scale = uniformScale;
+                  (entity.model as any).disableDepthTestDistance =
+                    Number.POSITIVE_INFINITY;
+                }
+                // Force a redraw when updating an existing entity
+                viewer.scene.requestRender();
+              }
+            } catch (error) {
+              // Failed to load model - falling back to point
               // Fallback to point if model loading fails
+              const entityId = `model-${obj.id}`;
+              keepModelEntityIds.add(entityId);
+              const entity = viewer.entities.getById(entityId);
+              const pos = Cesium.Cartesian3.fromDegrees(
+                longitude,
+                latitude,
+                height
+              );
+              if (!entity) {
+                viewer.entities.add({
+                  id: entityId,
+                  position: pos,
+                  point: {
+                    pixelSize: 10,
+                    color: Cesium.Color.RED,
+                    outlineColor: Cesium.Color.WHITE,
+                    outlineWidth: 2,
+                  },
+                  label: {
+                    text: obj.name || "Object",
+                    font: "12pt sans-serif",
+                    fillColor: Cesium.Color.WHITE,
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 2,
+                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    pixelOffset: new Cesium.Cartesian2(0, -30),
+                  },
+                });
+              } else {
+                entity.position = pos;
+                viewer.scene.requestRender();
+              }
+            }
+          } else {
+            // Place simple points for objects without models
+            const entityId = `model-${obj.id}`;
+            keepModelEntityIds.add(entityId);
+            const entity = viewer.entities.getById(entityId);
+            const pos = Cesium.Cartesian3.fromDegrees(
+              longitude,
+              latitude,
+              height
+            );
+            if (!entity) {
               viewer.entities.add({
-                position: Cesium.Cartesian3.fromDegrees(
-                  longitude,
-                  latitude,
-                  height
-                ),
+                id: entityId,
+                position: pos,
                 point: {
                   pixelSize: 10,
                   color: Cesium.Color.RED,
@@ -492,39 +533,31 @@ export default function CesiumViewer() {
                   pixelOffset: new Cesium.Cartesian2(0, -30),
                 },
               });
+            } else {
+              entity.position = pos;
+              viewer.scene.requestRender();
             }
-          } else {
-            // Place simple points for objects without models
-            viewer.entities.add({
-              position: Cesium.Cartesian3.fromDegrees(
-                longitude,
-                latitude,
-                height
-              ),
-              point: {
-                pixelSize: 10,
-                color: Cesium.Color.RED,
-                outlineColor: Cesium.Color.WHITE,
-                outlineWidth: 2,
-              },
-              label: {
-                text: obj.name || "Object",
-                font: "12pt sans-serif",
-                fillColor: Cesium.Color.WHITE,
-                outlineColor: Cesium.Color.BLACK,
-                outlineWidth: 2,
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                pixelOffset: new Cesium.Cartesian2(0, -30),
-              },
-            });
           }
         });
       }
+
+      // Remove any leftover model entities that are not in keep set
+      const toRemove: any[] = [];
+      viewer.entities.values.forEach((e: any) => {
+        if (
+          typeof e.id === "string" &&
+          e.id.startsWith("model-") &&
+          !keepModelEntityIds.has(e.id)
+        ) {
+          toRemove.push(e);
+        }
+      });
+      toRemove.forEach((e) => viewer.entities.remove(e));
+      if (toRemove.length > 0) {
+        viewer.scene.requestRender();
+      }
     } catch (err) {
-      console.error(
-        `[CesiumViewer ${instanceId.current}] Error rendering entities:`,
-        err
-      );
+      // Error rendering entities
     }
   }, [world, isLoading, objects]);
 
@@ -666,9 +699,7 @@ export default function CesiumViewer() {
                   obj.observationProperties?.viewshedColor || "#0080ff",
                 analysisQuality:
                   obj.observationProperties?.analysisQuality || "medium",
-                enableTransformEditor:
-                  obj.observationProperties?.enableTransformEditor ?? true,
-                gizmoMode: obj.observationProperties?.gizmoMode || "translate",
+                // Transform editor properties removed
               };
 
               // Always use Ion SDK for professional sensor visualization
