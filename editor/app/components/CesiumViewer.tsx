@@ -9,7 +9,9 @@ import CesiumCameraCaptureHandler from "./Builder/CesiumCameraCaptureHandler";
 import CesiumObservationPointHandler from "./Builder/CesiumObservationPointHandler";
 import CesiumCameraSpringController from "./Builder/CesiumCameraSpringController";
 import CesiumPreviewModeController from "./Builder/CesiumPreviewModeController";
-import CesiumSDKViewshedAnalysis from "./Builder/CesiumSDKViewshedAnalysis";
+import CesiumIonSDKViewshedAnalysis from "./Builder/CesiumIonSDKViewshedAnalysis";
+import ObjectTransformEditor from "./Builder/ObjectTransformEditor";
+import IonSDKDemo from "./Builder/IonSDKDemo";
 
 // Extend Window interface for Cesium
 declare global {
@@ -117,6 +119,7 @@ export default function CesiumViewer() {
   const world = useWorldStore((s) => s.activeWorld);
   const setCesiumViewer = useSceneStore((s) => s.setCesiumViewer);
   const setCesiumInstance = useSceneStore((s) => s.setCesiumInstance);
+  const selectedObject = useSceneStore((s) => s.selectedObject);
   const viewerRef = useRef<any>(null);
   const cesiumRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -163,6 +166,10 @@ export default function CesiumViewer() {
           Cesium = await import("cesium");
           cesiumRef.current = Cesium;
           setCesiumInstance(Cesium);
+
+          // Make Cesium available globally for Ion SDK
+          (window as any).Cesium = Cesium;
+          console.log("✅ Cesium made available globally for Ion SDK");
         } catch (importError) {
           console.error(
             `[CesiumViewer ${instanceId.current}] Failed to import Cesium:`,
@@ -630,7 +637,9 @@ export default function CesiumViewer() {
           <CesiumObservationPointHandler />
           <CesiumCameraSpringController />
           <CesiumPreviewModeController />
-          {/* Render viewshed analysis for observation models */}
+          {/* Ion SDK Demo - uncomment to test */}
+          <IonSDKDemo />
+          {/* Render professional Ion SDK viewshed analysis for observation models */}
           {objects
             .filter(
               (obj) => obj.isObservationModel && obj.observationProperties
@@ -639,7 +648,7 @@ export default function CesiumViewer() {
               const [longitude, latitude, height] = obj.position || [0, 0, 0];
               const [heading, pitch, roll] = obj.rotation || [0, 0, 0];
 
-              // Use the new observation properties structure with better defaults
+              // Professional observation properties with Ion SDK defaults
               const observationProps = {
                 sensorType: obj.observationProperties?.sensorType || "cone",
                 fov: obj.observationProperties?.fov || 60,
@@ -649,7 +658,7 @@ export default function CesiumViewer() {
                 visibilityRadius:
                   obj.observationProperties?.visibilityRadius || 500,
                 showSensorGeometry:
-                  obj.observationProperties?.showSensorGeometry ?? true, // Default to true
+                  obj.observationProperties?.showSensorGeometry ?? true,
                 showViewshed: obj.observationProperties?.showViewshed || false,
                 sensorColor:
                   obj.observationProperties?.sensorColor || "#00ff00",
@@ -657,18 +666,15 @@ export default function CesiumViewer() {
                   obj.observationProperties?.viewshedColor || "#0080ff",
                 analysisQuality:
                   obj.observationProperties?.analysisQuality || "medium",
-                raysAzimuth: obj.observationProperties?.raysAzimuth || 120,
-                raysElevation: obj.observationProperties?.raysElevation || 8,
-                clearance: obj.observationProperties?.clearance || 2.0,
-                stepCount: obj.observationProperties?.stepCount || 64,
                 enableTransformEditor:
-                  obj.observationProperties?.enableTransformEditor ?? true, // Default to true
-                gizmoMode: obj.observationProperties?.gizmoMode || "translate", // Default to translate
+                  obj.observationProperties?.enableTransformEditor ?? true,
+                gizmoMode: obj.observationProperties?.gizmoMode || "translate",
               };
 
+              // Always use Ion SDK for professional sensor visualization
               return (
-                <CesiumSDKViewshedAnalysis
-                  key={`viewshed-${obj.id}`}
+                <CesiumIonSDKViewshedAnalysis
+                  key={`ion-viewshed-${obj.id}`}
                   position={[longitude, latitude, height]}
                   rotation={[heading, pitch, roll]}
                   observationProperties={observationProps}
@@ -676,6 +682,11 @@ export default function CesiumViewer() {
                 />
               );
             })}
+
+          {/* Object Transform Editor - works for any selected object */}
+          {selectedObject && (
+            <ObjectTransformEditor selectedObject={selectedObject} />
+          )}
         </>
       )}
     </>
