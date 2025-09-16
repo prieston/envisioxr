@@ -139,12 +139,7 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
       updateStoreFromCartesian(selectedObject.id, nextPos, nextHPR);
       cesiumViewer.scene.requestRender();
     },
-    [
-      applyTRStoEntity,
-      cesiumViewer,
-      selectedObject.id,
-      updateStoreFromCartesian,
-    ]
+    [cesiumViewer, selectedObject.id]
   );
 
   // --- create/destroy TransformEditor when selection changes ---
@@ -187,7 +182,7 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
     transformEditorRef.current = ionSDKRef.current.createTransformEditor(
       targetEntity,
       {
-        axisLength: 20,
+        axisLength: 50,
         gizmoPosition: "top",
         onChange: handleTransformChange,
       }
