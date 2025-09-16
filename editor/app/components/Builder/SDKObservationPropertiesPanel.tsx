@@ -62,14 +62,11 @@ const SDKObservationPropertiesPanel: React.FC<
     showSensorGeometry: true,
     showViewshed: false,
     analysisQuality: "medium",
-    enableTransformEditor: true,
+    enableTransformEditor: true, // Always enabled
     gizmoMode: "translate" as const,
     sensorColor: "#00ff00",
     viewshedColor: "#0080ff",
-    clearance: 2.0,
-    raysAzimuth: 120,
-    raysElevation: 8,
-    stepCount: 64,
+    include3DModels: true, // Include 3D models in viewshed analysis
   };
 
   const handleSectionToggle = (section: string) => {
@@ -122,6 +119,27 @@ const SDKObservationPropertiesPanel: React.FC<
         SDK Viewshed Analysis
       </Typography>
 
+      {/* Ion SDK Status */}
+      <Paper
+        sx={{
+          p: 2,
+          mb: 2,
+          bgcolor: "success.light",
+          color: "success.contrastText",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
+            🚀 Professional Ion SDK Active
+          </Typography>
+          <Chip label="Ion SDK" color="primary" size="small" />
+        </Box>
+        <Typography variant="caption" sx={{ display: "block", mt: 1 }}>
+          Enhanced sensors with professional materials, GPU acceleration, and
+          advanced features
+        </Typography>
+      </Paper>
+
       {/* Sensor Configuration */}
       <Accordion
         expanded={expandedSections.sensor}
@@ -134,7 +152,7 @@ const SDKObservationPropertiesPanel: React.FC<
             sx={{ display: "flex", alignItems: "center", gap: 1 }}
           >
             <SettingsIcon />
-            Sensor Configuration
+            Professional Sensor Configuration
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
@@ -381,67 +399,39 @@ const SDKObservationPropertiesPanel: React.FC<
               </Typography>
             </Grid>
 
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Azimuth Rays"
-                type="number"
-                value={observationProps.raysAzimuth || ""}
-                onChange={(e) =>
-                  handlePropertyChange(
-                    "raysAzimuth",
-                    parseInt(e.target.value) || undefined
-                  )
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={observationProps.include3DModels || false}
+                    onChange={(e) =>
+                      handlePropertyChange("include3DModels", e.target.checked)
+                    }
+                  />
                 }
-                size="small"
-                helperText="Number of horizontal samples"
+                label="Include 3D Models in Viewshed"
               />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Elevation Slices"
-                type="number"
-                value={observationProps.raysElevation || ""}
-                onChange={(e) =>
-                  handlePropertyChange(
-                    "raysElevation",
-                    parseInt(e.target.value) || undefined
-                  )
-                }
-                size="small"
-                helperText="Number of vertical samples"
-              />
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 1, display: "block" }}
+              >
+                When enabled, 3D models will block visibility and affect the
+                viewshed analysis. When disabled, only terrain occlusion is
+                considered.
+              </Typography>
             </Grid>
 
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Clearance (m)"
-                type="number"
-                value={observationProps.clearance || 2.0}
-                onChange={(e) =>
-                  handlePropertyChange("clearance", parseFloat(e.target.value))
-                }
-                size="small"
-                helperText="Height above terrain"
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Step Count"
-                type="number"
-                value={observationProps.stepCount || ""}
-                onChange={(e) =>
-                  handlePropertyChange(
-                    "stepCount",
-                    parseInt(e.target.value) || undefined
-                  )
-                }
-                size="small"
-                helperText="Samples per ray"
-              />
+            <Grid item xs={12}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 2, p: 2, bgcolor: "info.light", borderRadius: 1 }}
+              >
+                <strong>Ion SDK Viewshed:</strong> The Ion SDK handles viewshed
+                analysis automatically with optimized algorithms. No additional
+                ray sampling parameters are needed.
+              </Typography>
             </Grid>
           </Grid>
         </AccordionDetails>
@@ -463,22 +453,17 @@ const SDKObservationPropertiesPanel: React.FC<
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={observationProps.enableTransformEditor}
-                onChange={(e) =>
-                  handlePropertyChange(
-                    "enableTransformEditor",
-                    e.target.checked
-                  )
-                }
-              />
-            }
-            label="Enable Transform Gizmo"
-          />
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 2, p: 2, bgcolor: "info.light", borderRadius: 1 }}
+          >
+            <strong>Transform Gizmo:</strong> Always enabled for easy sensor
+            positioning and rotation. Click the yellow dot on the sensor to
+            activate the transform controls.
+          </Typography>
 
-          {observationProps.enableTransformEditor && (
+          {true && (
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={12}>
                 <FormControl fullWidth size="small">
@@ -558,15 +543,14 @@ const SDKObservationPropertiesPanel: React.FC<
 
       {/* Status Indicators */}
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+        <Chip label="Ion SDK Active" color="primary" size="small" />
         {observationProps.showSensorGeometry && (
-          <Chip label="Sensor Visible" color="primary" size="small" />
+          <Chip label="Sensor Visible" color="secondary" size="small" />
         )}
         {observationProps.showViewshed && (
-          <Chip label="Viewshed Active" color="secondary" size="small" />
+          <Chip label="Viewshed Active" color="success" size="small" />
         )}
-        {observationProps.enableTransformEditor && (
-          <Chip label="Transform Enabled" color="default" size="small" />
-        )}
+        <Chip label="Transform Enabled" color="default" size="small" />
       </Box>
     </Box>
   );
