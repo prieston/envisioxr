@@ -21,8 +21,7 @@ interface CesiumIonSDKViewshedAnalysisProps {
     sensorColor?: string;
     viewshedColor?: string;
     analysisQuality: "low" | "medium" | "high";
-    enableTransformEditor: boolean;
-    gizmoMode?: "translate" | "rotate" | "scale";
+    // Transform editor properties removed
     include3DModels?: boolean;
   };
   objectId: string;
@@ -35,7 +34,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
   const ionSDKRef = useRef<CesiumIonSDK | null>(null);
   const sensorRef = useRef<any>(null);
   const viewshedRef = useRef<Cesium.Entity | null>(null);
-  const transformEditorRef = useRef<any>(null);
+  // Transform editor removed
   const sensorEntityRef = useRef<Cesium.Entity | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -50,9 +49,9 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         await ionSDK.initialize();
         ionSDKRef.current = ionSDK;
         setIsInitialized(true);
-        console.log("✅ Ion SDK initialized for viewshed analysis");
+        // Ion SDK initialized for viewshed analysis
       } catch (err) {
-        console.error("❌ Failed to initialize Ion SDK:", err);
+        // Failed to initialize Ion SDK
         toast.error("Failed to initialize Ion SDK", {
           position: "top-right",
           autoClose: 5000,
@@ -66,7 +65,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
   // Create professional sensor using Ion SDK
   const createIonSDKSensor = useCallback(() => {
     if (!ionSDKRef.current) {
-      console.log("🔍 Ion SDK not loaded, skipping sensor creation");
+      // Ion SDK not loaded, skipping sensor creation
       return;
     }
 
@@ -88,7 +87,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
     // If showSensorGeometry is false, just return (sensor is already removed)
     if (!observationProperties.showSensorGeometry) {
-      console.log("🔍 Sensor geometry disabled, sensor removed");
+      // Sensor geometry disabled, sensor removed
       return;
     }
 
@@ -121,11 +120,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         include3DModels: observationProperties.include3DModels !== false, // Use property setting, default to true
       };
 
-      console.log("🔧 Creating Ion SDK sensor with options:", {
-        sensorType: observationProperties.sensorType,
-        fov: observationProperties.fov,
-        radius: observationProperties.visibilityRadius,
-      });
+      // Creating Ion SDK sensor with options
 
       let sensor: any = null;
 
@@ -164,7 +159,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
       if (sensor) {
         sensorRef.current = sensor;
-        console.log("✅ Ion SDK sensor created successfully:", sensor);
+        // Ion SDK sensor created successfully
 
         // Create a clickable entity for the transform editor
         const [longitude, latitude, height] = position;
@@ -213,12 +208,12 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
           id: `sensor-gizmo-${_objectId}`,
         });
 
-        console.log("✅ Clickable sensor entity created for transform editor");
+        // Clickable sensor entity created
       } else {
-        console.warn("⚠️ Sensor creation returned null");
+        // Sensor creation returned null
       }
     } catch (err) {
-      console.error("❌ Error creating Ion SDK sensor:", err);
+      // Error creating Ion SDK sensor
       toast.error("Failed to create sensor", {
         position: "top-right",
         autoClose: 5000,
@@ -254,7 +249,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     try {
       // Ion SDK handles viewshed automatically when showViewshed is enabled
       // No need for custom ray sampling parameters
-      console.log("✅ Ion SDK sensor created with built-in viewshed analysis");
+      // Ion SDK sensor created with built-in viewshed analysis
 
       // The viewshed is handled by the sensor itself via showViewshed: true
       // No additional computation needed
@@ -265,9 +260,9 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
       if (result.polygonEntity) {
         viewshedRef.current = result.polygonEntity;
-        console.log("✅ Professional viewshed analysis completed");
+        // Professional viewshed analysis completed
       } else {
-        console.warn("❌ No visible area found in viewshed analysis");
+        // No visible area found in viewshed analysis
         toast.warning(
           "No visible area found - terrain may be blocking all views",
           {
@@ -277,7 +272,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         );
       }
     } catch (err) {
-      console.error("❌ Error performing viewshed analysis:", err);
+      // Error performing viewshed analysis
       toast.error("Failed to perform viewshed analysis", {
         position: "top-right",
         autoClose: 5000,
@@ -307,9 +302,9 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     try {
       // Enable measurements
       ionSDKRef.current.enableMeasurements();
-      console.log("✅ Ion SDK measurements enabled");
+      // Ion SDK measurements enabled
     } catch (err) {
-      console.error("❌ Error enabling measurements:", err);
+      // Error enabling measurements
     }
   }, [ionSDKRef.current]);
 
@@ -323,76 +318,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     observationProperties.showSensorGeometry,
   ]);
 
-  // Create transform editor when sensor entity is created
-  useEffect(() => {
-    if (!isInitialized || !ionSDKRef.current || !sensorEntityRef.current)
-      return;
-
-    // Destroy existing transform editor
-    if (transformEditorRef.current && ionSDKRef.current) {
-      ionSDKRef.current.destroyTransformEditor(transformEditorRef.current);
-    }
-
-    console.log("🔧 Auto-creating transform editor for selected sensor");
-
-    // Create transform editor automatically when sensor is selected
-    transformEditorRef.current = ionSDKRef.current.createTransformEditor(
-      sensorEntityRef.current,
-      {
-        axisLength: 20.0,
-        gizmoPosition: "top",
-        onChange: (trs: any) => {
-          console.log("🔧 Auto-transform editor change:", trs);
-
-          // Update the sensor primitive when the entity moves
-          if (trs && trs.translation) {
-            console.log("📍 Position updated:", trs.translation);
-
-            // Convert to lat/lon/height
-            const cartographic = Cesium.Cartographic.fromCartesian(
-              trs.translation
-            );
-            const newLongitude = Cesium.Math.toDegrees(cartographic.longitude);
-            const newLatitude = Cesium.Math.toDegrees(cartographic.latitude);
-            const newHeight = cartographic.height;
-
-            console.log(
-              `📍 New position: [${newLongitude.toFixed(6)}, ${newLatitude.toFixed(6)}, ${newHeight.toFixed(2)}]`
-            );
-
-            // Recreate the sensor with new position
-            createIonSDKSensor();
-          }
-
-          if (trs && trs.rotation) {
-            console.log("🔄 Rotation updated:", trs.rotation);
-
-            // Recreate the sensor with new rotation
-            createIonSDKSensor();
-          }
-        },
-      }
-    );
-
-    if (transformEditorRef.current) {
-      console.log("✅ Auto-transform editor created successfully");
-    } else {
-      console.warn("⚠️ Failed to create auto-transform editor");
-    }
-
-    // Cleanup function
-    return () => {
-      if (transformEditorRef.current && ionSDKRef.current) {
-        ionSDKRef.current.destroyTransformEditor(transformEditorRef.current);
-        transformEditorRef.current = null;
-      }
-    };
-  }, [
-    isInitialized,
-    ionSDKRef.current,
-    sensorEntityRef.current,
-    createIonSDKSensor,
-  ]);
+  // Transform editor removed to prevent issues
 
   // Perform viewshed analysis when properties change
   useEffect(() => {
@@ -416,9 +342,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
       if (sensorEntityRef.current) {
         cesiumViewer?.entities.remove(sensorEntityRef.current);
       }
-      if (transformEditorRef.current && ionSDKRef.current) {
-        ionSDKRef.current.destroyTransformEditor(transformEditorRef.current);
-      }
+      // Transform editor cleanup removed
       if (ionSDKRef.current) {
         ionSDKRef.current.destroy();
       }
@@ -431,19 +355,17 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
       if (sensorRef.current) {
         if (sensorRef.current instanceof Cesium.Entity) {
           sensorRef.current.show = !sensorRef.current.show;
-          console.log(
-            `🔧 Sensor geometry ${sensorRef.current.show ? "shown" : "hidden"}`
-          );
+          // Sensor geometry toggled
         } else {
           // For Ion SDK primitives, we need to remove/add them
           if (sensorRef.current.show) {
             cesiumViewer?.scene.primitives.remove(sensorRef.current);
             sensorRef.current.show = false;
-            console.log("🔧 Sensor geometry hidden");
+            // Sensor geometry hidden
           } else {
             cesiumViewer?.scene.primitives.add(sensorRef.current);
             sensorRef.current.show = true;
-            console.log("🔧 Sensor geometry shown");
+            // Sensor geometry shown
           }
         }
       }

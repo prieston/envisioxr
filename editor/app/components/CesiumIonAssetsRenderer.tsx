@@ -27,7 +27,7 @@ const CesiumIonAssetsRenderer: React.FC = () => {
   // Initialize assets when they change
   useEffect(() => {
     if (!cesiumViewer || !cesiumInstance) {
-      console.log("[CesiumIon] Cesium viewer or instance not available");
+      // Cesium viewer or instance not available
       return;
     }
 
@@ -47,12 +47,7 @@ const CesiumIonAssetsRenderer: React.FC = () => {
 
   const initializeAsset = async (asset: any) => {
     try {
-      console.log(
-        "[CesiumIon] Initializing asset",
-        asset.assetId,
-        "with key",
-        asset.apiKey
-      );
+      // Initializing asset with key
 
       // Set the API key for this specific asset
       const originalToken = cesiumInstance.Ion.defaultAccessToken;
@@ -88,7 +83,7 @@ const CesiumIonAssetsRenderer: React.FC = () => {
               cesiumViewer.scene.primitives.remove(tileset);
             }
           } catch (error) {
-            console.warn("[CesiumIon] Error removing tileset:", error);
+            // Error removing tileset
           }
         },
       };
@@ -99,7 +94,7 @@ const CesiumIonAssetsRenderer: React.FC = () => {
       if (tileset.readyPromise) {
         tileset.readyPromise
           .then(() => {
-            console.log("[CesiumIon] Tileset ready for asset", asset.assetId);
+            // Tileset ready for asset
 
             // Auto-center camera on the tileset using Cesium's built-in method
             try {
@@ -107,20 +102,13 @@ const CesiumIonAssetsRenderer: React.FC = () => {
                 duration: 2.0,
                 offset: new cesiumInstance.HeadingPitchRange(0, -0.5, 1000),
               });
-              console.log(
-                "[CesiumIon] Camera centered on asset:",
-                asset.assetId
-              );
+              // Camera centered on asset
             } catch (error) {
-              console.warn(
-                "[CesiumIon] Error centering camera on asset:",
-                asset.assetId,
-                error
-              );
+              // Error centering camera on asset
             }
           })
           .catch((error: any) => {
-            console.error("[CesiumIon] Error loading tileset:", error);
+            // Error loading tileset
           });
       } else {
         console.warn(
