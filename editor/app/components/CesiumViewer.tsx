@@ -11,7 +11,6 @@ import CesiumCameraSpringController from "./Builder/CesiumCameraSpringController
 import CesiumPreviewModeController from "./Builder/CesiumPreviewModeController";
 import CesiumIonSDKViewshedAnalysis from "./Builder/CesiumIonSDKViewshedAnalysis";
 import ObjectTransformEditor from "./Builder/ObjectTransformEditor";
-import IonSDKDemo from "./Builder/IonSDKDemo";
 
 // Extend Window interface for Cesium
 declare global {
@@ -670,8 +669,6 @@ export default function CesiumViewer() {
           <CesiumObservationPointHandler />
           <CesiumCameraSpringController />
           <CesiumPreviewModeController />
-          {/* Ion SDK Demo - uncomment to test */}
-          <IonSDKDemo />
           {/* Render professional Ion SDK viewshed analysis for observation models */}
           {objects
             .filter(
