@@ -1,12 +1,18 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import * as Cesium from "cesium";
 import useSceneStore from "../../hooks/useSceneStore";
 import { toast } from "react-toastify";
 
+// Use Cesium.Math from "cesium" everywhere
+
+// Import monolithic Cesium for compatibility with Ion SDK
+import * as Cesium from "cesium";
+
 // Import Ion SDK modules directly
 import { RectangularSensor, ConicSensor } from "@cesiumgs/ion-sdk-sensors";
+import * as IonSensors from "@cesiumgs/ion-sdk-sensors";
+import * as IonGeometry from "@cesiumgs/ion-sdk-geometry";
 
 interface CesiumIonSDKViewshedAnalysisProps {
   position: [number, number, number]; // [longitude, latitude, height]
@@ -35,23 +41,76 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
   const { cesiumViewer } = useSceneStore();
   const sensorRef = useRef<any>(null);
   const viewshedRef = useRef<Cesium.Entity | null>(null);
-  const sensorEntityRef = useRef<Cesium.Entity | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
 
-  // Initialize component
+  // Initialize Ion SDK modules
   useEffect(() => {
     if (!cesiumViewer || isInitialized) return;
 
-    // Ion SDK modules are already initialized by the copy script
-    setIsInitialized(true);
-    console.log("✅ Viewshed analysis component initialized");
+    const initializeIonSDK = async () => {
+      try {
+        // Initialize sensors module
+        const initializeSensors = (IonSensors as any).initializeSensors;
+        if (typeof initializeSensors === "function") {
+          try {
+            await initializeSensors();
+            console.log("✅ Ion SDK sensors initialized");
+          } catch (error) {
+            if (
+              error.message &&
+              error.message.includes("Cannot redefine property")
+            ) {
+              console.log("Ion SDK sensors already initialized, skipping...");
+            } else {
+              throw error;
+            }
+          }
+        }
+
+        // Initialize geometry module
+        const initializeGeometry = (IonGeometry as any).initializeGeometry;
+        if (typeof initializeGeometry === "function") {
+          try {
+            await initializeGeometry();
+            console.log("✅ Ion SDK geometry initialized");
+          } catch (error) {
+            if (
+              error.message &&
+              error.message.includes("Cannot redefine property")
+            ) {
+              console.log("Ion SDK geometry already initialized, skipping...");
+            } else {
+              throw error;
+            }
+          }
+        }
+
+        setIsInitialized(true);
+        console.log("✅ Viewshed analysis component initialized");
+      } catch (err) {
+        console.error("❌ Failed to initialize Ion SDK modules:", err);
+        toast.error("Failed to initialize Ion SDK modules", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      }
+    };
+
+    initializeIonSDK();
   }, [cesiumViewer, isInitialized]);
 
   // Create professional sensor using Ion SDK
+
   const createIonSDKSensor = useCallback(() => {
+    console.log("🔍 createIonSDKSensor called", {
+      isInitialized,
+      cesiumViewer: !!cesiumViewer,
+    });
+
     if (!isInitialized || !cesiumViewer) {
       // Ion SDK not loaded, skipping sensor creation
+      console.log("🔍 Skipping sensor creation - not initialized or no viewer");
       return;
     }
 
@@ -66,14 +125,14 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     }
 
     // Remove existing sensor entity
-    if (sensorEntityRef.current) {
-      cesiumViewer?.entities.remove(sensorEntityRef.current);
-      sensorEntityRef.current = null;
-    }
 
     // If showSensorGeometry is false, just return (sensor is already removed)
+    console.log(
+      "🔍 showSensorGeometry:",
+      observationProperties.showSensorGeometry
+    );
     if (!observationProperties.showSensorGeometry) {
-      // Sensor geometry disabled, sensor removed
+      console.log("🔍 Sensor geometry disabled, sensor removed");
       return;
     }
 
@@ -81,125 +140,188 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
       const [longitude, latitude, height] = position;
       const [heading, pitch, roll] = rotation;
 
+      // 1) Build world position
       const sensorPosition = Cesium.Cartesian3.fromDegrees(
         longitude,
         latitude,
         height
       );
-      const sensorOrientation = Cesium.Transforms.headingPitchRollQuaternion(
-        sensorPosition,
-        new Cesium.HeadingPitchRoll(heading, pitch, roll),
-        Cesium.Ellipsoid.WGS84
+
+      // 2) Build rotation from HPR
+      const hpr = new Cesium.HeadingPitchRoll(
+        heading || 0,
+        pitch || 0,
+        roll || 0
+      );
+      const rot = Cesium.Matrix3.fromHeadingPitchRoll(hpr);
+
+      // 3) Build a *single* modelMatrix (rotation + translation)
+      const modelMatrix = Cesium.Matrix4.fromRotationTranslation(
+        rot,
+        sensorPosition
       );
 
-      const baseOptions = {
-        position: sensorPosition,
-        orientation: sensorOrientation,
-        radius: observationProperties.visibilityRadius,
-        color: observationProperties.sensorColor
+      // 4) Validate (avoid NaNs/Infs)
+      if (
+        !Number.isFinite(sensorPosition.x) ||
+        !Number.isFinite(sensorPosition.y) ||
+        !Number.isFinite(sensorPosition.z)
+      ) {
+        console.error("❌ Invalid sensor position:", sensorPosition);
+        return;
+      }
+
+      console.log("🔍 Raw position values:", { longitude, latitude, height });
+      console.log("🔍 Calculated position:", sensorPosition);
+      console.log("🔍 Raw rotation values:", { heading, pitch, roll });
+      console.log("🔍 Model matrix:", modelMatrix);
+      console.log(
+        "🔍 Sensor color property:",
+        observationProperties.sensorColor
+      );
+
+      // Validate radius
+      const radius = Math.max(1, observationProperties.visibilityRadius || 100);
+      if (!isFinite(radius) || radius <= 0) {
+        console.error("❌ Invalid radius:", radius);
+        return;
+      }
+
+      // Determine the color to use
+      const sensorColor = (
+        observationProperties.sensorColor
           ? Cesium.Color.fromCssColorString(observationProperties.sensorColor)
-          : Cesium.Color.CYAN,
+          : Cesium.Color.GREEN
+      ).withAlpha(1.0);
+
+      console.log("🔍 Computed sensor color:", sensorColor);
+      console.log("🔍 Color components:", {
+        r: sensorColor.red,
+        g: sensorColor.green,
+        b: sensorColor.blue,
+        alpha: sensorColor.alpha,
+      });
+
+      // Build a simple color material for the primitive surfaces
+      const sensorMat = Cesium.Material.fromType("Color", {
+        color: sensorColor,
+      });
+
+      const baseOptions = {
+        modelMatrix, // ✅ single source of truth for the sensor's frame
+        radius,
+        // tint the sensor geometry (non-viewshed rendering)
+        lateralSurfaceMaterial: sensorMat,
+        domeSurfaceMaterial: sensorMat,
+        // optional: also color ellipsoid horizon / intersection surfaces
+        // ellipsoidHorizonSurfaceMaterial: sensorMat,
+        // ellipsoidSurfaceMaterial: sensorMat,
+
         showLateralSurfaces: true,
         showDomeSurfaces: true,
-        showViewshed: observationProperties.showViewshed,
+
+        // viewshed rendering (when enabled) uses these colors instead
+        showViewshed: !!observationProperties.showViewshed,
+
         environmentConstraint: true,
-        include3DModels: observationProperties.include3DModels !== false, // Use property setting, default to true
+        include3DModels: observationProperties.include3DModels !== false,
       };
 
+      console.log("🔍 Base options for sensor:", baseOptions);
+
       // Creating Ion SDK sensor with options
+      console.log(
+        "🔍 Creating sensor with type:",
+        observationProperties.sensorType
+      );
 
       let sensor: any = null;
-
-      switch (observationProperties.sensorType) {
-        case "rectangle": {
-          const rectangularOptions = {
-            ...baseOptions,
-            xHalfAngle: Cesium.Math.toRadians(
-              observationProperties.fovH || observationProperties.fov
-            ),
-            yHalfAngle: Cesium.Math.toRadians(
-              observationProperties.fovV || observationProperties.fov * 0.6
-            ),
-          };
-          sensor = new RectangularSensor(rectangularOptions);
-          break;
+      if (observationProperties.sensorType === "rectangle") {
+        const xHalf = Cesium.Math.toRadians(
+          observationProperties.fovH ?? observationProperties.fov ?? 60
+        );
+        const yHalf = Cesium.Math.toRadians(
+          observationProperties.fovV ?? (observationProperties.fov ?? 60) * 0.6
+        );
+        sensor = new RectangularSensor({
+          ...baseOptions,
+          xHalfAngle: xHalf,
+          yHalfAngle: yHalf,
+        });
+      } else {
+        const fov = observationProperties.fov ?? 60;
+        if (!Number.isFinite(fov) || fov <= 0 || fov >= 180) {
+          console.error("❌ Invalid FOV:", fov);
+          return;
         }
-        case "cone": {
-          const conicOptions = {
-            ...baseOptions,
-            fov: Cesium.Math.toRadians(observationProperties.fov),
-          };
-          sensor = new ConicSensor(conicOptions);
-          break;
-        }
-        default: {
-          // Fallback to conic sensor
-          const defaultOptions = {
-            ...baseOptions,
-            fov: Cesium.Math.toRadians(observationProperties.fov),
-          };
-          sensor = new ConicSensor(defaultOptions);
-        }
+        sensor = new ConicSensor({
+          ...baseOptions,
+          fov: Cesium.Math.toRadians(fov),
+        });
       }
 
       if (sensor) {
-        sensorRef.current = sensor;
-        // Ion SDK sensor created successfully
-
-        // Create a clickable entity for the transform editor
-        const [longitude, latitude, height] = position;
-        const [heading, pitch, roll] = rotation;
-
-        const sensorPosition = Cesium.Cartesian3.fromDegrees(
-          longitude,
-          latitude,
-          height
-        );
-        const sensorOrientation = Cesium.Transforms.headingPitchRollQuaternion(
-          sensorPosition,
-          new Cesium.HeadingPitchRoll(heading, pitch, roll),
-          Cesium.Ellipsoid.WGS84
-        );
-
-        // Remove existing sensor entity
-        if (sensorEntityRef.current) {
-          cesiumViewer?.entities.remove(sensorEntityRef.current);
+        // Add sensor to the scene
+        try {
+          cesiumViewer.scene.primitives.add(sensor);
+          console.log("✅ Ion SDK sensor added to scene");
+        } catch (error) {
+          console.error("❌ Failed to add sensor to scene:", error);
         }
+        sensorRef.current = sensor;
 
-        // Create a clickable entity at the sensor position
-        sensorEntityRef.current = cesiumViewer?.entities.add({
-          position: sensorPosition,
-          orientation: sensorOrientation,
-          point: {
-            pixelSize: 12,
-            color: Cesium.Color.YELLOW,
-            outlineColor: Cesium.Color.BLACK,
-            outlineWidth: 2,
-            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
-            scaleByDistance: new Cesium.NearFarScalar(1.5e2, 2.0, 1.5e7, 0.5),
-          },
-          label: {
-            text: "Click to Edit Sensor",
-            font: "12pt sans-serif",
-            pixelOffset: new Cesium.Cartesian2(0, -40),
-            fillColor: Cesium.Color.WHITE,
-            outlineColor: Cesium.Color.BLACK,
-            outlineWidth: 2,
-            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
-            scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.5),
-          },
-          // Make it pickable
-          id: `sensor-gizmo-${_objectId}`,
-        });
+        // Debug: Log what the primitive actually exposes
+        console.log("🔍 sensor keys:", Object.keys(sensor));
+        console.log("🔍 appearance:", sensor.appearance);
+        console.log("🔍 appearance.material:", sensor.appearance?.material);
+        console.log("🔍 uniforms:", sensor.appearance?.material?.uniforms);
 
-        // Clickable sensor entity created
+        // Apply colors via the public fields that this build exposes
+        const visible = sensorColor.withAlpha(0.6); // your green with transparency like yellow
+        const occluded = Cesium.Color.fromBytes(255, 0, 0, 160); // semi-red
+
+        // Sanity check: try a bright color to rule out lighting issues
+        // const visible = Cesium.Color.LIME.withAlpha(1.0); // uncomment to test
+
+        // 1) Ensure viewshed is actually used
+        sensor.showViewshed = true;
+
+        // 2) Apply colors via the public fields that your build exposes
+        sensor.viewshedVisibleColor = visible;
+        sensor.viewshedOccludedColor = occluded;
+
+        // 3) Hide the base cone surfaces while using the viewshed shader,
+        //    because your build draws separate "color command" passes that default to white.
+        sensor.showLateralSurfaces = false;
+        sensor.showDomeSurfaces = false;
+
+        // 4) (Optional) Also hide environment overlay passes if they wash things out white
+        sensor.showEnvironmentOcclusion = false;
+        sensor.showEnvironmentIntersection = false;
+        sensor.showIntersection = false;
+
+        // 5) Force a draw
+        cesiumViewer.scene.requestRender();
+
+        console.log(
+          "✅ Sensor created with proper materials and viewshed colors"
+        );
+
+        // No longer creating clickable entities
       } else {
         // Sensor creation returned null
       }
     } catch (err) {
       // Error creating Ion SDK sensor
-      toast.error("Failed to create sensor", {
+      console.error("❌ Error creating Ion SDK sensor:", err);
+      console.error("❌ Error details:", {
+        message: err.message,
+        stack: err.stack,
+        position,
+        rotation,
+        observationProperties,
+      });
+      toast.error(`Failed to create sensor: ${err.message}`, {
         position: "top-right",
         autoClose: 5000,
       });
@@ -284,14 +406,49 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
   // Note: Measurements are handled by the TransformEditor component
 
-  // Create sensor when properties change
+  // Update sensor pose for position/rotation changes (smooth updates)
+  useEffect(() => {
+    if (!isInitialized || !sensorRef.current) return;
+
+    const [longitude, latitude, height] = position;
+    const [heading, pitch, roll] = rotation;
+
+    const sensorPosition = Cesium.Cartesian3.fromDegrees(
+      longitude,
+      latitude,
+      height
+    );
+    const hpr = new Cesium.HeadingPitchRoll(
+      heading || 0,
+      pitch || 0,
+      roll || 0
+    );
+    const rot = Cesium.Matrix3.fromHeadingPitchRoll(hpr);
+    const modelMatrix = Cesium.Matrix4.fromRotationTranslation(
+      rot,
+      sensorPosition
+    );
+
+    // Update sensor pose in place
+    sensorRef.current.modelMatrix = modelMatrix;
+    cesiumViewer?.scene.requestRender();
+  }, [isInitialized, position, rotation, cesiumViewer]);
+
+  // Create sensor when shape/visibility properties change
   useEffect(() => {
     if (!isInitialized) return;
     createIonSDKSensor();
   }, [
     isInitialized,
-    createIonSDKSensor,
     observationProperties.showSensorGeometry,
+    observationProperties.sensorType,
+    observationProperties.fov,
+    observationProperties.fovH,
+    observationProperties.fovV,
+    observationProperties.visibilityRadius,
+    observationProperties.sensorColor,
+    observationProperties.showViewshed,
+    observationProperties.include3DModels,
   ]);
 
   // Transform editor removed to prevent issues
@@ -314,9 +471,6 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
       }
       if (viewshedRef.current) {
         cesiumViewer?.entities.remove(viewshedRef.current);
-      }
-      if (sensorEntityRef.current) {
-        cesiumViewer?.entities.remove(sensorEntityRef.current);
       }
       // Ion SDK modules are global, no cleanup needed
     };
