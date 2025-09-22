@@ -3,8 +3,10 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as Cesium from "cesium";
 import useSceneStore from "../../hooks/useSceneStore";
-import CesiumIonSDK from "../../utils/CesiumIonSDK";
 import { toast } from "react-toastify";
+
+// Import Ion SDK modules directly
+import { RectangularSensor, ConicSensor } from "@cesiumgs/ion-sdk-sensors";
 
 interface CesiumIonSDKViewshedAnalysisProps {
   position: [number, number, number]; // [longitude, latitude, height]
@@ -31,40 +33,24 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
   CesiumIonSDKViewshedAnalysisProps
 > = ({ position, rotation, observationProperties, objectId: _objectId }) => {
   const { cesiumViewer } = useSceneStore();
-  const ionSDKRef = useRef<CesiumIonSDK | null>(null);
   const sensorRef = useRef<any>(null);
   const viewshedRef = useRef<Cesium.Entity | null>(null);
-  // Transform editor removed
   const sensorEntityRef = useRef<Cesium.Entity | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
 
-  // Initialize Ion SDK
+  // Initialize component
   useEffect(() => {
     if (!cesiumViewer || isInitialized) return;
 
-    const initializeIonSDK = async () => {
-      try {
-        const ionSDK = new CesiumIonSDK(cesiumViewer);
-        await ionSDK.initialize();
-        ionSDKRef.current = ionSDK;
-        setIsInitialized(true);
-        // Ion SDK initialized for viewshed analysis
-      } catch (err) {
-        // Failed to initialize Ion SDK
-        toast.error("Failed to initialize Ion SDK", {
-          position: "top-right",
-          autoClose: 5000,
-        });
-      }
-    };
-
-    initializeIonSDK();
+    // Ion SDK modules are already initialized by the copy script
+    setIsInitialized(true);
+    console.log("✅ Viewshed analysis component initialized");
   }, [cesiumViewer, isInitialized]);
 
   // Create professional sensor using Ion SDK
   const createIonSDKSensor = useCallback(() => {
-    if (!ionSDKRef.current) {
+    if (!isInitialized || !cesiumViewer) {
       // Ion SDK not loaded, skipping sensor creation
       return;
     }
@@ -135,8 +121,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
               observationProperties.fovV || observationProperties.fov * 0.6
             ),
           };
-          sensor =
-            ionSDKRef.current.createRectangularSensor(rectangularOptions);
+          sensor = new RectangularSensor(rectangularOptions);
           break;
         }
         case "cone": {
@@ -144,7 +129,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
             ...baseOptions,
             fov: Cesium.Math.toRadians(observationProperties.fov),
           };
-          sensor = ionSDKRef.current.createConicSensor(conicOptions);
+          sensor = new ConicSensor(conicOptions);
           break;
         }
         default: {
@@ -153,7 +138,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
             ...baseOptions,
             fov: Cesium.Math.toRadians(observationProperties.fov),
           };
-          sensor = ionSDKRef.current.createConicSensor(defaultOptions);
+          sensor = new ConicSensor(defaultOptions);
         }
       }
 
@@ -220,7 +205,8 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
       });
     }
   }, [
-    ionSDKRef.current,
+    isInitialized,
+    cesiumViewer,
     position,
     rotation,
     observationProperties.showSensorGeometry,
@@ -235,7 +221,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
   // Perform professional viewshed analysis
   const performViewshedAnalysis = useCallback(async () => {
-    if (!ionSDKRef.current || !observationProperties.showViewshed) {
+    if (!isInitialized || !observationProperties.showViewshed) {
       // Remove existing viewshed
       if (viewshedRef.current) {
         cesiumViewer?.entities.remove(viewshedRef.current);
@@ -281,7 +267,8 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
       setIsCalculating(false);
     }
   }, [
-    ionSDKRef.current,
+    isInitialized,
+    cesiumViewer,
     position,
     rotation,
     observationProperties.showViewshed,
@@ -295,18 +282,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     observationProperties.visibilityRadius,
   ]);
 
-  // Enable professional measurements
-  useEffect(() => {
-    if (!ionSDKRef.current) return;
-
-    try {
-      // Enable measurements
-      ionSDKRef.current.enableMeasurements();
-      // Ion SDK measurements enabled
-    } catch (err) {
-      // Error enabling measurements
-    }
-  }, [ionSDKRef.current]);
+  // Note: Measurements are handled by the TransformEditor component
 
   // Create sensor when properties change
   useEffect(() => {
@@ -342,10 +318,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
       if (sensorEntityRef.current) {
         cesiumViewer?.entities.remove(sensorEntityRef.current);
       }
-      // Transform editor cleanup removed
-      if (ionSDKRef.current) {
-        ionSDKRef.current.destroy();
-      }
+      // Ion SDK modules are global, no cleanup needed
     };
   }, [cesiumViewer]);
 

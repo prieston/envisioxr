@@ -1,9 +1,22 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import * as Cesium from "cesium";
+import {
+  Cartesian3,
+  HeadingPitchRoll,
+  Transforms,
+  Math as CesiumMath,
+  JulianDate,
+  Quaternion,
+  Ellipsoid,
+  BoundingSphere,
+  Cartographic,
+  ConstantPositionProperty,
+  ConstantProperty,
+} from "@cesium/engine";
+// Note: Viewer is imported from @cesium/widgets but we use the viewer from the store
+import { TransformEditor } from "@cesiumgs/ion-sdk-measurements";
 import useSceneStore from "../../hooks/useSceneStore";
-import CesiumIonSDK from "../../utils/CesiumIonSDK";
 
 interface ObjectTransformEditorProps {
   selectedObject: {
@@ -18,40 +31,35 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
   selectedObject,
 }) => {
   const { cesiumViewer, transformMode } = useSceneStore();
-  const ionSDKRef = useRef<CesiumIonSDK | null>(null);
-  const transformEditorRef = useRef<{
-    setModeTranslation: () => void;
-    setModeRotation: () => void;
-    setModeScale: () => void;
-  } | null>(null);
+  const transformEditorRef = useRef<TransformEditor | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // --- helpers ---
   const applyTRStoEntity = useCallback(
     (
-      entity: Cesium.Entity,
-      translation: Cesium.Cartesian3,
-      hpr: Cesium.HeadingPitchRoll
+      entity: any, // Entity type from Cesium
+      translation: Cartesian3,
+      hpr: HeadingPitchRoll
     ) => {
-      entity.position = new Cesium.ConstantPositionProperty(translation);
-      const quat = Cesium.Transforms.headingPitchRollQuaternion(
+      entity.position = new ConstantPositionProperty(translation);
+      const quat = Transforms.headingPitchRollQuaternion(
         translation,
         hpr,
-        Cesium.Ellipsoid.WGS84
+        Ellipsoid.WGS84
       );
-      entity.orientation = new Cesium.ConstantProperty(quat);
+      entity.orientation = new ConstantProperty(quat);
     },
     []
   );
 
   const updateStoreFromCartesian = useCallback(
-    (id: string, pos: Cesium.Cartesian3, hpr: Cesium.HeadingPitchRoll) => {
-      const carto = Cesium.Cartographic.fromCartesian(pos);
+    (id: string, pos: Cartesian3, hpr: HeadingPitchRoll) => {
+      const carto = Cartographic.fromCartesian(pos);
       useSceneStore
         .getState()
         .updateObjectProperty(id, "position", [
-          Cesium.Math.toDegrees(carto.longitude),
-          Cesium.Math.toDegrees(carto.latitude),
+          CesiumMath.toDegrees(carto.longitude),
+          CesiumMath.toDegrees(carto.latitude),
           carto.height,
         ]);
       useSceneStore
@@ -65,56 +73,42 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
     []
   );
 
-  // --- init Ion SDK once per viewer ---
+  // --- init once per viewer ---
   useEffect(() => {
     if (!cesiumViewer || isInitialized) return;
-    (async () => {
-      try {
-        const ionSDK = new CesiumIonSDK(cesiumViewer);
-        await ionSDK.initialize();
-        ionSDKRef.current = ionSDK;
-        setIsInitialized(true);
-        // eslint-disable-next-line no-console
-        // Ion SDK initialized for object transform editor
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        // Failed to initialize Ion SDK
-      }
-    })();
+    setIsInitialized(true);
   }, [cesiumViewer, isInitialized]);
 
   // --- onChange from TransformEditor ---
   const handleTransformChange = useCallback(
     (trs: {
-      translation?: Cesium.Cartesian3;
+      translation?: Cartesian3;
       rotation?: [number, number, number];
       scale?: [number, number, number];
     }) => {
       if (!cesiumViewer) return;
       const modelEntityId = `model-${selectedObject.id}`;
       const modelEntity = cesiumViewer.entities.getById(modelEntityId) as
-        | Cesium.Entity
+        | any
         | undefined;
       if (!modelEntity) {
         // Model entity not found
         return;
       }
 
-      const now = Cesium.JulianDate.now();
+      const now = JulianDate.now();
       const currentPos =
         (modelEntity.position &&
-          (modelEntity.position as Cesium.PositionProperty).getValue?.(now)) ||
-        Cesium.Cartesian3.clone(Cesium.Cartesian3.ZERO);
+          (modelEntity.position as any).getValue?.(now)) ||
+        Cartesian3.clone(Cartesian3.ZERO);
       const currentQuat =
         (modelEntity.orientation &&
-          (modelEntity.orientation as Cesium.Property).getValue?.(now)) ||
-        Cesium.Quaternion.IDENTITY;
-      const currentHPR = Cesium.HeadingPitchRoll.fromQuaternion(currentQuat);
+          (modelEntity.orientation as any).getValue?.(now)) ||
+        Quaternion.IDENTITY;
+      const currentHPR = HeadingPitchRoll.fromQuaternion(currentQuat);
 
       const nextPos =
-        trs?.translation instanceof Cesium.Cartesian3
-          ? trs.translation
-          : currentPos;
+        trs?.translation instanceof Cartesian3 ? trs.translation : currentPos;
       const [
         h = currentHPR.heading,
         p = currentHPR.pitch,
@@ -123,39 +117,42 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
         ? trs.rotation
         : [currentHPR.heading, currentHPR.pitch, currentHPR.roll];
 
-      const nextHPR = new Cesium.HeadingPitchRoll(h, p, r);
+      const nextHPR = new HeadingPitchRoll(h, p, r);
       applyTRStoEntity(modelEntity, nextPos, nextHPR);
 
       // scale (uniform)
       if (trs?.scale && modelEntity.model) {
         const [sx = 1, sy = 1, sz = 1] = trs.scale;
         const uniform = Math.max(sx, sy, sz);
-        const mg = modelEntity.model as Cesium.ModelGraphics;
+        const mg = modelEntity.model as any;
         // ModelGraphics expects a Property; accept number too if your typings differ
-        (mg as Cesium.ModelGraphics & { scale: Cesium.Property }).scale =
-          new Cesium.ConstantProperty(uniform);
+        (mg as any).scale = new ConstantProperty(uniform);
       }
 
       updateStoreFromCartesian(selectedObject.id, nextPos, nextHPR);
       cesiumViewer.scene.requestRender();
     },
-    [cesiumViewer, selectedObject.id]
+    [
+      cesiumViewer,
+      selectedObject.id,
+      applyTRStoEntity,
+      updateStoreFromCartesian,
+    ]
   );
 
-  // --- create/destroy TransformEditor when selection changes ---
+  // --- create/destroy TransformEditor when object changes ---
   useEffect(() => {
-    if (
-      !isInitialized ||
-      !ionSDKRef.current ||
-      !selectedObject ||
-      !cesiumViewer
-    )
-      return;
+    if (!isInitialized || !selectedObject || !cesiumViewer) return;
 
     // cleanup previous
     if (transformEditorRef.current) {
       try {
-        ionSDKRef.current.destroyTransformEditor(transformEditorRef.current);
+        transformEditorRef.current.destroy();
+        if ((transformEditorRef.current as any)._container) {
+          document.body.removeChild(
+            (transformEditorRef.current as any)._container
+          );
+        }
       } catch {
         // Ignore cleanup errors
       }
@@ -174,32 +171,115 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
     // place target at selectedObject's initial pose (optional safety)
     const [lon = 0, lat = 0, hgt = 0] = selectedObject.position || [0, 0, 0];
     const [hd = 0, pt = 0, rl = 0] = selectedObject.rotation || [0, 0, 0];
-    const pos = Cesium.Cartesian3.fromDegrees(lon, lat, hgt);
-    const hpr = new Cesium.HeadingPitchRoll(hd, pt, rl);
-    applyTRStoEntity(targetEntity as Cesium.Entity, pos, hpr);
+    const pos = Cartesian3.fromDegrees(lon, lat, hgt);
+    const hpr = new HeadingPitchRoll(hd, pt, rl);
+    applyTRStoEntity(targetEntity as any, pos, hpr);
 
-    // create editor attached to the model entity (not a separate gizmo)
-    transformEditorRef.current = ionSDKRef.current.createTransformEditor(
-      targetEntity,
-      {
-        axisLength: 50,
-        gizmoPosition: "top",
-        onChange: handleTransformChange,
+    // Create transform object from the entity's position
+    const transform = Transforms.eastNorthUpToFixedFrame(pos, Ellipsoid.WGS84);
+
+    // Create a minimal container (just for the editor, no UI)
+    const container = document.createElement("div");
+    container.style.display = "none"; // Hide it since we don't need UI
+
+    // Create a bounding sphere for the transform editor
+    const boundingSphere = new BoundingSphere(pos, 50.0);
+
+    // Create the TransformEditor with proper options
+    const transformEditor = new TransformEditor({
+      container: container,
+      scene: cesiumViewer.scene,
+      transform: transform,
+      boundingSphere: boundingSphere,
+      pixelSize: 100,
+      maximumSizeInMeters: 50.0,
+    });
+
+    // Set up the onChange callback
+    transformEditor.viewModel.position = pos;
+    transformEditor.viewModel.headingPitchRoll = hpr;
+
+    // Set up efficient change detection
+    let lastPosition = pos.clone();
+    let lastHPR = hpr.clone();
+    let lastScale = new Cartesian3(1, 1, 1);
+    let animationId: number | null = null;
+
+    const checkForChanges = () => {
+      if (transformEditor.viewModel.active) {
+        const newPosition = transformEditor.viewModel.position;
+        const newHPR = transformEditor.viewModel.headingPitchRoll;
+        const newScale = transformEditor.viewModel.scale;
+
+        // Check for position changes
+        if (newPosition && !Cartesian3.equals(newPosition, lastPosition)) {
+          console.log("🎯 Position changed:", newPosition);
+          handleTransformChange({
+            translation: newPosition,
+            rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
+            scale: [newScale.x, newScale.y, newScale.z],
+          });
+          lastPosition = newPosition.clone();
+        }
+
+        // Check for rotation changes
+        if (newHPR && !HeadingPitchRoll.equals(newHPR, lastHPR)) {
+          console.log("🔄 Rotation changed:", newHPR);
+          handleTransformChange({
+            translation: newPosition || lastPosition,
+            rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
+            scale: [newScale.x, newScale.y, newScale.z],
+          });
+          lastHPR = newHPR.clone();
+        }
+
+        // Check for scale changes
+        if (newScale && !Cartesian3.equals(newScale, lastScale)) {
+          console.log("📏 Scale changed:", newScale);
+          handleTransformChange({
+            translation: newPosition || lastPosition,
+            rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
+            scale: [newScale.x, newScale.y, newScale.z],
+          });
+          lastScale = newScale.clone();
+        }
       }
-    );
 
-    if (!transformEditorRef.current) {
-      // eslint-disable-next-line no-console
-      // Failed to create object transform editor
-      return;
-    }
-    // eslint-disable-next-line no-console
-    // Object transform editor created
+      // Continue checking for changes
+      animationId = requestAnimationFrame(checkForChanges);
+    };
+
+    // Start checking for changes
+    checkForChanges();
+
+    // Configure the transform editor
+    transformEditor.viewModel.setModeTranslation();
+    transformEditor.viewModel.enableNonUniformScaling = true;
+    transformEditor.viewModel.activate();
+
+    console.log("🎯 TransformEditor created for object:", selectedObject.id);
+
+    // Store container reference for cleanup
+    (transformEditor as any)._container = container;
+
+    transformEditorRef.current = transformEditor;
 
     return () => {
-      if (transformEditorRef.current && ionSDKRef.current) {
+      if (transformEditorRef.current) {
         try {
-          ionSDKRef.current.destroyTransformEditor(transformEditorRef.current);
+          // Cancel animation frame
+          if (animationId !== null) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+          }
+
+          // Destroy the transform editor
+          transformEditorRef.current.destroy();
+          if ((transformEditorRef.current as any)._container) {
+            document.body.removeChild(
+              (transformEditorRef.current as any)._container
+            );
+          }
         } catch {
           // Ignore cleanup errors
         }
@@ -209,45 +289,59 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
   }, [
     isInitialized,
     cesiumViewer,
-    selectedObject.id,
+    selectedObject.id, // Only recreate when object ID changes
     applyTRStoEntity,
     handleTransformChange,
   ]);
 
-  // --- sync editor mode with store ---
+  // --- update gizmo position when object position changes ---
+  useEffect(() => {
+    if (!transformEditorRef.current || !selectedObject) return;
+
+    const [lon = 0, lat = 0, hgt = 0] = selectedObject.position || [0, 0, 0];
+    const [hd = 0, pt = 0, rl = 0] = selectedObject.rotation || [0, 0, 0];
+    const pos = Cartesian3.fromDegrees(lon, lat, hgt);
+    const hpr = new HeadingPitchRoll(hd, pt, rl);
+
+    // Update existing gizmo position
+    transformEditorRef.current.viewModel.position = pos;
+    transformEditorRef.current.viewModel.headingPitchRoll = hpr;
+  }, [selectedObject.position, selectedObject.rotation]); // Only when position/rotation changes
+
+  // --- update gizmo mode when transform mode changes ---
   useEffect(() => {
     if (!transformEditorRef.current) return;
+
+    console.log("🔄 Changing gizmo mode to:", transformMode);
+
     switch (transformMode) {
       case "translate":
-        transformEditorRef.current.setModeTranslation();
+        transformEditorRef.current.viewModel.setModeTranslation();
         break;
       case "rotate":
-        transformEditorRef.current.setModeRotation();
+        transformEditorRef.current.viewModel.setModeRotation();
         break;
       case "scale":
-        transformEditorRef.current.setModeScale();
+        transformEditorRef.current.viewModel.setModeScale();
         break;
     }
-  }, [transformMode]);
+  }, [transformMode]); // Only when transform mode changes
 
   // --- full cleanup on unmount ---
   useEffect(() => {
     return () => {
-      if (transformEditorRef.current && ionSDKRef.current) {
+      if (transformEditorRef.current) {
         try {
-          ionSDKRef.current.destroyTransformEditor(transformEditorRef.current);
+          transformEditorRef.current.destroy();
+          if ((transformEditorRef.current as any)._container) {
+            document.body.removeChild(
+              (transformEditorRef.current as any)._container
+            );
+          }
         } catch {
           // Ignore cleanup errors
         }
         transformEditorRef.current = null;
-      }
-      if (ionSDKRef.current) {
-        try {
-          ionSDKRef.current.destroy();
-        } catch {
-          // Ignore cleanup errors
-        }
-        ionSDKRef.current = null;
       }
     };
   }, []);
