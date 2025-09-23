@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
+    />
+    <meta name="description" content="Viewsheds on 3D Tiles and terrain." />
+    <meta
+      name="cesium-sandcastle-labels"
+      content="Showcases, 3D Tiles, ion SDK - Viewshed"
+    />
+    <title>Cesium Demo</title>
+    <script type="text/javascript" src="../Sandcastle-header.js"></script>
+    <script
+      type="text/javascript"
+      src="../../../ThirdParty/requirejs-2.1.20/require.js"
+    ></script>
+    <script type="text/javascript">
+      if (typeof require === "function") {
+        require.config({
+          baseUrl: "../../../Source",
+          waitSeconds: 120,
+        });
+      }
+    </script>
+  </head>
+  <body class="sandcastle-loading" data-sandcastle-bucket="bucket-requirejs.html">
+    <style>
+      @import url(../templates/bucket.css);
+      #toolbar input[type="range"] {
+        width: 70px;
+      }
+      #toolbar input {
+        vertical-align: middle;
+        padding-top: 2px;
+        padding-bottom: 2px;
+      }
+    </style>
+    <div id="cesiumContainer" class="fullSize"></div>
+    <div id="loadingOverlay"><h1>Loading...</h1></div>
+    <div id="toolbar"></div>
+
+    <script id="cesium_sandcastle_script">
+      window.startup = async function (Cesium) {
+        "use strict";
+        //Sandcastle_Begin
+        const viewer = new Cesium.Viewer("cesiumContainer", {
+          terrain: Cesium.Terrain.fromWorldTerrain(),
+        });
+        const scene = viewer.scene;
+        scene.globe.shadows = Cesium.ShadowMode.ENABLED;
+
+        const rectangularSensor = createRectangularSensor({
+          center: Cesium.Cartesian3.fromDegrees(-75.597514, 40.037648, 80.0),
+          radius: 200.0,
+          heading: -90,
+          pitch: -90,
+          roll: 0.0,
+          xHalfAngle: 25,
+          yHalfAngle: 30,
+          classificationType: Cesium.ClassificationType.CESIUM_3D_TILE,
+        });
+
+        const domeLongitude = -122.18885693996387;
+        const domeLatitude = 46.195570509484014;
+        const domeMinimumHeight = 2096.8854;
+        const domeMaximumHeight = 2300.0;
+
+        const domeSensor = createRectangularSensor({
+          center: Cesium.Cartesian3.fromDegrees(
+            domeLongitude,
+            domeLatitude,
+            domeMinimumHeight,
+          ),
+          radius: 2000.0,
+          heading: 0.0,
+          pitch: 0.0,
+          roll: 0.0,
+          xHalfAngle: 90,
+          yHalfAngle: 90,
+          classificationType: Cesium.ClassificationType.TERRAIN,
+          viewshedVisibleColor: Cesium.Color.fromAlpha(Cesium.Color.PALEVIOLETRED, 0.5),
+          viewshedOccludedColor: Cesium.Color.fromAlpha(Cesium.Color.NAVY, 0.5),
+        });
+
+        function createRectangularSensor(options) {
+          const headingPitchRoll = new Cesium.HeadingPitchRoll(
+            Cesium.Math.toRadians(options.heading),
+            Cesium.Math.toRadians(options.pitch),
+            Cesium.Math.toRadians(options.roll),
+          );
+          const modelMatrix = Cesium.Transforms.headingPitchRollToFixedFrame(
+            options.center,
+            headingPitchRoll,
+          );
+          const rotation = Cesium.Matrix4.getMatrix3(modelMatrix, new Cesium.Matrix3());
+          const orientation = Cesium.Quaternion.fromRotationMatrix(rotation);
+
+          const lateralSurfaceMaterial = new Cesium.GridMaterialProperty();
+          lateralSurfaceMaterial.color = new Cesium.Color(0.0, 1.0, 1.0, 1.0);
+          lateralSurfaceMaterial.cellAlpha = 0.5;
+          lateralSurfaceMaterial.lineCount = { x: 12, y: 10 };
+
+          const domeSurfaceMaterial = new Cesium.GridMaterialProperty();
+          domeSurfaceMaterial.color = new Cesium.Color(1.0, 1.0, 0.0, 1.0);
+          domeSurfaceMaterial.cellAlpha = 0.5;
+          domeSurfaceMaterial.lineCount = { x: 12, y: 12 };
+
+          const rectangularSensor = {
+            radius: options.radius,
+            xHalfAngle: Cesium.Math.toRadians(options.xHalfAngle),
+            yHalfAngle: Cesium.Math.toRadians(options.yHalfAngle),
+            lateralSurfaceMaterial: lateralSurfaceMaterial,
+            domeSurfaceMaterial: domeSurfaceMaterial,
+            showLateralSurfaces: false,
+            showEllipsoidHorizonSurfaces: false,
+            showDomeSurfaces: false,
+            showEllipsoidSurfaces: false,
+            showViewshed: true,
+            viewshedVisibleColor: options.viewshedVisibleColor,
+            viewshedOccludedColor: options.viewshedOccludedColor,
+            classificationType: options.classificationType,
+            showIntersection: false,
+            showThroughEllipsoid: true,
+          };
+
+          return viewer.entities.add({
+            position: options.center,
+            orientation: orientation,
+            rectangularSensor: rectangularSensor,
+          });
+        }
+
+        Sandcastle.addToolbarMenu([
+          {
+            text: "3D Tiles",
+            onselect: function () {
+              viewer.zoomTo(rectangularSensor);
+            },
+          },
+          {
+            text: "Terrain",
+            onselect: function () {
+              viewer.zoomTo(domeSensor);
+            },
+          },
+        ]);
+
+        const zAngle = 0.0;
+        const yAngle = Cesium.Math.PI_OVER_TWO;
+        let headingRotation = Cesium.Math.PI_OVER_TWO;
+        const headingIncrement = Cesium.Math.toRadians(1.0);
+
+        function animateRectangularSensor() {
+          let rotationZ = Cesium.Matrix3.fromRotationZ(zAngle);
+          const rotationY = Cesium.Matrix3.fromRotationY(yAngle);
+          const rotation = Cesium.Matrix3.multiply(
+            rotationY,
+            rotationZ,
+            new Cesium.Matrix3(),
+          );
+          rotationZ = Cesium.Matrix3.fromRotationZ(headingRotation);
+          Cesium.Matrix3.multiply(rotationZ, rotation, rotation);
+
+          const rotationTranslation = Cesium.Matrix4.fromRotationTranslation(
+            rotation,
+            Cesium.Cartesian3.ZERO,
+          );
+          const enu = Cesium.Transforms.eastNorthUpToFixedFrame(
+            rectangularSensor.position.getValue(Cesium.JulianDate.now()),
+          );
+
+          const modelMatrix = Cesium.Matrix4.multiply(
+            enu,
+            rotationTranslation,
+            new Cesium.Matrix4(),
+          );
+          const orientation = Cesium.Quaternion.fromRotationMatrix(
+            Cesium.Matrix4.getMatrix3(modelMatrix, new Cesium.Matrix3()),
+          );
+          rectangularSensor.orientation = orientation;
+
+          headingRotation += headingIncrement;
+        }
+
+        const cartographicScratch = new Cesium.Cartographic();
+        const cartesianScratch = new Cesium.Cartesian3();
+        let height = domeMinimumHeight;
+        const heightIncrement = 1.0;
+        let heightDirection = 1.0;
+
+        function animateDomeSensor() {
+          height = Cesium.Math.clamp(
+            height + heightDirection * heightIncrement,
+            domeMinimumHeight,
+            domeMaximumHeight,
+          );
+
+          if (height === domeMaximumHeight) {
+            heightDirection = -1.0;
+          } else if (height === domeMinimumHeight) {
+            heightDirection = 1.0;
+          }
+
+          const cartographic = Cesium.Cartographic.fromDegrees(
+            domeLongitude,
+            domeLatitude,
+            height,
+            cartographicScratch,
+          );
+          domeSensor.position = Cesium.Cartographic.toCartesian(
+            cartographic,
+            scene.globe.ellipsoid,
+            cartesianScratch,
+          );
+        }
+
+        function animate() {
+          return scene.postRender.addEventListener(function () {
+            animateRectangularSensor();
+            animateDomeSensor();
+          });
+        }
+
+        let removeEventListener;
+
+        Sandcastle.addToolbarButton("Toggle Animate", function () {
+          if (Cesium.defined(removeEventListener)) {
+            removeEventListener();
+            removeEventListener = undefined;
+          } else {
+            removeEventListener = animate();
+          }
+        });
+
+        let showSensor = false;
+
+        Sandcastle.addToggleButton("Show Volume", showSensor, function () {
+          showSensor = !showSensor;
+          rectangularSensor.rectangularSensor.showLateralSurfaces = showSensor;
+          rectangularSensor.rectangularSensor.showDomeSurfaces = showSensor;
+          domeSensor.rectangularSensor.showLateralSurfaces = showSensor;
+          domeSensor.rectangularSensor.showDomeSurfaces = showSensor;
+        });
+
+        function getViewshedResolutionOption(resolution) {
+          return {
+            text: resolution,
+            onselect: function () {
+              rectangularSensor.rectangularSensor.viewshedResolution = resolution;
+              domeSensor.rectangularSensor.viewshedResolution = resolution;
+            },
+          };
+        }
+
+        Sandcastle.addToolbarMenu([
+          {
+            text: "Resolution",
+          },
+          getViewshedResolutionOption(1024),
+          getViewshedResolutionOption(2048),
+          getViewshedResolutionOption(4096),
+        ]);
+
+        try {
+          const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(40866);
+          scene.primitives.add(tileset);
+        } catch (error) {
+          console.log(`Error loading tileset: ${error}`);
+        }
+
+        //Sandcastle_End
+        Sandcastle.finishedLoading();
+      };
+      if (typeof Cesium !== "undefined") {
+        window.startupCalled = true;
+        window.startup(Cesium).catch((error) => {
+          "use strict";
+          console.error(error);
+        });
+        Sandcastle.finishedLoading();
+      }
+    </script>
+  </body>
+</html>

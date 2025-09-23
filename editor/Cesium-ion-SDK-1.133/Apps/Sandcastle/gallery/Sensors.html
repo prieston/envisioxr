@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
+    />
+    <meta
+      name="description"
+      content="Construct and apply materials to rectangular and custom sensors."
+    />
+    <meta name="cesium-sandcastle-labels" content="Showcases, ion SDK - Viewshed" />
+    <title>Cesium Demo</title>
+    <script type="text/javascript" src="../Sandcastle-header.js"></script>
+    <script
+      type="text/javascript"
+      src="../../../Build/CesiumUnminified/Cesium.js"
+      nomodule
+    ></script>
+    <script type="module" src="../load-cesium-es6.js"></script>
+  </head>
+  <body class="claro sandcastle-loading" data-sandcastle-bucket="bucket-requirejs.html">
+    <style>
+      @import url(../templates/bucket.css);
+      #toolbar {
+        background-color: rgba(30, 30, 30, 0.7);
+        text-shadow: 0 0 5px #333;
+      }
+    </style>
+    <div id="cesiumContainer" class="fullSize"></div>
+    <div id="loadingOverlay"><h1>Loading...</h1></div>
+    <div id="toolbar">
+      <div id="titlePane"><h2>Manipulate Sensor</h2></div>
+      <div id="pane">
+        <table id="layerTable">
+          <tbody>
+            <tr>
+              <td>Longitude</td>
+              <td id="longitudeSlider">
+                <input
+                  type="range"
+                  min="-180.0"
+                  max="180.0"
+                  step="1"
+                  data-bind="value:longitude, valueUpdate: 'input'"
+                  style="width: 150px"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  size="5"
+                  step="1"
+                  data-bind="value: longitude, valueUpdate: 'input'"
+                  style="width: 80px"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>Latitude</td>
+              <td id="latitudeSlider">
+                <input
+                  type="range"
+                  min="-90.0"
+                  max="90.0"
+                  step="1"
+                  data-bind="value:latitude, valueUpdate: 'input'"
+                  style="width: 150px"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  size="5"
+                  step="1"
+                  data-bind="value: latitude, valueUpdate: 'input'"
+                  style="width: 80px"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>Altitude</td>
+              <td id="altitudeSlider">
+                <input
+                  type="range"
+                  min="0.0"
+                  max="35786000.0"
+                  step="1"
+                  data-bind="value:altitude, valueUpdate: 'input'"
+                  style="width: 150px"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  size="5"
+                  step="1"
+                  data-bind="value: altitude, valueUpdate: 'input'"
+                  style="width: 80px"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>Clock</td>
+              <td id="clockSlider">
+                <input
+                  type="range"
+                  min="-3.14"
+                  max="3.14"
+                  step="0.01"
+                  data-bind="value:clock, valueUpdate: 'input'"
+                  style="width: 150px"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  size="5"
+                  step="0.01"
+                  data-bind="value: clock, valueUpdate: 'input'"
+                  style="width: 80px"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>Cone</td>
+              <td id="coneSlider">
+                <input
+                  type="range"
+                  min="-3.14"
+                  max="3.14"
+                  step="0.01"
+                  data-bind="value:cone, valueUpdate: 'input'"
+                  style="width: 150px"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  size="5"
+                  step="0.01"
+                  data-bind="value: cone, valueUpdate: 'input'"
+                  style="width: 80px"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>Twist</td>
+              <td id="twistSlider">
+                <input
+                  type="range"
+                  min="-3.14"
+                  max="3.14"
+                  step="0.01"
+                  data-bind="value:twist, valueUpdate: 'input'"
+                  style="width: 150px"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  size="5"
+                  step="0.01"
+                  data-bind="value: twist, valueUpdate: 'input'"
+                  style="width: 80px"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="sensorMenu">Select a sensor</label>
+              </td>
+              <td colspan="2">
+                <select
+                  id="sensorMenu"
+                  data-bind="options: sensorOptions, value: selectedSensor"
+                ></select>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="portionMenu">Select portion to display</label>
+              </td>
+              <td colspan="2">
+                <select
+                  id="portionMenu"
+                  data-bind="options: portionOptions, value: selectedPortion"
+                ></select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <table>
+          <tbody>
+            <tr>
+              <td>Show Lateral Surfaces</td>
+              <td id="lateralCheckBox" colspan="2">
+                <input type="checkbox" data-bind="checked: showLateralSurfaces" />
+              </td>
+            </tr>
+            <tr>
+              <td>Show Ellipsoid Horizon Surfaces</td>
+              <td id="ellipsoidHorizonCheckBox" colspan="2">
+                <input
+                  type="checkbox"
+                  data-bind="checked: showEllipsoidHorizonSurfaces"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>Show Dome Surfaces</td>
+              <td id="domeCheckBox" colspan="2">
+                <input type="checkbox" data-bind="checked: showDomeSurfaces" />
+              </td>
+            </tr>
+            <tr>
+              <td>Show Ellipsoid Surfaces</td>
+              <td id="ellipsoidCheckBox" colspan="2">
+                <input type="checkbox" data-bind="checked: showEllipsoidSurfaces" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <script id="cesium_sandcastle_script">
+      window.startup = async function (Cesium) {
+        "use strict";
+        //Sandcastle_Begin
+        let longitude = -90.0;
+        let latitude = 30.0;
+        let altitude = 3500000.0;
+        let clock = 0.0;
+        let cone = Cesium.Math.toRadians(15.0);
+        let twist = 0.0;
+        let selection = "Rectangular";
+        let portion = Cesium.SensorVolumePortionToDisplay.COMPLETE;
+        let showLateralSurfaces = true;
+        let showEllipsoidHorizonSurfaces = true;
+        let showDomeSurfaces = true;
+        let showEllipsoidSurfaces = true;
+
+        function getModelMatrix(ellipsoid) {
+          const location = Cesium.Cartesian3.fromDegrees(
+            longitude,
+            latitude,
+            altitude,
+            ellipsoid,
+          );
+          let modelMatrix;
+          if (Math.abs(latitude) === 90.0) {
+            // Handle cases where north-east-down at the poles becomes undefined for Cartesian coordinates but is defined for cartographic coordinates.
+            const signLatitude = Cesium.Math.sign(latitude);
+            const l = Cesium.Math.toRadians(longitude);
+            const c = Math.cos(l);
+            const s = Math.sin(l);
+            modelMatrix = new Cesium.Matrix4(
+              -signLatitude * c,
+              -s,
+              0.0,
+              location.x,
+              -signLatitude * s,
+              c,
+              0.0,
+              location.y,
+              0.0,
+              0.0,
+              -signLatitude,
+              location.z,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+            );
+          } else {
+            modelMatrix = Cesium.Transforms.northEastDownToFixedFrame(location);
+          }
+          const orientation = Cesium.Matrix3.multiply(
+            Cesium.Matrix3.multiply(
+              Cesium.Matrix3.fromRotationZ(clock),
+              Cesium.Matrix3.fromRotationY(cone),
+              new Cesium.Matrix3(),
+            ),
+            Cesium.Matrix3.fromRotationX(twist),
+            new Cesium.Matrix3(),
+          );
+          return Cesium.Matrix4.multiply(
+            modelMatrix,
+            Cesium.Matrix4.fromRotationTranslation(orientation, Cesium.Cartesian3.ZERO),
+            new Cesium.Matrix4(),
+          );
+        }
+
+        function addRectangularSensor(ellipsoid) {
+          const rectangularSensor = new IonSdkSensors.RectangularSensor();
+
+          rectangularSensor.modelMatrix = getModelMatrix(ellipsoid);
+          rectangularSensor.radius = 20000000.0;
+          rectangularSensor.xHalfAngle = Cesium.Math.toRadians(45.0);
+          rectangularSensor.yHalfAngle = Cesium.Math.toRadians(60.0);
+          rectangularSensor.portionToDisplay = portion;
+
+          rectangularSensor.lateralSurfaceMaterial = Cesium.Material.fromType("Grid");
+          rectangularSensor.lateralSurfaceMaterial.uniforms.color = new Cesium.Color(
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+          );
+          rectangularSensor.lateralSurfaceMaterial.uniforms.cellAlpha = 0.5;
+          rectangularSensor.lateralSurfaceMaterial.uniforms.lineCount = {
+            x: 12,
+            y: 10,
+          };
+          rectangularSensor.showLateralSurfaces = showLateralSurfaces;
+
+          rectangularSensor.ellipsoidHorizonSurfaceMaterial =
+            Cesium.Material.fromType("Grid");
+          rectangularSensor.ellipsoidHorizonSurfaceMaterial.uniforms.color =
+            new Cesium.Color(0.4, 1.0, 0.0, 1.0);
+          rectangularSensor.ellipsoidHorizonSurfaceMaterial.uniforms.cellAlpha = 0.5;
+          rectangularSensor.ellipsoidHorizonSurfaceMaterial.uniforms.lineCount = {
+            x: 12,
+            y: 10,
+          };
+          rectangularSensor.showEllipsoidHorizonSurfaces = showEllipsoidHorizonSurfaces;
+
+          rectangularSensor.domeSurfaceMaterial = Cesium.Material.fromType("Grid");
+          rectangularSensor.domeSurfaceMaterial.uniforms.color = new Cesium.Color(
+            1.0,
+            1.0,
+            0.0,
+            1.0,
+          );
+          rectangularSensor.domeSurfaceMaterial.uniforms.cellAlpha = 0.5;
+          rectangularSensor.domeSurfaceMaterial.uniforms.lineCount = {
+            x: 12,
+            y: 12,
+          };
+          rectangularSensor.showDomeSurfaces = showDomeSurfaces;
+
+          rectangularSensor.ellipsoidSurfaceMaterial = Cesium.Material.fromType("Color");
+          rectangularSensor.ellipsoidSurfaceMaterial.uniforms.color = new Cesium.Color(
+            1.0,
+            0.0,
+            1.0,
+            0.5,
+          );
+          rectangularSensor.showEllipsoidSurfaces = showEllipsoidSurfaces;
+
+          return rectangularSensor;
+        }
+
+        function addConicSensor(ellipsoid) {
+          const conicSensor = new IonSdkSensors.ConicSensor();
+
+          conicSensor.modelMatrix = getModelMatrix(ellipsoid);
+          conicSensor.radius = 20000000.0;
+          conicSensor.innerHalfAngle = Cesium.Math.toRadians(15.0);
+          conicSensor.outerHalfAngle = Cesium.Math.toRadians(75.0);
+          conicSensor.minimumClockAngle = Cesium.Math.toRadians(-60.0);
+          conicSensor.maximumClockAngle = Cesium.Math.toRadians(60.0);
+          conicSensor.portionToDisplay = portion;
+
+          conicSensor.lateralSurfaceMaterial = Cesium.Material.fromType("Grid");
+          conicSensor.lateralSurfaceMaterial.uniforms.color = new Cesium.Color(
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+          );
+          conicSensor.lateralSurfaceMaterial.uniforms.cellAlpha = 0.5;
+          conicSensor.lateralSurfaceMaterial.uniforms.lineCount = {
+            x: 12,
+            y: 10,
+          };
+          conicSensor.showLateralSurfaces = showLateralSurfaces;
+
+          conicSensor.ellipsoidHorizonSurfaceMaterial = Cesium.Material.fromType("Grid");
+          conicSensor.ellipsoidHorizonSurfaceMaterial.uniforms.color = new Cesium.Color(
+            0.4,
+            1.0,
+            0.0,
+            1.0,
+          );
+          conicSensor.ellipsoidHorizonSurfaceMaterial.uniforms.cellAlpha = 0.5;
+          conicSensor.ellipsoidHorizonSurfaceMaterial.uniforms.lineCount = {
+            x: 12,
+            y: 10,
+          };
+          conicSensor.showEllipsoidHorizonSurfaces = showEllipsoidHorizonSurfaces;
+
+          conicSensor.domeSurfaceMaterial = Cesium.Material.fromType("Grid");
+          conicSensor.domeSurfaceMaterial.uniforms.color = new Cesium.Color(
+            1.0,
+            1.0,
+            0.0,
+            1.0,
+          );
+          conicSensor.domeSurfaceMaterial.uniforms.cellAlpha = 0.5;
+          conicSensor.domeSurfaceMaterial.uniforms.lineCount = {
+            x: 12,
+            y: 12,
+          };
+          conicSensor.showDomeSurfaces = showDomeSurfaces;
+
+          conicSensor.ellipsoidSurfaceMaterial = Cesium.Material.fromType("Color");
+          conicSensor.ellipsoidSurfaceMaterial.uniforms.color = new Cesium.Color(
+            1.0,
+            0.0,
+            1.0,
+            0.5,
+          );
+          conicSensor.showEllipsoidSurfaces = showEllipsoidSurfaces;
+
+          return conicSensor;
+        }
+
+        function addCustomSensor(ellipsoid) {
+          const customSensor = new IonSdkSensors.CustomPatternSensor();
+
+          const directions = [];
+          for (let i = 0; i < 8; ++i) {
+            directions.push({
+              clock: Cesium.Math.toRadians(45.0 * i),
+              cone: Cesium.Math.toRadians(25.0),
+            });
+          }
+
+          customSensor.modelMatrix = getModelMatrix(ellipsoid);
+          customSensor.radius = 20000000.0;
+          customSensor.directions = directions;
+          customSensor.portionToDisplay = portion;
+          customSensor.showLateralSurfaces = showLateralSurfaces;
+          customSensor.showEllipsoidHorizonSurfaces = showEllipsoidHorizonSurfaces;
+          customSensor.showDomeSurfaces = showDomeSurfaces;
+          customSensor.showEllipsoidSurfaces = showEllipsoidSurfaces;
+
+          return customSensor;
+        }
+
+        function addFootprint(ellipsoid) {
+          const foot = new IonSdkSensors.CustomPatternSensor();
+
+          const directions = [];
+          directions.push({
+            clock: Cesium.Math.toRadians(0.0),
+            cone: Cesium.Math.toRadians(14.03624347),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(74.3),
+            cone: Cesium.Math.toRadians(32.98357092),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(80.54),
+            cone: Cesium.Math.toRadians(37.23483398),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(90.0),
+            cone: Cesium.Math.toRadians(37.77568431),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(101.31),
+            cone: Cesium.Math.toRadians(37.41598862),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(116.56),
+            cone: Cesium.Math.toRadians(29.20519037),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(180.0),
+            cone: Cesium.Math.toRadians(14.03624347),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(247.2),
+            cone: Cesium.Math.toRadians(34.11764003),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(251.56),
+            cone: Cesium.Math.toRadians(44.67589157),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(253.96),
+            cone: Cesium.Math.toRadians(46.12330271),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(259.63),
+            cone: Cesium.Math.toRadians(46.19202903),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(262.87),
+            cone: Cesium.Math.toRadians(45.21405547),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(262.4),
+            cone: Cesium.Math.toRadians(37.09839406),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(266.47),
+            cone: Cesium.Math.toRadians(45.42651157),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(270.0),
+            cone: Cesium.Math.toRadians(45.42651157),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(270.97),
+            cone: Cesium.Math.toRadians(36.40877457),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(272.79),
+            cone: Cesium.Math.toRadians(45.70731937),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(278.33),
+            cone: Cesium.Math.toRadians(45.98533395),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(281.89),
+            cone: Cesium.Math.toRadians(36.0358894),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(282.99),
+            cone: Cesium.Math.toRadians(45.0),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(286.99),
+            cone: Cesium.Math.toRadians(43.26652934),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(291.8),
+            cone: Cesium.Math.toRadians(33.97011942),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(293.3),
+            cone: Cesium.Math.toRadians(41.50882857),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(300.96),
+            cone: Cesium.Math.toRadians(36.0826946),
+          });
+          directions.push({
+            clock: Cesium.Math.toRadians(319.18),
+            cone: Cesium.Math.toRadians(19.9888568),
+          });
+
+          foot.modelMatrix = getModelMatrix(ellipsoid);
+          foot.radius = 10000000.0;
+          foot.directions = directions;
+          foot.portionToDisplay = portion;
+
+          foot.lateralSurfaceMaterial = Cesium.Material.fromType("Color");
+          foot.lateralSurfaceMaterial.uniforms.color = new Cesium.Color(
+            0.0,
+            1.0,
+            1.0,
+            0.5,
+          );
+          foot.showLateralSurfaces = showLateralSurfaces;
+
+          foot.ellipsoidHorizonSurfaceMaterial = Cesium.Material.fromType("Color");
+          foot.ellipsoidHorizonSurfaceMaterial.uniforms.color = new Cesium.Color(
+            1.0,
+            0.0,
+            1.0,
+            0.5,
+          );
+          foot.showEllipsoidHorizonSurfaces = showEllipsoidHorizonSurfaces;
+
+          foot.domeSurfaceMaterial = Cesium.Material.fromType("Color");
+          foot.domeSurfaceMaterial.uniforms.color = new Cesium.Color(1.0, 1.0, 0.0, 0.5);
+          foot.showDomeSurfaces = showDomeSurfaces;
+
+          foot.showEllipsoidSurfaces = showEllipsoidSurfaces;
+          return foot;
+        }
+
+        function createUserInterface(viewer) {
+          const scene = viewer.scene;
+          const ellipsoid = scene.globe.ellipsoid;
+          const primitives = scene.primitives;
+          let sensor;
+
+          function updateSensor() {
+            primitives.remove(sensor);
+            switch (selection) {
+              case "Rectangular":
+                sensor = addRectangularSensor(ellipsoid);
+                break;
+              case "Conic":
+                sensor = addConicSensor(ellipsoid);
+                break;
+              case "Custom":
+                sensor = addCustomSensor(ellipsoid);
+                break;
+              case "Foot":
+                sensor = addFootprint(ellipsoid);
+                break;
+            }
+            primitives.add(sensor);
+          }
+
+          function updateModelMatrix() {
+            sensor.modelMatrix = getModelMatrix(ellipsoid);
+          }
+
+          const viewModel = {
+            longitude: longitude,
+            latitude: latitude,
+            altitude: altitude,
+            clock: clock,
+            cone: cone,
+            twist: twist,
+            showLateralSurfaces: showLateralSurfaces,
+            showEllipsoidHorizonSurfaces: showEllipsoidHorizonSurfaces,
+            showDomeSurfaces: showDomeSurfaces,
+            showEllipsoidSurfaces: showEllipsoidSurfaces,
+            sensorOptions: ["Rectangular", "Conic", "Custom", "Foot"],
+            selectedSensor: selection,
+            portionOptions: [
+              "Complete",
+              "Below ellipsoid horizon",
+              "Above ellipsoid horizon",
+            ],
+            selectedPortion: portion,
+          };
+
+          Cesium.knockout.track(viewModel);
+          const toolbar = document.getElementById("toolbar");
+          Cesium.knockout.applyBindings(viewModel, toolbar);
+
+          Cesium.knockout
+            .getObservable(viewModel, "longitude")
+            .subscribe(function (value) {
+              longitude = parseFloat(value);
+              updateModelMatrix();
+            });
+
+          Cesium.knockout
+            .getObservable(viewModel, "latitude")
+            .subscribe(function (value) {
+              latitude = parseFloat(value);
+              updateModelMatrix();
+            });
+
+          Cesium.knockout
+            .getObservable(viewModel, "altitude")
+            .subscribe(function (value) {
+              altitude = parseFloat(value);
+              updateModelMatrix();
+            });
+
+          Cesium.knockout.getObservable(viewModel, "clock").subscribe(function (value) {
+            clock = parseFloat(value);
+            updateModelMatrix();
+          });
+
+          Cesium.knockout.getObservable(viewModel, "cone").subscribe(function (value) {
+            cone = parseFloat(value);
+            updateModelMatrix();
+          });
+
+          Cesium.knockout.getObservable(viewModel, "twist").subscribe(function (value) {
+            twist = parseFloat(value);
+            updateModelMatrix();
+          });
+
+          Cesium.knockout
+            .getObservable(viewModel, "selectedSensor")
+            .subscribe(function (value) {
+              selection = value;
+              updateSensor();
+            });
+
+          Cesium.knockout
+            .getObservable(viewModel, "selectedPortion")
+            .subscribe(function (value) {
+              switch (value) {
+                case "Below ellipsoid horizon":
+                  portion = Cesium.SensorVolumePortionToDisplay.BELOW_ELLIPSOID_HORIZON;
+                  break;
+                case "Above ellipsoid horizon":
+                  portion = Cesium.SensorVolumePortionToDisplay.ABOVE_ELLIPSOID_HORIZON;
+                  break;
+                default:
+                  portion = Cesium.SensorVolumePortionToDisplay.COMPLETE;
+                  break;
+              }
+
+              sensor.portionToDisplay = portion;
+            });
+
+          Cesium.knockout
+            .getObservable(viewModel, "showLateralSurfaces")
+            .subscribe(function (value) {
+              showLateralSurfaces = value;
+              sensor.showLateralSurfaces = showLateralSurfaces;
+            });
+
+          Cesium.knockout
+            .getObservable(viewModel, "showEllipsoidHorizonSurfaces")
+            .subscribe(function (value) {
+              showEllipsoidHorizonSurfaces = value;
+              sensor.showEllipsoidHorizonSurfaces = showEllipsoidHorizonSurfaces;
+            });
+
+          Cesium.knockout
+            .getObservable(viewModel, "showDomeSurfaces")
+            .subscribe(function (value) {
+              showDomeSurfaces = value;
+              sensor.showDomeSurfaces = showDomeSurfaces;
+            });
+
+          Cesium.knockout
+            .getObservable(viewModel, "showEllipsoidSurfaces")
+            .subscribe(function (value) {
+              showEllipsoidSurfaces = value;
+              sensor.showEllipsoidSurfaces = showEllipsoidSurfaces;
+            });
+
+          updateSensor();
+        }
+
+        const viewer = new Cesium.Viewer("cesiumContainer");
+
+        createUserInterface(viewer);
+        //Sandcastle_End
+        Sandcastle.finishedLoading();
+      };
+      if (typeof Cesium !== "undefined") {
+        window.startupCalled = true;
+        window.startup(Cesium).catch((error) => {
+          "use strict";
+          console.error(error);
+        });
+        Sandcastle.finishedLoading();
+      }
+    </script>
+  </body>
+</html>

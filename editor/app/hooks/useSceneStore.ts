@@ -365,7 +365,6 @@ const useSceneStore = create<SceneState>((set) => ({
                   sensorColor: "#00ff00",
                   viewshedColor: "#0080ff",
                   clearance: 2.0,
-                  raysAzimuth: 120, // Set default values for better performance
                   raysElevation: 8,
                   stepCount: 64,
                   [child]: value,
