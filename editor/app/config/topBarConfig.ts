@@ -138,8 +138,34 @@ export const createCesiumTopBarConfig = (
         id: "center-section",
         type: "center",
         tools: [
-          // For Cesium, we might have different transform controls or none at all
-          // This can be customized later for Cesium-specific behavior
+          // Transform controls - only visible when object is selected and not in preview mode
+          {
+            id: "move-tool",
+            type: "transform",
+            label: "Move",
+            icon: OpenWithIcon,
+            visible: !!selectedObject && !previewMode,
+            active: transformMode === "translate",
+            onClick: () => onTransformModeChange("translate"),
+          },
+          {
+            id: "rotate-tool",
+            type: "transform",
+            label: "Rotate",
+            icon: RotateRightIcon,
+            visible: !!selectedObject && !previewMode,
+            active: transformMode === "rotate",
+            onClick: () => onTransformModeChange("rotate"),
+          },
+          {
+            id: "scale-tool",
+            type: "transform",
+            label: "Scale",
+            icon: AspectRatioIcon,
+            visible: !!selectedObject && !previewMode,
+            active: transformMode === "scale",
+            onClick: () => onTransformModeChange("scale"),
+          },
         ],
       },
       {

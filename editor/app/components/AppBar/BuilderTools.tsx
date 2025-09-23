@@ -25,6 +25,14 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
   const magnetEnabled = useSceneStore((state) => state.magnetEnabled);
   const setMagnetEnabled = useSceneStore((state) => state.setMagnetEnabled);
 
+  // Debug logging
+  console.log("🔍 BuilderTools render:", {
+    selectedObject,
+    previewMode,
+    transformMode,
+    shouldShowButtons: selectedObject && !previewMode,
+  });
+
   const handleMagnetToggle = () => {
     setMagnetEnabled(!magnetEnabled);
   };
