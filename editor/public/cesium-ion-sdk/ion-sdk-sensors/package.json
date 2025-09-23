@@ -1,0 +1,66 @@
+{
+  "name": "@cesiumgs/ion-sdk-sensors",
+  "version": "4.4.0",
+  "description": "A plugin for CesiumJS adding functionality for line-of-sight analytics and rendering sensors or viewsheds.",
+  "license": "SEE LICENSE IN sla-cesium-ion-components.pdf",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CesiumGS/cesium-analytics.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "keywords": [
+    "3D",
+    "webgl",
+    "geospatial",
+    "map",
+    "globe",
+    "sensors"
+  ],
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "Source/**",
+    "Build/**",
+    "!Build/Specs/**",
+    "!Build/*Dev/**",
+    "!Build/minifyShaders.state",
+    "README.md"
+  ],
+  "sideEffects": [
+    "./Source/Core/initializeSensors.js",
+    "./Specs/**/*"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "peerDependencies": {
+    "@cesium/engine": "^20.0.0"
+  },
+  "type": "module",
+  "scripts": {
+    "coverage": "gulp coverage --workspace @cesiumgs/ion-sdk-sensors",
+    "test": "gulp test --production",
+    "postversion": "gulp postversion --workspace @cesiumgs/ion-sdk-sensors",
+    "start": "node server.js --production",
+    "start-public": "node server.js --public --production",
+    "test-all": "gulp test --all --production",
+    "test-webgl": "gulp test --include WebGL --production",
+    "test-non-webgl": "gulp test --exclude WebGL --production",
+    "test-webgl-validation": "gulp test --webglValidation --production",
+    "test-webgl-stub": "gulp test --webglStub --production",
+    "test-release": "gulp test --release --production"
+  },
+  "homepage": "https://cesium.com/platform/cesiumjs/ion-sdk/",
+  "author": {
+    "name": "Cesium GS, Inc.",
+    "url": "https://cesium.com"
+  },
+  "bugs": {
+    "url": "https://github.com/CesiumGS/cesium/issues"
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "name": "@cesiumgs/cesium-analytics",
+  "version": "1.133.0",
+  "description": "Cesium Analytics SDK is a JavaScript library to extend your Cesium-based apps with GPU-accelerated analysis tools.",
+  "homepage": "https://cesium.com/platform/cesiumjs/ion-sdk/",
+  "license": "SEE LICENSE IN sla-cesium-ion-components.pdf",
+  "author": {
+    "name": "Cesium GS, Inc.",
+    "url": "https://cesium.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CesiumGS/cesium-analytics.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "keywords": [
+    "3D",
+    "webgl",
+    "geospatial",
+    "map",
+    "globe"
+  ],
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@cesium/engine": "^20.0.0",
+    "@cesium/widgets": "^13.1.0",
+    "@cesiumgs/ion-sdk-geometry": "^4.4.0",
+    "@cesiumgs/ion-sdk-measurements": "^7.4.0",
+    "@cesiumgs/ion-sdk-sensors": "^4.4.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "chokidar": "^4.0.1",
+    "cloc": "^2.6.0-cloc",
+    "compression": "^1.8.1",
+    "cspell": "^9.2.0",
+    "esbuild": "^0.25.8",
+    "eslint": "^9.32.0",
+    "eslint-config-cesium": "^11.0.1",
+    "eslint-plugin-es": "^4.1.0",
+    "eslint-plugin-html": "^8.0.0",
+    "eslint-plugin-node": "^11.1.0",
+    "express": "^5.1.0",
+    "globby": "^14.0.0",
+    "glsl-strip-comments": "^1.0.0",
+    "gulp": "^5.0.0",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-insert": "^0.5.0",
+    "gulp-rename": "^2.0.0",
+    "gulp-tap": "^2.0.0",
+    "gulp-zip": "^6.0.0",
+    "husky": "^9.0.7",
+    "istanbul-lib-instrument": "^6.0.0",
+    "jasmine-core": "^5.9.0",
+    "jsdoc": "^3.6.7",
+    "karma": "^6.3.20",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-coverage": "^2.0.3",
+    "karma-detect-browsers": "^2.3.3",
+    "karma-edge-launcher": "^0.4.2",
+    "karma-firefox-launcher": "^2.1.1",
+    "karma-ie-launcher": "^1.0.0",
+    "karma-jasmine": "^5.1.0",
+    "karma-longest-reporter": "^1.1.0",
+    "karma-safari-launcher": "^1.0.0",
+    "karma-sourcemap-loader": "^0.4.0",
+    "karma-spec-reporter": "^0.0.36",
+    "markdownlint-cli": "^0.45.0",
+    "merge-stream": "^2.0.0",
+    "mkdirp": "^3.0.1",
+    "open": "^10.2.0",
+    "prettier": "3.6.2",
+    "prismjs": "^1.28.0",
+    "request": "^2.79.0",
+    "rimraf": "^6.0.1",
+    "showdown": "^2.1.0",
+    "stream-to-promise": "^3.0.0",
+    "tsd-jsdoc": "^2.5.0",
+    "yargs": "^18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js --production",
+    "start-public": "node server.js --public --production",
+    "coverage": "gulp coverage",
+    "eslint": "eslint \"./**/*.js\" \"./**/*.cjs\" \"./**/*.html\" --cache --quiet",
+    "markdownlint": "markdownlint \"**/*.md\"",
+    "test": "gulp test --production",
+    "test-all": "gulp test --all --production",
+    "test-webgl": "gulp test --include WebGL --production",
+    "test-non-webgl": "gulp test --exclude WebGL --production",
+    "test-webgl-validation": "gulp test --webglValidation --production",
+    "test-webgl-stub": "gulp test --webglStub --production",
+    "test-release": "gulp test --release --production",
+    "test-e2e": "playwright test -c Specs/e2e/playwright.config.js --project=chromium",
+    "test-e2e-all": "playwright test -c Specs/e2e/playwright.config.js",
+    "test-e2e-release": "release=true playwright test -c Specs/e2e/playwright.config.js --project=chromium",
+    "test-e2e-release-all": "release=true playwright test -c Specs/e2e/playwright.config.js",
+    "test-e2e-report": "playwright show-report Build/Specs/e2e/report",
+    "test-e2e-update": "playwright test -c Specs/e2e/playwright.config.js --project=chromium -u",
+    "prettier-check": "prettier --check \"**/*\"",
+    "cspell": "cspell lint -c .vscode/cspell.json --unique --no-progress"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "lint-staged": {
+    "*.{js,cjs,html}": [
+      "eslint --cache --quiet",
+      "prettier --write",
+      "cspell lint -c .vscode/cspell.json --no-progress"
+    ],
+    "*.md": [
+      "markdownlint",
+      "prettier --write",
+      "cspell lint -c .vscode/cspell.json --no-progress"
+    ]
+  },
+  "workspaces": [
+    "packages/ion-sdk-measurements",
+    "packages/ion-sdk-sensors",
+    "packages/ion-sdk-geometry"
+  ]
+}

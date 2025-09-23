@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [],
+    "strict": true,
+    "isolatedModules": true
+  },
+  "include": [
+    "index.ts",
+    "../../packages/ion-sdk-geometry/index.d.ts",
+    "../../packages/ion-sdk-sensors/index.d.ts",
+    "../../packages/ion-sdk-measurements/index.d.ts"
+  ]
+}

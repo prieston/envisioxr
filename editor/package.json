@@ -13,8 +13,8 @@
   "scripts": {
     "lint": "next lint --fix --dir app",
     "dev": "NODE_ENV=development NEXT_TELEMETRY_DISABLED=1 next dev -p 3001",
-    "predev": "node scripts/copy-cesium-assets.js",
-    "prebuild": "node scripts/copy-cesium-assets.js",
+    "predev": "node scripts/copy-cesium-assets.js && node scripts/copy-ion-sdk.js",
+    "prebuild": "node scripts/copy-cesium-assets.js && node scripts/copy-ion-sdk.js",
     "build": "next build",
     "analyze": "ANALYZE=true next build",
     "start": "next start",
@@ -24,6 +24,8 @@
     "3d-tiles-renderer": "^0.4.7",
     "@aws-sdk/client-s3": "^3.741.0",
     "@aws-sdk/s3-request-presigner": "^3.741.0",
+    "@cesium/engine": "^20.0.1",
+    "@cesium/widgets": "^13.1.1",
     "@ducanh2912/next-pwa": "^10.0.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
@@ -80,6 +82,5 @@
     "uuid": "^11.1.0",
     "zod": "^3.24.2",
     "zustand": "^5.0.3"
-  },
-  "devDependencies": {}
+  }
 }

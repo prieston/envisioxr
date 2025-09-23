@@ -30,14 +30,26 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
   onHelpClick,
   showHelpPulse = false,
 }) => {
+  console.log("🔍 AdminAppBar component called with mode:", mode);
+
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
   const { transformMode, setTransformMode, selectedObject } = useSceneStore();
 
   const handleTransformModeChange = (
     mode: "translate" | "rotate" | "scale"
   ) => {
+    console.log("🔧 AdminAppBar transform mode change:", mode);
     setTransformMode(mode);
   };
+
+  // Debug logging
+  console.log("🔍 AdminAppBar render:", {
+    selectedObject,
+    transformMode,
+    mode,
+  });
+
+  console.log("🔍 AdminAppBar BuilderTools should render:", mode === "builder");
 
   return (
     <>

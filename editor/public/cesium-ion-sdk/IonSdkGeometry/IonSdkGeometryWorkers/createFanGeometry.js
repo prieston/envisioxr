@@ -1,0 +1,16 @@
+/**
+ * @license
+ * Cesium Analytics SDK
+ * Version 1.133
+ *
+ * Copyright 2012-2020 Cesium GS, Inc.
+ * All rights reserved.
+ *
+ * Patents US9153063B2 US9865085B1 US9449424B2 US10592242
+ * Patents pending US15/829,786 US16/850,266 US16/851,958
+ *
+ * Portions licensed separately.
+ * See https://github.com/CesiumGS/cesium/blob/main/LICENSE.md for open-source Cesium license.
+ */
+
+import{a as b,b as g,c as a,d as v,e as R,f as T,g as _,h as w,i as L,j as x,k as P,l as k,m as E}from"./chunk-XE37ROUK.js";var d=new a;function O(s){if(s=s??v.EMPTY_OBJECT,!b(s.directions))throw new g("options.directions is required");if(!s.perDirectionRadius&&!b(s.radius))throw new g("options.radius is required when options.perDirectionRadius is undefined or false.");this._radius=s.radius,this._directions=s.directions,this._perDirectionRadius=s.perDirectionRadius,this._vertexFormat=s.vertexFormat??E.DEFAULT,this._workerPath=T("IonSdkGeometryWorkers/createFanGeometry.js")}O.createGeometry=function(s){if(!b(s))throw new g("fanGeometry is required");let A=s._vertexFormat,q=s._radius,C=b(s._perDirectionRadius)&&s._perDirectionRadius,D=s._directions;D[0].clock<D[1].clock&&D.reverse();let i,o,z=0,t,e,m,n,u,y=new k,p=[],F=[],c=D.length;for(t=0;t<c;t++)n=a.fromSpherical(D[t]),t===0?(p.push(n),F.push(a.normalize(n,new a))):a.equals(p[t-1],n)||(t===c-1?a.equals(p[0],n)||(p.push(n),F.push(a.normalize(n,new a))):(p.push(n),F.push(a.normalize(n,new a))));if(c=p.length,A.position){u=(c+1)*2*3;let r=new Float64Array(u);for(e=0,t=0;t<c;t++){r[e++]=0,r[e++]=0,r[e++]=0,n=F[t];let h=C?a.magnitude(p[t]):q;r[e++]=n.x*h,r[e++]=n.y*h,r[e++]=n.z*h,z=Math.max(z,h)}r[e++]=r[0],r[e++]=r[1],r[e++]=r[2],r[e++]=r[3],r[e++]=r[4],r[e++]=r[5],y.position=new x({componentDatatype:w.DOUBLE,componentsPerAttribute:3,values:r})}if(A.normal){u=(c+1)*2*3,i=new Float32Array(u);let r;for(e=0,t=0;t<c;t++)n=p[t],t+1===c?r=p[0]:r=p[t+1],d=a.normalize(a.cross(n,r,d),d),i[e++]=d.x,i[e++]=d.y,i[e++]=d.z,i[e++]=d.x,i[e++]=d.y,i[e++]=d.z;i[e++]=i[0],i[e++]=i[1],i[e++]=i[2],i[e++]=i[3],i[e++]=i[4],i[e++]=i[5],y.normal=new x({componentDatatype:w.FLOAT,componentsPerAttribute:3,values:i})}if(A.bitangent){for(u=(c+1)*2*3,o=new Float32Array(u),e=0,t=0;t<c;t++)n=F[t],o[e++]=n.x,o[e++]=n.y,o[e++]=n.z,o[e++]=n.x,o[e++]=n.y,o[e++]=n.z;o[e++]=o[0],o[e++]=o[1],o[e++]=o[2],o[e++]=o[3],o[e++]=o[4],o[e++]=o[5],y.bitangent=new x({componentDatatype:w.FLOAT,componentsPerAttribute:3,values:o})}if(A.tangent){u=(c+1)*2*3;let r=new Float32Array(u);for(e=0,t=0;t<u;t+=6){let h=a.unpack(i,t),S=a.unpack(o,t),f=a.normalize(a.cross(S,h,d),d);r[e++]=f.x,r[e++]=f.y,r[e++]=f.z,r[e++]=f.x,r[e++]=f.y,r[e++]=f.z}y.tangent=new x({componentDatatype:w.FLOAT,componentsPerAttribute:3,values:r})}if(A.st){u=(c+1)*2*2;let r=new Float32Array(u);for(e=0,t=0;t<c;t++)m=1-t/(c+1),r[e++]=m,r[e++]=0,r[e++]=m,r[e++]=1;m=1-t/(c+1),r[e++]=m,r[e++]=0,r[e++]=m,r[e++]=1,y.st=new x({componentDatatype:w.FLOAT,componentsPerAttribute:2,values:r})}e=0,t=0,u=(c+1)*2*3;let l=R.createTypedArray(u/3,u);for(;e<u-6;)l[e++]=t,l[e++]=t+3,l[e++]=t+1,l[e++]=t,l[e++]=t+2,l[e++]=t+3,t+=2;return l[e++]=t,l[e++]=1,l[e++]=t+1,l[e++]=t,l[e++]=0,l[e++]=1,new L({attributes:y,indices:l,primitiveType:_.TRIANGLES,boundingSphere:new P(a.ZERO,z)})};var G=O;var U=G.createGeometry;export{U as default};

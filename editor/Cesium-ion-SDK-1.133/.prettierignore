@@ -1,0 +1,35 @@
+
+# Ignore everything
+*
+
+# Unignore directories (to all depths) and unignore code and style files in these directories
+!.github/**/
+!.vscode/**/
+!Apps/**/
+!Documentation/**/
+!packages/**/
+!Specs/**/
+!Tools/**/
+!scripts/**/
+
+!**/*.js
+!**/*.cjs
+!**/*.css
+!**/*.html
+!**/*.md
+!**/*.ts
+
+# Re-ignore a few things caught above
+
+**/*.min.js
+
+packages/*/Build
+packages/*/index.js
+packages/*/Source/ThirdParty/**
+
+Specs/jasmine/**
+
+Apps/Sandcastle/ThirdParty
+Tools/jsdoc/cesium_template/static/javascript/prism.js
+Tools/jsdoc/cesium_template/static/styles/prism.css
+Tools/jsdoc/cesium_template/publish.js

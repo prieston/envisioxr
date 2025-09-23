@@ -91,16 +91,6 @@ const CesiumViewModeControls: React.FC<CesiumViewModeControlsProps> = ({
   const { switchToMode, isInitialized } =
     useCameraControllerManager(cesiumViewer);
 
-  // Debug logging
-  if (process.env.NODE_ENV === "development") {
-    console.log(
-      "[CesiumViewModeControlsNew] Render - isInitialized:",
-      isInitialized,
-      "viewMode:",
-      viewMode
-    );
-  }
-
   /**
    * Handle view mode change
    */

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
+    />
+    <meta name="description" content="Tileset placement tool" />
+    <meta name="cesium-sandcastle-labels" content="ion SDK - Measurements" />
+    <title>Cesium Demo</title>
+    <script type="text/javascript" src="../Sandcastle-header.js"></script>
+    <script
+      type="text/javascript"
+      src="../../../Build/CesiumUnminified/Cesium.js"
+      nomodule
+    ></script>
+    <script type="module" src="../load-cesium-es6.js"></script>
+  </head>
+  <body class="sandcastle-loading" data-sandcastle-bucket="bucket-requirejs.html">
+    <style>
+      @import url(../templates/bucket.css);
+    </style>
+    <div id="cesiumContainer" class="fullSize"></div>
+    <div id="loadingOverlay"><h1>Loading...</h1></div>
+    <div id="toolbar"></div>
+    <script id="cesium_sandcastle_script">
+      window.startup = async function (Cesium) {
+        "use strict";
+        //Sandcastle_Begin
+        const viewer = new Cesium.Viewer("cesiumContainer", {
+          terrain: Cesium.Terrain.fromWorldTerrain(),
+        });
+
+        const scene = viewer.scene;
+        let transformEditor;
+        let initialPosition;
+        let initialHeadingPitchRoll;
+        let initialScale;
+        let tileset;
+
+        try {
+          tileset = await Cesium.Cesium3DTileset.fromIonAssetId(40866);
+          viewer.scene.primitives.add(tileset);
+
+          const rootTransform = tileset.root.transform;
+          const modelMatrix = tileset.modelMatrix;
+
+          // Transfer root transform to the model matrix
+          Cesium.Matrix4.clone(rootTransform, modelMatrix);
+          Cesium.Matrix4.clone(Cesium.Matrix4.IDENTITY, rootTransform);
+
+          viewer.zoomTo(tileset);
+
+          transformEditor = new IonSdkMeasurements.TransformEditor({
+            container: viewer.container,
+            scene: scene,
+            transform: tileset.modelMatrix,
+            boundingSphere: tileset.boundingSphere,
+            pixelSize: 100,
+            maximumSizeInMeters: Infinity,
+          });
+
+          transformEditor.viewModel.activate();
+
+          initialPosition = Cesium.Cartesian3.clone(transformEditor.viewModel.position);
+          initialHeadingPitchRoll = Cesium.HeadingPitchRoll.clone(
+            transformEditor.viewModel.headingPitchRoll,
+          );
+          initialScale = Cesium.Cartesian3.clone(transformEditor.viewModel.scale);
+        } catch (error) {
+          console.log(`Error loading tileset: ${error}`);
+        }
+
+        let clickAction = "";
+        const handler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
+        Sandcastle.addToolbarButton("Place tileset", function () {
+          if (scene.pickPositionSupported) {
+            clickAction = "position";
+            handler.setInputAction(leftClick, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+            handler.setInputAction(mouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+          }
+        });
+
+        Sandcastle.addToolbarButton("Set widget origin", function () {
+          if (scene.pickPositionSupported) {
+            clickAction = "origin";
+            handler.setInputAction(leftClick, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+            handler.setInputAction(mouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+          }
+        });
+
+        Sandcastle.addToolbarButton("Reset", function () {
+          transformEditor.viewModel.position = initialPosition;
+          transformEditor.viewModel.headingPitchRoll = initialHeadingPitchRoll;
+          transformEditor.viewModel.scale = initialScale;
+          transformEditor.viewModel.originOffset = Cesium.Cartesian3.ZERO;
+        });
+
+        Sandcastle.addToggleButton("Show Bounds", false, function (checked) {
+          tileset.debugShowBoundingVolume = checked;
+        });
+
+        const entity = viewer.entities.add({
+          point: {
+            show: false,
+            pixelSize: 10,
+            color: Cesium.Color.YELLOW,
+          },
+        });
+
+        function mouseMove(movement) {
+          const position = scene.pickPosition(movement.endPosition);
+          if (Cesium.defined(position)) {
+            entity.position = position;
+            entity.point.show = true;
+          } else {
+            entity.point.show = false;
+          }
+        }
+
+        function leftClick(movement) {
+          entity.point.show = false;
+          viewer.selectedEntity = undefined;
+          const position = scene.pickPosition(movement.position);
+          if (!Cesium.defined(position)) {
+            return;
+          }
+          if (clickAction === "position") {
+            const cartographicPositions = [Cesium.Cartographic.fromCartesian(position)];
+            Cesium.sampleTerrainMostDetailed(
+              viewer.terrainProvider,
+              cartographicPositions,
+            ).then(function () {
+              initialPosition = Cesium.Cartographic.toCartesian(cartographicPositions[0]);
+              transformEditor.viewModel.position = initialPosition;
+            });
+          } else {
+            transformEditor.viewModel.setOriginPosition(position);
+          }
+          handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
+          handler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+        }
+        //Sandcastle_End
+        Sandcastle.finishedLoading();
+      };
+      if (typeof Cesium !== "undefined") {
+        window.startupCalled = true;
+        window.startup(Cesium).catch((error) => {
+          "use strict";
+          console.error(error);
+        });
+        Sandcastle.finishedLoading();
+      }
+    </script>
+  </body>
+</html>

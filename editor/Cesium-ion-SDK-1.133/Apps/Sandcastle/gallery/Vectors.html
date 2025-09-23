@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
+    />
+    <meta name="description" content="Create 3D vectors." />
+    <meta name="cesium-sandcastle-labels" content="Showcases, ion SDK - Viewshed" />
+    <title>Cesium Demo</title>
+    <script type="text/javascript" src="../Sandcastle-header.js"></script>
+    <script
+      type="text/javascript"
+      src="../../../Build/CesiumUnminified/Cesium.js"
+      nomodule
+    ></script>
+    <script type="module" src="../load-cesium-es6.js"></script>
+  </head>
+  <body class="sandcastle-loading" data-sandcastle-bucket="bucket-requirejs.html">
+    <style>
+      @import url(../templates/bucket.css);
+    </style>
+    <div id="cesiumContainer" class="fullSize"></div>
+    <div id="loadingOverlay"><h1>Loading...</h1></div>
+    <div id="toolbar"></div>
+    <script id="cesium_sandcastle_script">
+      window.startup = async function (Cesium) {
+        "use strict";
+        //Sandcastle_Begin
+        const viewer = new Cesium.Viewer("cesiumContainer", {
+          sceneModePicker: false,
+          shouldAnimate: true,
+        });
+        const globe = viewer.scene.globe;
+        globe.enableLighting = true;
+
+        const clock = viewer.clock;
+        clock.multiplier = 3 * 60 * 60;
+
+        // Two vector primitives: one points to the sun; the other to the moon.
+        const position = Cesium.Cartesian3.fromDegrees(-75.59777, 40.03883);
+        const primitives = viewer.scene.primitives;
+        const sunVector = primitives.add(
+          new IonSdkGeometry.Vector({
+            position: position,
+            length: 1000.0,
+            minimumLengthInPixels: 256,
+            color: Cesium.Color.YELLOW,
+          }),
+        );
+        const moonVector = primitives.add(
+          new IonSdkGeometry.Vector({
+            position: position,
+            length: 1000.0,
+            minimumLengthInPixels: 256,
+            color: Cesium.Color.CYAN,
+          }),
+        );
+
+        const transformMatrix = new Cesium.Matrix4();
+        const toSun = new Cesium.Cartesian3();
+        const toMoon = new Cesium.Cartesian3();
+        const up = globe.ellipsoid.geodeticSurfaceNormal(position);
+
+        clock.onTick.addEventListener(function () {
+          // Compute sun and moon vectors in the WGS84 fixed-frame
+          const time = clock.currentTime;
+          Cesium.Transforms.computeTemeToPseudoFixedMatrix(time, transformMatrix);
+          Cesium.Simon1994PlanetaryPositions.computeSunPositionInEarthInertialFrame(
+            time,
+            toSun,
+          );
+          Cesium.Matrix3.multiplyByVector(transformMatrix, toSun, toSun);
+          Cesium.Cartesian3.normalize(toSun, toSun);
+          Cesium.Simon1994PlanetaryPositions.computeMoonPositionInEarthInertialFrame(
+            time,
+            toMoon,
+          );
+          Cesium.Matrix3.multiplyByVector(transformMatrix, toMoon, toMoon);
+          Cesium.Cartesian3.normalize(toMoon, toMoon);
+
+          // Set sun and moon vectors' direction based on current time
+          sunVector.direction = toSun;
+          moonVector.direction = toMoon;
+
+          // Hide vectors when they would start to point through the globe
+          sunVector.show = Cesium.Cartesian3.dot(up, toSun) > 0.0;
+          moonVector.show = Cesium.Cartesian3.dot(up, toMoon) > 0.0;
+        });
+        //Sandcastle_End
+        Sandcastle.finishedLoading();
+      };
+      if (typeof Cesium !== "undefined") {
+        window.startupCalled = true;
+        window.startup(Cesium).catch((error) => {
+          "use strict";
+          console.error(error);
+        });
+        Sandcastle.finishedLoading();
+      }
+    </script>
+  </body>
+</html>
