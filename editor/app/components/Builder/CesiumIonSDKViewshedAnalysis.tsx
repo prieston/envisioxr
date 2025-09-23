@@ -256,7 +256,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         }
         sensor = new ConicSensor({
           ...baseOptions,
-          fov: Cesium.Math.toRadians(fov),
+          outerHalfAngle: Cesium.Math.toRadians(fov),
         });
       }
 

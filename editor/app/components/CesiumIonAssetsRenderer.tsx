@@ -82,7 +82,7 @@ const CesiumIonAssetsRenderer: React.FC = () => {
             ) {
               cesiumViewer.scene.primitives.remove(tileset);
             }
-          } catch (error) {
+          } catch (_error) {
             // Error removing tileset
           }
         },
@@ -103,11 +103,11 @@ const CesiumIonAssetsRenderer: React.FC = () => {
                 offset: new cesiumInstance.HeadingPitchRange(0, -0.5, 1000),
               });
               // Camera centered on asset
-            } catch (error) {
+            } catch (_error) {
               // Error centering camera on asset
             }
           })
-          .catch((error: any) => {
+          .catch((_error: any) => {
             // Error loading tileset
           });
       } else {

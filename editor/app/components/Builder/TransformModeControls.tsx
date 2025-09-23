@@ -7,7 +7,6 @@ import {
   RotateRight as RotateIcon,
   AspectRatio as ScaleIcon,
 } from "@mui/icons-material";
-import useSceneStore from "../../hooks/useSceneStore";
 
 interface TransformModeControlsProps {
   transformEditor: any;
