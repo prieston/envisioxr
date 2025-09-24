@@ -26,6 +26,28 @@ interface Model {
     color?: string;
     [key: string]: any;
   };
+  isObservationModel?: boolean;
+  observationProperties?: {
+    [key: string]: any;
+  };
+  iotProperties?: {
+    enabled: boolean;
+    serviceType: string;
+    apiEndpoint: string;
+    updateInterval: number;
+    showInScene: boolean;
+    displayFormat: "compact" | "detailed" | "minimal";
+    autoRefresh: boolean;
+  };
+  weatherData?: {
+    temperature: number;
+    windSpeed: number;
+    windDirection: number;
+    humidity: number;
+    pressure: number;
+    description: string;
+    lastUpdated: Date;
+  } | null;
   [key: string]: any;
 }
 
@@ -185,6 +207,12 @@ interface SceneState {
   // Visibility Area Calculation Actions
   startVisibilityCalculation: (objectId: string) => void;
   finishVisibilityCalculation: (objectId: string) => void;
+
+  // IoT Weather Data Actions
+  updateWeatherData: (
+    objectId: string,
+    weatherData: Model["weatherData"]
+  ) => void;
 
   // Cesium Ion Asset Actions
   addCesiumIonAsset: (asset: Omit<CesiumIonAsset, "id">) => void;
@@ -404,6 +432,7 @@ const useSceneStore = create<SceneState>((set) => ({
                 raysAzimuth: 120, // Set default values for better performance
                 raysElevation: 8,
                 stepCount: 64,
+                alignWithModelFront: false, // Default to manual rotation control
               },
             };
           }
@@ -638,6 +667,18 @@ const useSceneStore = create<SceneState>((set) => ({
   finishVisibilityCalculation: (_objectId) => {
     set({ isCalculatingVisibility: false });
   },
+
+  // IoT Weather Data Actions
+  updateWeatherData: (objectId, weatherData) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
+        obj.id === objectId ? { ...obj, weatherData } : obj
+      ),
+      selectedObject:
+        state.selectedObject?.id === objectId
+          ? { ...state.selectedObject, weatherData }
+          : state.selectedObject,
+    })),
 
   // Cesium Ion Asset Actions
   addCesiumIonAsset: (asset) =>

@@ -257,6 +257,9 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
     transformEditor.viewModel.enableNonUniformScaling = true;
     transformEditor.viewModel.activate();
 
+    // Force initial render to show the gizmo
+    cesiumViewer.scene.requestRender();
+
     console.log("🎯 TransformEditor created for object:", selectedObject.id);
 
     // Store container reference for cleanup
@@ -310,22 +313,41 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
 
   // --- update gizmo mode when transform mode changes ---
   useEffect(() => {
-    if (!transformEditorRef.current) return;
+    if (!transformEditorRef.current || !cesiumViewer) return;
 
     console.log("🔄 Changing gizmo mode to:", transformMode);
 
-    switch (transformMode) {
-      case "translate":
-        transformEditorRef.current.viewModel.setModeTranslation();
-        break;
-      case "rotate":
-        transformEditorRef.current.viewModel.setModeRotation();
-        break;
-      case "scale":
-        transformEditorRef.current.viewModel.setModeScale();
-        break;
-    }
-  }, [transformMode]); // Only when transform mode changes
+    // Temporarily deactivate to ensure clean mode switch
+    transformEditorRef.current.viewModel.deactivate();
+
+    // Small delay to ensure deactivation takes effect
+    setTimeout(() => {
+      if (!transformEditorRef.current) return;
+
+      switch (transformMode) {
+        case "translate":
+          transformEditorRef.current.viewModel.setModeTranslation();
+          break;
+        case "rotate":
+          transformEditorRef.current.viewModel.setModeRotation();
+          break;
+        case "scale":
+          transformEditorRef.current.viewModel.setModeScale();
+          break;
+      }
+
+      // Reactivate with new mode
+      transformEditorRef.current.viewModel.activate();
+
+      // Force immediate re-render to show the mode change
+      cesiumViewer.scene.requestRender();
+
+      // Also force a re-render after a short delay to ensure it takes effect
+      setTimeout(() => {
+        cesiumViewer.scene.requestRender();
+      }, 10);
+    }, 5); // Very short delay to ensure deactivation completes
+  }, [transformMode, cesiumViewer]); // Include cesiumViewer in dependencies
 
   // --- full cleanup on unmount ---
   useEffect(() => {
