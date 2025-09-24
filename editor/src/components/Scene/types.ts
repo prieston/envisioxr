@@ -34,6 +34,10 @@ export interface Model {
 
     // Transform Editor
     enableTransformEditor: boolean; // Enable gizmo for sensor manipulation
+
+    // Model Direction
+    alignWithModelFront: boolean; // Align sensor with model's natural front direction
+    manualFrontDirection?: "x" | "y" | "z" | "negX" | "negY" | "negZ"; // Manual override for front direction
   };
   [key: string]: any; // For any additional properties
 }

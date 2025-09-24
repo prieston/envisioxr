@@ -39,6 +39,7 @@ const SceneObjects: React.FC<SceneObjectsProps> = ({
                     }
                   : undefined
               }
+              iotProperties={obj.iotProperties}
             />
           )
       )}

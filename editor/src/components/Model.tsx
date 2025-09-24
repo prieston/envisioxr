@@ -3,12 +3,14 @@
 import React, { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import useSceneStore from "../../app/hooks/useSceneStore.ts";
+import useWorldStore from "../../app/hooks/useWorldStore";
 // import dynamic from "next/dynamic";
 import useModelLoader from "./useModelLoader.tsx";
 import { useModelSelection } from "./hooks/useModelSelection.ts";
 import { useModelMaterials } from "./hooks/useModelMaterials.ts";
 import ObservationVisibilityArea from "./ObservationVisibilityArea";
 import ActualVisibilityArea from "./ActualVisibilityArea";
+import WeatherData3DDisplay from "../../app/components/Builder/WeatherData3DDisplay";
 
 // // Dynamically import CesiumIonTiles to avoid SSR issues
 // const CesiumIonTiles = dynamic(
@@ -45,6 +47,15 @@ interface ModelProps {
     showCalculatedArea: boolean;
     gridDensity?: number;
   };
+  iotProperties?: {
+    enabled: boolean;
+    serviceType: string;
+    apiEndpoint: string;
+    updateInterval: number;
+    showInScene: boolean;
+    displayFormat: "compact" | "detailed" | "minimal";
+    autoRefresh: boolean;
+  };
 }
 
 const Model = ({
@@ -58,11 +69,14 @@ const Model = ({
   onSelect,
   isObservationModel,
   observationProperties,
+  iotProperties,
 }: ModelProps) => {
   const store = useSceneStore();
   const objectFromStore = store.objects.find((obj) => obj.id === id);
   const effectiveObservationProperties =
     objectFromStore?.observationProperties || observationProperties;
+  const effectiveIotProperties =
+    objectFromStore?.iotProperties || iotProperties;
 
   // If this is a Cesium Ion tiles model, render it differently
   // if (type === "tiles" && assetId) {
@@ -112,6 +126,7 @@ const Model = ({
   const modelRef = useRef<THREE.Object3D | null>(null);
   const previewMode = useSceneStore((state) => state.previewMode);
   const updateModelRef = useSceneStore((state) => state.updateModelRef);
+  const { engine } = useWorldStore();
 
   // Use custom hooks for model functionality
   const { handlePointerDown, handlePointerUp } = useModelSelection({
@@ -190,6 +205,19 @@ const Model = ({
           )}
         </>
       )}
+
+      {/* IoT Weather Display - Only render for Cesium engine */}
+      {engine === "cesium" &&
+        effectiveIotProperties?.enabled &&
+        effectiveIotProperties?.showInScene && (
+          <WeatherData3DDisplay
+            objectId={id}
+            position={position as [number, number, number]}
+            weatherData={objectFromStore?.weatherData || null}
+            displayFormat={effectiveIotProperties.displayFormat}
+            showInScene={effectiveIotProperties.showInScene}
+          />
+        )}
     </>
   );
 };

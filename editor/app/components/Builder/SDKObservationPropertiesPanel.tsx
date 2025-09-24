@@ -67,6 +67,7 @@ const SDKObservationPropertiesPanel: React.FC<
     sensorColor: "#00ff00",
     viewshedColor: "#0080ff",
     include3DModels: true, // Include 3D models in viewshed analysis
+    alignWithModelFront: false, // Align sensor with model's natural front direction
   };
 
   const handleSectionToggle = (section: string) => {
@@ -481,6 +482,69 @@ const SDKObservationPropertiesPanel: React.FC<
                   </Select>
                 </FormControl>
               </Grid>
+
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={observationProps.alignWithModelFront || false}
+                      onChange={(e) =>
+                        handlePropertyChange(
+                          "alignWithModelFront",
+                          e.target.checked
+                        )
+                      }
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography variant="body2">
+                        Align with Model Front
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Automatically align sensor direction with model's
+                        natural front direction
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </Grid>
+
+              {observationProps.alignWithModelFront && (
+                <Grid item xs={12}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Manual Front Direction</InputLabel>
+                    <Select
+                      value={observationProps.manualFrontDirection || ""}
+                      onChange={(e) =>
+                        handlePropertyChange(
+                          "manualFrontDirection",
+                          e.target.value || undefined
+                        )
+                      }
+                      label="Manual Front Direction"
+                    >
+                      <MenuItem value="">
+                        <em>Auto-detect</em>
+                      </MenuItem>
+                      <MenuItem value="x">+X (Right)</MenuItem>
+                      <MenuItem value="negX">-X (Left)</MenuItem>
+                      <MenuItem value="y">+Y (Up)</MenuItem>
+                      <MenuItem value="negY">-Y (Down)</MenuItem>
+                      <MenuItem value="z">+Z (Forward)</MenuItem>
+                      <MenuItem value="negZ">-Z (Backward)</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mt: 0.5, display: "block" }}
+                  >
+                    Override automatic detection if the cone points in the wrong
+                    direction
+                  </Typography>
+                </Grid>
+              )}
             </Grid>
           )}
 

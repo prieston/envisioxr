@@ -11,6 +11,7 @@ import CesiumCameraSpringController from "./Builder/CesiumCameraSpringController
 import CesiumPreviewModeController from "./Builder/CesiumPreviewModeController";
 import CesiumIonSDKViewshedAnalysis from "./Builder/CesiumIonSDKViewshedAnalysis";
 import ObjectTransformEditor from "./Builder/ObjectTransformEditor";
+import WeatherData3DDisplay from "./Builder/WeatherData3DDisplay";
 
 // Extend Window interface for Cesium
 declare global {
@@ -160,7 +161,7 @@ export default function CesiumViewer() {
           setCesiumInstance(Cesium);
 
           // Make Cesium available globally for Ion SDK
-          (window as any).Cesium = Cesium;
+          (window as typeof window & { Cesium: typeof Cesium }).Cesium = Cesium;
           // Cesium made available globally for Ion SDK
         } catch (importError) {
           // Failed to import Cesium
@@ -281,8 +282,8 @@ export default function CesiumViewer() {
           const creditElements = viewerElement.querySelectorAll(
             ".cesium-viewer-bottom, .cesium-credit-text, .cesium-credit-logoContainer, .cesium-credit-expand-link"
           );
-          creditElements.forEach((element: any) => {
-            element.style.display = "none";
+          creditElements.forEach((element: Element) => {
+            (element as HTMLElement).style.display = "none";
           });
 
           // Ensure canvas takes full size
@@ -574,8 +575,8 @@ export default function CesiumViewer() {
           const creditElements = viewerElement.querySelectorAll(
             ".cesium-viewer-bottom, .cesium-credit-text, .cesium-credit-logoContainer, .cesium-credit-expand-link"
           );
-          creditElements.forEach((element: any) => {
-            element.style.display = "none";
+          creditElements.forEach((element: Element) => {
+            (element as HTMLElement).style.display = "none";
           });
 
           // Ensure canvas takes full size
@@ -676,7 +677,7 @@ export default function CesiumViewer() {
             )
             .map((obj) => {
               const [longitude, latitude, height] = obj.position || [0, 0, 0];
-              const [heading, pitch, roll] = obj.rotation || [0, 0, 0];
+              // const [heading, pitch, roll] = obj.rotation || [0, 0, 0]; // Not used in current implementation
 
               // Professional observation properties with Ion SDK defaults
               const observationProps = {
@@ -704,12 +705,28 @@ export default function CesiumViewer() {
                 <CesiumIonSDKViewshedAnalysis
                   key={`ion-viewshed-${obj.id}`}
                   position={[longitude, latitude, height]}
-                  rotation={[heading, pitch, roll]}
                   observationProperties={observationProps}
                   objectId={obj.id}
                 />
               );
             })}
+
+          {/* IoT Weather Display for objects with IoT properties */}
+          {objects
+            .filter(
+              (obj) =>
+                obj.iotProperties?.enabled && obj.iotProperties?.showInScene
+            )
+            .map((obj) => (
+              <WeatherData3DDisplay
+                key={`weather-display-${obj.id}`}
+                objectId={obj.id}
+                position={obj.position as [number, number, number]}
+                weatherData={obj.weatherData || null}
+                displayFormat={obj.iotProperties?.displayFormat || "compact"}
+                showInScene={obj.iotProperties?.showInScene}
+              />
+            ))}
 
           {/* Object Transform Editor - works for any selected object */}
           {selectedObject && (

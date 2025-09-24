@@ -9,6 +9,97 @@ import { toast } from "react-toastify";
 // Import monolithic Cesium for compatibility with Ion SDK
 import * as Cesium from "cesium";
 
+// --- helpers: always derive from the model's quaternion + optional local offset
+function getModelQuaternionAtNow(
+  viewer: Cesium.Viewer | undefined,
+  modelEntity?: Cesium.Entity
+) {
+  if (!viewer || !modelEntity?.orientation) return undefined;
+  const t = viewer.clock.currentTime; // ✅ scene clock
+  return modelEntity.orientation.getValue(t) as Cesium.Quaternion | undefined;
+}
+
+// Map axis tags to unit vectors in local space
+function axisToVector(
+  tag: "X+" | "X-" | "Y+" | "Y-" | "Z+" | "Z-"
+): Cesium.Cartesian3 {
+  switch (tag) {
+    case "X+":
+      return new Cesium.Cartesian3(1, 0, 0);
+    case "X-":
+      return new Cesium.Cartesian3(-1, 0, 0);
+    case "Y+":
+      return new Cesium.Cartesian3(0, 1, 0);
+    case "Y-":
+      return new Cesium.Cartesian3(0, -1, 0);
+    case "Z+":
+      return new Cesium.Cartesian3(0, 0, 1);
+    case "Z-":
+      return new Cesium.Cartesian3(0, 0, -1);
+  }
+}
+
+// Minimal "shortest arc" quaternion between two unit vectors (local space)
+function quatFromTwoVectors(
+  a: Cesium.Cartesian3,
+  b: Cesium.Cartesian3
+): Cesium.Quaternion {
+  const v1 = Cesium.Cartesian3.normalize(a, new Cesium.Cartesian3());
+  const v2 = Cesium.Cartesian3.normalize(b, new Cesium.Cartesian3());
+  const cross = Cesium.Cartesian3.cross(v1, v2, new Cesium.Cartesian3());
+  const dot = Cesium.Cartesian3.dot(v1, v2);
+
+  if (dot < -0.999999) {
+    // 180°: pick any orthogonal axis
+    const axis =
+      Math.abs(v1.x) < 0.9
+        ? new Cesium.Cartesian3(1, 0, 0)
+        : new Cesium.Cartesian3(0, 1, 0);
+    const ortho = Cesium.Cartesian3.normalize(
+      Cesium.Cartesian3.cross(v1, axis, new Cesium.Cartesian3()),
+      new Cesium.Cartesian3()
+    );
+    return Cesium.Quaternion.fromAxisAngle(ortho, Math.PI);
+  }
+
+  const s = Math.sqrt((1 + dot) * 2);
+  const invs = 1 / s;
+  return new Cesium.Quaternion(
+    cross.x * invs,
+    cross.y * invs,
+    cross.z * invs,
+    s * 0.5
+  );
+}
+
+/**
+ * Build a modelMatrix from:
+ *  - world position (lon/lat/height)
+ *  - model's current quaternion (entity orientation)
+ *  - optional local offset quaternion (applied in the model's local frame)
+ */
+function buildSensorModelMatrix(
+  positionDeg: [number, number, number],
+  modelQuat: Cesium.Quaternion,
+  localOffsetQuat?: Cesium.Quaternion
+) {
+  const [lon, lat, h] = positionDeg;
+  const sensorPosition = Cesium.Cartesian3.fromDegrees(lon, lat, h);
+
+  let finalQuat = modelQuat;
+  if (localOffsetQuat) {
+    // modelQuat * localOffset -> rotate in model's local frame
+    finalQuat = Cesium.Quaternion.multiply(
+      modelQuat,
+      localOffsetQuat,
+      new Cesium.Quaternion()
+    );
+  }
+
+  const rotMat3 = Cesium.Matrix3.fromQuaternion(finalQuat);
+  return Cesium.Matrix4.fromRotationTranslation(rotMat3, sensorPosition);
+}
+
 // Import Ion SDK modules directly
 import { RectangularSensor, ConicSensor } from "@cesiumgs/ion-sdk-sensors";
 import * as IonSensors from "@cesiumgs/ion-sdk-sensors";
@@ -16,7 +107,6 @@ import * as IonGeometry from "@cesiumgs/ion-sdk-geometry";
 
 interface CesiumIonSDKViewshedAnalysisProps {
   position: [number, number, number]; // [longitude, latitude, height]
-  rotation: [number, number, number]; // [heading, pitch, roll] in radians
   observationProperties: {
     sensorType: "cone" | "rectangle" | "dome" | "custom";
     fov: number;
@@ -31,13 +121,17 @@ interface CesiumIonSDKViewshedAnalysisProps {
     analysisQuality: "low" | "medium" | "high";
     // Transform editor properties removed
     include3DModels?: boolean;
+    alignWithModelFront?: boolean;
+    modelFrontAxis?: "X+" | "X-" | "Y+" | "Y-" | "Z+" | "Z-";
+    sensorForwardAxis?: "X+" | "X-" | "Y+" | "Y-" | "Z+" | "Z-"; // default "X+"
+    tiltDeg?: number; // default -10
   };
   objectId: string;
 }
 
 const CesiumIonSDKViewshedAnalysis: React.FC<
   CesiumIonSDKViewshedAnalysisProps
-> = ({ position, rotation, observationProperties, objectId: _objectId }) => {
+> = ({ position, observationProperties, objectId: _objectId }) => {
   const { cesiumViewer } = useSceneStore();
   const sensorRef = useRef<any>(null);
   const viewshedRef = useRef<Cesium.Entity | null>(null);
@@ -138,30 +232,88 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
     try {
       const [longitude, latitude, height] = position;
-      const [heading, pitch, roll] = rotation;
 
-      // 1) Build world position
+      // Get the model entity
+      const modelEntityId = `model-${_objectId}`;
+      const modelEntity = cesiumViewer.entities.getById(modelEntityId);
+
+      // Get model quaternion
+      const modelQuaternion = getModelQuaternionAtNow(
+        cesiumViewer,
+        modelEntity
+      );
+
+      if (!modelQuaternion) {
+        console.error("❌ Could not get model quaternion");
+        return;
+      }
+
+      // Choose axes from props with defaults:
+      const sensorForwardAxis = observationProperties.sensorForwardAxis ?? "X+";
+      const modelFrontAxis = observationProperties.modelFrontAxis ?? "Z+";
+
+      // Compute local offset that rotates sensor-forward → model-front
+      const localOffsetQuat = quatFromTwoVectors(
+        axisToVector(sensorForwardAxis),
+        axisToVector(modelFrontAxis)
+      );
+
+      // Apply configurable tilt
+      const tilt = Cesium.Quaternion.fromHeadingPitchRoll(
+        new Cesium.HeadingPitchRoll(
+          0,
+          Cesium.Math.toRadians(observationProperties.tiltDeg ?? -10),
+          0
+        )
+      );
+      // final local offset = alignment * tilt
+      const finalLocalOffset = Cesium.Quaternion.multiply(
+        localOffsetQuat,
+        tilt,
+        new Cesium.Quaternion()
+      );
+
+      // Build sensor model matrix using helper function
+      const modelMatrix = buildSensorModelMatrix(
+        [longitude, latitude, height],
+        modelQuaternion,
+        finalLocalOffset
+      );
+
+      console.log("🔍 Built sensor model matrix with axis alignment:", {
+        modelQuaternion: {
+          x: modelQuaternion.x.toFixed(4),
+          y: modelQuaternion.y.toFixed(4),
+          z: modelQuaternion.z.toFixed(4),
+          w: modelQuaternion.w.toFixed(4),
+        },
+        axisMapping: {
+          sensorForwardAxis,
+          modelFrontAxis,
+          tiltDeg: observationProperties.tiltDeg ?? -10,
+          note: `sensor ${sensorForwardAxis} → model ${modelFrontAxis} alignment`,
+        },
+        localOffsetQuat: {
+          x: localOffsetQuat.x.toFixed(4),
+          y: localOffsetQuat.y.toFixed(4),
+          z: localOffsetQuat.z.toFixed(4),
+          w: localOffsetQuat.w.toFixed(4),
+        },
+        finalLocalOffset: {
+          x: finalLocalOffset.x.toFixed(4),
+          y: finalLocalOffset.y.toFixed(4),
+          z: finalLocalOffset.z.toFixed(4),
+          w: finalLocalOffset.w.toFixed(4),
+          note: "includes -10° tilt",
+        },
+      });
+
+      // 4) Validate model matrix (avoid NaNs/Infs)
       const sensorPosition = Cesium.Cartesian3.fromDegrees(
         longitude,
         latitude,
         height
       );
-
-      // 2) Build rotation from HPR
-      const hpr = new Cesium.HeadingPitchRoll(
-        heading || 0,
-        pitch || 0,
-        roll || 0
-      );
-      const rot = Cesium.Matrix3.fromHeadingPitchRoll(hpr);
-
-      // 3) Build a *single* modelMatrix (rotation + translation)
-      const modelMatrix = Cesium.Matrix4.fromRotationTranslation(
-        rot,
-        sensorPosition
-      );
-
-      // 4) Validate (avoid NaNs/Infs)
       if (
         !Number.isFinite(sensorPosition.x) ||
         !Number.isFinite(sensorPosition.y) ||
@@ -173,7 +325,6 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
       console.log("🔍 Raw position values:", { longitude, latitude, height });
       console.log("🔍 Calculated position:", sensorPosition);
-      console.log("🔍 Raw rotation values:", { heading, pitch, roll });
       console.log("🔍 Model matrix:", modelMatrix);
       console.log(
         "🔍 Sensor color property:",
@@ -202,9 +353,10 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         alpha: sensorColor.alpha,
       });
 
-      // Build a simple color material for the primitive surfaces
+      // Build a semi-transparent color material for the primitive surfaces
+      const transparentSensorColor = sensorColor.withAlpha(0.3); // Make cone semi-transparent
       const sensorMat = Cesium.Material.fromType("Color", {
-        color: sensorColor,
+        color: transparentSensorColor,
       });
 
       const baseOptions = {
@@ -221,7 +373,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         showDomeSurfaces: true,
 
         // viewshed rendering (when enabled) uses these colors instead
-        showViewshed: !!observationProperties.showViewshed,
+        showViewshed: false, // We'll set this dynamically after sensor creation
 
         environmentConstraint: true,
         include3DModels: observationProperties.include3DModels !== false,
@@ -283,17 +435,18 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         // Sanity check: try a bright color to rule out lighting issues
         // const visible = Cesium.Color.LIME.withAlpha(1.0); // uncomment to test
 
-        // 1) Ensure viewshed is actually used
-        sensor.showViewshed = true;
+        // 1) Set viewshed based on observation properties
+        sensor.showViewshed = !!observationProperties.showViewshed;
 
-        // 2) Apply colors via the public fields that your build exposes
-        sensor.viewshedVisibleColor = visible;
-        sensor.viewshedOccludedColor = occluded;
+        // 2) Show/hide cone geometry based on showSensorGeometry setting
+        sensor.showLateralSurfaces = !!observationProperties.showSensorGeometry;
+        sensor.showDomeSurfaces = !!observationProperties.showSensorGeometry;
 
-        // 3) Hide the base cone surfaces while using the viewshed shader,
-        //    because your build draws separate "color command" passes that default to white.
-        sensor.showLateralSurfaces = false;
-        sensor.showDomeSurfaces = false;
+        // 3) Apply viewshed colors only if viewshed is enabled
+        if (observationProperties.showViewshed) {
+          sensor.viewshedVisibleColor = visible;
+          sensor.viewshedOccludedColor = occluded;
+        }
 
         // 4) (Optional) Also hide environment overlay passes if they wash things out white
         sensor.showEnvironmentOcclusion = false;
@@ -318,7 +471,6 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         message: err.message,
         stack: err.stack,
         position,
-        rotation,
         observationProperties,
       });
       toast.error(`Failed to create sensor: ${err.message}`, {
@@ -330,7 +482,6 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     isInitialized,
     cesiumViewer,
     position,
-    rotation,
     observationProperties.showSensorGeometry,
     observationProperties.sensorType,
     observationProperties.fov,
@@ -356,83 +507,66 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
     try {
       // Ion SDK handles viewshed automatically when showViewshed is enabled
-      // No need for custom ray sampling parameters
-      // Ion SDK sensor created with built-in viewshed analysis
+      // The viewshed visualization is handled by the sensor itself
+      // No additional computation or toast warnings needed
 
-      // The viewshed is handled by the sensor itself via showViewshed: true
-      // No additional computation needed
-      const result = {
-        polygonEntity: null, // Ion SDK handles this internally
-        boundary: [],
-      };
+      console.log("✅ Viewshed analysis enabled - handled by Ion SDK sensor");
 
-      if (result.polygonEntity) {
-        viewshedRef.current = result.polygonEntity;
-        // Professional viewshed analysis completed
-      } else {
-        // No visible area found in viewshed analysis
-        toast.warning(
-          "No visible area found - terrain may be blocking all views",
-          {
-            position: "top-right",
-            autoClose: 5000,
-          }
-        );
-      }
+      // Viewshed is automatically rendered by the sensor when showViewshed: true
+      // No need for additional entities or warnings
     } catch (err) {
-      // Error performing viewshed analysis
-      toast.error("Failed to perform viewshed analysis", {
-        position: "top-right",
-        autoClose: 5000,
-      });
+      // Only show error for actual failures, not for normal operation
+      console.error("Error in viewshed analysis:", err);
     } finally {
       setIsCalculating(false);
     }
-  }, [
-    isInitialized,
-    cesiumViewer,
-    position,
-    rotation,
-    observationProperties.showViewshed,
-    observationProperties.analysisQuality,
-    observationProperties.viewshedColor,
-    observationProperties.sensorType,
-    observationProperties.fov,
-    observationProperties.fovH,
-    observationProperties.fovV,
-    observationProperties.maxPolar,
-    observationProperties.visibilityRadius,
-  ]);
+  }, [isInitialized, cesiumViewer, observationProperties.showViewshed]);
 
   // Note: Measurements are handled by the TransformEditor component
 
-  // Update sensor pose for position/rotation changes (smooth updates)
+  // Update sensor pose every frame via postRender (smooth real-time updates)
   useEffect(() => {
-    if (!isInitialized || !sensorRef.current) return;
+    if (!isInitialized || !sensorRef.current || !cesiumViewer) return;
 
-    const [longitude, latitude, height] = position;
-    const [heading, pitch, roll] = rotation;
+    const [lon, lat, h] = position;
+    const modelEntity = cesiumViewer.entities.getById(`model-${_objectId}`);
+    if (!modelEntity) return;
 
-    const sensorPosition = Cesium.Cartesian3.fromDegrees(
-      longitude,
-      latitude,
-      height
+    // compute once, reuse every frame
+    const sensorForwardAxis = observationProperties.sensorForwardAxis ?? "X+";
+    const modelFrontAxis = observationProperties.modelFrontAxis ?? "Z+";
+    const localOffsetQuat = quatFromTwoVectors(
+      axisToVector(sensorForwardAxis),
+      axisToVector(modelFrontAxis)
     );
-    const hpr = new Cesium.HeadingPitchRoll(
-      heading || 0,
-      pitch || 0,
-      roll || 0
+    const tilt = Cesium.Quaternion.fromHeadingPitchRoll(
+      new Cesium.HeadingPitchRoll(
+        0,
+        Cesium.Math.toRadians(observationProperties.tiltDeg ?? -10),
+        0
+      )
     );
-    const rot = Cesium.Matrix3.fromHeadingPitchRoll(hpr);
-    const modelMatrix = Cesium.Matrix4.fromRotationTranslation(
-      rot,
-      sensorPosition
+    const finalLocalOffset = Cesium.Quaternion.multiply(
+      localOffsetQuat,
+      tilt,
+      new Cesium.Quaternion()
     );
 
-    // Update sensor pose in place
-    sensorRef.current.modelMatrix = modelMatrix;
-    cesiumViewer?.scene.requestRender();
-  }, [isInitialized, position, rotation, cesiumViewer]);
+    const update = () => {
+      const q = getModelQuaternionAtNow(cesiumViewer, modelEntity);
+      if (!q) return;
+      sensorRef.current.modelMatrix = buildSensorModelMatrix(
+        [lon, lat, h],
+        q,
+        finalLocalOffset
+      );
+    };
+
+    const remove = cesiumViewer.scene.postRender.addEventListener(update);
+    return () => {
+      remove && remove();
+    };
+  }, [isInitialized, cesiumViewer, position, _objectId]);
 
   // Create sensor when shape/visibility properties change
   useEffect(() => {
@@ -440,6 +574,8 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     createIonSDKSensor();
   }, [
     isInitialized,
+    cesiumViewer,
+    position, // include only if origin may move
     observationProperties.showSensorGeometry,
     observationProperties.sensorType,
     observationProperties.fov,
@@ -449,15 +585,28 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     observationProperties.sensorColor,
     observationProperties.showViewshed,
     observationProperties.include3DModels,
+    observationProperties.modelFrontAxis,
+    observationProperties.sensorForwardAxis,
+    observationProperties.tiltDeg,
   ]);
 
   // Transform editor removed to prevent issues
 
-  // Perform viewshed analysis when properties change
+  // Perform viewshed analysis when showViewshed property changes
   useEffect(() => {
     if (!isInitialized) return;
-    performViewshedAnalysis();
-  }, [isInitialized, performViewshedAnalysis]);
+
+    // Only run viewshed analysis if it's explicitly enabled
+    if (observationProperties.showViewshed) {
+      performViewshedAnalysis();
+    } else {
+      // Clear any existing viewshed when disabled
+      if (viewshedRef.current) {
+        cesiumViewer?.entities.remove(viewshedRef.current);
+        viewshedRef.current = null;
+      }
+    }
+  }, [isInitialized, observationProperties.showViewshed]);
 
   // Cleanup on unmount
   useEffect(() => {

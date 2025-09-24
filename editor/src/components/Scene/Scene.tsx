@@ -16,6 +16,7 @@ import {
   ObservationPointHandler,
   CameraSpringController,
   XRWrapper,
+  Model,
 } from ".";
 import SceneControls from "./controls/SceneControls";
 import Loader from "./Loader";
@@ -144,7 +145,7 @@ export default function Scene({
   useEffect(() => {
     if (onSceneDataChange) {
       onSceneDataChange({
-        objects,
+        objects: objects as Model[],
         observationPoints,
         selectedAssetId,
         selectedLocation,
@@ -210,7 +211,7 @@ export default function Scene({
             {/* Scene Components */}
             <SceneLights ambientLightIntensity={ambientLightIntensity} />
             <SceneObjects
-              objects={objects}
+              objects={objects as Model[]}
               previewMode={previewMode}
               enableXR={enableXR}
               isPublishMode={isPublishMode}
@@ -222,7 +223,7 @@ export default function Scene({
               renderObservationPoints={renderObservationPoints}
             />
             <SceneTransformControlsNew
-              selectedObject={selectedObject}
+              selectedObject={selectedObject as Model | null}
               transformControlsRef={transformControlsRef}
             />
 
