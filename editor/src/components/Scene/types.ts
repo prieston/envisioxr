@@ -12,15 +12,14 @@ export interface Model {
   isObservationModel?: boolean;
   observationProperties?: {
     // Sensor Configuration
-    sensorType: "cone" | "rectangle" | "dome" | "custom";
+    sensorType: "cone" | "rectangle";
     fov: number; // Field of view in degrees (10-360)
     fovH?: number; // Horizontal FOV for rectangle sensors
     fovV?: number; // Vertical FOV for rectangle sensors
-    maxPolar?: number; // Max polar angle for dome sensors (degrees)
     visibilityRadius: number; // Radius in meters
 
     // Visualization Options
-    showSensorGeometry: boolean; // Show the sensor cone/rectangle/dome
+    showSensorGeometry: boolean; // Show the sensor cone/rectangle
     showViewshed: boolean; // Show calculated viewshed polygon
     sensorColor?: string; // Color for sensor geometry
     viewshedColor?: string; // Color for viewshed polygon
@@ -38,7 +37,23 @@ export interface Model {
     // Model Direction
     alignWithModelFront: boolean; // Align sensor with model's natural front direction
     manualFrontDirection?: "x" | "y" | "z" | "negX" | "negY" | "negZ"; // Manual override for front direction
+
+    // Additional Ion SDK properties
+    include3DModels?: boolean; // Include 3D models in analysis
+    modelFrontAxis?: "X+" | "X-" | "Y+" | "Y-" | "Z+" | "Z-"; // Model front axis
+    sensorForwardAxis?: "X+" | "X-" | "Y+" | "Y-" | "Z+" | "Z-"; // Sensor forward axis
+    tiltDeg?: number; // Sensor tilt in degrees
   };
+  iotProperties?: {
+    enabled: boolean;
+    serviceType: "weather" | "custom";
+    apiEndpoint: string;
+    updateInterval: number; // in milliseconds
+    showInScene: boolean;
+    displayFormat: "compact" | "detailed";
+    autoRefresh: boolean;
+  };
+  weatherData?: any; // Weather data from IoT service
   [key: string]: any; // For any additional properties
 }
 
