@@ -33,8 +33,10 @@ const sanitizeSceneData = (
       if (!obj) return null;
 
       // Remove any circular references and undefined values
-      const { ...rest } = obj;
-      return {
+      const { ref, ...rest } = obj;
+
+      // Base object properties
+      const cleanObj = {
         id: rest.id || "",
         name: rest.name || "",
         url: rest.url || "",
@@ -43,7 +45,95 @@ const sanitizeSceneData = (
         rotation: rest.rotation || [0, 0, 0],
         scale: rest.scale || [1, 1, 1],
         assetId: rest.assetId || undefined,
+        apiKey: rest.apiKey || undefined,
+        component: rest.component || undefined,
       };
+
+      // Include observation model data if present
+      if (rest.isObservationModel !== undefined) {
+        cleanObj.isObservationModel = rest.isObservationModel;
+      }
+
+      if (rest.observationProperties) {
+        cleanObj.observationProperties = {
+          // Sensor Configuration
+          sensorType: rest.observationProperties.sensorType || "cone",
+          fov: rest.observationProperties.fov || 60,
+          fovH: rest.observationProperties.fovH,
+          fovV: rest.observationProperties.fovV,
+          visibilityRadius: rest.observationProperties.visibilityRadius || 500,
+
+          // Visualization Options
+          showSensorGeometry:
+            rest.observationProperties.showSensorGeometry !== undefined
+              ? rest.observationProperties.showSensorGeometry
+              : true,
+          showViewshed:
+            rest.observationProperties.showViewshed !== undefined
+              ? rest.observationProperties.showViewshed
+              : false,
+          sensorColor: rest.observationProperties.sensorColor || "#00ff00",
+          viewshedColor: rest.observationProperties.viewshedColor || "#0080ff",
+
+          // Analysis Options
+          analysisQuality:
+            rest.observationProperties.analysisQuality || "medium",
+          raysAzimuth: rest.observationProperties.raysAzimuth,
+          raysElevation: rest.observationProperties.raysElevation,
+          clearance: rest.observationProperties.clearance,
+          stepCount: rest.observationProperties.stepCount,
+
+          // Transform Editor
+          enableTransformEditor:
+            rest.observationProperties.enableTransformEditor !== undefined
+              ? rest.observationProperties.enableTransformEditor
+              : true,
+
+          // Model Direction
+          alignWithModelFront:
+            rest.observationProperties.alignWithModelFront !== undefined
+              ? rest.observationProperties.alignWithModelFront
+              : false,
+          manualFrontDirection: rest.observationProperties.manualFrontDirection,
+
+          // Additional Ion SDK properties
+          include3DModels: rest.observationProperties.include3DModels,
+          modelFrontAxis: rest.observationProperties.modelFrontAxis,
+          sensorForwardAxis: rest.observationProperties.sensorForwardAxis,
+          tiltDeg: rest.observationProperties.tiltDeg,
+        };
+      }
+
+      // Include IoT configuration if present
+      if (rest.iotProperties) {
+        cleanObj.iotProperties = {
+          enabled:
+            rest.iotProperties.enabled !== undefined
+              ? rest.iotProperties.enabled
+              : false,
+          serviceType: rest.iotProperties.serviceType || "weather",
+          apiEndpoint:
+            rest.iotProperties.apiEndpoint ||
+            "https://api.open-meteo.com/v1/forecast",
+          updateInterval: rest.iotProperties.updateInterval || 300000,
+          showInScene:
+            rest.iotProperties.showInScene !== undefined
+              ? rest.iotProperties.showInScene
+              : true,
+          displayFormat: rest.iotProperties.displayFormat || "compact",
+          autoRefresh:
+            rest.iotProperties.autoRefresh !== undefined
+              ? rest.iotProperties.autoRefresh
+              : true,
+        };
+      }
+
+      // Include weather data if present
+      if (rest.weatherData) {
+        cleanObj.weatherData = rest.weatherData;
+      }
+
+      return cleanObj;
     })
     .filter(Boolean);
 
@@ -148,6 +238,7 @@ export default function BuilderPage() {
           } = data.project.sceneData;
 
           if (Array.isArray(objects)) {
+            // Restore objects with all their properties including observation model data
             setObjects(objects);
           }
           if (Array.isArray(observationPoints)) {

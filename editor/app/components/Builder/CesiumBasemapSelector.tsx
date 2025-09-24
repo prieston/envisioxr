@@ -52,7 +52,6 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
       }
 
       setSelectedBasemap(basemapType);
-      onBasemapChange(basemapType);
 
       try {
         // Always remove existing imagery layers first
@@ -170,11 +169,16 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
             break;
           }
         }
+
+        // Only update the scene store after the basemap change is successfully applied
+        onBasemapChange(basemapType);
       } catch (error) {
         console.error("Error changing basemap:", error);
+        // Revert the selected basemap if there was an error
+        setSelectedBasemap(currentBasemap);
       }
     },
-    [cesiumViewer, cesiumInstance, onBasemapChange]
+    [cesiumViewer, cesiumInstance, onBasemapChange, currentBasemap]
   );
 
   if (disabled) {
