@@ -77,7 +77,7 @@ interface Model {
     humidity: number;
     pressure: number;
     description: string;
-    lastUpdated: Date;
+    lastUpdated: Date | string;
   } | null;
   [key: string]: any;
 }
