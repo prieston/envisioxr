@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -9,15 +9,18 @@ import {
   CircularProgress,
   Switch,
   FormControlLabel,
+  Alert,
 } from "@mui/material";
-import { Camera, FlightTakeoff } from "@mui/icons-material";
+import { Camera, FlightTakeoff, LocationOn } from "@mui/icons-material";
 import useSceneStore from "../../hooks/useSceneStore";
 import useWorldStore from "../../hooks/useWorldStore";
 import * as THREE from "three";
 import * as Cesium from "cesium";
 import useSWR from "swr";
 import { localToGeographic } from "../../utils/coordinateUtils";
+import { getPositionAtScreenPoint } from "../../utils/cesiumPositioningUtils";
 import SDKObservationPropertiesPanel from "./SDKObservationPropertiesPanel";
+import IoTDevicePropertiesPanel from "./IoTDevicePropertiesPanel";
 
 // Types for props
 // You may want to import these from your types file
@@ -94,8 +97,10 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   updateControlSettings,
 }) => {
   const [localObject, setLocalObject] = useState(selectedObject);
+  const [repositioning, setRepositioning] = useState(false);
   const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
   const tilesRenderer = useSceneStore((state) => state.tilesRenderer);
+  const scene = useSceneStore((state) => state.scene);
   const observationPoints = useSceneStore((state) => state.observationPoints);
 
   // Update local state when selectedObject changes or when its transform properties change
@@ -124,14 +129,43 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     }
   }, [selectedObject]);
 
-  // Calculate geographic coordinates if we have a reference location and tilesRenderer
-  const geographicCoords =
-    tilesRenderer && localObject?.position
-      ? localToGeographic(
-          tilesRenderer,
-          new THREE.Vector3(...localObject.position)
-        )
-      : null;
+  // Calculate geographic coordinates - handle both local and geographic coordinate systems
+  const geographicCoords = useMemo(() => {
+    if (!localObject?.position) return null;
+
+    const [x, y, z] = localObject.position;
+
+    // Check if the model already has coordinate system metadata
+    const coordinateSystem = localObject.coordinateSystem;
+
+    // Determine if position is already in geographic format
+    const isGeographic =
+      coordinateSystem === "geographic" ||
+      (x >= -180 && x <= 180 && y >= -90 && y <= 90 && Math.abs(z) < 50000);
+
+    if (isGeographic) {
+      // Already in geographic format (longitude, latitude, height)
+      return {
+        longitude: x,
+        latitude: y,
+        altitude: z,
+      };
+    } else if (tilesRenderer) {
+      // Convert from local coordinates using tilesRenderer
+      return localToGeographic(tilesRenderer, new THREE.Vector3(x, y, z));
+    } else {
+      // Fallback: Use a default location for demonstration
+      // In a real app, you'd want to prompt the user to set a reference location
+      console.warn(
+        "No tilesRenderer available and position not in geographic format. Using default location."
+      );
+      return {
+        longitude: 139.7454, // Tokyo longitude
+        latitude: 35.6586, // Tokyo latitude
+        altitude: z || 0,
+      };
+    }
+  }, [localObject?.position, tilesRenderer, localObject?.coordinateSystem]);
 
   // Add a separate effect to handle transform updates
   useEffect(() => {
@@ -185,6 +219,130 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     localObject?.rotation,
     localObject?.scale,
   ]);
+
+  // Handle reposition functionality
+  useEffect(() => {
+    if (!repositioning) return;
+
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLCanvasElement;
+      if (!target) return;
+
+      // Check if we're in Cesium mode
+      const cesiumViewer = useSceneStore.getState().cesiumViewer;
+
+      if (cesiumViewer) {
+        // Cesium mode - use advanced positioning system
+        const rect = target.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        // Use the advanced positioning utility - same as model insertion
+        const positioningResult = getPositionAtScreenPoint(cesiumViewer, x, y, {
+          prefer3DTiles: true,
+          preferTerrain: true,
+          maxTerrainDistance: 1000,
+          fallbackToEllipsoid: true,
+        });
+
+        if (positioningResult) {
+          const newPosition: [number, number, number] =
+            positioningResult.position;
+
+          if (selectedObject?.id) {
+            updateObjectProperty(selectedObject.id, "position", newPosition);
+            updateObjectProperty(
+              selectedObject.id,
+              "coordinateSystem",
+              "geographic"
+            );
+          }
+
+          setRepositioning(false);
+          console.log("Model repositioned to (Cesium):", newPosition);
+          console.log(
+            "Surface type:",
+            positioningResult.surfaceType,
+            "Accuracy:",
+            positioningResult.accuracy
+          );
+        } else {
+          console.log("No surface detected at click point");
+        }
+      } else if (orbitControlsRef && scene) {
+        // Three.js mode - use the same logic as model insertion
+        const rect = target.getBoundingClientRect();
+        const mouse = new THREE.Vector2();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Update the raycaster - same as model insertion
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, orbitControlsRef.object);
+
+        // Get all objects in the scene - same as model insertion
+        const allObjects: THREE.Mesh[] = [];
+        scene.traverse((object) => {
+          if ((object as THREE.Mesh).isMesh) {
+            allObjects.push(object as THREE.Mesh);
+          }
+        });
+
+        // Find intersections with all objects - same as model insertion
+        const intersects = raycaster.intersectObjects(allObjects, true);
+        if (intersects.length > 0) {
+          const hitPoint = intersects[0].point;
+          const newPosition: [number, number, number] = [
+            hitPoint.x,
+            hitPoint.y,
+            hitPoint.z,
+          ];
+
+          if (selectedObject?.id) {
+            updateObjectProperty(selectedObject.id, "position", newPosition);
+            updateObjectProperty(
+              selectedObject.id,
+              "coordinateSystem",
+              "local"
+            );
+          }
+
+          setRepositioning(false);
+          console.log("Model repositioned to (Three.js):", newPosition);
+        } else {
+          console.log("No surface detected at click point");
+        }
+      }
+    };
+
+    const canvas = document.querySelector("canvas");
+    if (canvas) {
+      canvas.addEventListener("click", handleClick);
+      canvas.style.cursor = "crosshair";
+    }
+
+    return () => {
+      if (canvas) {
+        canvas.removeEventListener("click", handleClick);
+        canvas.style.cursor = "auto";
+      }
+    };
+  }, [
+    repositioning,
+    orbitControlsRef,
+    scene,
+    selectedObject?.id,
+    updateObjectProperty,
+  ]);
+
+  const handleReposition = () => {
+    console.log("Reposition button clicked!");
+    setRepositioning(true);
+  };
+
+  const handleCancelReposition = () => {
+    setRepositioning(false);
+  };
 
   const handlePropertyChange = (
     property: string,
@@ -441,18 +599,49 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               }
               label="Observation Model"
             />
-            <Button
-              fullWidth
-              variant="outlined"
-              color="primary"
-              onClick={handleFlyToObject}
-              startIcon={<FlightTakeoff />}
-              sx={{ mt: 2 }}
-            >
-              Fly to Object
-            </Button>
+            <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleFlyToObject}
+                startIcon={<FlightTakeoff />}
+                sx={{ flex: 1 }}
+              >
+                Fly to Object
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleReposition}
+                startIcon={<LocationOn />}
+                sx={{ flex: 1 }}
+                disabled={repositioning}
+                data-testid="reposition-button"
+              >
+                {repositioning ? "Repositioning..." : "Reposition"}
+              </Button>
+            </Box>
           </Paper>
         </PropertyGroup>
+
+        {/* Repositioning Status Alert */}
+        {repositioning && (
+          <Alert
+            severity="info"
+            action={
+              <Button
+                color="inherit"
+                size="small"
+                onClick={handleCancelReposition}
+              >
+                Cancel
+              </Button>
+            }
+            sx={{ mb: 2 }}
+          >
+            Click anywhere in the scene to reposition the model
+          </Alert>
+        )}
 
         {selectedObject.isObservationModel && (
           <SDKObservationPropertiesPanel
@@ -466,6 +655,13 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             isCalculating={useSceneStore.getState().isCalculatingVisibility}
           />
         )}
+
+        {/* IoT Device Configuration */}
+        <IoTDevicePropertiesPanel
+          selectedObject={selectedObject}
+          onPropertyChange={handlePropertyChange}
+          geographicCoords={geographicCoords}
+        />
 
         <PropertyGroup>
           <Typography variant="subtitle1" gutterBottom>
