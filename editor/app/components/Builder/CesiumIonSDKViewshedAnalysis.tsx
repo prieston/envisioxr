@@ -220,15 +220,12 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
     // Remove existing sensor entity
 
-    // If showSensorGeometry is false, just return (sensor is already removed)
+    // Always create sensor for viewshed analysis, but control visibility of geometry
     console.log(
       "🔍 showSensorGeometry:",
       observationProperties.showSensorGeometry
     );
-    if (!observationProperties.showSensorGeometry) {
-      console.log("🔍 Sensor geometry disabled, sensor removed");
-      return;
-    }
+    console.log("🔍 showViewshed:", observationProperties.showViewshed);
 
     try {
       const [longitude, latitude, height] = position;
@@ -490,6 +487,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     observationProperties.visibilityRadius,
     observationProperties.sensorColor,
     observationProperties.showViewshed,
+    observationProperties.viewshedColor,
   ]);
 
   // Perform professional viewshed analysis
@@ -501,6 +499,12 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         viewshedRef.current = null;
       }
       return;
+    }
+
+    // Ensure sensor exists for viewshed analysis
+    if (!sensorRef.current) {
+      console.log("🔍 Creating sensor for viewshed analysis");
+      createIonSDKSensor();
     }
 
     setIsCalculating(true);
@@ -520,7 +524,12 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     } finally {
       setIsCalculating(false);
     }
-  }, [isInitialized, cesiumViewer, observationProperties.showViewshed]);
+  }, [
+    isInitialized,
+    cesiumViewer,
+    observationProperties.showViewshed,
+    createIonSDKSensor,
+  ]);
 
   // Note: Measurements are handled by the TransformEditor component
 
@@ -554,7 +563,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
     const update = () => {
       const q = getModelQuaternionAtNow(cesiumViewer, modelEntity);
-      if (!q) return;
+      if (!q || !sensorRef.current) return;
       sensorRef.current.modelMatrix = buildSensorModelMatrix(
         [lon, lat, h],
         q,
@@ -583,7 +592,6 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     observationProperties.fovV,
     observationProperties.visibilityRadius,
     observationProperties.sensorColor,
-    observationProperties.showViewshed,
     observationProperties.include3DModels,
     observationProperties.modelFrontAxis,
     observationProperties.sensorForwardAxis,
@@ -606,7 +614,12 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         viewshedRef.current = null;
       }
     }
-  }, [isInitialized, observationProperties.showViewshed]);
+  }, [
+    isInitialized,
+    observationProperties.showViewshed,
+    observationProperties.viewshedColor,
+    observationProperties.analysisQuality,
+  ]);
 
   // Cleanup on unmount
   useEffect(() => {
