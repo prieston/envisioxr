@@ -66,6 +66,8 @@ const EnvironmentPanel: React.FC = () => {
     tilesRenderer,
     cesiumViewer,
     cesiumInstance,
+    basemapType,
+    setBasemapType,
   } = useSceneStore();
 
   const handleAssetSelect = useCallback(
@@ -112,7 +114,11 @@ const EnvironmentPanel: React.FC = () => {
       // Clean up any existing 3D tileset
       if (currentTileset) {
         try {
-          if (cesiumViewer && cesiumViewer.scene && cesiumViewer.scene.primitives) {
+          if (
+            cesiumViewer &&
+            cesiumViewer.scene &&
+            cesiumViewer.scene.primitives
+          ) {
             cesiumViewer.scene.primitives.remove(currentTileset);
           }
           setCurrentTileset(null);
@@ -260,11 +266,14 @@ const EnvironmentPanel: React.FC = () => {
             break;
           }
         }
+
+        // Update the scene store after the basemap change is successfully applied
+        setBasemapType(basemapType);
       } catch (error) {
         console.error("Error changing basemap:", error);
       }
     },
-    [cesiumViewer, cesiumInstance, currentTileset]
+    [cesiumViewer, cesiumInstance, currentTileset, setBasemapType]
   );
 
   return (
@@ -376,7 +385,7 @@ const EnvironmentPanel: React.FC = () => {
         <Section>
           <BasemapSelector
             onBasemapChange={handleBasemapChange}
-            currentBasemap="cesium"
+            currentBasemap={basemapType}
             disabled={!cesiumViewer || !cesiumInstance}
           />
         </Section>

@@ -129,7 +129,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         PaperProps={{
-          sx: { boxShadow: "none", marginBottom: `${BOTTOM_BAR_HEIGHT}px` },
+          sx: {
+            boxShadow: "none",
+            marginBottom: `${BOTTOM_BAR_HEIGHT}px`,
+            backgroundColor: "white",
+          },
         }}
         ModalProps={{
           BackdropProps: { invisible: true },

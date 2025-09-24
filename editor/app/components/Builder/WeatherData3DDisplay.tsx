@@ -13,7 +13,7 @@ type WeatherData3DDisplayProps = {
     humidity?: number;
     pressure?: number;
     description?: string;
-    lastUpdated?: Date;
+    lastUpdated?: Date | string;
   };
   displayFormat?: "compact" | "detailed" | "minimal";
   showInScene?: boolean;
@@ -55,7 +55,16 @@ const WeatherData3DDisplay: React.FC<WeatherData3DDisplayProps> = ({
         : "--";
     const status = weatherData?.description ?? "";
     const updated = weatherData?.lastUpdated
-      ? weatherData.lastUpdated.toLocaleTimeString()
+      ? (() => {
+          const date = weatherData.lastUpdated;
+          // Handle both Date objects and string dates (from serialization)
+          if (date instanceof Date) {
+            return date.toLocaleTimeString();
+          } else if (typeof date === "string") {
+            return new Date(date).toLocaleTimeString();
+          }
+          return "";
+        })()
       : "";
 
     const text =

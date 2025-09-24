@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import useWorldStore from "../hooks/useWorldStore";
 import useSceneStore from "../hooks/useSceneStore";
+import iotService from "../services/IoTService";
 import CesiumPerformanceOptimizer from "./CesiumPerformanceOptimizer";
 import CesiumIonAssetsRenderer from "./CesiumIonAssetsRenderer";
 import CesiumCameraCaptureHandler from "./Builder/CesiumCameraCaptureHandler";
@@ -29,7 +30,7 @@ if (typeof window !== "undefined") {
 const applyBasemapType = async (
   viewer: any,
   Cesium: any,
-  basemapType: "cesium" | "google" | "google-photorealistic" | "none"
+  basemapType: "cesium" | "google" | "google-photorealistic" | "bing" | "none"
 ) => {
   try {
     // Always remove existing imagery layers first
@@ -48,6 +49,29 @@ const applyBasemapType = async (
     }
 
     switch (basemapType) {
+      case "cesium": {
+        try {
+          // Add Cesium World Imagery
+          viewer.imageryLayers.addImageryProvider(
+            new Cesium.IonImageryProvider({ assetId: 2 })
+          );
+        } catch (error) {
+          // Error setting Cesium World Imagery
+          console.error("Error setting Cesium World Imagery:", error);
+          // Fallback to OpenStreetMap
+          try {
+            viewer.imageryLayers.addImageryProvider(
+              new Cesium.UrlTemplateImageryProvider({
+                url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                credit: "© OpenStreetMap contributors",
+              })
+            );
+          } catch (fallbackError) {
+            console.error("Error setting fallback imagery:", fallbackError);
+          }
+        }
+        break;
+      }
       case "google": {
         try {
           // Add Google Satellite imagery
@@ -99,6 +123,32 @@ const applyBasemapType = async (
               credit: "© OpenStreetMap contributors",
             })
           );
+        }
+        break;
+      }
+      case "bing": {
+        try {
+          // Add Bing Maps imagery
+          viewer.imageryLayers.addImageryProvider(
+            new Cesium.BingMapsImageryProvider({
+              url: "https://dev.virtualearth.net",
+              key: process.env.NEXT_PUBLIC_BING_MAPS_KEY || "",
+              mapStyle: Cesium.BingMapsStyle.AERIAL,
+            })
+          );
+        } catch (error) {
+          // Error setting Bing Maps, fallback to OpenStreetMap
+          console.error("Error setting Bing Maps:", error);
+          try {
+            viewer.imageryLayers.addImageryProvider(
+              new Cesium.UrlTemplateImageryProvider({
+                url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                credit: "© OpenStreetMap contributors",
+              })
+            );
+          } catch (fallbackError) {
+            console.error("Error setting fallback imagery:", fallbackError);
+          }
         }
         break;
       }
@@ -300,6 +350,9 @@ export default function CesiumViewer() {
         }
 
         setIsLoading(false);
+
+        // Initialize IoT service for auto-refresh functionality
+        iotService.initialize();
       } catch (err) {
         // Failed to initialize Cesium
         setError(
@@ -323,6 +376,8 @@ export default function CesiumViewer() {
           // Error during cleanup
         }
       }
+      // Stop all IoT services when component unmounts
+      iotService.stopAll();
     };
   }, []);
 
@@ -624,6 +679,19 @@ export default function CesiumViewer() {
     }
   }, [isLoading]);
 
+  // Handle basemap changes from the store
+  const basemapType = useSceneStore((state) => state.basemapType);
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const Cesium = cesiumRef.current;
+    if (!viewer || !Cesium || isLoading) return;
+
+    // Apply basemap change when basemapType changes
+    if (basemapType) {
+      applyBasemapType(viewer, Cesium, basemapType);
+    }
+  }, [basemapType, isLoading]);
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-full bg-red-50 border border-red-200 rounded">
@@ -685,18 +753,24 @@ export default function CesiumViewer() {
                 fov: obj.observationProperties?.fov || 60,
                 fovH: obj.observationProperties?.fovH,
                 fovV: obj.observationProperties?.fovV,
-                maxPolar: obj.observationProperties?.maxPolar,
                 visibilityRadius:
                   obj.observationProperties?.visibilityRadius || 500,
                 showSensorGeometry:
                   obj.observationProperties?.showSensorGeometry ?? true,
-                showViewshed: obj.observationProperties?.showViewshed || false,
+                showViewshed: obj.observationProperties?.showViewshed ?? false,
                 sensorColor:
                   obj.observationProperties?.sensorColor || "#00ff00",
                 viewshedColor:
                   obj.observationProperties?.viewshedColor || "#0080ff",
                 analysisQuality:
                   obj.observationProperties?.analysisQuality || "medium",
+                // Additional Ion SDK properties for published world
+                include3DModels: obj.observationProperties?.include3DModels,
+                alignWithModelFront:
+                  obj.observationProperties?.alignWithModelFront,
+                modelFrontAxis: obj.observationProperties?.modelFrontAxis,
+                sensorForwardAxis: obj.observationProperties?.sensorForwardAxis,
+                tiltDeg: obj.observationProperties?.tiltDeg,
                 // Transform editor properties removed
               };
 

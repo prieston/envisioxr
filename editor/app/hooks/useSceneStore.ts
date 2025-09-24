@@ -28,7 +28,38 @@ interface Model {
   };
   isObservationModel?: boolean;
   observationProperties?: {
-    [key: string]: any;
+    // Sensor Configuration
+    sensorType: "cone" | "rectangle";
+    fov: number; // Field of view in degrees (10-360)
+    fovH?: number; // Horizontal FOV for rectangle sensors
+    fovV?: number; // Vertical FOV for rectangle sensors
+    visibilityRadius: number; // Radius in meters
+
+    // Visualization Options
+    showSensorGeometry: boolean; // Show the sensor cone/rectangle
+    showViewshed: boolean; // Show calculated viewshed polygon
+    sensorColor?: string; // Color for sensor geometry
+    viewshedColor?: string; // Color for viewshed polygon
+
+    // Analysis Options
+    analysisQuality: "low" | "medium" | "high";
+    raysAzimuth?: number; // Number of azimuth samples
+    raysElevation?: number; // Number of elevation slices
+    clearance?: number; // Clearance above terrain (meters)
+    stepCount?: number; // Samples per ray
+
+    // Transform Editor
+    enableTransformEditor: boolean; // Enable gizmo for sensor manipulation
+
+    // Model Direction
+    alignWithModelFront: boolean; // Align sensor with model's natural front direction
+    manualFrontDirection?: "x" | "y" | "z" | "negX" | "negY" | "negZ"; // Manual override for front direction
+
+    // Additional Ion SDK properties
+    include3DModels?: boolean; // Include 3D models in analysis
+    modelFrontAxis?: "X+" | "X-" | "Y+" | "Y-" | "Z+" | "Z-"; // Model front axis
+    sensorForwardAxis?: "X+" | "X-" | "Y+" | "Y-" | "Z+" | "Z-"; // Sensor forward axis
+    tiltDeg?: number; // Sensor tilt in degrees
   };
   iotProperties?: {
     enabled: boolean;
@@ -46,7 +77,7 @@ interface Model {
     humidity: number;
     pressure: number;
     description: string;
-    lastUpdated: Date;
+    lastUpdated: Date | string;
   } | null;
   [key: string]: any;
 }
@@ -92,7 +123,7 @@ interface SceneState {
   cesiumInstance: any | null;
 
   // Cesium Basemap
-  basemapType: "cesium" | "google" | "google-photorealistic" | "none";
+  basemapType: "cesium" | "google" | "google-photorealistic" | "bing" | "none";
 
   // Environment Settings
   gridEnabled: boolean;
@@ -132,7 +163,7 @@ interface SceneState {
 
   // Cesium Basemap Actions
   setBasemapType: (
-    type: "cesium" | "google" | "google-photorealistic" | "none"
+    type: "cesium" | "google" | "google-photorealistic" | "bing" | "none"
   ) => void;
 
   // View Mode Actions
@@ -380,23 +411,43 @@ const useSceneStore = create<SceneState>((set) => ({
               !obj.observationProperties
             ) {
               // Initialize observation properties with SDK defaults
+              const observationProps = {
+                sensorType: "cone" as "cone" | "rectangle",
+                fov: 60, // More reasonable default FOV
+                visibilityRadius: 500, // More reasonable default range
+                showSensorGeometry: true,
+                showViewshed: false,
+                analysisQuality: "medium" as "low" | "medium" | "high",
+                enableTransformEditor: true,
+                alignWithModelFront: true, // Required property
+                sensorColor: "#00ff00",
+                viewshedColor: "#0080ff",
+                clearance: 2.0,
+                raysElevation: 8,
+                stepCount: 64,
+              };
+
+              // Apply the specific property update with type safety
+              if (
+                child === "sensorType" &&
+                (value === "cone" || value === "rectangle")
+              ) {
+                observationProps.sensorType = value as "cone" | "rectangle";
+              } else if (
+                child === "analysisQuality" &&
+                (value === "low" || value === "medium" || value === "high")
+              ) {
+                observationProps.analysisQuality = value as
+                  | "low"
+                  | "medium"
+                  | "high";
+              } else {
+                (observationProps as any)[child] = value;
+              }
+
               return {
                 ...obj,
-                observationProperties: {
-                  sensorType: "cone",
-                  fov: 60, // More reasonable default FOV
-                  visibilityRadius: 500, // More reasonable default range
-                  showSensorGeometry: true,
-                  showViewshed: false,
-                  analysisQuality: "medium",
-                  enableTransformEditor: true,
-                  sensorColor: "#00ff00",
-                  viewshedColor: "#0080ff",
-                  clearance: 2.0,
-                  raysElevation: 8,
-                  stepCount: 64,
-                  [child]: value,
-                },
+                observationProperties: observationProps,
               };
             }
 
@@ -419,20 +470,20 @@ const useSceneStore = create<SceneState>((set) => ({
               ...obj,
               [property]: value,
               observationProperties: {
-                sensorType: "cone",
+                sensorType: "cone" as "cone" | "rectangle",
                 fov: 60, // More reasonable default FOV
                 visibilityRadius: 500, // More reasonable default range
                 showSensorGeometry: true,
                 showViewshed: false,
-                analysisQuality: "medium",
+                analysisQuality: "medium" as "low" | "medium" | "high",
                 enableTransformEditor: true,
+                alignWithModelFront: true, // Required property
                 sensorColor: "#00ff00",
                 viewshedColor: "#0080ff",
                 clearance: 2.0,
                 raysAzimuth: 120, // Set default values for better performance
                 raysElevation: 8,
                 stepCount: 64,
-                alignWithModelFront: false, // Default to manual rotation control
               },
             };
           }
