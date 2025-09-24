@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import useWorldStore from "../hooks/useWorldStore";
 import useSceneStore from "../hooks/useSceneStore";
+import iotService from "../services/IoTService";
 import CesiumPerformanceOptimizer from "./CesiumPerformanceOptimizer";
 import CesiumIonAssetsRenderer from "./CesiumIonAssetsRenderer";
 import CesiumCameraCaptureHandler from "./Builder/CesiumCameraCaptureHandler";
@@ -323,6 +324,9 @@ export default function CesiumViewer() {
         }
 
         setIsLoading(false);
+
+        // Initialize IoT service for auto-refresh functionality
+        iotService.initialize();
       } catch (err) {
         // Failed to initialize Cesium
         setError(
@@ -346,6 +350,8 @@ export default function CesiumViewer() {
           // Error during cleanup
         }
       }
+      // Stop all IoT services when component unmounts
+      iotService.stopAll();
     };
   }, []);
 

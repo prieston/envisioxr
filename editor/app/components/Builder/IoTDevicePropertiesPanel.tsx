@@ -187,37 +187,24 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
       iotProps.enabled &&
       iotProps.autoRefresh &&
       geographicCoords &&
-      !weatherData
+      !weatherData &&
+      selectedObject?.id
     ) {
-      fetchWeatherData();
+      // Use the global IoT service to fetch data
+      import("../../services/IoTService").then(({ default: iotService }) => {
+        iotService.fetchDataForObject(selectedObject.id);
+      });
     }
   }, [
     geographicCoords,
     iotProps.enabled,
     iotProps.autoRefresh,
-    fetchWeatherData,
     weatherData,
+    selectedObject?.id,
   ]);
 
-  // Set up auto-refresh interval
-  useEffect(() => {
-    if (
-      iotProps.enabled &&
-      iotProps.autoRefresh &&
-      iotProps.updateInterval > 0
-    ) {
-      const interval = setInterval(() => {
-        fetchWeatherData();
-      }, iotProps.updateInterval);
-
-      return () => clearInterval(interval);
-    }
-  }, [
-    iotProps.enabled,
-    iotProps.autoRefresh,
-    iotProps.updateInterval,
-    fetchWeatherData,
-  ]);
+  // Auto-refresh is now handled by the global IoT service
+  // No need for local interval management here
 
   const getWindDirection = (degrees: number) => {
     const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
@@ -384,7 +371,16 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
               <Button
                 variant="outlined"
                 startIcon={<RefreshIcon />}
-                onClick={fetchWeatherData}
+                onClick={() => {
+                  if (selectedObject?.id) {
+                    // Use the global IoT service to fetch data
+                    import("../../services/IoTService").then(
+                      ({ default: iotService }) => {
+                        iotService.fetchDataForObject(selectedObject.id);
+                      }
+                    );
+                  }
+                }}
                 disabled={loading || !geographicCoords}
                 fullWidth
                 sx={{ mb: 2 }}
@@ -469,7 +465,16 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
                     color="text.secondary"
                     sx={{ mt: 1, display: "block" }}
                   >
-                    Last updated: {weatherData.lastUpdated.toLocaleTimeString()}
+                    Last updated:{" "}
+                    {(() => {
+                      const date = weatherData.lastUpdated;
+                      if (date instanceof Date) {
+                        return date.toLocaleTimeString();
+                      } else if (typeof date === "string") {
+                        return new Date(date).toLocaleTimeString();
+                      }
+                      return "Unknown";
+                    })()}
                   </Typography>
                 </Paper>
               )}
