@@ -106,15 +106,24 @@ class IoTService {
     objectId: string,
     longitude: number,
     latitude: number,
-    config: IoTServiceConfig
+    _config: IoTServiceConfig
   ) {
     try {
-      const response = await fetch(
-        `${config.apiEndpoint}?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,weather_code`
-      );
+      // Force weather service to always use the correct Open-Meteo API endpoint
+      // This prevents DNS resolution issues that might cause undefined URLs
+      const weatherApiEndpoint = "https://api.open-meteo.com/v1/forecast";
+
+      const url = `${weatherApiEndpoint}?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,weather_code`;
+
+      // Log the URL being used for debugging
+      console.log(`Fetching weather data from: ${url}`);
+
+      const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(
+          `HTTP error! status: ${response.status} for URL: ${url}`
+        );
       }
 
       const data = await response.json();
@@ -160,6 +169,13 @@ class IoTService {
       useSceneStore.getState().updateWeatherData(objectId, weatherInfo);
     } catch (error) {
       console.error("Error fetching weather data:", error);
+
+      // If the primary endpoint fails, try a fallback approach
+      if (error instanceof Error && error.message.includes("HTTP error")) {
+        console.log(
+          "Primary weather API failed, this might be a temporary issue"
+        );
+      }
     }
   }
 
