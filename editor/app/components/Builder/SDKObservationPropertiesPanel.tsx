@@ -13,13 +13,11 @@ import {
   FormControl,
   InputLabel,
   TextField,
-  Button,
   Chip,
   Accordion,
   AccordionSummary,
   AccordionDetails,
   Grid,
-  Divider,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -29,11 +27,18 @@ import PaletteIcon from "@mui/icons-material/Palette";
 interface SDKObservationPropertiesPanelProps {
   selectedObject: any;
   onPropertyChange: (property: string, value: any) => void;
+  onCalculateViewshed?: () => void;
+  isCalculating?: boolean;
 }
 
 const SDKObservationPropertiesPanel: React.FC<
   SDKObservationPropertiesPanelProps
-> = ({ selectedObject, onPropertyChange }) => {
+> = ({
+  selectedObject,
+  onPropertyChange,
+  onCalculateViewshed: _onCalculateViewshed,
+  isCalculating: _isCalculating,
+}) => {
   const [expandedSections, setExpandedSections] = useState({
     sensor: true,
     visualization: true,

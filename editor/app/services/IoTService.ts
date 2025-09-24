@@ -74,10 +74,14 @@ class IoTService {
 
     // Clean up intervals for objects that no longer have IoT enabled
     const iotObjectIds = new Set(iotObjects.map((obj) => obj.id));
-    for (const [objectId, interval] of this.intervals.entries()) {
+    const intervalKeys = Array.from(this.intervals.keys());
+    for (const objectId of intervalKeys) {
       if (!iotObjectIds.has(objectId)) {
-        clearInterval(interval);
-        this.intervals.delete(objectId);
+        const interval = this.intervals.get(objectId);
+        if (interval) {
+          clearInterval(interval);
+          this.intervals.delete(objectId);
+        }
       }
     }
   }
@@ -189,10 +193,12 @@ class IoTService {
 
   // Method to stop all IoT services
   public stopAll() {
-    for (const interval of this.intervals.values()) {
+    const intervalValues = Array.from(this.intervals.values());
+    for (const interval of intervalValues) {
       clearInterval(interval);
     }
     this.intervals.clear();
+    this.isInitialized = false;
   }
 }
 

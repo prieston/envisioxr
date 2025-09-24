@@ -123,7 +123,7 @@ interface SceneState {
   cesiumInstance: any | null;
 
   // Cesium Basemap
-  basemapType: "cesium" | "google" | "google-photorealistic" | "none";
+  basemapType: "cesium" | "google" | "google-photorealistic" | "bing" | "none";
 
   // Environment Settings
   gridEnabled: boolean;
@@ -163,7 +163,7 @@ interface SceneState {
 
   // Cesium Basemap Actions
   setBasemapType: (
-    type: "cesium" | "google" | "google-photorealistic" | "none"
+    type: "cesium" | "google" | "google-photorealistic" | "bing" | "none"
   ) => void;
 
   // View Mode Actions
@@ -411,23 +411,43 @@ const useSceneStore = create<SceneState>((set) => ({
               !obj.observationProperties
             ) {
               // Initialize observation properties with SDK defaults
+              const observationProps = {
+                sensorType: "cone" as "cone" | "rectangle",
+                fov: 60, // More reasonable default FOV
+                visibilityRadius: 500, // More reasonable default range
+                showSensorGeometry: true,
+                showViewshed: false,
+                analysisQuality: "medium" as "low" | "medium" | "high",
+                enableTransformEditor: true,
+                alignWithModelFront: true, // Required property
+                sensorColor: "#00ff00",
+                viewshedColor: "#0080ff",
+                clearance: 2.0,
+                raysElevation: 8,
+                stepCount: 64,
+              };
+
+              // Apply the specific property update with type safety
+              if (
+                child === "sensorType" &&
+                (value === "cone" || value === "rectangle")
+              ) {
+                observationProps.sensorType = value as "cone" | "rectangle";
+              } else if (
+                child === "analysisQuality" &&
+                (value === "low" || value === "medium" || value === "high")
+              ) {
+                observationProps.analysisQuality = value as
+                  | "low"
+                  | "medium"
+                  | "high";
+              } else {
+                (observationProps as any)[child] = value;
+              }
+
               return {
                 ...obj,
-                observationProperties: {
-                  sensorType: "cone",
-                  fov: 60, // More reasonable default FOV
-                  visibilityRadius: 500, // More reasonable default range
-                  showSensorGeometry: true,
-                  showViewshed: false,
-                  analysisQuality: "medium",
-                  enableTransformEditor: true,
-                  sensorColor: "#00ff00",
-                  viewshedColor: "#0080ff",
-                  clearance: 2.0,
-                  raysElevation: 8,
-                  stepCount: 64,
-                  [child]: value,
-                },
+                observationProperties: observationProps,
               };
             }
 
@@ -450,20 +470,20 @@ const useSceneStore = create<SceneState>((set) => ({
               ...obj,
               [property]: value,
               observationProperties: {
-                sensorType: "cone",
+                sensorType: "cone" as "cone" | "rectangle",
                 fov: 60, // More reasonable default FOV
                 visibilityRadius: 500, // More reasonable default range
                 showSensorGeometry: true,
                 showViewshed: false,
-                analysisQuality: "medium",
+                analysisQuality: "medium" as "low" | "medium" | "high",
                 enableTransformEditor: true,
+                alignWithModelFront: true, // Required property
                 sensorColor: "#00ff00",
                 viewshedColor: "#0080ff",
                 clearance: 2.0,
                 raysAzimuth: 120, // Set default values for better performance
                 raysElevation: 8,
                 stepCount: 64,
-                alignWithModelFront: false, // Default to manual rotation control
               },
             };
           }

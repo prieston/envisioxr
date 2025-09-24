@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -21,7 +21,6 @@ import {
   TextField,
   Alert,
 } from "@mui/material";
-import useSceneStore from "../../hooks/useSceneStore";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CloudIcon from "@mui/icons-material/Cloud";
 import ThermostatIcon from "@mui/icons-material/Thermostat";
@@ -64,7 +63,6 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const updateWeatherData = useSceneStore((state) => state.updateWeatherData);
 
   const iotProps = selectedObject?.iotProperties || {
     enabled: false,
@@ -87,92 +85,7 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
     onPropertyChange(`iotProperties.${property}`, value);
   };
 
-  const fetchWeatherData = useCallback(async () => {
-    if (!geographicCoords) {
-      setError("Geographic coordinates not available");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { latitude, longitude } = geographicCoords;
-
-      // Try Open-Meteo API first
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,wind_speed_10m,wind_direction_10m,relative_humidity_2m,surface_pressure,weather_code&timezone=auto`;
-
-      const response = await fetch(url);
-
-      // If Open-Meteo fails, use demo data
-      let data;
-      if (!response.ok) {
-        // Use demo data for testing
-        data = {
-          current: {
-            temperature_2m: 22.5,
-            wind_speed_10m: 3.2,
-            wind_direction_10m: 180,
-            relative_humidity_2m: 65,
-            surface_pressure: 1013.25,
-            weather_code: 1,
-          },
-        };
-      } else {
-        data = await response.json();
-      }
-
-      const weatherCodes = {
-        0: "Clear sky",
-        1: "Mainly clear",
-        2: "Partly cloudy",
-        3: "Overcast",
-        45: "Fog",
-        48: "Depositing rime fog",
-        51: "Light drizzle",
-        53: "Moderate drizzle",
-        55: "Dense drizzle",
-        61: "Slight rain",
-        63: "Moderate rain",
-        65: "Heavy rain",
-        71: "Slight snow",
-        73: "Moderate snow",
-        75: "Heavy snow",
-        80: "Slight rain showers",
-        81: "Moderate rain showers",
-        82: "Violent rain showers",
-        95: "Thunderstorm",
-        96: "Thunderstorm with slight hail",
-        99: "Thunderstorm with heavy hail",
-      };
-
-      const weatherInfo: WeatherData = {
-        temperature: data.current.temperature_2m,
-        windSpeed: data.current.wind_speed_10m,
-        windDirection: data.current.wind_direction_10m,
-        humidity: data.current.relative_humidity_2m,
-        pressure: data.current.surface_pressure,
-        description:
-          weatherCodes[
-            data.current.weather_code as keyof typeof weatherCodes
-          ] || "Unknown",
-        lastUpdated: new Date(),
-      };
-
-      setWeatherData(weatherInfo);
-      // Update the store with the new weather data
-      if (selectedObject?.id) {
-        updateWeatherData(selectedObject.id, weatherInfo);
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to fetch weather data"
-      );
-      console.error("Error fetching weather data:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [geographicCoords, selectedObject?.id, updateWeatherData]);
+  // fetchWeatherData function removed - now using global IoT service
 
   // Initialize weather data from store
   useEffect(() => {
@@ -371,14 +284,25 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
               <Button
                 variant="outlined"
                 startIcon={<RefreshIcon />}
-                onClick={() => {
+                onClick={async () => {
                   if (selectedObject?.id) {
-                    // Use the global IoT service to fetch data
-                    import("../../services/IoTService").then(
-                      ({ default: iotService }) => {
-                        iotService.fetchDataForObject(selectedObject.id);
-                      }
-                    );
+                    setLoading(true);
+                    setError(null);
+                    try {
+                      // Use the global IoT service to fetch data
+                      const { default: iotService } = await import(
+                        "../../services/IoTService"
+                      );
+                      await iotService.fetchDataForObject(selectedObject.id);
+                    } catch (err) {
+                      setError(
+                        err instanceof Error
+                          ? err.message
+                          : "Failed to fetch data"
+                      );
+                    } finally {
+                      setLoading(false);
+                    }
                   }
                 }}
                 disabled={loading || !geographicCoords}
