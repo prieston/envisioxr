@@ -20,9 +20,9 @@ export const getLeftPanelConfig = (
   setSkyboxType: (type: "default" | "none") => void,
   ambientLightIntensity: number,
   setAmbientLightIntensity: (intensity: number) => void,
-  basemapType?: "cesium" | "google" | "google-photorealistic" | "none",
+  basemapType?: "cesium" | "google" | "google-photorealistic" | "bing" | "none",
   setBasemapType?: (
-    type: "cesium" | "google" | "google-photorealistic" | "none"
+    type: "cesium" | "google" | "google-photorealistic" | "bing" | "none"
   ) => void
 ): PanelConfiguration => {
   const engine = useWorldStore.getState().engine;

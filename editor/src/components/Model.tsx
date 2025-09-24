@@ -40,12 +40,31 @@ interface ModelProps {
   assetId?: string;
   isObservationModel?: boolean;
   observationProperties?: {
-    fov: number;
-    showVisibleArea: boolean;
-    visibilityRadius: number;
-    showActualArea: boolean;
-    showCalculatedArea: boolean;
-    gridDensity?: number;
+    // Sensor Configuration
+    sensorType: "cone" | "rectangle";
+    fov: number; // Field of view in degrees (10-360)
+    fovH?: number; // Horizontal FOV for rectangle sensors
+    fovV?: number; // Vertical FOV for rectangle sensors
+    visibilityRadius: number; // Radius in meters
+
+    // Visualization Options
+    showSensorGeometry: boolean; // Show the sensor cone/rectangle
+    showViewshed: boolean; // Show calculated viewshed polygon
+    sensorColor?: string; // Color for sensor geometry
+    viewshedColor?: string; // Color for viewshed polygon
+
+    // Analysis Options
+    analysisQuality: "low" | "medium" | "high";
+    raysAzimuth?: number; // Number of azimuth samples
+    raysElevation?: number; // Number of elevation slices
+    clearance?: number; // Clearance above terrain (meters)
+    stepCount?: number; // Samples per ray
+
+    // Transform Editor
+    enableTransformEditor?: boolean;
+    transformEditorPosition?: [number, number, number];
+    transformEditorRotation?: [number, number, number];
+    transformEditorScale?: [number, number, number];
   };
   iotProperties?: {
     enabled: boolean;
@@ -180,26 +199,23 @@ const Model = ({
       />
       {isObservationModel && effectiveObservationProperties && (
         <>
-          {effectiveObservationProperties.showVisibleArea && (
+          {effectiveObservationProperties.showViewshed && (
             <ObservationVisibilityArea
               position={position}
               rotation={rotation}
               fov={effectiveObservationProperties.fov}
               radius={effectiveObservationProperties.visibilityRadius}
-              showVisibleArea={effectiveObservationProperties.showVisibleArea}
+              showVisibleArea={effectiveObservationProperties.showViewshed}
             />
           )}
-          {effectiveObservationProperties.showCalculatedArea && (
+          {effectiveObservationProperties.showViewshed && (
             <ActualVisibilityArea
               key={`visibility-${id}-${Date.now()}`}
               position={position}
               rotation={rotation}
               fov={effectiveObservationProperties.fov}
               radius={effectiveObservationProperties.visibilityRadius}
-              showVisibleArea={
-                effectiveObservationProperties.showCalculatedArea
-              }
-              gridDensity={effectiveObservationProperties.gridDensity || 10}
+              showVisibleArea={effectiveObservationProperties.showViewshed}
               objectId={id}
             />
           )}
