@@ -108,11 +108,10 @@ import * as IonGeometry from "@cesiumgs/ion-sdk-geometry";
 interface CesiumIonSDKViewshedAnalysisProps {
   position: [number, number, number]; // [longitude, latitude, height]
   observationProperties: {
-    sensorType: "cone" | "rectangle" | "dome" | "custom";
+    sensorType: "cone" | "rectangle";
     fov: number;
     fovH?: number;
     fovV?: number;
-    maxPolar?: number;
     visibilityRadius: number;
     showSensorGeometry: boolean;
     showViewshed: boolean;
@@ -386,12 +385,25 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
       let sensor: any = null;
       if (observationProperties.sensorType === "rectangle") {
-        const xHalf = Cesium.Math.toRadians(
-          observationProperties.fovH ?? observationProperties.fov ?? 60
-        );
-        const yHalf = Cesium.Math.toRadians(
-          observationProperties.fovV ?? (observationProperties.fov ?? 60) * 0.6
-        );
+        // For rectangular sensors, use smaller half angles (typically 1/4 to 1/3 of FOV)
+        const xHalfDegrees =
+          (observationProperties.fovH ?? observationProperties.fov ?? 60) *
+          0.25;
+        const yHalfDegrees =
+          (observationProperties.fovV ??
+            (observationProperties.fov ?? 60) * 0.6) * 0.25;
+
+        // Ensure half angles don't exceed 90 degrees
+        if (xHalfDegrees > 90 || yHalfDegrees > 90) {
+          console.error("❌ Rectangular sensor half angles too large:", {
+            xHalfDegrees,
+            yHalfDegrees,
+          });
+          return;
+        }
+
+        const xHalf = Cesium.Math.toRadians(xHalfDegrees);
+        const yHalf = Cesium.Math.toRadians(yHalfDegrees);
         sensor = new RectangularSensor({
           ...baseOptions,
           xHalfAngle: xHalf,
@@ -399,13 +411,20 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         });
       } else {
         const fov = observationProperties.fov ?? 60;
-        if (!Number.isFinite(fov) || fov <= 0 || fov >= 180) {
+        if (!Number.isFinite(fov) || fov <= 0 || fov > 360) {
           console.error("❌ Invalid FOV:", fov);
           return;
         }
+
+        // Warn about very wide FOV values
+        if (fov > 180) {
+          console.warn(
+            `⚠️ Very wide FOV: ${fov}° (${fov > 270 ? "nearly full sphere" : "wider than hemisphere"})`
+          );
+        }
         sensor = new ConicSensor({
           ...baseOptions,
-          outerHalfAngle: Cesium.Math.toRadians(fov),
+          outerHalfAngle: Cesium.Math.toRadians(fov / 2),
         });
       }
 
