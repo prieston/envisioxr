@@ -33,9 +33,7 @@ const SceneObjects: React.FC<SceneObjectsProps> = ({
                 obj.observationProperties
                   ? {
                       ...obj.observationProperties,
-                      showVisibleArea: false,
-                      showActualArea: false,
-                      showCalculatedArea: false,
+                      showViewshed: false,
                     }
                   : undefined
               }
