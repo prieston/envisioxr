@@ -30,7 +30,7 @@ if (typeof window !== "undefined") {
 const applyBasemapType = async (
   viewer: any,
   Cesium: any,
-  basemapType: "cesium" | "google" | "google-photorealistic" | "none"
+  basemapType: "cesium" | "google" | "google-photorealistic" | "bing" | "none"
 ) => {
   try {
     // Always remove existing imagery layers first
@@ -123,6 +123,32 @@ const applyBasemapType = async (
               credit: "© OpenStreetMap contributors",
             })
           );
+        }
+        break;
+      }
+      case "bing": {
+        try {
+          // Add Bing Maps imagery
+          viewer.imageryLayers.addImageryProvider(
+            new Cesium.BingMapsImageryProvider({
+              url: "https://dev.virtualearth.net",
+              key: process.env.NEXT_PUBLIC_BING_MAPS_KEY || "",
+              mapStyle: Cesium.BingMapsStyle.AERIAL,
+            })
+          );
+        } catch (error) {
+          // Error setting Bing Maps, fallback to OpenStreetMap
+          console.error("Error setting Bing Maps:", error);
+          try {
+            viewer.imageryLayers.addImageryProvider(
+              new Cesium.UrlTemplateImageryProvider({
+                url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                credit: "© OpenStreetMap contributors",
+              })
+            );
+          } catch (fallbackError) {
+            console.error("Error setting fallback imagery:", fallbackError);
+          }
         }
         break;
       }

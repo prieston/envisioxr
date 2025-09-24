@@ -33,10 +33,11 @@ const sanitizeSceneData = (
       if (!obj) return null;
 
       // Remove any circular references and undefined values
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { ref, ...rest } = obj;
 
       // Base object properties
-      const cleanObj = {
+      const cleanObj: any = {
         id: rest.id || "",
         name: rest.name || "",
         url: rest.url || "",
