@@ -26,6 +26,24 @@ if (typeof window !== "undefined") {
   window.CESIUM_BASE_URL = "/cesium/";
 }
 
+// Viewshed capability check for mobile GPUs
+function canSupportViewshed(viewer: any): boolean {
+  const ctx: any = viewer?.scene?.context;
+  const gl: WebGLRenderingContext | WebGL2RenderingContext | undefined =
+    ctx?._gl;
+  if (!gl) return false;
+
+  const isWebGL2 = !!ctx?.webgl2;
+  const hasDepthTex = !!(gl.getExtension("WEBGL_depth_texture") || isWebGL2);
+  const hasFloatTex = !!(gl.getExtension("OES_texture_float") || isWebGL2);
+  const hasColorBufferFloat = !!(
+    gl.getExtension("EXT_color_buffer_float") ||
+    (gl as any).getExtension?.("WEBGL_color_buffer_float")
+  );
+
+  return hasDepthTex && hasFloatTex && hasColorBufferFloat;
+}
+
 // Utility function to apply basemap type
 const applyBasemapType = async (
   viewer: any,
@@ -172,6 +190,7 @@ export default function CesiumViewer() {
   const cesiumRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewshedCapable, setViewshedCapable] = useState(false);
 
   // Add instance tracking
   const instanceId = useRef(Math.random().toString(36).substr(2, 9));
@@ -251,7 +270,7 @@ export default function CesiumViewer() {
           }
         }
 
-        // Create viewer with optimized configuration
+        // Create viewer with mobile-optimized configuration
         viewerRef.current = new Viewer(containerRef.current, {
           // Disable all UI widgets and controls for better performance
           animation: false,
@@ -269,6 +288,18 @@ export default function CesiumViewer() {
           requestRenderMode: true,
           maximumRenderTimeChange: Infinity,
           targetFrameRate: 60,
+          // IMPORTANT for mobile stability
+          contextOptions: {
+            webgl: {
+              alpha: false,
+              antialias: false, // avoid MSAA on mobile
+              powerPreference: "high-performance",
+              failIfMajorPerformanceCaveat: false,
+              preserveDrawingBuffer: false,
+              depth: true,
+              stencil: false,
+            },
+          },
           // Add Cesium World Imagery as default basemap
           imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }),
           // Remove credits and attribution
@@ -278,6 +309,15 @@ export default function CesiumViewer() {
 
         // Store viewer reference in the store
         setCesiumViewer(viewerRef.current);
+
+        // Safer defaults for mobile GPUs
+        const scene = viewerRef.current.scene as any;
+        scene.highDynamicRange = false;
+        scene.logarithmicDepthBuffer = false; // avoid precision issues with custom materials
+        viewerRef.current.resolutionScale = Math.min(
+          window.devicePixelRatio || 1,
+          1.25
+        );
 
         // Set initial skybox configuration based on store state
         const { skyboxType, basemapType } = useSceneStore.getState();
@@ -316,6 +356,16 @@ export default function CesiumViewer() {
           // Failed to load world terrain - not critical
           // Continue without terrain - not critical
         }
+
+        // Now that GL is definitely up, detect capability
+        setViewshedCapable(canSupportViewshed(viewerRef.current));
+
+        // Re-check capability on next frame for slow mobiles
+        viewerRef.current.scene.postRender.addEventListener(() => {
+          if (!viewshedCapable) {
+            setViewshedCapable(canSupportViewshed(viewerRef.current));
+          }
+        });
 
         // Set up error handling for the viewer
         viewerRef.current.scene.globe.enableLighting = false;
@@ -757,7 +807,9 @@ export default function CesiumViewer() {
                   obj.observationProperties?.visibilityRadius || 500,
                 showSensorGeometry:
                   obj.observationProperties?.showSensorGeometry ?? true,
-                showViewshed: obj.observationProperties?.showViewshed ?? false,
+                showViewshed:
+                  (obj.observationProperties?.showViewshed ?? false) &&
+                  viewshedCapable,
                 sensorColor:
                   obj.observationProperties?.sensorColor || "#00ff00",
                 viewshedColor:

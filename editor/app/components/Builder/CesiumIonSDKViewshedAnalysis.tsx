@@ -128,6 +128,43 @@ interface CesiumIonSDKViewshedAnalysisProps {
   objectId: string;
 }
 
+// Global flags to prevent re-initialization
+declare global {
+  interface Window {
+    __ionSensorsInit?: boolean;
+    __ionGeometryInit?: boolean;
+  }
+}
+
+// Detect if device can support viewshed analysis
+function canSupportViewshed(viewer: Cesium.Viewer): boolean {
+  const ctx: any = (viewer.scene as any).context;
+  const gl: WebGLRenderingContext | WebGL2RenderingContext = (ctx &&
+    ctx._gl) as any;
+  if (!gl) return false;
+
+  const isWebGL2 = !!(ctx && ctx.webgl2);
+  const hasDepthTex = !!(gl.getExtension("WEBGL_depth_texture") || isWebGL2);
+  const hasFloatTex = !!(gl.getExtension("OES_texture_float") || isWebGL2);
+  const hasColorBufferFloat = !!(
+    gl.getExtension("EXT_color_buffer_float") ||
+    (gl as any).getExtension?.("WEBGL_color_buffer_float")
+  );
+
+  // viewshed generally needs depth textures + float color attachments
+  return hasDepthTex && hasFloatTex && hasColorBufferFloat;
+}
+
+// Wait for Cesium to be fully ready with GL context
+async function waitForCesiumReady(viewer: Cesium.Viewer): Promise<boolean> {
+  // wait up to ~5s in 100ms steps for scene + context
+  for (let i = 0; i < 50; i++) {
+    if (viewer?.scene && (viewer.scene as any).context?._gl) return true;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  return false;
+}
+
 const CesiumIonSDKViewshedAnalysis: React.FC<
   CesiumIonSDKViewshedAnalysisProps
 > = ({ position, observationProperties, objectId: _objectId }) => {
@@ -136,62 +173,79 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
   const viewshedRef = useRef<Cesium.Entity | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [sdkAvailable, setSdkAvailable] = useState(true);
 
   // Initialize Ion SDK modules
-  useEffect(() => {
+  const initializeIonSDK = useCallback(async () => {
     if (!cesiumViewer || isInitialized) return;
 
-    const initializeIonSDK = async () => {
+    try {
+      const ready = await waitForCesiumReady(cesiumViewer);
+      if (!ready) throw new Error("Cesium GL context not ready");
+
+      // If the device can't support viewshed, don't even init viewshed-related modules
+      const okForViewshed = canSupportViewshed(cesiumViewer);
+
       try {
-        // Initialize sensors module
-        const initializeSensors = (IonSensors as any).initializeSensors;
-        if (typeof initializeSensors === "function") {
-          try {
-            await initializeSensors();
-            console.log("✅ Ion SDK sensors initialized");
-          } catch (error) {
-            if (
-              error.message &&
-              error.message.includes("Cannot redefine property")
-            ) {
-              console.log("Ion SDK sensors already initialized, skipping...");
-            } else {
-              throw error;
-            }
-          }
+        const initSensors = (IonSensors as any).initializeSensors;
+        if (
+          okForViewshed &&
+          typeof initSensors === "function" &&
+          !window.__ionSensorsInit
+        ) {
+          await initSensors();
+          window.__ionSensorsInit = true;
+          console.log("✅ Ion SDK sensors initialized");
+        } else if (!okForViewshed) {
+          console.warn(
+            "ℹ️ Viewshed unsupported on this device; skipping Ion sensors init"
+          );
         }
 
-        // Initialize geometry module
-        const initializeGeometry = (IonGeometry as any).initializeGeometry;
-        if (typeof initializeGeometry === "function") {
-          try {
-            await initializeGeometry();
-            console.log("✅ Ion SDK geometry initialized");
-          } catch (error) {
-            if (
-              error.message &&
-              error.message.includes("Cannot redefine property")
-            ) {
-              console.log("Ion SDK geometry already initialized, skipping...");
-            } else {
-              throw error;
-            }
-          }
+        const initGeometry = (IonGeometry as any).initializeGeometry;
+        if (
+          okForViewshed &&
+          typeof initGeometry === "function" &&
+          !window.__ionGeometryInit
+        ) {
+          await initGeometry();
+          window.__ionGeometryInit = true;
+          console.log("✅ Ion SDK geometry initialized");
         }
 
+        setSdkAvailable(okForViewshed); // ← expose capability to the component
         setIsInitialized(true);
-        console.log("✅ Viewshed analysis component initialized");
-      } catch (err) {
-        console.error("❌ Failed to initialize Ion SDK modules:", err);
+      } catch (e: any) {
+        console.error("❌ Ion SDK init failed:", e?.message || e);
+        setSdkAvailable(false);
+        setIsInitialized(true);
+      }
+    } catch (err) {
+      console.error("❌ Failed to initialize Ion SDK modules:", err);
+      setSdkAvailable(false);
+      setIsInitialized(true); // Set to true to prevent retries
+
+      // Only show error toast on mobile if it's a critical error
+      const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+      if (!isMobile || err.message.includes("Cesium not available")) {
         toast.error("Failed to initialize Ion SDK modules", {
           position: "top-right",
           autoClose: 5000,
         });
+      } else {
+        console.warn(
+          "⚠️ Ion SDK initialization failed on mobile, continuing without viewshed analysis"
+        );
       }
-    };
-
-    initializeIonSDK();
+    }
   }, [cesiumViewer, isInitialized]);
+
+  useEffect(() => {
+    initializeIonSDK();
+  }, [initializeIonSDK]);
 
   // Create professional sensor using Ion SDK
 
@@ -204,6 +258,11 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     if (!isInitialized || !cesiumViewer) {
       // Ion SDK not loaded, skipping sensor creation
       console.log("🔍 Skipping sensor creation - not initialized or no viewer");
+      return;
+    }
+
+    if (!sdkAvailable) {
+      console.log("🔍 Skipping sensor creation - Ion SDK not available");
       return;
     }
 
@@ -451,8 +510,9 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         // Sanity check: try a bright color to rule out lighting issues
         // const visible = Cesium.Color.LIME.withAlpha(1.0); // uncomment to test
 
-        // 1) Set viewshed based on observation properties
-        sensor.showViewshed = !!observationProperties.showViewshed;
+        // 1) Set viewshed based on observation properties and device capability
+        sensor.showViewshed =
+          !!observationProperties.showViewshed && sdkAvailable;
 
         // 2) Show/hide cone geometry based on showSensorGeometry setting
         sensor.showLateralSurfaces = !!observationProperties.showSensorGeometry;
@@ -517,6 +577,15 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         cesiumViewer?.entities.remove(viewshedRef.current);
         viewshedRef.current = null;
       }
+      return;
+    }
+
+    // Gate viewshed usage - if SDK not available, create sensor geometry only
+    if (!sdkAvailable) {
+      console.log(
+        "🔍 Creating sensor geometry only (viewshed not supported on this device)"
+      );
+      createIonSDKSensor();
       return;
     }
 
@@ -724,6 +793,28 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         }}
       >
         Calculating professional viewshed analysis...
+      </div>
+    );
+  }
+
+  // Show fallback message if SDK is not available
+  if (isInitialized && !sdkAvailable) {
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: "80px",
+          left: "20px",
+          background: "rgba(255, 165, 0, 0.9)",
+          color: "white",
+          padding: "12px 16px",
+          borderRadius: "6px",
+          fontSize: "14px",
+          zIndex: 9999,
+          pointerEvents: "none",
+        }}
+      >
+        Viewshed analysis not supported on this device (sensor geometry only)
       </div>
     );
   }
