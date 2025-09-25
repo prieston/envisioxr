@@ -10,7 +10,11 @@ import CesiumCameraCaptureHandler from "./Builder/CesiumCameraCaptureHandler";
 import CesiumObservationPointHandler from "./Builder/CesiumObservationPointHandler";
 import CesiumCameraSpringController from "./Builder/CesiumCameraSpringController";
 import CesiumPreviewModeController from "./Builder/CesiumPreviewModeController";
-import CesiumIonSDKViewshedAnalysis from "./Builder/CesiumIonSDKViewshedAnalysis";
+import dynamic from "next/dynamic";
+const CesiumIonSDKViewshedAnalysis = dynamic(
+  () => import("./Builder/CesiumIonSDKViewshedAnalysis"),
+  { ssr: false }
+);
 import ObjectTransformEditor from "./Builder/ObjectTransformEditor";
 import WeatherData3DDisplay from "./Builder/WeatherData3DDisplay";
 
@@ -28,20 +32,66 @@ if (typeof window !== "undefined") {
 
 // Viewshed capability check for mobile GPUs
 function canSupportViewshed(viewer: any): boolean {
+  console.log("🔍 [CesiumViewer] Starting viewshed capability check...");
+
   const ctx: any = viewer?.scene?.context;
+  console.log("🔍 [CesiumViewer] Context:", ctx ? "Found" : "Missing");
+
   const gl: WebGLRenderingContext | WebGL2RenderingContext | undefined =
     ctx?._gl;
-  if (!gl) return false;
+  if (!gl) {
+    console.log("❌ [CesiumViewer] Viewshed check: No GL context");
+    return false;
+  }
+  console.log("🔍 [CesiumViewer] GL context found:", gl.constructor.name);
 
   const isWebGL2 = !!ctx?.webgl2;
-  const hasDepthTex = !!(gl.getExtension("WEBGL_depth_texture") || isWebGL2);
-  const hasFloatTex = !!(gl.getExtension("OES_texture_float") || isWebGL2);
-  const hasColorBufferFloat = !!(
-    gl.getExtension("EXT_color_buffer_float") ||
-    (gl as any).getExtension?.("WEBGL_color_buffer_float")
+  console.log("🔍 [CesiumViewer] WebGL2:", isWebGL2);
+
+  const hasDepthTex = isWebGL2 || !!gl.getExtension("WEBGL_depth_texture");
+  console.log("🔍 [CesiumViewer] Depth texture support:", hasDepthTex);
+
+  const hasFloatOrHalfFloatTex =
+    isWebGL2 ||
+    !!(
+      gl.getExtension("OES_texture_float") ||
+      gl.getExtension("OES_texture_half_float")
+    );
+  console.log(
+    "🔍 [CesiumViewer] Float texture support:",
+    hasFloatOrHalfFloatTex
   );
 
-  return hasDepthTex && hasFloatTex && hasColorBufferFloat;
+  const hasColorBufferFloatOrHalf =
+    isWebGL2 ||
+    !!(
+      gl.getExtension("EXT_color_buffer_float") ||
+      (gl as any).getExtension?.("WEBGL_color_buffer_float") ||
+      gl.getExtension("EXT_color_buffer_half_float")
+    );
+  console.log(
+    "🔍 [CesiumViewer] Color buffer float support:",
+    hasColorBufferFloatOrHalf
+  );
+
+  const result =
+    hasDepthTex && hasFloatOrHalfFloatTex && hasColorBufferFloatOrHalf;
+  console.log("🔍 [CesiumViewer] Viewshed capability check result:", {
+    isWebGL2,
+    hasDepthTex,
+    hasFloatOrHalfFloatTex,
+    hasColorBufferFloatOrHalf,
+    finalResult: result,
+  });
+
+  // Be more permissive - only require depth texture for basic viewshed
+  const permissiveResult = hasDepthTex;
+  console.log(
+    "🔍 [CesiumViewer] Using permissive check (depth texture only):",
+    permissiveResult
+  );
+
+  return permissiveResult;
 }
 
 // Utility function to apply basemap type
@@ -190,7 +240,6 @@ export default function CesiumViewer() {
   const cesiumRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [viewshedCapable, setViewshedCapable] = useState(false);
 
   // Add instance tracking
   const instanceId = useRef(Math.random().toString(36).substr(2, 9));
@@ -357,15 +406,12 @@ export default function CesiumViewer() {
           // Continue without terrain - not critical
         }
 
-        // Now that GL is definitely up, detect capability
-        setViewshedCapable(canSupportViewshed(viewerRef.current));
-
-        // Re-check capability on next frame for slow mobiles
-        viewerRef.current.scene.postRender.addEventListener(() => {
-          if (!viewshedCapable) {
-            setViewshedCapable(canSupportViewshed(viewerRef.current));
-          }
-        });
+        // Log viewshed capability for debugging
+        const capabilityResult = canSupportViewshed(viewerRef.current);
+        console.log(
+          "🔍 [CesiumViewer] Viewshed capability result:",
+          capabilityResult
+        );
 
         // Set up error handling for the viewer
         viewerRef.current.scene.globe.enableLighting = false;
@@ -789,15 +835,26 @@ export default function CesiumViewer() {
           <CesiumCameraSpringController />
           <CesiumPreviewModeController />
           {/* Render professional Ion SDK viewshed analysis for observation models */}
-          {objects
-            .filter(
+          {(() => {
+            const observationObjects = objects.filter(
               (obj) => obj.isObservationModel && obj.observationProperties
-            )
-            .map((obj) => {
-              const [longitude, latitude, height] = obj.position || [0, 0, 0];
-              // const [heading, pitch, roll] = obj.rotation || [0, 0, 0]; // Not used in current implementation
+            );
+            console.log(
+              "🔍 [CesiumViewer] Rendering viewshed for objects:",
+              observationObjects.length
+            );
 
-              // Professional observation properties with Ion SDK defaults
+            // Only render viewshed components if there are observation objects
+            if (observationObjects.length === 0) {
+              console.log(
+                "🔍 [CesiumViewer] No observation objects, skipping viewshed rendering"
+              );
+              return null;
+            }
+
+            return observationObjects.map((obj) => {
+              const [longitude, latitude, height] = obj.position || [0, 0, 0];
+
               const observationProps = {
                 sensorType: obj.observationProperties?.sensorType || "cone",
                 fov: obj.observationProperties?.fov || 60,
@@ -807,35 +864,31 @@ export default function CesiumViewer() {
                   obj.observationProperties?.visibilityRadius || 500,
                 showSensorGeometry:
                   obj.observationProperties?.showSensorGeometry ?? true,
-                showViewshed:
-                  (obj.observationProperties?.showViewshed ?? false) &&
-                  viewshedCapable,
+                showViewshed: obj.observationProperties?.showViewshed ?? false,
                 sensorColor:
                   obj.observationProperties?.sensorColor || "#00ff00",
                 viewshedColor:
                   obj.observationProperties?.viewshedColor || "#0080ff",
                 analysisQuality:
                   obj.observationProperties?.analysisQuality || "medium",
-                // Additional Ion SDK properties for published world
                 include3DModels: obj.observationProperties?.include3DModels,
                 alignWithModelFront:
                   obj.observationProperties?.alignWithModelFront,
                 modelFrontAxis: obj.observationProperties?.modelFrontAxis,
                 sensorForwardAxis: obj.observationProperties?.sensorForwardAxis,
                 tiltDeg: obj.observationProperties?.tiltDeg,
-                // Transform editor properties removed
-              };
+              } as const;
 
-              // Always use Ion SDK for professional sensor visualization
               return (
                 <CesiumIonSDKViewshedAnalysis
                   key={`ion-viewshed-${obj.id}`}
                   position={[longitude, latitude, height]}
-                  observationProperties={observationProps}
+                  observationProperties={observationProps as any}
                   objectId={obj.id}
                 />
               );
-            })}
+            });
+          })()}
 
           {/* IoT Weather Display for objects with IoT properties */}
           {objects
