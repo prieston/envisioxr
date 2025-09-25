@@ -138,21 +138,60 @@ declare global {
 
 // Detect if device can support viewshed analysis
 function canSupportViewshed(viewer: Cesium.Viewer): boolean {
+  console.log("🔍 [ViewshedComponent] Starting viewshed capability check...");
+
   const ctx: any = (viewer.scene as any).context;
+  console.log("🔍 [ViewshedComponent] Context:", ctx ? "Found" : "Missing");
+
   const gl: WebGLRenderingContext | WebGL2RenderingContext = (ctx &&
     ctx._gl) as any;
-  if (!gl) return false;
+  if (!gl) {
+    console.log("❌ [ViewshedComponent] No GL context");
+    return false;
+  }
+  console.log("🔍 [ViewshedComponent] GL context found:", gl.constructor.name);
 
   const isWebGL2 = !!(ctx && ctx.webgl2);
-  const hasDepthTex = !!(gl.getExtension("WEBGL_depth_texture") || isWebGL2);
-  const hasFloatTex = !!(gl.getExtension("OES_texture_float") || isWebGL2);
-  const hasColorBufferFloat = !!(
-    gl.getExtension("EXT_color_buffer_float") ||
-    (gl as any).getExtension?.("WEBGL_color_buffer_float")
+  console.log("🔍 [ViewshedComponent] WebGL2:", isWebGL2);
+
+  const hasDepthTex = isWebGL2 || !!gl.getExtension("WEBGL_depth_texture");
+  console.log("🔍 [ViewshedComponent] Depth texture support:", hasDepthTex);
+
+  const hasFloatOrHalfFloatTex =
+    isWebGL2 ||
+    !!(
+      gl.getExtension("OES_texture_float") ||
+      gl.getExtension("OES_texture_half_float")
+    );
+  console.log(
+    "🔍 [ViewshedComponent] Float texture support:",
+    hasFloatOrHalfFloatTex
   );
 
+  const hasColorBufferFloatOrHalf =
+    isWebGL2 ||
+    !!(
+      gl.getExtension("EXT_color_buffer_float") ||
+      (gl as any).getExtension?.("WEBGL_color_buffer_float") ||
+      gl.getExtension("EXT_color_buffer_half_float")
+    );
+  console.log(
+    "🔍 [ViewshedComponent] Color buffer float support:",
+    hasColorBufferFloatOrHalf
+  );
+
+  const result =
+    hasDepthTex && hasFloatOrHalfFloatTex && hasColorBufferFloatOrHalf;
+  console.log("🔍 [ViewshedComponent] Viewshed capability check result:", {
+    isWebGL2,
+    hasDepthTex,
+    hasFloatOrHalfFloatTex,
+    hasColorBufferFloatOrHalf,
+    finalResult: result,
+  });
+
   // viewshed generally needs depth textures + float color attachments
-  return hasDepthTex && hasFloatTex && hasColorBufferFloat;
+  return result;
 }
 
 // Wait for Cesium to be fully ready with GL context
@@ -177,51 +216,139 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
   // Initialize Ion SDK modules
   const initializeIonSDK = useCallback(async () => {
-    if (!cesiumViewer || isInitialized) return;
+    console.log("🔧 [ViewshedComponent] initializeIonSDK called");
+    console.log("🔧 [ViewshedComponent] cesiumViewer:", !!cesiumViewer);
+    console.log("🔧 [ViewshedComponent] isInitialized:", isInitialized);
+    console.log(
+      "🔧 [ViewshedComponent] window.__ionSensorsInit:",
+      window.__ionSensorsInit
+    );
+    console.log(
+      "🔧 [ViewshedComponent] window.__ionGeometryInit:",
+      window.__ionGeometryInit
+    );
+
+    if (!cesiumViewer || isInitialized) {
+      console.log(
+        "🔧 [ViewshedComponent] Skipping initialization - no viewer or already initialized"
+      );
+      return;
+    }
+
+    // Check if SDK is already initialized globally
+    if (window.__ionSensorsInit && window.__ionGeometryInit) {
+      console.log(
+        "🔧 [ViewshedComponent] SDK already initialized globally, marking as available"
+      );
+      setSdkAvailable(true);
+      setIsInitialized(true);
+      return;
+    }
 
     try {
-      const ready = await waitForCesiumReady(cesiumViewer);
-      if (!ready) throw new Error("Cesium GL context not ready");
+      console.log("🚀 [ViewshedComponent] Starting initialization...");
 
-      // If the device can't support viewshed, don't even init viewshed-related modules
-      const okForViewshed = canSupportViewshed(cesiumViewer);
+      const ready = await waitForCesiumReady(cesiumViewer);
+      if (!ready) {
+        console.log("❌ [ViewshedComponent] Cesium GL context not ready");
+        throw new Error("Cesium GL context not ready");
+      }
+      console.log("✅ [ViewshedComponent] Cesium GL context ready");
+
+      // Try initializing SDK regardless of pre-check; we'll mark availability by success
+      const capabilityResult = canSupportViewshed(cesiumViewer);
+      console.log(
+        "🔍 [ViewshedComponent] Capability check result:",
+        capabilityResult
+      );
 
       try {
+        console.log("🔧 [ViewshedComponent] Initializing Ion SDK Sensors...");
+        console.log("🔧 [ViewshedComponent] IonSensors object:", IonSensors);
+        console.log(
+          "🔧 [ViewshedComponent] IonSensors type:",
+          typeof IonSensors
+        );
+
         const initSensors = (IonSensors as any).initializeSensors;
-        if (
-          okForViewshed &&
-          typeof initSensors === "function" &&
-          !window.__ionSensorsInit
-        ) {
-          await initSensors();
-          window.__ionSensorsInit = true;
-          console.log("✅ Ion SDK sensors initialized");
-        } else if (!okForViewshed) {
-          console.warn(
-            "ℹ️ Viewshed unsupported on this device; skipping Ion sensors init"
+        console.log(
+          "🔧 [ViewshedComponent] initSensors function:",
+          initSensors
+        );
+        console.log(
+          "🔧 [ViewshedComponent] initSensors type:",
+          typeof initSensors
+        );
+        console.log(
+          "🔧 [ViewshedComponent] window.__ionSensorsInit:",
+          window.__ionSensorsInit
+        );
+
+        if (typeof initSensors === "function" && !window.__ionSensorsInit) {
+          console.log("🔧 [ViewshedComponent] Calling initializeSensors...");
+          try {
+            await initSensors();
+            window.__ionSensorsInit = true;
+            console.log("✅ [ViewshedComponent] Ion SDK sensors initialized");
+          } catch (sensorError) {
+            console.warn(
+              "⚠️ [ViewshedComponent] Sensor initialization failed (may already be initialized):",
+              sensorError.message
+            );
+            // Don't fail completely - the SDK might already be initialized
+            window.__ionSensorsInit = true;
+          }
+        } else {
+          console.log(
+            "ℹ️ [ViewshedComponent] Ion SDK Sensors already initialized or not available"
           );
         }
 
+        console.log("🔧 [ViewshedComponent] Initializing Ion SDK Geometry...");
         const initGeometry = (IonGeometry as any).initializeGeometry;
-        if (
-          okForViewshed &&
-          typeof initGeometry === "function" &&
-          !window.__ionGeometryInit
-        ) {
-          await initGeometry();
-          window.__ionGeometryInit = true;
-          console.log("✅ Ion SDK geometry initialized");
+        if (typeof initGeometry === "function" && !window.__ionGeometryInit) {
+          console.log("🔧 [ViewshedComponent] Calling initializeGeometry...");
+          try {
+            await initGeometry();
+            window.__ionGeometryInit = true;
+            console.log("✅ [ViewshedComponent] Ion SDK geometry initialized");
+          } catch (geometryError) {
+            console.warn(
+              "⚠️ [ViewshedComponent] Geometry initialization failed (may already be initialized):",
+              geometryError.message
+            );
+            // Don't fail completely - the SDK might already be initialized
+            window.__ionGeometryInit = true;
+          }
+        } else {
+          console.log(
+            "ℹ️ [ViewshedComponent] Ion SDK Geometry already initialized or not available"
+          );
         }
 
-        setSdkAvailable(okForViewshed); // ← expose capability to the component
+        setSdkAvailable(true); // mark available if SDK initialized successfully
         setIsInitialized(true);
+        console.log(
+          "✅ [ViewshedComponent] SDK initialization completed successfully"
+        );
       } catch (e: any) {
-        console.error("❌ Ion SDK init failed:", e?.message || e);
+        console.error(
+          "❌ [ViewshedComponent] Ion SDK init failed:",
+          e?.message || e
+        );
         setSdkAvailable(false);
         setIsInitialized(true);
       }
     } catch (err) {
-      console.error("❌ Failed to initialize Ion SDK modules:", err);
+      console.error(
+        "❌ [ViewshedComponent] Failed to initialize Ion SDK modules:",
+        err
+      );
+      console.error("❌ [ViewshedComponent] Error details:", {
+        message: err?.message,
+        stack: err?.stack,
+        name: err?.name,
+      });
       setSdkAvailable(false);
       setIsInitialized(true); // Set to true to prevent retries
 
@@ -244,6 +371,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
   }, [cesiumViewer, isInitialized]);
 
   useEffect(() => {
+    console.log("🔧 [ViewshedComponent] useEffect calling initializeIonSDK");
     initializeIonSDK();
   }, [initializeIonSDK]);
 
@@ -582,8 +710,11 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
     // Gate viewshed usage - if SDK not available, create sensor geometry only
     if (!sdkAvailable) {
+      console.log("🔍 [ViewshedComponent] SDK not available, checking why...");
+      console.log("🔍 [ViewshedComponent] isInitialized:", isInitialized);
+      console.log("🔍 [ViewshedComponent] sdkAvailable:", sdkAvailable);
       console.log(
-        "🔍 Creating sensor geometry only (viewshed not supported on this device)"
+        "🔍 [ViewshedComponent] Creating sensor geometry only (viewshed not supported on this device)"
       );
       createIonSDKSensor();
       return;
@@ -799,6 +930,9 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
   // Show fallback message if SDK is not available
   if (isInitialized && !sdkAvailable) {
+    console.log("🚨 [ViewshedComponent] Showing 'not supported' message");
+    console.log("🚨 [ViewshedComponent] isInitialized:", isInitialized);
+    console.log("🚨 [ViewshedComponent] sdkAvailable:", sdkAvailable);
     return (
       <div
         style={{

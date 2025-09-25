@@ -5,7 +5,7 @@ import * as THREE from "three";
 import useSceneStore from "../../app/hooks/useSceneStore.ts";
 import useWorldStore from "../../app/hooks/useWorldStore";
 // import dynamic from "next/dynamic";
-import useModelLoader from "./useModelLoader.tsx";
+import useModelLoader from "../../app/components/useModelLoader";
 import { useModelSelection } from "./hooks/useModelSelection.ts";
 import { useModelMaterials } from "./hooks/useModelMaterials.ts";
 import ObservationVisibilityArea from "./ObservationVisibilityArea";
