@@ -1,6 +1,6 @@
 import React from "react";
 import { RigidBody, CuboidCollider } from "@react-three/rapier";
-import useSceneStore from "../../../app/hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 
 const GroundPlane = () => {
   const gridEnabled = useSceneStore((state) => state.gridEnabled);

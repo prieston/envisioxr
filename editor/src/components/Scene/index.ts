@@ -1,4 +1,3 @@
-export { default as Scene } from "./Scene";
 export { default as SceneLights } from "./SceneLights";
 export { default as SceneObjects } from "./SceneObjects";
 export { default as SceneObservationPoints } from "./SceneObservationPoints";

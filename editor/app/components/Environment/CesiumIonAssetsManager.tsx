@@ -23,7 +23,7 @@ import {
   Flight as FlightIcon,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
-import useSceneStore from "../../hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 
 const Container = styled(Box)(({ theme }) => ({
   "& > *:not(:last-child)": {

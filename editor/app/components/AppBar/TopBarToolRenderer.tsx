@@ -1,7 +1,7 @@
 import React from "react";
 import { Typography } from "@mui/material";
 import { MinimalButtonActive } from "./StyledComponents";
-import { TopBarTool } from "../../types/topBarConfig";
+import { TopBarTool } from "@envisio/core/types";
 import { getComponent } from "../Builder/ComponentRegistry";
 
 interface TopBarToolRendererProps {

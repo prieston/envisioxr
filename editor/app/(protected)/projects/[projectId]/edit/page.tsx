@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
-import { showToast } from "@/app/utils/toastUtils";
+import { showToast } from "@envisio/core/utils";
 import { ToastContainer } from "react-toastify";
 
 const EditProjectPage = () => {

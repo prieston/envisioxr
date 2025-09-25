@@ -315,15 +315,6 @@ export const getRightPanelConfig = (
   }
 };
 
-export const getPanelConfig = (panelId: string): PanelConfiguration => {
-  switch (panelId) {
-    case "left-panel":
-      // This function needs to be updated to accept parameters
-      throw new Error(
-        "getPanelConfig needs to be updated to accept state parameters"
-      );
-    // Add other panels here as needed
-    default:
-      throw new Error(`Unknown panel ID: ${panelId}`);
-  }
-};
+// Note: legacy getPanelConfig has been removed in favor of explicit
+// getLeftPanelConfig/getRightPanelConfig/getBottomPanelConfig which
+// accept required state parameters and route by engine.

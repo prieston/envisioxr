@@ -1,0 +1,14 @@
+{
+  "name": "@envisio/engine-cesium",
+  "version": "0.0.1",
+  "private": true,
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  }
+}

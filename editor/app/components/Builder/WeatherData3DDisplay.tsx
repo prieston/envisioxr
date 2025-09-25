@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import useSceneStore from "../../hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 
 type WeatherData3DDisplayProps = {
   objectId: string | number;

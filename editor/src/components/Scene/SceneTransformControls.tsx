@@ -2,7 +2,7 @@
 
 import React from "react";
 import { TransformControls } from "@react-three/drei";
-import useSceneStore from "../../../app/hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 import { SceneTransformControlsProps } from "./types";
 import MagnetControls from "./controls/MagnetControls";
 

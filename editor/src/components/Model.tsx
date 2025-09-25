@@ -2,8 +2,7 @@
 
 import React, { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
-import useSceneStore from "../../app/hooks/useSceneStore.ts";
-import useWorldStore from "../../app/hooks/useWorldStore";
+import { useSceneStore, useWorldStore } from "@envisio/core/state";
 // import dynamic from "next/dynamic";
 import useModelLoader from "../../app/components/useModelLoader";
 import { useModelSelection } from "./hooks/useModelSelection.ts";

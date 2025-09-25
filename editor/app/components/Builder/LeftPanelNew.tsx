@@ -3,9 +3,9 @@
 import React, { useState, useMemo } from "react";
 import { styled } from "@mui/material/styles";
 import { Box, Tabs, Tab } from "@mui/material";
-import useSceneStore from "../../hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 import useWorldStore from "../../hooks/useWorldStore";
-import { getLeftPanelConfig } from "../../config/panelConfigFactory";
+import { getLeftPanelConfig } from "@envisio/config/factory";
 import SettingRenderer from "./SettingRenderer";
 
 // Container for the left panel with conditional styling based on previewMode

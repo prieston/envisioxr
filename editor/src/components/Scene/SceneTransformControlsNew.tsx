@@ -2,11 +2,10 @@
 
 import React from "react";
 import { TransformControls } from "@react-three/drei";
-import useSceneStore from "../../../app/hooks/useSceneStore";
-import useWorldStore from "../../../app/hooks/useWorldStore";
+import { useSceneStore, useWorldStore } from "@envisio/core/state";
 import { SceneTransformControlsProps } from "./types";
 import MagnetControls from "./controls/MagnetControls";
-import { getSceneControlsConfig } from "../../../app/config/sceneControlsConfigFactory";
+import { getSceneControlsConfig } from "@envisio/config/factory";
 
 const SceneTransformControlsNew: React.FC<SceneTransformControlsProps> = ({
   selectedObject,

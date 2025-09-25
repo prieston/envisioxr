@@ -16,7 +16,12 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@envisio/core/*": ["packages/core/src/*"],
+      "@envisio/ui/*": ["packages/ui/src/*"],
+      "@envisio/config/*": ["packages/config/src/*"],
+      "@envisio/engine-three/*": ["packages/engine-three/src/*"],
+      "@envisio/engine-cesium/*": ["packages/engine-cesium/src/*"]
     }
   },
   "exclude": ["node_modules"],

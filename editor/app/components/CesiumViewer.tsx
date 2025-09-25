@@ -1,18 +1,22 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import useWorldStore from "../hooks/useWorldStore";
-import useSceneStore from "../hooks/useSceneStore";
+import { useWorldStore, useSceneStore } from "@envisio/core/state";
 import iotService from "../services/IoTService";
-import CesiumPerformanceOptimizer from "./CesiumPerformanceOptimizer";
-import CesiumIonAssetsRenderer from "./CesiumIonAssetsRenderer";
-import CesiumCameraCaptureHandler from "./Builder/CesiumCameraCaptureHandler";
-import CesiumObservationPointHandler from "./Builder/CesiumObservationPointHandler";
-import CesiumCameraSpringController from "./Builder/CesiumCameraSpringController";
-import CesiumPreviewModeController from "./Builder/CesiumPreviewModeController";
+import {
+  CesiumPerformanceOptimizer,
+  CesiumIonAssetsRenderer,
+  CesiumCameraCaptureHandler,
+  CesiumObservationPointHandler,
+  CesiumCameraSpringController,
+  CesiumPreviewModeController,
+} from "@envisio/engine-cesium/helpers";
 import dynamic from "next/dynamic";
-const CesiumIonSDKViewshedAnalysis = dynamic(
-  () => import("./Builder/CesiumIonSDKViewshedAnalysis"),
+const CesiumIonSDKViewshedAnalysis = dynamic<any>(
+  () =>
+    import("@envisio/engine-cesium/helpers").then(
+      (m) => m.CesiumIonSDKViewshedAnalysis as any
+    ),
   { ssr: false }
 );
 import ObjectTransformEditor from "./Builder/ObjectTransformEditor";
@@ -32,36 +36,22 @@ if (typeof window !== "undefined") {
 
 // Viewshed capability check for mobile GPUs
 function canSupportViewshed(viewer: any): boolean {
-  console.log("🔍 [CesiumViewer] Starting viewshed capability check...");
-
   const ctx: any = viewer?.scene?.context;
-  console.log("🔍 [CesiumViewer] Context:", ctx ? "Found" : "Missing");
 
   const gl: WebGLRenderingContext | WebGL2RenderingContext | undefined =
     ctx?._gl;
   if (!gl) {
-    console.log("❌ [CesiumViewer] Viewshed check: No GL context");
     return false;
   }
-  console.log("🔍 [CesiumViewer] GL context found:", gl.constructor.name);
 
   const isWebGL2 = !!ctx?.webgl2;
-  console.log("🔍 [CesiumViewer] WebGL2:", isWebGL2);
-
   const hasDepthTex = isWebGL2 || !!gl.getExtension("WEBGL_depth_texture");
-  console.log("🔍 [CesiumViewer] Depth texture support:", hasDepthTex);
-
   const hasFloatOrHalfFloatTex =
     isWebGL2 ||
     !!(
       gl.getExtension("OES_texture_float") ||
       gl.getExtension("OES_texture_half_float")
     );
-  console.log(
-    "🔍 [CesiumViewer] Float texture support:",
-    hasFloatOrHalfFloatTex
-  );
-
   const hasColorBufferFloatOrHalf =
     isWebGL2 ||
     !!(
@@ -69,27 +59,11 @@ function canSupportViewshed(viewer: any): boolean {
       (gl as any).getExtension?.("WEBGL_color_buffer_float") ||
       gl.getExtension("EXT_color_buffer_half_float")
     );
-  console.log(
-    "🔍 [CesiumViewer] Color buffer float support:",
-    hasColorBufferFloatOrHalf
-  );
-
   const result =
     hasDepthTex && hasFloatOrHalfFloatTex && hasColorBufferFloatOrHalf;
-  console.log("🔍 [CesiumViewer] Viewshed capability check result:", {
-    isWebGL2,
-    hasDepthTex,
-    hasFloatOrHalfFloatTex,
-    hasColorBufferFloatOrHalf,
-    finalResult: result,
-  });
 
   // Be more permissive - only require depth texture for basic viewshed
   const permissiveResult = hasDepthTex;
-  console.log(
-    "🔍 [CesiumViewer] Using permissive check (depth texture only):",
-    permissiveResult
-  );
 
   return permissiveResult;
 }
@@ -408,10 +382,6 @@ export default function CesiumViewer() {
 
         // Log viewshed capability for debugging
         const capabilityResult = canSupportViewshed(viewerRef.current);
-        console.log(
-          "🔍 [CesiumViewer] Viewshed capability result:",
-          capabilityResult
-        );
 
         // Set up error handling for the viewer
         viewerRef.current.scene.globe.enableLighting = false;
@@ -839,16 +809,9 @@ export default function CesiumViewer() {
             const observationObjects = objects.filter(
               (obj) => obj.isObservationModel && obj.observationProperties
             );
-            console.log(
-              "🔍 [CesiumViewer] Rendering viewshed for objects:",
-              observationObjects.length
-            );
 
             // Only render viewshed components if there are observation objects
             if (observationObjects.length === 0) {
-              console.log(
-                "🔍 [CesiumViewer] No observation objects, skipping viewshed rendering"
-              );
               return null;
             }
 

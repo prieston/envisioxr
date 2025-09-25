@@ -1,8 +1,8 @@
 import React from "react";
-import { showToast } from "@/app/utils/toastUtils";
-import useSceneStore from "@/app/hooks/useSceneStore";
+import { showToast } from "@envisio/core/utils";
+import { useSceneStore } from "@envisio/core/state";
 import * as THREE from "three";
-import { localToGeographic } from "@/app/utils/coordinateUtils";
+import { localToGeographic } from "@envisio/core/utils";
 import { MinimalButton } from "../AppBar/StyledComponents";
 import { Description as DescriptionIcon } from "@mui/icons-material";
 import { Typography } from "@mui/material";

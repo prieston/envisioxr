@@ -10,7 +10,7 @@ import {
   Explore,
 } from "@mui/icons-material";
 import * as Cesium from "cesium";
-import useSceneStore from "../../hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 
 // ============================================================================
 // TYPES AND INTERFACES

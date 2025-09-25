@@ -10,7 +10,7 @@ import {
   Explore,
 } from "@mui/icons-material";
 import { SimulationMode } from "./CesiumControls/types";
-import useSceneStore from "../../hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 import { useCameraControllerManager } from "./CesiumControls/hooks/useCameraControllerManager";
 
 // ============================================================================

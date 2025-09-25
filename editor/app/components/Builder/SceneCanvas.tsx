@@ -2,12 +2,12 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import useWorldStore from "../../hooks/useWorldStore";
+import { useWorldStore } from "@envisio/core/state";
 
-const Scene = dynamic(() => import("../../../src/components/Scene/Scene"), {
+const Scene = dynamic(() => import("@envisio/engine-three"), {
   ssr: false,
 });
-const CesiumViewer = dynamic(() => import("../../components/CesiumViewer"), {
+const CesiumViewer = dynamic(() => import("@envisio/engine-cesium"), {
   ssr: false,
 });
 

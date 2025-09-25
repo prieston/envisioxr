@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { styled } from "@mui/material/styles";
 import { Box, Typography, Button, ButtonGroup } from "@mui/material";
-import useSceneStore from "../../hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 
 const Container = styled(Box)(({ theme }) => ({
   "& > *:not(:last-child)": {
