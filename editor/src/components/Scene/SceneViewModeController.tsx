@@ -2,7 +2,7 @@ import React, { useEffect, useRef, forwardRef } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { PointerLockControls } from "@react-three/drei";
 import { RigidBody, useRapier } from "@react-three/rapier";
-import useSceneStore from "../../../app/hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 import * as THREE from "three";
 import { Vector3 } from "three";
 import {

@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { Box, Typography, FormControlLabel, Switch } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import useSceneStore from "../../hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 import LocationSearch from "../LocationSearch";
 import CesiumIonAssetsManager from "../Environment/CesiumIonAssetsManager";
 

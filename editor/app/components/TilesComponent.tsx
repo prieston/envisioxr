@@ -5,8 +5,8 @@ import { useThree, useFrame } from "@react-three/fiber";
 import { Sphere } from "@react-three/drei";
 import * as THREE from "three";
 import { MathUtils } from "three";
-import useSceneStore from "../hooks/useSceneStore";
-import { setReferenceLocation } from "../utils/coordinateUtils";
+import { useSceneStore } from "@envisio/core/state";
+import { setReferenceLocation } from "@envisio/core/utils";
 
 // Import TilesRenderer and plugins
 import { TilesRenderer } from "3d-tiles-renderer";

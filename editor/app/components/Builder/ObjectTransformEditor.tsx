@@ -16,7 +16,7 @@ import {
 } from "@cesium/engine";
 // Note: Viewer is imported from @cesium/widgets but we use the viewer from the store
 import { TransformEditor } from "@cesiumgs/ion-sdk-measurements";
-import useSceneStore from "../../hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 
 interface ObjectTransformEditorProps {
   selectedObject: {

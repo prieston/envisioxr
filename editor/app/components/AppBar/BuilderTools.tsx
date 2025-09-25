@@ -7,7 +7,7 @@ import {
   AttachFile as MagnetIcon,
 } from "@mui/icons-material";
 import { MinimalButtonActive } from "./StyledComponents.tsx";
-import useSceneStore from "../../../app/hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 
 interface BuilderToolsProps {
   previewMode: boolean;

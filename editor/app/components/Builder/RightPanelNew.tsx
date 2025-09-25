@@ -4,16 +4,15 @@ import React, { useState, useEffect, useMemo } from "react";
 import { styled } from "@mui/material/styles";
 import { Box, Tabs, Tab } from "@mui/material";
 import { useDropzone } from "react-dropzone";
-import { showToast } from "@/app/utils/toastUtils";
+import { showToast } from "@envisio/core/utils";
 import * as THREE from "three";
 import * as Cesium from "cesium";
 
 import { clientEnv } from "@/lib/env/client";
-import useSceneStore from "../../hooks/useSceneStore";
-import useWorldStore from "../../hooks/useWorldStore";
-import { getRightPanelConfig } from "../../config/panelConfigFactory";
+import { useSceneStore, useWorldStore } from "@envisio/core/state";
+import { getRightPanelConfig } from "@envisio/config/factory";
 import SettingRenderer from "./SettingRenderer";
-import { getPositionAtScreenPoint } from "../../utils/cesiumPositioningUtils";
+import { getPositionAtScreenPoint } from "@envisio/core/utils";
 
 // Styled container for the RightPanel with conditional styles based on previewMode
 interface RightPanelContainerProps {

@@ -11,7 +11,7 @@ import {
   TextField,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { PanelSetting } from "../../types/panelConfig";
+import { PanelSetting } from "@envisio/core/types";
 import { getComponent } from "./ComponentRegistry";
 
 const SettingContainer = styled(Box)(({ theme }) => ({

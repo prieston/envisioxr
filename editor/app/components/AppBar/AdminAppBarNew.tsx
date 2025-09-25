@@ -2,9 +2,8 @@
 
 import React, { useState, useMemo } from "react";
 import { Divider } from "@mui/material";
-import useSceneStore from "@/app/hooks/useSceneStore";
-import useWorldStore from "@/app/hooks/useWorldStore";
-import { getTopBarConfig } from "../../config/topBarConfigFactory";
+import { useSceneStore, useWorldStore } from "@envisio/core/state";
+import { getTopBarConfig } from "@envisio/config/factory";
 import TopBarToolRenderer from "./TopBarToolRenderer";
 import {
   AppBarContainer,
@@ -13,7 +12,7 @@ import {
   RightSection,
 } from "./StyledComponents";
 import PublishDialog from "./PublishDialog";
-import { showToast } from "@/app/utils/toastUtils";
+import { showToast } from "@envisio/core/utils";
 
 interface AdminAppBarNewProps {
   mode?: string;

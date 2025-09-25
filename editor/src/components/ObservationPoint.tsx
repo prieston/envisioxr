@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
-import useSceneStore from "../../app/hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 
 const ObservationPoint = ({
   id,

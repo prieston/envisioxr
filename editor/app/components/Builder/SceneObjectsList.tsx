@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { MoreVert } from "@mui/icons-material";
-import useSceneStore from "../../hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 
 const StyledList = styled(List)(({ theme: _theme }) => ({
   padding: 0, // Remove padding from list

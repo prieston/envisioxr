@@ -4,7 +4,7 @@
 import React, { useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import useSceneStore from "../../../../app/hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 import FirstPersonControls from "./FirstPersonControls";
 import ThirdPersonControls from "./ThirdPersonControls";
 import FlightControls from "./FlightControls";

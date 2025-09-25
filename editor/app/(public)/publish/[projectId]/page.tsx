@@ -5,8 +5,7 @@ import { useParams } from "next/navigation";
 import { CircularProgress, Typography } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import useSceneStore from "@/app/hooks/useSceneStore";
-import useWorldStore from "@/app/hooks/useWorldStore";
+import { useSceneStore, useWorldStore } from "@envisio/core/state";
 import MobileLayout from "@/app/components/PublishPage/MobileLayout";
 import DesktopLayout from "@/app/components/PublishPage/DesktopLayout";
 

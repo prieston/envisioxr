@@ -3,9 +3,9 @@
 import React, { useMemo } from "react";
 import { styled } from "@mui/material/styles";
 import { Box, Divider } from "@mui/material";
-import useSceneStore from "../../hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 import useWorldStore from "../../hooks/useWorldStore";
-import { getBottomPanelConfig } from "../../config/panelConfigFactory";
+import { getBottomPanelConfig } from "@envisio/config/factory";
 import SettingRenderer from "./SettingRenderer";
 
 // Container for the entire bottom panel

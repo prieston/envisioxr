@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
-import useSceneStore from "../../app/hooks/useSceneStore";
+import { useSceneStore } from "@envisio/core/state";
 
 interface ActualVisibilityAreaProps {
   position: [number, number, number];

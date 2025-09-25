@@ -7,7 +7,7 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
-import { showToast } from "@/app/utils/toastUtils";
+import { showToast } from "@envisio/core/utils";
 
 interface PublishDialogProps {
   open: boolean;

@@ -1,20 +1,14 @@
 "use client";
 import React from "react";
-import Scene from "../../src/components/Scene/Scene";
+import Scene, { SceneProps } from "@envisio/engine-three";
 import dynamic from "next/dynamic";
-import useWorldStore from "../hooks/useWorldStore";
+import { useWorldStore } from "@envisio/core/state";
 
-const CesiumViewer = dynamic(() => import("./CesiumViewer"), { ssr: false });
+const CesiumViewer = dynamic(() => import("@envisio/engine-cesium"), {
+  ssr: false,
+});
 
-interface SceneData {
-  objects?: any[];
-  observationPoints?: any[];
-  selectedAssetId?: string;
-  selectedLocation?: {
-    latitude: number;
-    longitude: number;
-  } | null;
-}
+type SceneData = NonNullable<SceneProps["initialSceneData"]>;
 
 const PreviewScene = ({
   initialSceneData,
@@ -25,7 +19,7 @@ const PreviewScene = ({
 }: {
   initialSceneData: SceneData;
   renderObservationPoints?: boolean;
-  onSceneDataChange?: any;
+  onSceneDataChange?: SceneProps["onSceneDataChange"];
   enableXR?: boolean;
   isPublishMode?: boolean;
 }) => {
