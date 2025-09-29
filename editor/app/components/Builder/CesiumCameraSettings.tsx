@@ -1,25 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Box, Typography, Slider } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { Typography, Slider } from "@mui/material";
+import {
+  Container,
+  SectionTitle,
+  SettingRow,
+} from "./CesiumCameraSettings.styles";
 import { useSceneStore } from "@envisio/core/state";
-
-const Container = styled(Box)(({ theme }) => ({
-  "& > *:not(:last-child)": {
-    marginBottom: theme.spacing(2),
-  },
-}));
-
-const SectionTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "1rem",
-  fontWeight: 500,
-  marginBottom: theme.spacing(1),
-}));
-
-const SettingRow = styled(Box)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  gap: theme.spacing(1),
-}));
 
 interface CesiumCameraSettingsProps {
   disabled?: boolean;

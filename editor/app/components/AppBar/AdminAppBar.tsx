@@ -14,6 +14,7 @@ import BuilderTools from "./BuilderTools.tsx";
 import BuilderActions from "./BuilderActions.tsx";
 import PublishDialog from "./PublishDialog.tsx";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import { logger } from "./logger";
 
 interface AdminAppBarProps {
   mode?: string;
@@ -30,7 +31,7 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
   onHelpClick,
   showHelpPulse = false,
 }) => {
-  console.log("🔍 AdminAppBar component called with mode:", mode);
+  logger.debug("🔍 AdminAppBar component called with mode:", mode);
 
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
   const { transformMode, setTransformMode, selectedObject } = useSceneStore();
@@ -38,18 +39,21 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
   const handleTransformModeChange = (
     mode: "translate" | "rotate" | "scale"
   ) => {
-    console.log("🔧 AdminAppBar transform mode change:", mode);
+    logger.debug("🔧 AdminAppBar transform mode change:", mode);
     setTransformMode(mode);
   };
 
   // Debug logging
-  console.log("🔍 AdminAppBar render:", {
+  logger.debug("🔍 AdminAppBar render:", {
     selectedObject,
     transformMode,
     mode,
   });
 
-  console.log("🔍 AdminAppBar BuilderTools should render:", mode === "builder");
+  logger.debug(
+    "🔍 AdminAppBar BuilderTools should render:",
+    mode === "builder"
+  );
 
   return (
     <>

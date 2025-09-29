@@ -1,4 +1,5 @@
 import { useRef, useCallback } from "react";
+import { createLogger } from "../../../../utils/logger";
 
 /**
  * Hook for managing keyboard input state
@@ -7,15 +8,14 @@ import { useRef, useCallback } from "react";
  */
 export const useKeyboardControls = () => {
   const keys = useRef<Set<string>>(new Set());
+  const logger = createLogger("KeyboardControls");
 
   /**
    * Handle key down events
    */
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     keys.current.add(event.code);
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[CesiumViewModeControls] Key pressed: ${event.code}`);
-    }
+    logger.debug(`Key pressed: ${event.code}`);
   }, []);
 
   /**

@@ -24,7 +24,8 @@ import dynamic from "next/dynamic";
 
 // Create a dynamic import for the 3D Tiles components
 const TilesComponent = dynamic(
-  () => import("../../../editor/app/components/TilesComponent"),
+  () =>
+    import("../../../editor/app/components/Builder/Environment/TilesComponent"),
   {
     ssr: false,
     loading: () => (

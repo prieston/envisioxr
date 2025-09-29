@@ -4,6 +4,7 @@ import {
   CameraControllerConfig,
 } from "../core/BaseCameraController";
 import { MOVEMENT_KEYS, ROTATION_KEYS } from "../constants";
+import { createLogger } from "../../../../utils/logger";
 
 /**
  * Car controller with realistic vehicle physics
@@ -44,6 +45,7 @@ export class CarController extends BaseCameraController {
       sensitivity: 0.01,
       ...config,
     });
+    this.logger = createLogger("CarController");
   }
 
   initialize(): void {
@@ -67,7 +69,7 @@ export class CarController extends BaseCameraController {
     this.enabled = true;
 
     if (this.config.debugMode) {
-      console.log("[CarController] Initialized");
+      this.logger.debug("Initialized");
     }
   }
 
@@ -103,7 +105,7 @@ export class CarController extends BaseCameraController {
     this.enabled = false;
 
     if (this.config.debugMode) {
-      console.log("[CarController] Disposed");
+      this.logger.debug("Disposed");
     }
   }
 

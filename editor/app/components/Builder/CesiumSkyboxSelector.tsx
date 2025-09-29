@@ -15,7 +15,7 @@ import {
   CircularProgress,
   SelectChangeEvent,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { Container, SectionTitle } from "./CesiumSkyboxSelector.styles";
 import { useSceneStore } from "@envisio/core/state";
 
 // Cesium is loaded as a module, not a global variable
@@ -58,19 +58,6 @@ class SkyboxErrorBoundary extends Component<
     return this.props.children;
   }
 }
-
-const Container = styled(Box)(({ theme }) => ({
-  "& > *:not(:last-child)": {
-    marginBottom: theme.spacing(2),
-  },
-}));
-
-const SectionTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "0.9rem",
-  fontWeight: 500,
-  marginBottom: theme.spacing(1),
-  color: theme.palette.text.primary,
-}));
 
 interface CesiumSkyboxSelectorProps {
   value: "default" | "none";

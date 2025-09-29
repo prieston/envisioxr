@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import * as Cesium from "cesium";
 import { MovementVector, SimulationParams } from "../types";
 import { MOVEMENT_KEYS, ROTATION_KEYS, ANIMATION_TIMING } from "../constants";
+import { createLogger } from "../../../../utils/logger";
 
 /**
  * Hook for movement utility functions
@@ -10,6 +11,7 @@ import { MOVEMENT_KEYS, ROTATION_KEYS, ANIMATION_TIMING } from "../constants";
  * @returns Object containing movement calculation utilities
  */
 export const useMovementUtils = (getPressedKeys: () => Set<string>) => {
+  const logger = createLogger("MovementUtils");
   /**
    * Calculate movement direction vector from pressed keys
    */
@@ -64,16 +66,14 @@ export const useMovementUtils = (getPressedKeys: () => Set<string>) => {
         return;
 
       // Debug logging
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `[Movement] Applying movement:`,
-          moveVector,
-          `Speed:`,
-          speed,
-          `Mode:`,
-          mode
-        );
-      }
+      logger.debug(
+        `[Movement] Applying movement:`,
+        moveVector,
+        `Speed:`,
+        speed,
+        `Mode:`,
+        mode
+      );
 
       const direction = camera.direction;
       const up = camera.up;
@@ -159,11 +159,9 @@ export const useMovementUtils = (getPressedKeys: () => Set<string>) => {
             }
           } else {
             // Fallback: move without ground detection
-            if (process.env.NODE_ENV === "development") {
-              console.log(
-                `[Movement] No ground height found, using direct movement`
-              );
-            }
+            logger.debug(
+              `[Movement] No ground height found, using direct movement`
+            );
             camera.position = newPosition;
           }
         } else {
@@ -171,12 +169,7 @@ export const useMovementUtils = (getPressedKeys: () => Set<string>) => {
         }
 
         // Debug: Log final position
-        if (process.env.NODE_ENV === "development") {
-          console.log(
-            `[Movement] Camera position updated to:`,
-            camera.position
-          );
-        }
+        logger.debug(`[Movement] Camera position updated to:`, camera.position);
       }
     },
     [getPressedKeys]

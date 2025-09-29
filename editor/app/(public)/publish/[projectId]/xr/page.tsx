@@ -1,5 +1,5 @@
 "use client";
-import PreviewScene from "@/app/components/PreviewScene";
+import PreviewScene from "@/app/components/Builder/Scene/PreviewScene";
 import { useSceneStore } from "@envisio/core/state";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useParams } from "next/navigation";

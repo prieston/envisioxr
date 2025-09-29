@@ -14,12 +14,16 @@ import {
 import { Camera, FlightTakeoff, LocationOn } from "@mui/icons-material";
 import { useSceneStore, useWorldStore } from "@envisio/core/state";
 import * as THREE from "three";
-import * as Cesium from "cesium";
 import useSWR from "swr";
 import {
   localToGeographic,
   getPositionAtScreenPoint,
 } from "@envisio/core/utils";
+import { flyToCesiumPosition, flyToThreeObject } from "../../utils/camera";
+import {
+  googleMapsLinkForLatLon,
+  googleMapsDirectionsLinkLatLon,
+} from "../../utils/maps";
 import SDKObservationPropertiesPanel from "./SDKObservationPropertiesPanel";
 import IoTDevicePropertiesPanel from "./IoTDevicePropertiesPanel";
 
@@ -422,24 +426,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         const [longitude, latitude, height] = selectedObject.position;
 
         // Use Cesium's built-in flyTo with a bounding sphere approach
-        const modelPosition = Cesium.Cartesian3.fromDegrees(
-          longitude,
-          latitude,
-          height
-        );
-
-        // Create a bounding sphere around the model for better viewing
-        const boundingSphere = new Cesium.BoundingSphere(modelPosition, 50); // 50m radius
-
-        // Fly to the bounding sphere with a good viewing angle
-        cesiumViewer.camera.flyToBoundingSphere(boundingSphere, {
-          duration: 2.0,
-          offset: new Cesium.HeadingPitchRange(
-            0.0, // heading
-            -Cesium.Math.PI_OVER_FOUR, // pitch (45 degrees down)
-            100.0 // range (distance from target)
-          ),
-        });
+        flyToCesiumPosition(cesiumViewer, longitude, latitude, height);
 
         if (process.env.NODE_ENV === "development") {
           console.log(
@@ -451,38 +438,11 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       // Three.js fly-to logic
       if (selectedObject?.ref && orbitControlsRef) {
         // Get the object's position and bounding box
-        const targetPosition = selectedObject.ref.position.clone();
-        const boundingBox = new THREE.Box3().setFromObject(selectedObject.ref);
-        const size = new THREE.Vector3();
-        boundingBox.getSize(size);
+        flyToThreeObject(selectedObject.ref, orbitControlsRef);
 
-        // Calculate a dynamic offset based on the object's size
-        const maxDimension = Math.max(size.x, size.y, size.z);
-        const distance = Math.max(maxDimension * 2.5, 15); // Increased distance for better view
-
-        // Create a more natural viewing angle offset
-        const offset = new THREE.Vector3(
-          distance * 0.7, // Slightly closer on X axis
-          distance * 0.8, // Higher up for better perspective
-          distance * 0.7 // Slightly closer on Z axis
-        );
-
-        // Set the camera position
-        orbitControlsRef.object.position.copy(targetPosition).add(offset);
-
-        // Set the orbit controls target to the object center
-        orbitControlsRef.target.copy(targetPosition);
-
-        // Make the camera look at the target
-        orbitControlsRef.object.lookAt(targetPosition);
-
-        // Update the controls
-        orbitControlsRef.update();
-
+        // Debug message preserved without referencing local variables removed in refactor
         if (process.env.NODE_ENV === "development") {
-          console.log(
-            `[PropertiesPanel] Flying to Three.js model at: ${targetPosition.x}, ${targetPosition.y}, ${targetPosition.z}`
-          );
+          console.log(`[PropertiesPanel] Flying to Three.js model`);
         }
       }
     }
@@ -1012,17 +972,16 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                   fullWidth
                   variant="outlined"
                   size="small"
-                  href={`https://www.google.com/maps?q=${
-                    localToGeographic(
+                  href={(() => {
+                    const coords = localToGeographic(
                       tilesRenderer,
                       new THREE.Vector3(...selectedObservation.position)
-                    ).latitude
-                  },${
-                    localToGeographic(
-                      tilesRenderer,
-                      new THREE.Vector3(...selectedObservation.position)
-                    ).longitude
-                  }`}
+                    );
+                    return googleMapsLinkForLatLon(
+                      coords.latitude,
+                      coords.longitude
+                    );
+                  })()}
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{ mb: 2 }}
@@ -1038,16 +997,20 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 fullWidth
                 variant="outlined"
                 size="small"
-                href={`https://www.google.com/maps/dir/${observationPoints
-                  ?.filter((point) => point.position)
-                  ?.map((point) =>
-                    localToGeographic(
-                      tilesRenderer,
-                      new THREE.Vector3(...point.position!)
-                    )
-                  )
-                  ?.map((coords) => `${coords.latitude},${coords.longitude}`)
-                  ?.join("/")}`}
+                href={(() => {
+                  const pts =
+                    observationPoints
+                      ?.filter((p) => p.position)
+                      ?.map((p) =>
+                        localToGeographic(
+                          tilesRenderer,
+                          new THREE.Vector3(...p.position!)
+                        )
+                      )
+                      ?.map((c) => ({ lat: c.latitude, lon: c.longitude })) ||
+                    [];
+                  return googleMapsDirectionsLinkLatLon(pts);
+                })()}
                 target="_blank"
                 rel="noopener noreferrer"
               >

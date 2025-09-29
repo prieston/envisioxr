@@ -8,10 +8,11 @@ import {
 } from "@mui/icons-material";
 import { MinimalButtonActive } from "./StyledComponents.tsx";
 import { useSceneStore } from "@envisio/core/state";
+import { logger } from "./logger.ts";
 
 interface BuilderToolsProps {
   previewMode: boolean;
-  selectedObject: any;
+  selectedObject: unknown | null;
   transformMode: "translate" | "rotate" | "scale";
   onTransformModeChange: (mode: "translate" | "rotate" | "scale") => void;
 }
@@ -26,11 +27,11 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
   const setMagnetEnabled = useSceneStore((state) => state.setMagnetEnabled);
 
   // Debug logging
-  console.log("🔍 BuilderTools render:", {
-    selectedObject,
+  logger.debug("[BuilderTools] render", {
+    hasSelectedObject: Boolean(selectedObject),
     previewMode,
     transformMode,
-    shouldShowButtons: selectedObject && !previewMode,
+    shouldShowButtons: Boolean(selectedObject) && !previewMode,
   });
 
   const handleMagnetToggle = () => {
@@ -46,7 +47,7 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
         gap: 1,
       }}
     >
-      {selectedObject && !previewMode && (
+      {Boolean(selectedObject) && !previewMode && (
         <>
           <MinimalButtonActive
             active={transformMode === "translate"}

@@ -4,6 +4,7 @@ import {
   CameraControllerConfig,
 } from "../core/BaseCameraController";
 import { MOVEMENT_KEYS } from "../constants";
+import { createLogger } from "../../../../utils/logger";
 
 /**
  * First-person walk controller:
@@ -43,15 +44,17 @@ export class FirstPersonWalkController extends BaseCameraController {
       debugMode: false,
       ...config,
     });
+    // Re-tag logger with controller-specific prefix
+    this.logger = createLogger("FPW");
   }
 
   initialize(): void {
     if (!this.cesiumViewer) {
-      console.log("[FPW DEBUG] No Cesium viewer available");
+      this.logger.warn("No Cesium viewer available");
       return;
     }
 
-    console.log("[FPW DEBUG] Initializing with canvas:", {
+    this.logger.debug("Initializing with canvas:", {
       hasCanvas: !!this.cesiumViewer.canvas,
       canvasElement: this.cesiumViewer.canvas,
       canvasStyle: this.cesiumViewer.canvas?.style?.pointerEvents,
@@ -65,7 +68,7 @@ export class FirstPersonWalkController extends BaseCameraController {
     if (this.cesiumViewer.canvas) {
       this.cesiumViewer.canvas.style.pointerEvents = "auto";
       this.cesiumViewer.canvas.style.cursor = "crosshair";
-      console.log("[FPW DEBUG] Set canvas pointer events to auto");
+      this.logger.debug("Set canvas pointer events to auto");
     }
 
     // Bind & attach DOM listeners
@@ -103,7 +106,7 @@ export class FirstPersonWalkController extends BaseCameraController {
     this.initializeCameraPosition();
 
     this.enabled = true;
-    if (this.config.debugMode) console.log("[FPW] Initialized");
+    if (this.config.debugMode) this.logger.debug("Initialized");
   }
 
   update(deltaTime: number): void {
@@ -442,7 +445,7 @@ export class FirstPersonWalkController extends BaseCameraController {
 
         // Log only on transition
         if (this.config.debugMode && !this.wasGrounded) {
-          console.log("[FPW dbg] LAND", {
+          this.logger.debug("LAND", {
             inst: (this as any).__instanceId,
             target,
           });
@@ -456,7 +459,7 @@ export class FirstPersonWalkController extends BaseCameraController {
         this.physicsState.isGrounded = false;
         groundedNow = false;
         if (this.config.debugMode && this.wasGrounded) {
-          console.log("[FPW dbg] AIR", {
+          this.logger.debug("AIR", {
             inst: (this as any).__instanceId,
             cartoH: carto.height,
             target,
@@ -617,7 +620,7 @@ export class FirstPersonWalkController extends BaseCameraController {
     if (e.button === 0) {
       // Only request pointer lock if not already locked (backup for drag-to-look)
       if (!this.inputState.isPointerLocked) {
-        console.log("[FPW] Requesting pointer lock (backup)...");
+        this.logger.debug("Requesting pointer lock (backup)...");
         this.requestPointerLock();
       }
     }

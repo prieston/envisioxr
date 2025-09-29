@@ -3,6 +3,7 @@ import * as Cesium from "cesium";
 import { SimulationMode, SimulationParams } from "../types";
 import { SIMULATION_MODES } from "../constants";
 import { useFirstPersonWalk } from "./useFirstPersonWalk";
+import { createLogger } from "../../../../utils/logger";
 
 /**
  * Hook for managing simulation state and animation
@@ -46,6 +47,7 @@ export const useSimulation = (
     params: SimulationParams
   ) => void
 ) => {
+  const logger = createLogger("Simulation");
   // Initialize enhanced walk simulation
   const { applyWalkMovement } = useFirstPersonWalk(
     cesiumViewer,
@@ -66,8 +68,8 @@ export const useSimulation = (
     }
 
     // Debug: Log simulation heartbeat (less frequent)
-    if (process.env.NODE_ENV === "development" && Math.random() < 0.1) {
-      console.log(`[Simulation] Heartbeat - Mode: ${currentMode.current}`);
+    if (Math.random() < 0.1) {
+      logger.debug(`[Simulation] Heartbeat - Mode: ${currentMode.current}`);
     }
 
     const camera = cesiumViewer.camera;
@@ -147,17 +149,13 @@ export const useSimulation = (
    */
   const startSimulation = useCallback(() => {
     if (!cesiumViewer) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn("Cesium viewer not available");
-      }
+      logger.warn("Cesium viewer not available");
       return;
     }
 
-    if (process.env.NODE_ENV === "development") {
-      console.log(
-        `[CesiumViewModeControls] Starting simulation for mode: ${currentMode.current}`
-      );
-    }
+    logger.debug(
+      `[CesiumViewModeControls] Starting simulation for mode: ${currentMode.current}`
+    );
 
     isSimulating.current = true;
     animationFrameId.current = requestAnimationFrame(animate);
@@ -167,9 +165,7 @@ export const useSimulation = (
    * Stop simulation
    */
   const stopSimulation = useCallback(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("[CesiumViewModeControls] Stopping simulation");
-    }
+    logger.debug("[CesiumViewModeControls] Stopping simulation");
     isSimulating.current = false;
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);

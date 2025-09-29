@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { Box, Button, Typography } from "@mui/material";
-import useModelLoader from "./useModelLoader";
+import useModelLoader from "../../../hooks/useModelLoader";
 
 const Model = ({ url, type }) => {
   const model = useModelLoader(url, type);

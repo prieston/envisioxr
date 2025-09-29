@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useWorldStore, useSceneStore } from "@envisio/core/state";
-import iotService from "../services/IoTService";
+import iotService from "../../../services/IoTService";
 import {
   CesiumPerformanceOptimizer,
   CesiumIonAssetsRenderer,
@@ -19,8 +19,8 @@ const CesiumIonSDKViewshedAnalysis = dynamic<any>(
     ),
   { ssr: false }
 );
-import ObjectTransformEditor from "./Builder/ObjectTransformEditor";
-import WeatherData3DDisplay from "./Builder/WeatherData3DDisplay";
+import ObjectTransformEditor from "../ObjectTransformEditor";
+import WeatherData3DDisplay from "../WeatherData3DDisplay";
 
 // Extend Window interface for Cesium
 declare global {
@@ -46,22 +46,6 @@ function canSupportViewshed(viewer: any): boolean {
 
   const isWebGL2 = !!ctx?.webgl2;
   const hasDepthTex = isWebGL2 || !!gl.getExtension("WEBGL_depth_texture");
-  const hasFloatOrHalfFloatTex =
-    isWebGL2 ||
-    !!(
-      gl.getExtension("OES_texture_float") ||
-      gl.getExtension("OES_texture_half_float")
-    );
-  const hasColorBufferFloatOrHalf =
-    isWebGL2 ||
-    !!(
-      gl.getExtension("EXT_color_buffer_float") ||
-      (gl as any).getExtension?.("WEBGL_color_buffer_float") ||
-      gl.getExtension("EXT_color_buffer_half_float")
-    );
-  const result =
-    hasDepthTex && hasFloatOrHalfFloatTex && hasColorBufferFloatOrHalf;
-
   // Be more permissive - only require depth texture for basic viewshed
   const permissiveResult = hasDepthTex;
 
@@ -380,8 +364,8 @@ export default function CesiumViewer() {
           // Continue without terrain - not critical
         }
 
-        // Log viewshed capability for debugging
-        const capabilityResult = canSupportViewshed(viewerRef.current);
+        // Check viewshed capability for debugging (no assignment to avoid lint errors)
+        canSupportViewshed(viewerRef.current);
 
         // Set up error handling for the viewer
         viewerRef.current.scene.globe.enableLighting = false;

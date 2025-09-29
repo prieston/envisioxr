@@ -1,1 +1,1 @@
-export { default } from "../../../editor/app/components/CesiumViewer";
+export { default } from "../../../editor/app/components/Builder/Scene/CesiumViewer";

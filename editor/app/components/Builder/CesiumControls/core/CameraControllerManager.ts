@@ -7,6 +7,8 @@ import { FirstPersonWalkController } from "../controllers/FirstPersonWalkControl
 import { CarDriveController } from "../controllers/CarDriveController";
 import { DroneFlightController } from "../controllers/FlightController";
 import { SimulationMode } from "../types";
+import { SIMULATION_MODES } from "../constants";
+import { createLogger } from "../../../../utils/logger";
 
 /**
  * Camera controller manager for handling different simulation modes
@@ -18,6 +20,7 @@ export class CameraControllerManager {
   private animationFrameId: number | null = null;
   private isRunning: boolean = false;
   private lastTime: number = 0;
+  private logger = createLogger("CameraControllerManager");
 
   constructor(cesiumViewer: Cesium.Viewer | null) {
     this.cesiumViewer = cesiumViewer;
@@ -79,9 +82,7 @@ export class CameraControllerManager {
       new DroneFlightController(this.cesiumViewer, flightConfig)
     );
 
-    if (process.env.NODE_ENV === "development") {
-      console.log("[CameraControllerManager] Controllers initialized");
-    }
+    this.logger.debug("Controllers initialized");
   }
 
   /**
@@ -89,7 +90,7 @@ export class CameraControllerManager {
    */
   switchToMode(mode: SimulationMode): void {
     if (!this.cesiumViewer) {
-      console.warn("[CameraControllerManager] Cesium viewer not available");
+      this.logger.warn("Cesium viewer not available");
       return;
     }
 
@@ -100,7 +101,11 @@ export class CameraControllerManager {
     }
 
     // Handle special modes
-    if (mode === "orbit" || mode === "explore" || mode === "settings") {
+    if (
+      mode === SIMULATION_MODES.ORBIT ||
+      mode === SIMULATION_MODES.EXPLORE ||
+      mode === SIMULATION_MODES.SETTINGS
+    ) {
       this.enableDefaultCesiumControls(mode);
       return;
     }
@@ -108,9 +113,7 @@ export class CameraControllerManager {
     // Get new controller
     const newController = this.controllers.get(mode);
     if (!newController) {
-      console.warn(
-        `[CameraControllerManager] No controller found for mode: ${mode}`
-      );
+      this.logger.warn(`No controller found for mode: ${mode}`);
       return;
     }
 
@@ -123,9 +126,7 @@ export class CameraControllerManager {
       this.startAnimationLoop();
     }
 
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[CameraControllerManager] Switched to mode: ${mode}`);
-    }
+    this.logger.info(`Switched to mode: ${mode}`);
   }
 
   /**
@@ -137,20 +138,20 @@ export class CameraControllerManager {
     const controller = this.cesiumViewer.scene.screenSpaceCameraController;
 
     switch (mode) {
-      case "orbit":
+      case SIMULATION_MODES.ORBIT:
         controller.enableRotate = true;
         controller.enableTranslate = true;
         controller.enableZoom = true;
         controller.enableTilt = true;
         break;
-      case "explore":
+      case SIMULATION_MODES.EXPLORE:
         controller.enableRotate = true;
         controller.enableTranslate = true;
         controller.enableZoom = true;
         controller.enableTilt = true;
         this.cesiumViewer.scene.morphTo3D();
         break;
-      case "settings":
+      case SIMULATION_MODES.SETTINGS:
         // Keep current camera state
         break;
     }
@@ -169,9 +170,7 @@ export class CameraControllerManager {
     this.lastTime = performance.now();
     this.animationFrameId = requestAnimationFrame(this.animate);
 
-    if (process.env.NODE_ENV === "development") {
-      console.log("[CameraControllerManager] Animation loop started");
-    }
+    this.logger.debug("Animation loop started");
   }
 
   /**
@@ -186,9 +185,7 @@ export class CameraControllerManager {
       this.animationFrameId = null;
     }
 
-    if (process.env.NODE_ENV === "development") {
-      console.log("[CameraControllerManager] Animation loop stopped");
-    }
+    this.logger.debug("Animation loop stopped");
   }
 
   /**
@@ -220,11 +217,7 @@ export class CameraControllerManager {
     if (controller) {
       controller.updateConfig(config);
 
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `[CameraControllerManager] Updated config for mode: ${mode}`
-        );
-      }
+      this.logger.debug(`Updated config for mode: ${mode}`);
     }
   }
 
@@ -246,7 +239,11 @@ export class CameraControllerManager {
    * Check if a mode is currently active
    */
   isModeActive(mode: SimulationMode): boolean {
-    if (mode === "orbit" || mode === "explore" || mode === "settings") {
+    if (
+      mode === SIMULATION_MODES.ORBIT ||
+      mode === SIMULATION_MODES.EXPLORE ||
+      mode === SIMULATION_MODES.SETTINGS
+    ) {
       return !this.isRunning;
     }
     return this.currentController === this.controllers.get(mode);
@@ -271,9 +268,7 @@ export class CameraControllerManager {
     });
     this.controllers.clear();
 
-    if (process.env.NODE_ENV === "development") {
-      console.log("[CameraControllerManager] Disposed");
-    }
+    this.logger.debug("Disposed");
   }
 
   /**
