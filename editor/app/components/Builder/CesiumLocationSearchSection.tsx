@@ -1,29 +1,14 @@
 import React, { useCallback } from "react";
-import { Box, Typography } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { Typography } from "@mui/material";
+import {
+  Container,
+  SearchContainer,
+  LocationInfo,
+} from "./CesiumLocationSearchSection.styles";
 import * as Cesium from "cesium";
 import { useSceneStore } from "@envisio/core/state";
 import LocationSearch from "../LocationSearch";
 import CesiumIonAssetsManager from "../Environment/CesiumIonAssetsManager";
-
-const Container = styled(Box)(({ theme }) => ({
-  "& > *:not(:last-child)": {
-    marginBottom: theme.spacing(2),
-  },
-}));
-
-const SearchContainer = styled(Box)(() => ({
-  position: "relative",
-  width: "100%",
-  marginTop: "8px",
-}));
-
-const LocationInfo = styled(Box)(({ theme }) => ({
-  marginTop: theme.spacing(1),
-  padding: theme.spacing(1),
-  backgroundColor: "rgba(255, 255, 255, 0.03)",
-  borderRadius: "6px",
-}));
 
 interface CesiumLocationSearchSectionProps {
   value?: any;

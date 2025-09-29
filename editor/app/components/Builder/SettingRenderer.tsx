@@ -1,7 +1,5 @@
 import React from "react";
 import {
-  Box,
-  Typography,
   Switch,
   FormControlLabel,
   Select,
@@ -10,35 +8,14 @@ import {
   Button,
   TextField,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import {
+  SettingContainer,
+  CustomSettingContainer,
+  SettingLabel,
+  SettingDescription,
+} from "./SettingRenderer.styles";
 import { PanelSetting } from "@envisio/core/types";
 import { getComponent } from "./ComponentRegistry";
-
-const SettingContainer = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-  padding: theme.spacing(1.5),
-  "&:last-child": {
-    marginBottom: 0,
-  },
-}));
-
-const CustomSettingContainer = styled(Box)(() => ({
-  display: "flex",
-  alignItems: "center",
-}));
-
-const SettingLabel = styled(Typography)(({ theme }) => ({
-  fontSize: "0.9rem",
-  fontWeight: 500,
-  marginBottom: theme.spacing(0.5),
-  color: theme.palette.text.primary,
-}));
-
-const SettingDescription = styled(Typography)(({ theme }) => ({
-  fontSize: "0.8rem",
-  color: theme.palette.text.secondary,
-  marginBottom: theme.spacing(1),
-}));
 
 interface SettingRendererProps {
   setting: PanelSetting;

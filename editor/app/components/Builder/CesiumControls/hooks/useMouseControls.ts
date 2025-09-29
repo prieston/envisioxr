@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import * as Cesium from "cesium";
 import { MOUSE_SENSITIVITY } from "../constants";
+import { createLogger } from "../../../../utils/logger";
 
 /**
  * Hook for managing mouse movement in first-person mode
@@ -13,6 +14,7 @@ export const useMouseControls = (
   cesiumViewer: Cesium.Viewer | null,
   sensitivity: number = MOUSE_SENSITIVITY.DEFAULT
 ) => {
+  const logger = createLogger("MouseControls");
   /**
    * Handle mouse movement for first-person look
    */
@@ -36,9 +38,7 @@ export const useMouseControls = (
       const camera = cesiumViewer.camera;
 
       // Debug logging
-      if (process.env.NODE_ENV === "development") {
-        console.log(`[Mouse] Movement: ${event.movementX}, ${event.movementY}`);
-      }
+      logger.debug(`[Mouse] Movement: ${event.movementX}, ${event.movementY}`);
 
       // Calculate rotation angles
       const yawDelta = -event.movementX * sensitivity;
@@ -81,11 +81,9 @@ export const useMouseControls = (
       });
 
       // Debug logging
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `[Mouse] Camera updated - Yaw: ${((newYaw * 180) / Math.PI).toFixed(1)}°, Pitch: ${((newPitch * 180) / Math.PI).toFixed(1)}°`
-        );
-      }
+      logger.debug(
+        `[Mouse] Camera updated - Yaw: ${((newYaw * 180) / Math.PI).toFixed(1)}°, Pitch: ${((newPitch * 180) / Math.PI).toFixed(1)}°`
+      );
     },
     [cesiumViewer, sensitivity]
   );
@@ -94,12 +92,10 @@ export const useMouseControls = (
    * Handle pointer lock changes
    */
   const handlePointerLockChange = useCallback(() => {
-    if (process.env.NODE_ENV === "development") {
-      if (document.pointerLockElement) {
-        console.log("[CesiumViewModeControls] Pointer locked");
-      } else {
-        console.log("[CesiumViewModeControls] Pointer unlocked");
-      }
+    if (document.pointerLockElement) {
+      logger.debug("[CesiumViewModeControls] Pointer locked");
+    } else {
+      logger.debug("[CesiumViewModeControls] Pointer unlocked");
     }
   }, []);
 

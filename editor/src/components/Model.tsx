@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { useSceneStore, useWorldStore } from "@envisio/core/state";
 // import dynamic from "next/dynamic";
-import useModelLoader from "../../app/components/useModelLoader";
+import useModelLoader from "../../app/hooks/useModelLoader";
 import { useModelSelection } from "./hooks/useModelSelection.ts";
 import { useModelMaterials } from "./hooks/useModelMaterials.ts";
 import ObservationVisibilityArea from "./ObservationVisibilityArea";

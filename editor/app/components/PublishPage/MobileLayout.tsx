@@ -7,65 +7,45 @@ import {
   FormControlLabel,
   Switch,
   Typography,
-  AppBar,
   Toolbar,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import {
+  MobileAppBar,
+  MobileSceneContainer,
+  MobileBottomNav,
+  MobileDetailsContainer,
+  TOP_APPBAR_HEIGHT,
+  BOTTOM_BAR_HEIGHT,
+} from "./MobileLayout.styles";
 import MenuIcon from "@mui/icons-material/Menu";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import LogoHeader from "../AppBar/LogoHeader";
 
-const PreviewScene = dynamic(() => import("../PreviewScene"), {
+const PreviewScene = dynamic(() => import("../Builder/Scene/PreviewScene"), {
   ssr: false,
 });
 
-// Layout constants
-const TOP_APPBAR_HEIGHT = 56;
-const BOTTOM_BAR_HEIGHT = 64;
+type Observation = {
+  id?: string | number;
+  title?: string;
+  description?: string;
+};
 
-const MobileAppBar = styled(AppBar)(({ theme }) => ({
-  position: "fixed",
-  top: 0,
-  backgroundColor: theme.palette.background.paper,
-  backgroundImage: "none",
-  boxShadow: "none",
-  color: theme.palette.text.primary,
-}));
-
-const MobileSceneContainer = styled("div")<{ height: string }>(
-  ({ height }) => ({
-    marginTop: TOP_APPBAR_HEIGHT,
-    height,
-    position: "relative",
-  })
-);
-
-const MobileBottomNav = styled("div")(({ theme }) => ({
-  position: "fixed",
-  bottom: 0,
-  left: 0,
-  right: 0,
-  height: BOTTOM_BAR_HEIGHT,
-  backgroundColor: theme.palette.background.paper,
-  display: "flex",
-  justifyContent: "space-around",
-  alignItems: "center",
-  boxShadow: theme.shadows[4],
-  zIndex: 1300,
-}));
-
-const MobileDetailsContainer = styled("div")(({ theme }) => ({
-  padding: theme.spacing(2),
-}));
+type Project = {
+  id?: string | number;
+  title: string;
+  description?: string;
+  sceneData: Parameters<typeof PreviewScene>[0]["initialSceneData"];
+};
 
 interface MobileLayoutProps {
-  project: any;
-  currentObservation: any;
+  project: Project;
+  currentObservation: Observation | null;
   previewMode: boolean;
   setPreviewMode: (value: boolean) => void;
   previewIndex: number;
-  observationPoints: any[];
+  observationPoints: Observation[];
   nextObservation: () => void;
   prevObservation: () => void;
   drawerOpen: boolean;

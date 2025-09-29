@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import * as Cesium from "cesium";
 import { GroundDetectionResult } from "../types";
+import { createLogger } from "../../../../utils/logger";
 
 /**
  * Hook for ground detection and terrain interaction
@@ -9,6 +10,7 @@ import { GroundDetectionResult } from "../types";
  * @returns Object containing ground detection utilities
  */
 export const useGroundDetection = (cesiumViewer: Cesium.Viewer | null) => {
+  const logger = createLogger("GroundDetection");
   /**
    * Enhanced ground detection function with slope checking
    *
@@ -32,12 +34,9 @@ export const useGroundDetection = (cesiumViewer: Cesium.Viewer | null) => {
         const terrainHeight = cesiumViewer.scene.globe.getHeight(cartographic);
         if (terrainHeight === undefined || terrainHeight === null) {
           // Fallback to ellipsoid height if terrain is not available
-          if (process.env.NODE_ENV === "development") {
-            console.log(
-              `[Ground Detection] No terrain height, using cartographic height:`,
-              cartographic.height
-            );
-          }
+          logger.debug(
+            `No terrain height, using cartographic height: ${cartographic.height}`
+          );
           return cartographic.height;
         }
 
@@ -62,11 +61,9 @@ export const useGroundDetection = (cesiumViewer: Cesium.Viewer | null) => {
               if (slope > 0.5) {
                 // 30 degrees max slope
                 // Slope is too steep, return current height to prevent movement
-                if (process.env.NODE_ENV === "development") {
-                  console.log(
-                    `[Ground Detection] Slope too steep: ${((slope * 180) / Math.PI).toFixed(1)}° (max: 30.0°)`
-                  );
-                }
+                logger.debug(
+                  `Slope too steep: ${((slope * 180) / Math.PI).toFixed(1)}° (max: 30.0°)`
+                );
                 return currentHeight;
               }
             }
@@ -75,9 +72,7 @@ export const useGroundDetection = (cesiumViewer: Cesium.Viewer | null) => {
 
         return terrainHeight;
       } catch (error) {
-        if (process.env.NODE_ENV === "development") {
-          console.warn("Error getting ground height:", error);
-        }
+        logger.warn("Error getting ground height:", error as unknown as Error);
         return null;
       }
     },

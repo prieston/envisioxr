@@ -9,7 +9,6 @@ import {
   DialogContent,
   DialogActions,
   List,
-  ListItem,
   ListItemText,
   IconButton,
   Switch,
@@ -22,31 +21,12 @@ import {
   Edit as EditIcon,
   Flight as FlightIcon,
 } from "@mui/icons-material";
-import { styled } from "@mui/material/styles";
+import {
+  Container,
+  SectionTitle,
+  AssetListItem,
+} from "./CesiumIonAssetsManager.styles";
 import { useSceneStore } from "@envisio/core/state";
-
-const Container = styled(Box)(({ theme }) => ({
-  "& > *:not(:last-child)": {
-    marginBottom: theme.spacing(2),
-  },
-}));
-
-const SectionTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "0.9rem",
-  fontWeight: 500,
-  marginBottom: theme.spacing(1),
-  color: theme.palette.text.primary,
-}));
-
-const AssetListItem = styled(ListItem)(({ theme }) => ({
-  borderRadius: "6px",
-  marginBottom: theme.spacing(1),
-  backgroundColor: "rgba(255, 255, 255, 0.03)",
-  transition: "all 0.2s ease",
-  "&:hover": {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-  },
-}));
 
 interface CesiumIonAssetsManagerProps {}
 

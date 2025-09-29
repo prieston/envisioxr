@@ -14,7 +14,7 @@ import {
   Tooltip,
   TextField,
 } from "@mui/material";
-import ModelPreview from "../ModelPreview";
+import ModelPreview from "./Scene/ModelPreview";
 import ModelMetadataFields from "./ModelMetadataFields";
 
 // Types for props

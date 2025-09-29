@@ -1,4 +1,5 @@
 import * as Cesium from "cesium";
+import { createLogger } from "../../../../utils/logger";
 
 /** Interface that all controllers implement */
 export interface IBaseCameraController {
@@ -61,6 +62,7 @@ export abstract class BaseCameraController implements IBaseCameraController {
   protected cameraState: CameraState;
   protected inputState: InputState;
   protected physicsState: PhysicsState;
+  protected logger = createLogger("BaseCameraController");
 
   // DOM handlers (subclasses bind these)
   protected keyDownHandler?: (event: KeyboardEvent) => void;
@@ -290,7 +292,7 @@ export abstract class BaseCameraController implements IBaseCameraController {
   protected requestPointerLock(): void {
     const canvas = this.cesiumViewer?.canvas;
     if (this.config.debugMode) {
-      console.log("[BaseCameraController] requestPointerLock", {
+      this.logger.debug("requestPointerLock", {
         hasCanvas: !!canvas,
         hasRequestPointerLock: !!canvas?.requestPointerLock,
         currentLocked: document.pointerLockElement === canvas,
@@ -342,7 +344,7 @@ export abstract class BaseCameraController implements IBaseCameraController {
     this.inputState.mouseDelta.y += e.movementY || 0;
 
     if (this.config.debugMode) {
-      console.log("[BaseCameraController] mouseMove", {
+      this.logger.debug("mouseMove", {
         locked,
         dragging: isDragOnCanvas,
         dx: e.movementX || 0,
@@ -368,10 +370,7 @@ export abstract class BaseCameraController implements IBaseCameraController {
     this.inputState.isPointerLocked = document.pointerLockElement === canvas;
     this.inputState.mouseDelta = { x: 0, y: 0 };
     if (this.config.debugMode) {
-      console.log(
-        "[BaseCameraController] pointerLocked:",
-        this.inputState.isPointerLocked
-      );
+      this.logger.debug("pointerLocked:", this.inputState.isPointerLocked);
     }
     this.onPointerLockChange();
   };

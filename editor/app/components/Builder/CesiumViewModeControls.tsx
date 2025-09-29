@@ -1,6 +1,11 @@
+/* eslint-disable no-console */
 import React, { useEffect, useRef, useCallback, useMemo } from "react";
-import { Box, Button, Tooltip } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { Tooltip } from "@mui/material";
+import {
+  ViewModeSection,
+  ViewModeRow,
+  ViewModeButton,
+} from "./CesiumViewModeControls.styles";
 import {
   ThreeSixty,
   Settings,
@@ -11,21 +16,13 @@ import {
 } from "@mui/icons-material";
 import * as Cesium from "cesium";
 import { useSceneStore } from "@envisio/core/state";
+import { SimulationMode } from "./CesiumControls/types";
 
 // ============================================================================
 // TYPES AND INTERFACES
 // ============================================================================
 
-/**
- * Simulation mode types
- */
-type SimulationMode =
-  | "orbit"
-  | "explore"
-  | "firstPerson"
-  | "car"
-  | "flight"
-  | "settings";
+// Use shared SimulationMode from CesiumControls/types
 
 /**
  * Movement vector for 3D movement calculations
@@ -54,53 +51,14 @@ interface SimulationParams {
  * Props for the CesiumViewModeControls component
  */
 interface CesiumViewModeControlsProps {
-  value?: any;
-  onChange?: (value: any) => void;
-  onClick?: () => void;
   disabled?: boolean;
   viewMode?: SimulationMode;
   setViewMode?: (mode: SimulationMode) => void;
 }
 
 // ============================================================================
-// STYLED COMPONENTS
+// STYLED COMPONENTS moved to CesiumViewModeControls.styles.ts
 // ============================================================================
-
-const ViewModeSection = styled(Box, {
-  shouldForwardProp: (prop) => prop !== "previewMode",
-})<{ previewMode: boolean }>(({ theme, previewMode }) => ({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: theme.spacing(0.5),
-  pointerEvents: previewMode ? "none" : "auto",
-  opacity: previewMode ? 0.5 : 1,
-  filter: previewMode ? "grayscale(100%)" : "none",
-  transition: "opacity 0.3s ease, filter 0.3s ease",
-}));
-
-const ViewModeRow = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  gap: theme.spacing(0.5),
-}));
-
-const ViewModeButton = styled(Button)(({ theme }) => ({
-  minWidth: "auto",
-  padding: theme.spacing(0.5),
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: "rgba(255, 255, 255, 0.05)",
-  "&:hover": {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-  },
-  "&.active": {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
-  },
-  "& .MuiSvgIcon-root": {
-    fontSize: "1.2rem",
-  },
-}));
 
 // ============================================================================
 // CUSTOM HOOKS
