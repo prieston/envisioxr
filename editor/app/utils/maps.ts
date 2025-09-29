@@ -9,3 +9,4 @@ export function googleMapsDirectionsLinkLatLon(
   return `https://www.google.com/maps/dir/${path}`;
 }
 
+

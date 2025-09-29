@@ -39,3 +39,4 @@ export const MobileDetailsContainer = styled("div")(({ theme }) => ({
   padding: theme.spacing(2),
 }));
 
+

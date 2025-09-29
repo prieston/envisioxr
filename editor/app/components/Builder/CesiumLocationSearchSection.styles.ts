@@ -20,3 +20,4 @@ export const LocationInfo = styled(Box)(({ theme }) => ({
   borderRadius: "6px",
 }));
 
+
