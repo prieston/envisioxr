@@ -5,7 +5,7 @@ import { Divider } from "@mui/material";
 import { useSceneStore } from "@envisio/core/state";
 import useWorldStore from "../../hooks/useWorldStore";
 import { getBottomPanelConfig } from "@envisio/config/factory";
-import SettingRenderer from "./SettingRenderer";
+import SettingRenderer from "./Panels/RightPanel/SettingRenderer";
 
 import { BottomPanelContainer } from "./BottomPanelNew.styles";
 

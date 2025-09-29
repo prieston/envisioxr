@@ -5,7 +5,7 @@ import { Tabs, Tab } from "@mui/material";
 import { useSceneStore } from "@envisio/core/state";
 import useWorldStore from "../../hooks/useWorldStore";
 import { getLeftPanelConfig } from "@envisio/config/factory";
-import SettingRenderer from "./SettingRenderer";
+import SettingRenderer from "./Panels/RightPanel/SettingRenderer";
 
 import { LeftPanelContainer, TabPanel } from "./LeftPanelNew.styles";
 
