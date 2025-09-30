@@ -14,6 +14,79 @@ import { RectangularSensor, ConicSensor } from "@cesiumgs/ion-sdk-sensors";
 import * as IonSensors from "@cesiumgs/ion-sdk-sensors";
 import * as IonGeometry from "@cesiumgs/ion-sdk-geometry";
 
+// Sensor axis alignment utilities
+function axisToVec(
+  a: "X+" | "X-" | "Y+" | "Y-" | "Z+" | "Z-"
+): Cesium.Cartesian3 {
+  switch (a) {
+    case "X+":
+      return new Cesium.Cartesian3(1, 0, 0);
+    case "X-":
+      return new Cesium.Cartesian3(-1, 0, 0);
+    case "Y+":
+      return new Cesium.Cartesian3(0, 1, 0);
+    case "Y-":
+      return new Cesium.Cartesian3(0, -1, 0);
+    case "Z+":
+      return new Cesium.Cartesian3(0, 0, 1);
+    case "Z-":
+      return new Cesium.Cartesian3(0, 0, -1);
+  }
+}
+
+// Build a quaternion that rotates `from` to `to` (both unit vectors)
+function quatBetween(
+  from: Cesium.Cartesian3,
+  to: Cesium.Cartesian3
+): Cesium.Quaternion {
+  const f = Cesium.Cartesian3.normalize(from, new Cesium.Cartesian3());
+  const t = Cesium.Cartesian3.normalize(to, new Cesium.Cartesian3());
+  const dot = Cesium.Cartesian3.dot(f, t);
+
+  // Nearly opposite: pick any orthogonal axis
+  if (dot < -0.999999) {
+    const ortho =
+      Math.abs(f.x) < 0.9
+        ? new Cesium.Cartesian3(1, 0, 0)
+        : new Cesium.Cartesian3(0, 1, 0);
+    const axis = Cesium.Cartesian3.normalize(
+      Cesium.Cartesian3.cross(f, ortho, new Cesium.Cartesian3()),
+      new Cesium.Cartesian3()
+    );
+    return Cesium.Quaternion.fromAxisAngle(axis, Math.PI);
+  }
+  // Nearly identical
+  if (dot > 0.999999) {
+    return Cesium.Quaternion.IDENTITY;
+  }
+  const axis = Cesium.Cartesian3.normalize(
+    Cesium.Cartesian3.cross(f, t, new Cesium.Cartesian3()),
+    new Cesium.Cartesian3()
+  );
+  const angle = Math.acos(dot);
+  return Cesium.Quaternion.fromAxisAngle(axis, angle);
+}
+
+// Build a local correction Matrix4 that aligns the sensor's forward axis to your model's front axis.
+function buildLocalInstallMatrix(
+  sensorForward: "X+" | "X-" | "Y+" | "Y-" | "Z+" | "Z-",
+  modelFront: "X+" | "X-" | "Y+" | "Y-" | "Z+" | "Z-",
+  tiltDeg = 0
+): Cesium.Matrix4 {
+  const qAlign = quatBetween(axisToVec(sensorForward), axisToVec(modelFront));
+  let q = qAlign;
+  if (tiltDeg && Math.abs(tiltDeg) > 1e-6) {
+    // extra twist around forward axis after alignment
+    const qTilt = Cesium.Quaternion.fromAxisAngle(
+      axisToVec(modelFront),
+      Cesium.Math.toRadians(tiltDeg)
+    );
+    q = Cesium.Quaternion.multiply(qAlign, qTilt, new Cesium.Quaternion());
+  }
+  const m3 = Cesium.Matrix3.fromQuaternion(q);
+  return Cesium.Matrix4.fromRotationTranslation(m3, Cesium.Cartesian3.ZERO);
+}
+
 // Model front direction utilities
 function getRotationOffsetForFrontAxis(frontAxis: string): {
   heading: number;
@@ -239,22 +312,15 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
           ? [rotation[0] || 0, rotation[1] || 0, rotation[2] || 0]
           : [0, 0, 0];
 
-      // Apply model front direction if enabled
-      const finalRotation = applyModelFrontDirection(
-        rotationArray,
-        observationProperties.alignWithModelFront || false,
-        observationProperties.manualFrontDirection,
-        observationProperties.modelFrontAxis
-      );
-
-      const [heading, pitch, roll] = finalRotation;
+      // Use raw rotation directly (no double correction with install matrix)
+      const [heading = 0, pitch = 0, roll = 0] = rotationArray;
 
       console.log("🔍 Rotation calculation:", {
         baseRotation: rotationArray,
         alignWithModelFront: observationProperties.alignWithModelFront,
         manualFrontDirection: observationProperties.manualFrontDirection,
         modelFrontAxis: observationProperties.modelFrontAxis,
-        finalRotation,
+        // finalRotation,
         heading: `${((heading * 180) / Math.PI).toFixed(1)}°`,
         pitch: `${((pitch * 180) / Math.PI).toFixed(1)}°`,
         roll: `${((roll * 180) / Math.PI).toFixed(1)}°`,
@@ -267,18 +333,35 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         height
       );
 
-      // 2) Build rotation from HPR
+      // 2) Build rotation from HPR in proper ENU frame
       const hpr = new Cesium.HeadingPitchRoll(
         heading || 0,
         pitch || 0,
         roll || 0
       );
-      const rot = Cesium.Matrix3.fromHeadingPitchRoll(hpr);
 
-      // 3) Build a *single* modelMatrix (rotation + translation)
-      const modelMatrix = Cesium.Matrix4.fromRotationTranslation(
-        rot,
-        sensorPosition
+      // 1) World pose in ENU
+      let modelMatrix = Cesium.Transforms.headingPitchRollToFixedFrame(
+        sensorPosition,
+        hpr,
+        Cesium.Ellipsoid.WGS84,
+        Cesium.Transforms.eastNorthUpToFixedFrame
+      );
+
+      // 2) Local install: map sensor's forward → model's front
+      const sensorForward = observationProperties.sensorForwardAxis ?? "X+"; // Ion sensors typically look down +X
+      const modelFront = observationProperties.modelFrontAxis ?? "Z-"; // Three.js forward is Z-
+      const install = buildLocalInstallMatrix(
+        sensorForward,
+        modelFront,
+        observationProperties.tiltDeg ?? 0
+      );
+
+      // 3) Apply local correction (right-multiply: local space)
+      modelMatrix = Cesium.Matrix4.multiply(
+        modelMatrix,
+        install,
+        new Cesium.Matrix4()
       );
 
       // 4) Validate (avoid NaNs/Infs)
@@ -357,11 +440,13 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
       let sensor: any = null;
       if (observationProperties.sensorType === "rectangle") {
+        // Rectangular sensor: use half-angles in radians
         const xHalf = Cesium.Math.toRadians(
-          observationProperties.fovH ?? observationProperties.fov ?? 60
+          (observationProperties.fovH ?? observationProperties.fov ?? 60) / 2
         );
         const yHalf = Cesium.Math.toRadians(
-          observationProperties.fovV ?? (observationProperties.fov ?? 60) * 0.6
+          (observationProperties.fovV ??
+            (observationProperties.fov ?? 60) * 0.6) / 2
         );
         sensor = new RectangularSensor({
           ...baseOptions,
@@ -369,14 +454,16 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
           yHalfAngle: yHalf,
         });
       } else {
-        const fov = observationProperties.fov ?? 60;
-        if (!Number.isFinite(fov) || fov <= 0 || fov >= 180) {
-          console.error("❌ Invalid FOV:", fov);
+        // Conic sensor: use outerHalfAngle (half-angle in radians)
+        const fovDeg = observationProperties.fov ?? 60;
+        if (!Number.isFinite(fovDeg) || fovDeg <= 0 || fovDeg >= 180) {
+          console.error("❌ Invalid FOV:", fovDeg);
           return;
         }
+        const outerHalfAngle = Cesium.Math.toRadians(fovDeg / 2);
         sensor = new ConicSensor({
           ...baseOptions,
-          outerHalfAngle: Cesium.Math.toRadians(fov),
+          outerHalfAngle,
         });
       }
 
@@ -400,28 +487,34 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         const visible = sensorColor.withAlpha(0.6); // your green with transparency like yellow
         const occluded = Cesium.Color.fromBytes(255, 0, 0, 160); // semi-red
 
-        // Sanity check: try a bright color to rule out lighting issues
-        // const visible = Cesium.Color.LIME.withAlpha(1.0); // uncomment to test
-
-        // 1) Ensure viewshed is actually used
-        sensor.showViewshed = true;
-
-        // 2) Apply colors via the public fields that your build exposes
+        // 1) Keep viewshed overlay
+        sensor.showViewshed = !!observationProperties.showViewshed;
         sensor.viewshedVisibleColor = visible;
         sensor.viewshedOccludedColor = occluded;
 
-        // 3) Hide the base cone surfaces while using the viewshed shader,
-        //    because your build draws separate "color command" passes that default to white.
-        sensor.showLateralSurfaces = false;
-        sensor.showDomeSurfaces = false;
+        // 2) SHOW the actual geometry (we previously turned these off)
+        sensor.showLateralSurfaces = true;
+        sensor.showDomeSurfaces = observationProperties.sensorType === "cone";
 
-        // 4) (Optional) Also hide environment overlay passes if they wash things out white
+        // 3) Give the volume a translucent color so you can see it
+        const volumeMat = Cesium.Material.fromType("Color", {
+          color: sensorColor.withAlpha(0.25),
+        });
+        sensor.lateralSurfaceMaterial = volumeMat;
+        sensor.domeSurfaceMaterial = volumeMat;
+
+        // 4) These extras can stay off if they caused white overlays
         sensor.showEnvironmentOcclusion = false;
         sensor.showEnvironmentIntersection = false;
         sensor.showIntersection = false;
 
         // 5) Force a draw
         cesiumViewer.scene.requestRender();
+
+        // 6) Runtime debugging toggles (uncomment if needed)
+        // cesiumViewer.scene.highDynamicRange = false;
+        // cesiumViewer.scene.globe.show = true;
+        // cesiumViewer.scene.globe.depthTestAgainstTerrain = false;
 
         console.log(
           "✅ Sensor created with proper materials and viewshed colors"
@@ -543,15 +636,8 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         ? [rotation[0] || 0, rotation[1] || 0, rotation[2] || 0]
         : [0, 0, 0];
 
-    // Apply model front direction if enabled
-    const finalRotation = applyModelFrontDirection(
-      rotationArray,
-      observationProperties.alignWithModelFront || false,
-      observationProperties.manualFrontDirection,
-      observationProperties.modelFrontAxis
-    );
-
-    const [heading, pitch, roll] = finalRotation;
+    // Use raw rotation directly (no double correction with install matrix)
+    const [heading = 0, pitch = 0, roll = 0] = rotationArray;
 
     const sensorPosition = Cesium.Cartesian3.fromDegrees(
       longitude,
@@ -563,10 +649,29 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
       pitch || 0,
       roll || 0
     );
-    const rot = Cesium.Matrix3.fromHeadingPitchRoll(hpr);
-    const modelMatrix = Cesium.Matrix4.fromRotationTranslation(
-      rot,
-      sensorPosition
+
+    // 1) World pose in ENU
+    let modelMatrix = Cesium.Transforms.headingPitchRollToFixedFrame(
+      sensorPosition,
+      hpr,
+      Cesium.Ellipsoid.WGS84,
+      Cesium.Transforms.eastNorthUpToFixedFrame
+    );
+
+    // 2) Local install: map sensor's forward → model's front
+    const sensorForward = observationProperties.sensorForwardAxis ?? "X+"; // Ion sensors typically look down +X
+    const modelFront = observationProperties.modelFrontAxis ?? "Z-"; // Three.js forward is Z-
+    const install = buildLocalInstallMatrix(
+      sensorForward,
+      modelFront,
+      observationProperties.tiltDeg ?? 0
+    );
+
+    // 3) Apply local correction (right-multiply: local space)
+    modelMatrix = Cesium.Matrix4.multiply(
+      modelMatrix,
+      install,
+      new Cesium.Matrix4()
     );
 
     // Update sensor pose in place
@@ -580,6 +685,8 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     observationProperties.alignWithModelFront,
     observationProperties.manualFrontDirection,
     observationProperties.modelFrontAxis,
+    observationProperties.sensorForwardAxis,
+    observationProperties.tiltDeg,
   ]);
 
   // Create sensor when shape/visibility properties change
@@ -649,8 +756,35 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
       }
     };
 
+    // Debug rendering state
+    (window as any).debugSensorRendering = () => {
+      if (sensorRef.current && cesiumViewer) {
+        console.log("🔍 Sensor debugging:", {
+          sensor: sensorRef.current,
+          showViewshed: sensorRef.current.showViewshed,
+          viewshedVisibleColor: sensorRef.current.viewshedVisibleColor,
+          viewshedOccludedColor: sensorRef.current.viewshedOccludedColor,
+          showLateralSurfaces: sensorRef.current.showLateralSurfaces,
+          showDomeSurfaces: sensorRef.current.showDomeSurfaces,
+          lateralSurfaceMaterial: sensorRef.current.lateralSurfaceMaterial,
+          domeSurfaceMaterial: sensorRef.current.domeSurfaceMaterial,
+          sceneHDR: cesiumViewer.scene.highDynamicRange,
+          globeShow: cesiumViewer.scene.globe.show,
+          depthTestAgainstTerrain:
+            cesiumViewer.scene.globe.depthTestAgainstTerrain,
+        });
+
+        // Try the debugging toggles
+        cesiumViewer.scene.highDynamicRange = false;
+        cesiumViewer.scene.globe.show = true;
+        cesiumViewer.scene.globe.depthTestAgainstTerrain = false;
+        cesiumViewer.scene.requestRender();
+      }
+    };
+
     return () => {
       delete (window as any).toggleSensorGeometry;
+      delete (window as any).debugSensorRendering;
     };
   }, [cesiumViewer]);
 

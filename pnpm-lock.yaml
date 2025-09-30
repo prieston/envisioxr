@@ -335,6 +335,9 @@ importers:
       '@envisio/core':
         specifier: workspace:*
         version: link:../core
+      '@envisio/engine-cesium':
+        specifier: workspace:*
+        version: link:../engine-cesium
       cesium:
         specifier: '>=1.131.0'
         version: 1.133.1
