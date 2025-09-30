@@ -13,7 +13,7 @@ import {
 } from "./helpers";
 import dynamic from "next/dynamic";
 const CesiumIonSDKViewshedAnalysis = dynamic<any>(
-  () => import("./helpers").then((m) => m.CesiumIonSDKViewshedAnalysis as any),
+  () => import("@envisio/ion-sdk").then((m) => m.ViewshedAnalysis as any),
   { ssr: false }
 );
 // Removed engine-owned transform editor; editor app renders it directly if needed

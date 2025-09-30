@@ -3,7 +3,9 @@
 import { useLoader } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 // Rhino3dmLoader path may vary across three versions; keep current working import
-import { Rhino3dmLoader } from "three/addons/loaders/3DMLoader.js";
+// Three r170+ moved example loaders under examples/jsm. Rhino3dmLoader lives at:
+// 'three/examples/jsm/loaders/3DMLoader.js'
+import { Rhino3dmLoader } from "three/examples/jsm/loaders/3DMLoader.js";
 
 export default function useModelLoader(
   url: string | undefined,

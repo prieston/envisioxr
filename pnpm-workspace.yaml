@@ -1,4 +1,5 @@
 packages:
-  - 'website'
-  - 'editor'
-  - 'packages/*'
+  - "website"
+  - "editor"
+  - "packages/*"
+  - "packages/ion-sdk"

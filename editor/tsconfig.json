@@ -24,7 +24,9 @@
       "@envisio/engine-three/*": ["../packages/engine-three/src/*"],
       "@envisio/engine-cesium/*": ["../packages/engine-cesium/src/*"],
       "@envisio/engine-three": ["../packages/engine-three/src/index.ts"],
-      "@envisio/engine-cesium": ["../packages/engine-cesium/src/index.ts"]
+      "@envisio/engine-cesium": ["../packages/engine-cesium/src/index.ts"],
+      "@envisio/ion-sdk": ["../packages/ion-sdk/src/index.ts"],
+      "@envisio/ion-sdk/*": ["../packages/ion-sdk/src/*"]
     },
   },
   "include": [
