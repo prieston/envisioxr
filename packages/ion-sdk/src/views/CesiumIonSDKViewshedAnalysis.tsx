@@ -87,6 +87,147 @@ function buildLocalInstallMatrix(
   return Cesium.Matrix4.fromRotationTranslation(m3, Cesium.Cartesian3.ZERO);
 }
 
+// Composite conic sensor for >180° coverage by tiling multiple cones around local axis
+type SensorComposite = {
+  parts: any[];
+  setPose: (modelMatrix: Cesium.Matrix4) => void;
+  setFlags: (opts: {
+    show?: boolean;
+    showViewshed?: boolean;
+    showGeometry?: boolean;
+  }) => void;
+  setColors: (opts: {
+    volume?: Cesium.Color;
+    visible?: Cesium.Color;
+    occluded?: Cesium.Color;
+  }) => void;
+};
+
+function buildCompositeConicSensor(opts: {
+  viewer: any;
+  baseModelMatrix: Cesium.Matrix4;
+  desiredFullFovDeg: number;
+  radius: number;
+  volumeColor: Cesium.Color;
+  viewshedVisible: Cesium.Color;
+  viewshedOccluded: Cesium.Color;
+  include3DModels?: boolean;
+}): SensorComposite {
+  const {
+    viewer,
+    baseModelMatrix,
+    desiredFullFovDeg,
+    radius,
+    volumeColor,
+    viewshedVisible,
+    viewshedOccluded,
+    include3DModels,
+  } = opts;
+
+  const full = Math.max(0, Math.min(360, desiredFullFovDeg));
+  if (full === 0) {
+    return {
+      parts: [],
+      setPose: () => {},
+      setFlags: () => {},
+      setColors: () => {},
+    };
+  }
+
+  const partFull = Math.min(180, full);
+  const partHalfRad = Cesium.Math.toRadians(partFull / 2);
+  const numParts = Math.max(1, Math.ceil(full / partFull));
+
+  const parts: any[] = [];
+  for (let i = 0; i < numParts; i++) {
+    const yaw = Cesium.Math.toRadians((i * 360) / numParts);
+    const localRot = Cesium.Matrix3.fromQuaternion(
+      Cesium.Quaternion.fromAxisAngle(new Cesium.Cartesian3(0, 0, 1), yaw)
+    );
+    const localMM = Cesium.Matrix4.fromRotationTranslation(
+      localRot,
+      Cesium.Cartesian3.ZERO
+    );
+    const modelMatrix = Cesium.Matrix4.multiply(
+      baseModelMatrix,
+      localMM,
+      new Cesium.Matrix4()
+    );
+
+    const volumeMat = Cesium.Material.fromType("Color", { color: volumeColor });
+    const part = new ConicSensor({
+      modelMatrix,
+      radius,
+      outerHalfAngle: partHalfRad,
+      lateralSurfaceMaterial: volumeMat,
+      domeSurfaceMaterial: volumeMat,
+      showLateralSurfaces: true,
+      showDomeSurfaces: true,
+      showViewshed: true,
+      showEllipsoidSurfaces: false,
+      showEllipsoidHorizonSurfaces: false,
+      showThroughEllipsoid: false,
+      environmentConstraint: true,
+      include3DModels: include3DModels !== false,
+    } as any);
+    part.viewshedVisibleColor = viewshedVisible;
+    part.viewshedOccludedColor = viewshedOccluded;
+    viewer.scene.primitives.add(part);
+    parts.push(part);
+  }
+
+  const setPose = (modelMatrix: Cesium.Matrix4) => {
+    parts.forEach((p, i) => {
+      const yaw = Cesium.Math.toRadians((i * 360) / parts.length);
+      const localRot = Cesium.Matrix3.fromQuaternion(
+        Cesium.Quaternion.fromAxisAngle(new Cesium.Cartesian3(0, 0, 1), yaw)
+      );
+      const localMM = Cesium.Matrix4.fromRotationTranslation(
+        localRot,
+        Cesium.Cartesian3.ZERO
+      );
+      p.modelMatrix = Cesium.Matrix4.multiply(
+        modelMatrix,
+        localMM,
+        new Cesium.Matrix4()
+      );
+    });
+  };
+
+  const setFlags = (f: {
+    show?: boolean;
+    showViewshed?: boolean;
+    showGeometry?: boolean;
+  }) => {
+    parts.forEach((p) => {
+      if (f.show !== undefined) p.show = f.show;
+      if (f.showViewshed !== undefined) p.showViewshed = f.showViewshed;
+      if (f.showGeometry !== undefined) {
+        p.showLateralSurfaces = f.showGeometry;
+        p.showDomeSurfaces = f.showGeometry;
+      }
+    });
+  };
+
+  const setColors = (c: {
+    volume?: Cesium.Color;
+    visible?: Cesium.Color;
+    occluded?: Cesium.Color;
+  }) => {
+    parts.forEach((p) => {
+      if (c.volume) {
+        const mat = Cesium.Material.fromType("Color", { color: c.volume });
+        p.lateralSurfaceMaterial = mat;
+        p.domeSurfaceMaterial = mat;
+      }
+      if (c.visible) p.viewshedVisibleColor = c.visible;
+      if (c.occluded) p.viewshedOccludedColor = c.occluded;
+    });
+  };
+
+  return { parts, setPose, setFlags, setColors };
+}
+
 // Model front direction utilities
 function getRotationOffsetForFrontAxis(frontAxis: string): {
   heading: number;
@@ -200,6 +341,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
   // Use provided cesiumViewer or fallback to window global
   const cesiumViewer = providedViewer || (window as any).cesiumViewer;
   const sensorRef = useRef<any>(null);
+  const sensorCompositeRef = useRef<SensorComposite | null>(null);
   const viewshedRef = useRef<Cesium.Entity | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -277,6 +419,16 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         "🔍 Skipping sensor creation - not initialized or no cesiumViewer"
       );
       return;
+    }
+
+    // Always remove existing composite first
+    if (sensorCompositeRef.current) {
+      try {
+        sensorCompositeRef.current.parts.forEach((p) =>
+          cesiumViewer?.scene.primitives.remove(p)
+        );
+      } catch {}
+      sensorCompositeRef.current = null;
     }
 
     // Always remove existing sensor first
@@ -437,41 +589,72 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
       );
 
       let sensor: any = null;
+      sensorCompositeRef.current = null; // reset composite
       if (observationProperties.sensorType === "rectangle") {
-        // Rectangular sensor: use half-angles in radians
-        const xHalf = Cesium.Math.toRadians(
-          (observationProperties.fovH ?? observationProperties.fov ?? 60) / 2
+        // Rectangular sensor: sanitize and use half-angles in radians
+        const sanitizeFov = (deg: number) => {
+          if (!Number.isFinite(deg)) return 60;
+          // fold into [0,360)
+          const mod = ((deg % 360) + 360) % 360;
+          const folded = mod > 180 ? 360 - mod : mod; // map >180 to symmetric <180
+          const clamped = Math.min(170, Math.max(1, folded));
+          return clamped;
+        };
+        const fovHX = sanitizeFov(
+          observationProperties.fovH ?? observationProperties.fov ?? 60
         );
-        const yHalf = Cesium.Math.toRadians(
-          (observationProperties.fovV ??
-            (observationProperties.fov ?? 60) * 0.6) / 2
+        const fovVY = sanitizeFov(
+          observationProperties.fovV ?? (observationProperties.fov ?? 60) * 0.6
         );
+        const xHalf = Cesium.Math.toRadians(fovHX / 2);
+        const yHalf = Cesium.Math.toRadians(fovVY / 2);
         sensor = new RectangularSensor({
           ...baseOptions,
           xHalfAngle: xHalf,
           yHalfAngle: yHalf,
         });
       } else {
-        // Conic sensor: use outerHalfAngle (half-angle in radians)
-        const fovDeg = observationProperties.fov ?? 60;
-        if (!Number.isFinite(fovDeg) || fovDeg <= 0 || fovDeg >= 180) {
-          console.error("❌ Invalid FOV:", fovDeg);
-          return;
+        // Conic: build composite if requested FOV > 180; otherwise single primitive
+        const desiredFullFovDeg = Math.max(
+          0,
+          Math.min(360, observationProperties.fov ?? 60)
+        );
+        if (desiredFullFovDeg > 180) {
+          const composite = buildCompositeConicSensor({
+            viewer: cesiumViewer,
+            baseModelMatrix: modelMatrix,
+            desiredFullFovDeg,
+            radius,
+            volumeColor: sensorColor.withAlpha(0.25),
+            viewshedVisible: sensorColor.withAlpha(0.35),
+            viewshedOccluded: Cesium.Color.fromBytes(255, 0, 0, 110),
+            include3DModels: observationProperties.include3DModels,
+          });
+          sensorCompositeRef.current = composite;
+          // mimic single sensor ref by storing first part (for flags), but prefer composite in updates
+          sensor = composite.parts[0] || null;
+        } else {
+          const halfRad = Cesium.Math.toRadians(
+            Math.max(1, Math.min(179.9, desiredFullFovDeg)) / 2
+          );
+          sensor = new ConicSensor({
+            ...baseOptions,
+            outerHalfAngle: halfRad,
+          });
         }
-        const outerHalfAngle = Cesium.Math.toRadians(fovDeg / 2);
-        sensor = new ConicSensor({
-          ...baseOptions,
-          outerHalfAngle,
-        });
       }
 
       if (sensor) {
         // Add sensor to the scene
-        try {
-          cesiumViewer.scene.primitives.add(sensor);
-          console.log("✅ Ion SDK sensor added to scene");
-        } catch (error) {
-          console.error("❌ Failed to add sensor to scene:", error);
+        if (!sensorCompositeRef.current) {
+          try {
+            cesiumViewer.scene.primitives.add(sensor);
+            console.log("✅ Ion SDK sensor added to scene");
+          } catch (error) {
+            console.error("❌ Failed to add sensor to scene:", error);
+          }
+        } else {
+          console.log("✅ Composite sensor parts added; skipping single add");
         }
         sensorRef.current = sensor;
 
@@ -482,32 +665,53 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         console.log("🔍 uniforms:", sensor.appearance?.material?.uniforms);
 
         // Apply colors via the public fields that this build exposes
-        const visible = sensorColor.withAlpha(0.6); // your green with transparency like yellow
-        const occluded = Cesium.Color.fromBytes(255, 0, 0, 160); // semi-red
+        const visible = sensorColor.withAlpha(0.35); // more transparent visible pass
+        const occluded = Cesium.Color.fromBytes(255, 0, 0, 110); // more transparent occluded pass
 
         // 1) Keep viewshed overlay (independent from geometry toggle)
-        sensor.showViewshed = !!observationProperties.showViewshed;
-        sensor.viewshedVisibleColor = visible;
-        sensor.viewshedOccludedColor = occluded;
+        if (sensor) sensor.showViewshed = !!observationProperties.showViewshed;
+        if (sensor) {
+          sensor.viewshedVisibleColor = visible;
+          sensor.viewshedOccludedColor = occluded;
+        }
+        if (sensorCompositeRef.current) {
+          sensorCompositeRef.current.setColors({
+            volume: sensorColor.withAlpha(0.25),
+            visible,
+            occluded,
+          });
+        }
 
         // 2) Geometry visibility controlled by toggle
-        sensor.showLateralSurfaces = !!observationProperties.showSensorGeometry;
-        sensor.showDomeSurfaces =
-          !!observationProperties.showSensorGeometry &&
-          observationProperties.sensorType === "cone";
+        if (sensor) {
+          sensor.showLateralSurfaces =
+            !!observationProperties.showSensorGeometry;
+          sensor.showDomeSurfaces =
+            !!observationProperties.showSensorGeometry &&
+            observationProperties.sensorType === "cone";
+        }
 
         // 2b) Disable ellipsoid overlays that can tint the globe
-        try {
-          sensor.showEllipsoidSurfaces = false;
-          sensor.showEllipsoidHorizonSurfaces = false;
-          sensor.showThroughEllipsoid = false;
-        } catch {}
+        if (sensor) {
+          try {
+            sensor.showEllipsoidSurfaces = false;
+            sensor.showEllipsoidHorizonSurfaces = false;
+            sensor.showThroughEllipsoid = false;
+          } catch {}
+        }
 
         // 2c) If both geometry and viewshed are off, hide the primitive entirely
-        sensor.show = !!(
+        const compositeShow = !!(
           observationProperties.showSensorGeometry ||
           observationProperties.showViewshed
         );
+        if (sensor) sensor.show = compositeShow;
+        if (sensorCompositeRef.current)
+          sensorCompositeRef.current.setFlags({
+            show: compositeShow,
+            showGeometry: !!observationProperties.showSensorGeometry,
+            showViewshed: !!observationProperties.showViewshed,
+          });
 
         // 3) Give the volume a translucent color so you can see it
         const volumeMat = Cesium.Material.fromType("Color", {
@@ -649,7 +853,12 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     );
 
     // Update sensor pose in place
-    sensorRef.current.modelMatrix = modelMatrix;
+    if (sensorCompositeRef.current) {
+      sensorCompositeRef.current.setPose(modelMatrix);
+    }
+    if (sensorRef.current) {
+      sensorRef.current.modelMatrix = modelMatrix;
+    }
     cesiumViewer?.scene.requestRender();
   }, [
     isInitialized,
@@ -663,48 +872,94 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     observationProperties.tiltDeg,
   ]);
 
-  // Create sensor when shape/visibility properties change
+  // Create sensor when geometry/shape-affecting properties change
   useEffect(() => {
     if (!isInitialized) return;
-    // If a sensor exists, just update flags; otherwise create
-    if (sensorRef.current) {
-      try {
-        sensorRef.current.showViewshed = !!observationProperties.showViewshed;
-        sensorRef.current.showLateralSurfaces =
-          !!observationProperties.showSensorGeometry;
-        sensorRef.current.showDomeSurfaces =
-          !!observationProperties.showSensorGeometry &&
-          observationProperties.sensorType === "cone";
-        // Disable globe overlays that can leave residual tints
-        try {
-          sensorRef.current.showEllipsoidSurfaces = false;
-          sensorRef.current.showEllipsoidHorizonSurfaces = false;
-          sensorRef.current.showThroughEllipsoid = false;
-        } catch {}
-        // Hide primitive entirely if both toggles are off
-        sensorRef.current.show = !!(
-          observationProperties.showSensorGeometry ||
-          observationProperties.showViewshed
-        );
-        cesiumViewer?.scene.requestRender();
-      } catch {}
-    } else {
-      createIonSDKSensor();
-    }
+    createIonSDKSensor();
   }, [
     isInitialized,
-    observationProperties.showSensorGeometry,
     observationProperties.sensorType,
     observationProperties.fov,
     observationProperties.fovH,
     observationProperties.fovV,
     observationProperties.visibilityRadius,
     observationProperties.sensorColor,
-    observationProperties.showViewshed,
     observationProperties.include3DModels,
-    observationProperties.alignWithModelFront,
-    observationProperties.manualFrontDirection,
-    observationProperties.modelFrontAxis,
+  ]);
+
+  // Live-update radius and conic FOV (half-angle clamp per ConicSensor spec)
+  useEffect(() => {
+    if (!isInitialized) return;
+    if (!sensorRef.current && !sensorCompositeRef.current) return;
+    try {
+      // radius
+      if (typeof observationProperties.visibilityRadius === "number") {
+        const r = Math.max(1, observationProperties.visibilityRadius);
+        if (sensorRef.current) sensorRef.current.radius = r;
+        if (sensorCompositeRef.current) {
+          sensorCompositeRef.current.parts.forEach((p) => (p.radius = r));
+        }
+      }
+      // Conic FOV
+      const sanitizeFovCone = (deg: number) => {
+        if (!Number.isFinite(deg)) return 60;
+        const mod = ((deg % 360) + 360) % 360; // [0,360)
+        const clampedFull = Math.min(179.9, Math.max(1, mod));
+        return clampedFull;
+      };
+      const fullDeg = sanitizeFovCone(observationProperties.fov ?? 60);
+      if (sensorRef.current && "outerHalfAngle" in sensorRef.current) {
+        sensorRef.current.outerHalfAngle = Cesium.Math.toRadians(fullDeg / 2);
+      }
+      if (sensorCompositeRef.current) {
+        const half = Cesium.Math.toRadians(fullDeg / 2);
+        sensorCompositeRef.current.parts.forEach(
+          (p) => (p.outerHalfAngle = half)
+        );
+      }
+      cesiumViewer?.scene.requestRender();
+    } catch {}
+  }, [
+    isInitialized,
+    cesiumViewer,
+    observationProperties.fov,
+    observationProperties.visibilityRadius,
+  ]);
+
+  // Update visibility flags (geometry and viewshed) without recreating
+  useEffect(() => {
+    if (!isInitialized || !sensorRef.current) return;
+    try {
+      const showViewshed = !!observationProperties.showViewshed;
+      const showGeom = !!observationProperties.showSensorGeometry;
+      sensorRef.current.showViewshed = showViewshed;
+      sensorRef.current.showLateralSurfaces = showGeom;
+      sensorRef.current.showDomeSurfaces =
+        showGeom && observationProperties.sensorType === "cone";
+      // Disable globe overlays that can leave residual tints
+      try {
+        sensorRef.current.showEllipsoidSurfaces = false;
+        sensorRef.current.showEllipsoidHorizonSurfaces = false;
+        sensorRef.current.showThroughEllipsoid = false;
+      } catch {}
+      // Hide primitive entirely if both toggles are off
+      const compositeShow = !!(showGeom || showViewshed);
+      sensorRef.current.show = compositeShow;
+      if (sensorCompositeRef.current) {
+        sensorCompositeRef.current.setFlags({
+          show: compositeShow,
+          showGeometry: showGeom,
+          showViewshed,
+        });
+      }
+      cesiumViewer?.scene.requestRender();
+    } catch {}
+  }, [
+    isInitialized,
+    cesiumViewer,
+    observationProperties.showSensorGeometry,
+    observationProperties.showViewshed,
+    observationProperties.sensorType,
   ]);
 
   // Transform editor removed to prevent issues
@@ -718,6 +973,14 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      if (sensorCompositeRef.current) {
+        try {
+          sensorCompositeRef.current.parts.forEach((p) =>
+            cesiumViewer?.scene.primitives.remove(p)
+          );
+        } catch {}
+        sensorCompositeRef.current = null;
+      }
       if (sensorRef.current) {
         if (sensorRef.current instanceof Cesium.Entity) {
           cesiumViewer?.entities.remove(sensorRef.current);
