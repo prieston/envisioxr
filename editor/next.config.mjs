@@ -22,6 +22,11 @@ const nextConfig = {
   experimental: {
     esmExternals: 'loose'
   },
+  transpilePackages: [
+    '@envisio/engine-three',
+    '@envisio/engine-cesium',
+    '@envisio/core'
+  ],
   // Optimize output for better performance
   output: 'standalone',
   // Ensure proper asset handling

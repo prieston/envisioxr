@@ -10,7 +10,7 @@ import * as Cesium from "cesium";
 import { clientEnv } from "@/lib/env/client";
 import { useSceneStore, useWorldStore } from "@envisio/core/state";
 import { getRightPanelConfig } from "@envisio/config/factory";
-import SettingRenderer from "./SettingRenderer";
+import SettingRenderer from "../../SettingRenderer";
 import { getPositionAtScreenPoint } from "@envisio/core/utils";
 
 import { RightPanelContainer, TabPanel } from "./RightPanel.styles";
