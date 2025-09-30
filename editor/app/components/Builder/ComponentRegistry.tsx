@@ -10,12 +10,16 @@ import LogoHeader from "../AppBar/LogoHeader";
 import ReportGenerator from "../Report/ReportGenerator";
 import BasemapSelector from "../Environment/BasemapSelector";
 import ThreeJSLocationSearchSection from "./ThreeJSLocationSearchSection";
-import CesiumLocationSearchSection from "./CesiumLocationSearchSection";
-import CesiumBasemapSelector from "./CesiumBasemapSelector";
-import CesiumSkyboxSelector from "./CesiumSkyboxSelector";
-import CesiumViewModeControls from "./CesiumViewModeControlsNew";
-import CesiumCameraSettings from "./CesiumCameraSettings";
-import CesiumSimulationInstructions from "./CesiumSimulationInstructions";
+import {
+  CesiumLocationSearchSection,
+  CesiumBasemapSelector,
+  CesiumSkyboxSelector,
+} from "@envisio/engine-cesium/components";
+import {
+  CesiumViewModeControls,
+  CesiumCameraSettings,
+  CesiumSimulationInstructions,
+} from "@envisio/engine-cesium/components";
 
 export const componentRegistry: Record<string, React.ComponentType<any>> = {
   ViewModeControls: ViewModeControls,

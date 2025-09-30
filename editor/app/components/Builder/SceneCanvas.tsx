@@ -5,7 +5,10 @@ import dynamic from "next/dynamic";
 import { useWorldStore } from "@envisio/core/state";
 
 const Scene = dynamic(
-  () => import("./Scene/EngineThreeWrapper").then((m) => m.Scene || m.default),
+  () =>
+    import("./Scene/EngineThreeWrapper").then((m) => ({
+      default: m.Scene || m.default,
+    })),
   {
     ssr: false,
   }

@@ -9,6 +9,33 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./helpers": {
+      "import": "./dist/helpers/index.js",
+      "types": "./dist/helpers/index.d.ts"
+    },
+    "./components": {
+      "import": "./dist/components/index.js",
+      "types": "./dist/components/index.d.ts"
     }
+  },
+  "dependencies": {
+    "@mui/icons-material": "^5.0.0",
+    "@mui/material": "^5.18.0",
+    "@react-three/drei": "^9.92.7",
+    "@react-three/fiber": "^8.15.11",
+    "cesium": "^1.133.0",
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/cesium": "^1.70.4",
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
   }
 }

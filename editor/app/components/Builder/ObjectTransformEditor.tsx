@@ -213,7 +213,6 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
 
         // Check for position changes
         if (newPosition && !Cartesian3.equals(newPosition, lastPosition)) {
-          console.log("🎯 Position changed:", newPosition);
           handleTransformChange({
             translation: newPosition,
             rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
@@ -224,7 +223,6 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
 
         // Check for rotation changes
         if (newHPR && !HeadingPitchRoll.equals(newHPR, lastHPR)) {
-          console.log("🔄 Rotation changed:", newHPR);
           handleTransformChange({
             translation: newPosition || lastPosition,
             rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
@@ -235,7 +233,6 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
 
         // Check for scale changes
         if (newScale && !Cartesian3.equals(newScale, lastScale)) {
-          console.log("📏 Scale changed:", newScale);
           handleTransformChange({
             translation: newPosition || lastPosition,
             rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
@@ -259,8 +256,6 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
 
     // Force initial render to show the gizmo
     cesiumViewer.scene.requestRender();
-
-    console.log("🎯 TransformEditor created for object:", selectedObject.id);
 
     // Store container reference for cleanup
     (transformEditor as any)._container = container;
@@ -314,8 +309,6 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
   // --- update gizmo mode when transform mode changes ---
   useEffect(() => {
     if (!transformEditorRef.current || !cesiumViewer) return;
-
-    console.log("🔄 Changing gizmo mode to:", transformMode);
 
     // Temporarily deactivate to ensure clean mode switch
     transformEditorRef.current.viewModel.deactivate();

@@ -1,5 +1,7 @@
-export { default as CesiumIonTiles } from "./CesiumIonTiles";
+export { CesiumIonTiles } from "@envisio/engine-three/components";
 export { default as TilesComponent } from "./TilesComponent";
 export { default as BasemapSelector } from "../../Environment/BasemapSelector";
-export { default as CesiumSkyboxSelector } from "../CesiumSkyboxSelector";
-export { default as CesiumBasemapSelector } from "../CesiumBasemapSelector";
+export {
+  CesiumSkyboxSelector,
+  CesiumBasemapSelector,
+} from "@envisio/engine-cesium/components";

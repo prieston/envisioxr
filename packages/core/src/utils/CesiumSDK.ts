@@ -1,2 +1,2 @@
-export * from "../../../../editor/app/utils/CesiumSDK";
-export { default } from "../../../../editor/app/utils/CesiumSDK";
+export * from "@envisio/engine-cesium/CesiumSDK";
+export { default } from "@envisio/engine-cesium/CesiumSDK";

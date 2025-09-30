@@ -1,1 +1,1 @@
-export * from "../../../../editor/app/config/sceneControlsConfig";
+export * from "./sceneControlsConfig";
