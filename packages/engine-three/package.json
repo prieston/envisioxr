@@ -9,11 +9,23 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./components": {
+      "import": "./dist/components/index.js",
+      "types": "./dist/components/index.d.ts"
     }
   },
   "dependencies": {
+    "3d-tiles-renderer": "^0.4.7",
     "@react-three/drei": "^9.92.7",
     "@react-three/fiber": "^8.15.11",
     "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
   }
 }

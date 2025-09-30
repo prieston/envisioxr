@@ -5,7 +5,7 @@ import { Tabs, Tab } from "@mui/material";
 import { useDropzone } from "react-dropzone";
 import { showToast } from "@envisio/core/utils";
 import * as THREE from "three";
-import * as Cesium from "cesium";
+import { setupCesiumClickSelector } from "@envisio/engine-cesium";
 
 import { clientEnv } from "@/lib/env/client";
 import { useSceneStore, useWorldStore } from "@envisio/core/state";
@@ -144,10 +144,7 @@ const RightPanelNew: React.FC = () => {
 
     // CESIUM BRANCH (ScreenSpaceEventHandler on Cesium canvas)
     if (engine === "cesium" && cesiumViewer) {
-      const handler = new Cesium.ScreenSpaceEventHandler(cesiumViewer.canvas);
-
-      handler.setInputAction((movement: any) => {
-        const pos = movement.position; // window coords
+      return setupCesiumClickSelector(cesiumViewer, (pos) => {
         const res = getPositionAtScreenPoint(cesiumViewer, pos.x, pos.y, {
           prefer3DTiles: true,
           preferTerrain: true,
@@ -162,15 +159,7 @@ const RightPanelNew: React.FC = () => {
         } else {
           showToast("No surface detected at click point");
         }
-      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
-      const prev = cesiumViewer.canvas.style.cursor;
-      cesiumViewer.canvas.style.cursor = "crosshair";
-
-      return () => {
-        handler.destroy();
-        cesiumViewer.canvas.style.cursor = prev || "auto";
-      };
+      });
     }
   }, [selectingPosition, engine, viewMode, orbitControlsRef, scene]);
 

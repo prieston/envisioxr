@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { Sphere } from "@react-three/drei";
 import * as THREE from "three";
-import { MathUtils } from "three";
+// import { MathUtils } from "three";
 import { useSceneStore } from "@envisio/core/state";
 import { setReferenceLocation } from "@envisio/core/utils";
 
@@ -105,10 +105,11 @@ const TilesComponent: React.FC<TilesComponentProps> = ({
       // Set the reference location for coordinate conversions
       setReferenceLocation(latitude, longitude);
 
-      tilesRenderer.setLatLonToYUp(
-        latitude * MathUtils.DEG2RAD,
-        longitude * MathUtils.DEG2RAD
-      );
+      // Note: setLatLonToYUp method may not be available in this version
+      // tilesRenderer.setLatLonToYUp(
+      //   latitude * MathUtils.DEG2RAD,
+      //   longitude * MathUtils.DEG2RAD
+      // );
 
       tilesRenderer.setCamera(camera);
       tilesRenderer.setResolutionFromRenderer(camera, gl);

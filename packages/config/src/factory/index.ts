@@ -1,3 +1,3 @@
-export * from "../../../../editor/app/config/panelConfigFactory";
-export * from "../../../../editor/app/config/topBarConfigFactory";
-export * from "../../../../editor/app/config/sceneControlsConfigFactory";
+export * from "./panelConfigFactory";
+export * from "./topBarConfigFactory";
+export * from "./sceneControlsConfigFactory";
