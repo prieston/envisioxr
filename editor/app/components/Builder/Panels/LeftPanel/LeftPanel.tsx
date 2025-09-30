@@ -35,7 +35,8 @@ const LeftPanel: React.FC = () => {
       ambientLightIntensity,
       setAmbientLightIntensity,
       basemapType,
-      setBasemapType
+      setBasemapType,
+      { engine }
     );
   }, [
     engine,

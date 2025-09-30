@@ -291,15 +291,11 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
     // Remove existing sensor entity
 
-    // If showSensorGeometry is false, just return (sensor is already removed)
+    // Always (re)create the sensor. Geometry visibility is controlled via flags
     console.log(
       "🔍 showSensorGeometry:",
       observationProperties.showSensorGeometry
     );
-    if (!observationProperties.showSensorGeometry) {
-      console.log("🔍 Sensor geometry disabled, sensor removed");
-      return;
-    }
 
     try {
       // Ensure position is an array with default values
@@ -350,7 +346,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
       // 2) Local install: map sensor's forward → model's front
       const sensorForward = observationProperties.sensorForwardAxis ?? "X+"; // Ion sensors typically look down +X
-      const modelFront = observationProperties.modelFrontAxis ?? "Z-"; // Three.js forward is Z-
+      const modelFront = observationProperties.modelFrontAxis ?? "Z+"; // Use model forward +Z by default
       const install = buildLocalInstallMatrix(
         sensorForward,
         modelFront,
@@ -420,8 +416,10 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         // ellipsoidHorizonSurfaceMaterial: sensorMat,
         // ellipsoidSurfaceMaterial: sensorMat,
 
-        showLateralSurfaces: true,
-        showDomeSurfaces: true,
+        showLateralSurfaces: !!observationProperties.showSensorGeometry,
+        showDomeSurfaces:
+          !!observationProperties.showSensorGeometry &&
+          observationProperties.sensorType === "cone",
 
         // viewshed rendering (when enabled) uses these colors instead
         showViewshed: !!observationProperties.showViewshed,
@@ -487,14 +485,29 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
         const visible = sensorColor.withAlpha(0.6); // your green with transparency like yellow
         const occluded = Cesium.Color.fromBytes(255, 0, 0, 160); // semi-red
 
-        // 1) Keep viewshed overlay
+        // 1) Keep viewshed overlay (independent from geometry toggle)
         sensor.showViewshed = !!observationProperties.showViewshed;
         sensor.viewshedVisibleColor = visible;
         sensor.viewshedOccludedColor = occluded;
 
-        // 2) SHOW the actual geometry (we previously turned these off)
-        sensor.showLateralSurfaces = true;
-        sensor.showDomeSurfaces = observationProperties.sensorType === "cone";
+        // 2) Geometry visibility controlled by toggle
+        sensor.showLateralSurfaces = !!observationProperties.showSensorGeometry;
+        sensor.showDomeSurfaces =
+          !!observationProperties.showSensorGeometry &&
+          observationProperties.sensorType === "cone";
+
+        // 2b) Disable ellipsoid overlays that can tint the globe
+        try {
+          sensor.showEllipsoidSurfaces = false;
+          sensor.showEllipsoidHorizonSurfaces = false;
+          sensor.showThroughEllipsoid = false;
+        } catch {}
+
+        // 2c) If both geometry and viewshed are off, hide the primitive entirely
+        sensor.show = !!(
+          observationProperties.showSensorGeometry ||
+          observationProperties.showViewshed
+        );
 
         // 3) Give the volume a translucent color so you can see it
         const volumeMat = Cesium.Material.fromType("Color", {
@@ -559,51 +572,12 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
   // Perform professional viewshed analysis
   const performViewshedAnalysis = useCallback(async () => {
-    if (!isInitialized || !observationProperties.showViewshed) {
-      // Remove existing viewshed
-      if (viewshedRef.current) {
-        cesiumViewer?.entities.remove(viewshedRef.current);
-        viewshedRef.current = null;
-      }
-      return;
-    }
-
-    setIsCalculating(true);
-
-    try {
-      // Ion SDK handles viewshed automatically when showViewshed is enabled
-      // No need for custom ray sampling parameters
-      // Ion SDK sensor created with built-in viewshed analysis
-
-      // The viewshed is handled by the sensor itself via showViewshed: true
-      // No additional computation needed
-      const result = {
-        polygonEntity: null, // Ion SDK handles this internally
-        boundary: [],
-      };
-
-      if (result.polygonEntity) {
-        viewshedRef.current = result.polygonEntity;
-        // Professional viewshed analysis completed
-      } else {
-        // No visible area found in viewshed analysis
-        toast.warning(
-          "No visible area found - terrain may be blocking all views",
-          {
-            position: "top-right",
-            autoClose: 5000,
-          }
-        );
-      }
-    } catch (err) {
-      // Error performing viewshed analysis
-      toast.error("Failed to perform viewshed analysis", {
-        position: "top-right",
-        autoClose: 5000,
-      });
-    } finally {
-      setIsCalculating(false);
-    }
+    // No-op: The Ion SDK primitive renders viewshed when sensor.showViewshed is true.
+    // Keep this hook to react to toggles, but avoid emitting false warnings.
+    if (!isInitialized) return;
+    if (!sensorRef.current) return;
+    sensorRef.current.showViewshed = !!observationProperties.showViewshed;
+    cesiumViewer?.scene.requestRender();
   }, [
     isInitialized,
     cesiumViewer,
@@ -660,7 +634,7 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
 
     // 2) Local install: map sensor's forward → model's front
     const sensorForward = observationProperties.sensorForwardAxis ?? "X+"; // Ion sensors typically look down +X
-    const modelFront = observationProperties.modelFrontAxis ?? "Z-"; // Three.js forward is Z-
+    const modelFront = observationProperties.modelFrontAxis ?? "Z+"; // Use model forward +Z by default
     const install = buildLocalInstallMatrix(
       sensorForward,
       modelFront,
@@ -692,7 +666,31 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
   // Create sensor when shape/visibility properties change
   useEffect(() => {
     if (!isInitialized) return;
-    createIonSDKSensor();
+    // If a sensor exists, just update flags; otherwise create
+    if (sensorRef.current) {
+      try {
+        sensorRef.current.showViewshed = !!observationProperties.showViewshed;
+        sensorRef.current.showLateralSurfaces =
+          !!observationProperties.showSensorGeometry;
+        sensorRef.current.showDomeSurfaces =
+          !!observationProperties.showSensorGeometry &&
+          observationProperties.sensorType === "cone";
+        // Disable globe overlays that can leave residual tints
+        try {
+          sensorRef.current.showEllipsoidSurfaces = false;
+          sensorRef.current.showEllipsoidHorizonSurfaces = false;
+          sensorRef.current.showThroughEllipsoid = false;
+        } catch {}
+        // Hide primitive entirely if both toggles are off
+        sensorRef.current.show = !!(
+          observationProperties.showSensorGeometry ||
+          observationProperties.showViewshed
+        );
+        cesiumViewer?.scene.requestRender();
+      } catch {}
+    } else {
+      createIonSDKSensor();
+    }
   }, [
     isInitialized,
     observationProperties.showSensorGeometry,
