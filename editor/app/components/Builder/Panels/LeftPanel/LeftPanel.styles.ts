@@ -1,6 +1,7 @@
 import { styled } from "@mui/material/styles";
 import { Box } from "@mui/material";
 
+// Container for the left panel with conditional styling based on previewMode
 export interface LeftPanelContainerProps {
   previewMode: boolean;
 }
@@ -68,4 +69,3 @@ export const TabPanel = styled(Box)(({ theme: _theme }) => ({
     },
   },
 }));
-

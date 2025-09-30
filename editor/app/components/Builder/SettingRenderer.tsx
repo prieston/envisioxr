@@ -13,7 +13,7 @@ import {
   CustomSettingContainer,
   SettingLabel,
   SettingDescription,
-} from "./Panels/RightPanel/SettingRenderer.styles";
+} from "./SettingRenderer.styles";
 import { PanelSetting } from "@envisio/core/types";
 import { getComponent } from "./ComponentRegistry";
 
