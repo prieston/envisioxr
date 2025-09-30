@@ -326,6 +326,12 @@ importers:
 
   packages/ion-sdk:
     dependencies:
+      '@cesiumgs/ion-sdk-geometry':
+        specifier: file:../../editor/Cesium-ion-SDK-1.133/packages/ion-sdk-geometry
+        version: file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-geometry(@cesium/engine@20.0.1)
+      '@cesiumgs/ion-sdk-sensors':
+        specifier: file:../../editor/Cesium-ion-SDK-1.133/packages/ion-sdk-sensors
+        version: file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-sensors(@cesium/engine@20.0.1)
       '@envisio/core':
         specifier: workspace:*
         version: link:../core
@@ -338,6 +344,9 @@ importers:
       react:
         specifier: '>=18'
         version: 18.3.1
+      react-toastify:
+        specifier: ^11.0.3
+        version: 11.0.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
       typescript:
         specifier: ^5.0.0
@@ -1404,6 +1413,18 @@ packages:
   '@cesium/widgets@13.1.1':
     resolution: {integrity: sha512-EIZCSLLJzG0BeNcKjDfQcNv+9KiI9TqqN0RveuZIu++FCs2kL29neImicWEZlSfX38xxQLaogmhZLh2pO73NPg==}
     engines: {node: '>=20.19.0'}
+
+  '@cesiumgs/ion-sdk-geometry@file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-geometry':
+    resolution: {directory: editor/Cesium-ion-SDK-1.133/packages/ion-sdk-geometry, type: directory}
+    engines: {node: '>=20.19.0'}
+    peerDependencies:
+      '@cesium/engine': ^20.0.0
+
+  '@cesiumgs/ion-sdk-sensors@file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-sensors':
+    resolution: {directory: editor/Cesium-ion-SDK-1.133/packages/ion-sdk-sensors, type: directory}
+    engines: {node: '>=20.19.0'}
+    peerDependencies:
+      '@cesium/engine': ^20.0.0
 
   '@choojs/findup@0.2.1':
     resolution: {integrity: sha512-YstAqNb0MCN8PjdLCDfRsBcGVRN41f3vgLvaI0IrIcBp4AqILRSS0DeWNGkicC+f/zRIPJLc+9RURVSepwvfBw==}
@@ -10722,6 +10743,14 @@ snapshots:
     dependencies:
       '@cesium/engine': 20.0.1
       nosleep.js: 0.12.0
+
+  '@cesiumgs/ion-sdk-geometry@file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-geometry(@cesium/engine@20.0.1)':
+    dependencies:
+      '@cesium/engine': 20.0.1
+
+  '@cesiumgs/ion-sdk-sensors@file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-sensors(@cesium/engine@20.0.1)':
+    dependencies:
+      '@cesium/engine': 20.0.1
 
   '@choojs/findup@0.2.1':
     dependencies:

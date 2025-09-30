@@ -2,16 +2,21 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
     "moduleResolution": "bundler",
     "module": "esnext",
     "jsx": "react-jsx",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": false,
+    "baseUrl": "../../",
+    "paths": {
+      "@envisio/core/*": ["packages/core/src/*"],
+      "@envisio/ion-sdk/*": ["packages/ion-sdk/src/*"]
+    }
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "../core/**/*", "../../editor/**/*", "../../website/**/*"]
 }
 
 

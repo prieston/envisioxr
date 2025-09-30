@@ -19,6 +19,13 @@ const CesiumViewer = dynamic(() => import("@envisio/engine-cesium"), {
 const ObjectTransformEditor = dynamic(() => import("./ObjectTransformEditor"), {
   ssr: false,
 });
+const CesiumIonSDKViewshedAnalysis = dynamic(
+  () =>
+    import("@envisio/ion-sdk").then((m) => ({
+      default: m.CesiumIonSDKViewshedAnalysis,
+    })),
+  { ssr: false }
+);
 
 interface SceneCanvasProps {
   initialSceneData: any;
@@ -33,6 +40,8 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
 }) => {
   const engine = useWorldStore((s) => s.engine);
   const selectedObject = useSceneStore((s) => s.selectedObject);
+  const objects = useSceneStore((s) => s.objects);
+  const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
   return (
     <div
       style={{
@@ -50,6 +59,27 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
           {selectedObject && (
             <ObjectTransformEditor selectedObject={selectedObject} />
           )}
+          {Array.isArray(objects)
+            ? objects
+                .filter(
+                  (obj: any) =>
+                    obj?.isObservationModel && obj?.observationProperties
+                )
+                .map((obj: any) => (
+                  <CesiumIonSDKViewshedAnalysis
+                    key={`ion-viewshed-${obj.id}`}
+                    position={
+                      (obj.position || [0, 0, 0]) as [number, number, number]
+                    }
+                    rotation={
+                      (obj.rotation || [0, 0, 0]) as [number, number, number]
+                    }
+                    observationProperties={obj.observationProperties as any}
+                    objectId={obj.id}
+                    cesiumViewer={cesiumViewer}
+                  />
+                ))
+            : null}
         </>
       ) : (
         <Scene

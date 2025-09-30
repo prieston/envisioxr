@@ -11,6 +11,11 @@
       "default": "./dist/index.js"
     }
   },
+  "dependencies": {
+    "@cesiumgs/ion-sdk-sensors": "file:../../editor/Cesium-ion-SDK-1.133/packages/ion-sdk-sensors",
+    "@cesiumgs/ion-sdk-geometry": "file:../../editor/Cesium-ion-SDK-1.133/packages/ion-sdk-geometry",
+    "react-toastify": "^11.0.3"
+  },
   "peerDependencies": {
     "react": ">=18",
     "next": ">=14",
