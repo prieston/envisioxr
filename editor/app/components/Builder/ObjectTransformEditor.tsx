@@ -33,6 +33,8 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
   const { cesiumViewer, transformMode } = useSceneStore();
   const transformEditorRef = useRef<TransformEditor | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  // When we programmatically sync the gizmo from store, suppress one rAF cycle of change detection
+  const suppressChangeRef = useRef(false);
 
   // --- helpers ---
   const applyTRStoEntity = useCallback(
@@ -206,6 +208,11 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
     let animationId: number | null = null;
 
     const checkForChanges = () => {
+      // Skip one frame of change detection if we just updated the gizmo programmatically
+      if (suppressChangeRef.current) {
+        animationId = requestAnimationFrame(checkForChanges);
+        return;
+      }
       if (transformEditor.viewModel.active) {
         const newPosition = transformEditor.viewModel.position;
         const newHPR = transformEditor.viewModel.headingPitchRoll;
@@ -301,9 +308,14 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
     const pos = Cartesian3.fromDegrees(lon, lat, hgt);
     const hpr = new HeadingPitchRoll(hd, pt, rl);
 
-    // Update existing gizmo position
+    // Update existing gizmo position (suppress echo back into polling loop)
+    suppressChangeRef.current = true;
     transformEditorRef.current.viewModel.position = pos;
     transformEditorRef.current.viewModel.headingPitchRoll = hpr;
+    // Allow polling again on next frame
+    requestAnimationFrame(() => {
+      suppressChangeRef.current = false;
+    });
   }, [selectedObject.position, selectedObject.rotation]); // Only when position/rotation changes
 
   // --- update gizmo mode when transform mode changes ---
