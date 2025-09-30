@@ -13,7 +13,10 @@ import {
 } from "./helpers";
 import dynamic from "next/dynamic";
 const CesiumIonSDKViewshedAnalysis = dynamic<any>(
-  () => import("@envisio/ion-sdk").then((m) => m.ViewshedAnalysis as any),
+  () =>
+    import("@envisio/ion-sdk").then(
+      (m) => m.CesiumIonSDKViewshedAnalysis as any
+    ),
   { ssr: false }
 );
 // Removed engine-owned transform editor; editor app renders it directly if needed
@@ -191,6 +194,7 @@ export default function CesiumViewer() {
   const setCesiumViewer = useSceneStore((s) => s.setCesiumViewer);
   const setCesiumInstance = useSceneStore((s) => s.setCesiumInstance);
   const selectedObject = useSceneStore((s) => s.selectedObject);
+  const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
   const viewerRef = useRef<any>(null);
   const cesiumRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -798,6 +802,7 @@ export default function CesiumViewer() {
 
             return observationObjects.map((obj) => {
               const [longitude, latitude, height] = obj.position || [0, 0, 0];
+              const rotation = obj.rotation || [0, 0, 0];
 
               const observationProps = {
                 sensorType: obj.observationProperties?.sensorType || "cone",
@@ -827,8 +832,10 @@ export default function CesiumViewer() {
                 <CesiumIonSDKViewshedAnalysis
                   key={`ion-viewshed-${obj.id}`}
                   position={[longitude, latitude, height]}
+                  rotation={rotation}
                   observationProperties={observationProps as any}
                   objectId={obj.id}
+                  cesiumViewer={cesiumViewer}
                 />
               );
             });

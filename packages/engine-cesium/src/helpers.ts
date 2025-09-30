@@ -4,7 +4,6 @@ export { default as CesiumCameraCaptureHandler } from "./helpers/CesiumCameraCap
 export { default as CesiumObservationPointHandler } from "./helpers/CesiumObservationPointHandler";
 export { default as CesiumCameraSpringController } from "./helpers/CesiumCameraSpringController";
 export { default as CesiumPreviewModeController } from "./helpers/CesiumPreviewModeController";
-export { default as CesiumIonSDKViewshedAnalysis } from "./helpers/CesiumIonSDKViewshedAnalysis";
 export { setupCesiumClickSelector } from "./helpers/CesiumScreenClickSelector";
 export { default as CesiumObjectTransformEditor } from "./helpers/CesiumObjectTransformEditor";
 export { default as CesiumWeatherData3DDisplay } from "./helpers/CesiumWeatherData3DDisplay";
