@@ -2,7 +2,7 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import { useWorldStore } from "@envisio/core/state";
+import { useWorldStore, useSceneStore } from "@envisio/core/state";
 
 const Scene = dynamic(
   () =>
@@ -14,6 +14,9 @@ const Scene = dynamic(
   }
 );
 const CesiumViewer = dynamic(() => import("@envisio/engine-cesium"), {
+  ssr: false,
+});
+const ObjectTransformEditor = dynamic(() => import("./ObjectTransformEditor"), {
   ssr: false,
 });
 
@@ -29,6 +32,7 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
   renderObservationPoints = true,
 }) => {
   const engine = useWorldStore((s) => s.engine);
+  const selectedObject = useSceneStore((s) => s.selectedObject);
   return (
     <div
       style={{
@@ -41,7 +45,12 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
       }}
     >
       {engine === "cesium" ? (
-        <CesiumViewer />
+        <>
+          <CesiumViewer />
+          {selectedObject && (
+            <ObjectTransformEditor selectedObject={selectedObject} />
+          )}
+        </>
       ) : (
         <Scene
           initialSceneData={initialSceneData}

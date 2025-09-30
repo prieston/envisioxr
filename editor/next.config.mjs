@@ -1,4 +1,5 @@
 import process from 'process';
+import path from 'path';
 import withBundleAnalyzer from '@next/bundle-analyzer';
 import withPWA from '@ducanh2912/next-pwa';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
@@ -25,7 +26,8 @@ const nextConfig = {
   transpilePackages: [
     '@envisio/engine-three',
     '@envisio/engine-cesium',
-    '@envisio/core'
+    '@envisio/core',
+    '@envisio/ion-sdk'
   ],
   // Optimize output for better performance
   output: 'standalone',
@@ -37,6 +39,8 @@ const nextConfig = {
       alias: {
         ...config.resolve?.alias,
         '@': '.',
+        // Force single Three.js instance across workspace
+        'three': path.resolve(process.cwd(), 'node_modules/three')
       },
       fallback: {
         ...config.resolve?.fallback,

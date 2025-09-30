@@ -18,11 +18,13 @@
   "dependencies": {
     "3d-tiles-renderer": "^0.4.7",
     "@react-three/drei": "^9.92.7",
-    "@react-three/fiber": "^8.15.11",
-    "three": "^0.170.0"
+    "@react-three/fiber": "^8.15.11"
   },
   "devDependencies": {
     "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.170.0 <1"
   },
   "scripts": {
     "build": "tsc",
