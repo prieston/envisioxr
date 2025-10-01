@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 import { SceneObjectsProps, Model as ModelType } from "./types";
 import Model from "../Model";
 

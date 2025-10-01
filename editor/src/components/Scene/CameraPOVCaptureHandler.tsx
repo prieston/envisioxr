@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { useThree } from "@react-three/fiber";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 import * as THREE from "three";
 
 type Vector3Tuple = [number, number, number];

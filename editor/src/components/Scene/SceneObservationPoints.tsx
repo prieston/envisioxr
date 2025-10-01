@@ -2,7 +2,7 @@
 
 import React from "react";
 import ObservationPoint from "../ObservationPoint";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 import { SceneObservationPointsProps } from "./types";
 
 const SceneObservationPoints: React.FC<SceneObservationPointsProps> = ({
