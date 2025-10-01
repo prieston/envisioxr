@@ -66,15 +66,6 @@ importers:
       '@cesium/widgets':
         specifier: ^13.1.1
         version: 13.1.1
-      '@cesiumgs/ion-sdk-geometry':
-        specifier: workspace:*
-        version: link:../packages/ion-sdk-geometry
-      '@cesiumgs/ion-sdk-measurements':
-        specifier: workspace:*
-        version: link:../packages/ion-sdk-measurements
-      '@cesiumgs/ion-sdk-sensors':
-        specifier: workspace:*
-        version: link:../packages/ion-sdk-sensors
       '@ducanh2912/next-pwa':
         specifier: ^10.0.0
         version: 10.2.9(@types/babel__core@7.20.5)(next@14.2.32(@babel/core@7.28.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(webpack@5.101.3)
@@ -90,6 +81,9 @@ importers:
       '@envisio/ion-sdk':
         specifier: workspace:^
         version: link:../packages/ion-sdk
+      '@envisio/ui':
+        specifier: workspace:^
+        version: link:../packages/ui
       '@envisioxr/prisma':
         specifier: workspace:*
         version: link:../packages/prisma
@@ -406,48 +400,6 @@ importers:
         specifier: ^5.0.0
         version: 5.9.2
 
-  packages/ion-sdk-geometry:
-    dependencies:
-      '@cesium/engine':
-        specifier: ^20.0.0
-        version: 20.0.1
-    devDependencies:
-      '@types/three':
-        specifier: ^0.170.0
-        version: 0.170.0
-      '@types/uuid':
-        specifier: ^9.0.8
-        version: 9.0.8
-
-  packages/ion-sdk-measurements:
-    dependencies:
-      '@cesium/engine':
-        specifier: ^20.0.0
-        version: 20.0.1
-      '@cesium/widgets':
-        specifier: ^13.1.0
-        version: 13.1.1
-    devDependencies:
-      '@types/three':
-        specifier: ^0.170.0
-        version: 0.170.0
-      '@types/uuid':
-        specifier: ^9.0.8
-        version: 9.0.8
-
-  packages/ion-sdk-sensors:
-    dependencies:
-      '@cesium/engine':
-        specifier: ^20.0.0
-        version: 20.0.1
-    devDependencies:
-      '@types/three':
-        specifier: ^0.170.0
-        version: 0.170.0
-      '@types/uuid':
-        specifier: ^9.0.8
-        version: 9.0.8
-
   packages/prisma:
     dependencies:
       '@prisma/client':
@@ -468,7 +420,23 @@ importers:
         version: 5.9.2
 
   packages/ui:
+    dependencies:
+      react:
+        specifier: '>=18'
+        version: 18.3.1
+      react-dom:
+        specifier: '>=18'
+        version: 18.3.1(react@18.3.1)
     devDependencies:
+      '@emotion/react':
+        specifier: ^11.14.0
+        version: 11.14.0(@types/react@18.3.24)(react@18.3.1)
+      '@emotion/styled':
+        specifier: ^11.14.0
+        version: 11.14.1(@emotion/react@11.14.0(@types/react@18.3.24)(react@18.3.1))(@types/react@18.3.24)(react@18.3.1)
+      '@mui/material':
+        specifier: ^6.4.1
+        version: 6.5.0(@emotion/react@11.14.0(@types/react@18.3.24)(react@18.3.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.24)(react@18.3.1))(@types/react@18.3.24)(react@18.3.1))(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@types/three':
         specifier: ^0.170.0
         version: 0.170.0

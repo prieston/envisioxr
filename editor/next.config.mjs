@@ -27,7 +27,8 @@ const nextConfig = {
     '@envisio/engine-three',
     '@envisio/engine-cesium',
     '@envisio/core',
-    '@envisio/ion-sdk'
+    '@envisio/ion-sdk',
+    '@envisio/ui'
   ],
   // Optimize output for better performance
   output: 'standalone',
