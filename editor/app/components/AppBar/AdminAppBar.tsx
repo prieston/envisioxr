@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Divider, IconButton } from "@mui/material";
 import LogoHeader from "./LogoHeader.tsx";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 import {
   AppBarContainer,
   ToolbarContainer,

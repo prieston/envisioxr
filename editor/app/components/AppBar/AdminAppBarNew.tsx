@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Divider } from "@mui/material";
-import { useSceneStore, useWorldStore } from "@envisio/core/state";
+import { useSceneStore, useWorldStore } from "@envisio/core";
 import { getTopBarConfig } from "@envisio/config/factory";
 import TopBarToolRenderer from "./TopBarToolRenderer";
 import {

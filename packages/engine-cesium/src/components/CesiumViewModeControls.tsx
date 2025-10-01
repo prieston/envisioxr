@@ -15,7 +15,7 @@ import {
   Explore,
 } from "@mui/icons-material";
 import * as Cesium from "cesium";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 import { SimulationMode } from "@envisio/engine-cesium/CesiumControls/types";
 
 // ============================================================================

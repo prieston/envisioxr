@@ -1,4 +1,3 @@
 export * from "./coordinateUtils";
-export * from "./cesiumPositioningUtils";
-export * from "./CesiumSDK";
+// Cesium-specific utils are exported from @envisio/engine-cesium
 export * from "./toastUtils";

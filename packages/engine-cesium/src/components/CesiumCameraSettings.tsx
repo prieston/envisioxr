@@ -5,7 +5,7 @@ import {
   SectionTitle,
   SettingRow,
 } from "./CesiumCameraSettings.styles";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 
 interface CesiumCameraSettingsProps {
   disabled?: boolean;

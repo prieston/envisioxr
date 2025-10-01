@@ -1,1 +1,2 @@
-export { default as iotService } from "../../../../editor/app/services/IoTService";
+// Editor IoT service is not part of core build output
+export {};

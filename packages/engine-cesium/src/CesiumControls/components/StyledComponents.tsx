@@ -15,7 +15,7 @@ export const ViewModeSection = styled(Box, {
   opacity: previewMode ? 0.5 : 1,
   filter: previewMode ? "grayscale(100%)" : "none",
   transition: "opacity 0.3s ease, filter 0.3s ease",
-}));
+})) as any;
 
 /**
  * Styled row container for view mode buttons
@@ -24,7 +24,7 @@ export const ViewModeRow = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   gap: theme.spacing(0.5),
-}));
+})) as any;
 
 /**
  * Styled button for view mode controls
@@ -44,4 +44,4 @@ export const ViewModeButton = styled(Button)(({ theme }) => ({
   "& .MuiSvgIcon-root": {
     fontSize: "1.2rem",
   },
-}));
+})) as any;

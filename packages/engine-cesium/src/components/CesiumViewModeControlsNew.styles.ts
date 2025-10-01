@@ -36,5 +36,3 @@ export const ViewModeButton = styled(Button)(({ theme }) => ({
     fontSize: "1.2rem",
   },
 }));
-
-

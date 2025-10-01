@@ -2,48 +2,20 @@
 
 import React, { useRef, useEffect, Suspense } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { Grid, Sky, Html } from "@react-three/drei";
-import { useSceneStore } from "@envisio/core/state";
+import { Grid, Sky } from "@react-three/drei";
+import { useSceneStore } from "@envisio/core";
 import * as THREE from "three";
 
-import type {
-  SceneProps,
-  Model,
-} from "../../../editor/src/components/Scene/types";
-import SceneLights from "../../../editor/src/components/Scene/SceneLights";
-import SceneObjects from "../../../editor/src/components/Scene/SceneObjects";
-import SceneObservationPoints from "../../../editor/src/components/Scene/SceneObservationPoints";
-import SceneTransformControlsNew from "../../../editor/src/components/Scene/SceneTransformControlsNew";
-import CameraPOVCaptureHandler from "../../../editor/src/components/Scene/CameraPOVCaptureHandler";
-import ObservationPointHandler from "../../../editor/src/components/Scene/ObservationPointHandler";
-import CameraSpringController from "../../../editor/src/components/Scene/CameraSpringController";
-import XRWrapper from "../../../editor/src/components/Scene/XRWrapper";
-import SceneControls from "../../../editor/src/components/Scene/controls/SceneControls";
-import Loader from "../../../editor/src/components/Scene/Loader";
-import dynamic from "next/dynamic";
-
-// Create a dynamic import for the 3D Tiles components
-const TilesComponent = dynamic(
-  () =>
-    import("../../../editor/app/components/Builder/Environment/TilesComponent"),
-  {
-    ssr: false,
-    loading: () => (
-      <Html center>
-        <div
-          style={{
-            color: "white",
-            background: "rgba(0,0,0,0.7)",
-            padding: "20px",
-            borderRadius: "10px",
-          }}
-        >
-          Loading 3D Tiles components...
-        </div>
-      </Html>
-    ),
-  }
-);
+import type { SceneProps, Model } from "./components/Scene/types";
+import SceneLights from "./components/Scene/SceneLights";
+import SceneObjects from "./components/Scene/SceneObjects";
+import SceneObservationPoints from "./components/Scene/SceneObservationPoints";
+import SceneTransformControlsNew from "./components/Scene/SceneTransformControlsNew";
+import CameraPOVCaptureHandler from "./components/Scene/CameraPOVCaptureHandler";
+import ObservationPointHandler from "./components/Scene/ObservationPointHandler";
+import SceneControls from "./components/Scene/controls/SceneControls";
+import Loader from "./components/Scene/Loader";
+import { CesiumIonTiles } from "./components";
 
 // Create a component to handle deselection
 const DeselectionHandler = () => {
@@ -51,20 +23,20 @@ const DeselectionHandler = () => {
   const deselectObject = useSceneStore((state) => state.deselectObject);
 
   const handleClick = (e: MouseEvent) => {
-    if (e.target !== gl.domElement) return;
+    if (e.target !== (gl as any).domElement) return;
 
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
-    const rect = gl.domElement.getBoundingClientRect();
+    const rect = (gl as any).domElement.getBoundingClientRect();
     mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-    raycaster.setFromCamera(mouse, camera);
+    raycaster.setFromCamera(mouse, camera as any);
 
-    const allObjects: THREE.Mesh[] = [];
-    scene.traverse((object: THREE.Object3D) => {
-      if (object instanceof THREE.Mesh) {
+    const allObjects: any[] = [];
+    (scene as any).traverse((object: any) => {
+      if ((object as any).isMesh) {
         allObjects.push(object);
       }
     });
@@ -152,74 +124,73 @@ export default function Scene({
     onSceneDataChange,
   ]);
 
+  const canRenderTiles = showTiles && selectedLocation;
+
   return (
     <>
       <Canvas
         shadows
         camera={{ position: [0, 5, 10], fov: 50 }}
         onCreated={({ gl }) => {
-          gl.setClearColor("#000000");
+          (gl as any).setClearColor?.("#000000");
         }}
       >
         <Suspense fallback={null}>
-          <XRWrapper enabled={enableXR}>
-            <DeselectionHandler />
-            {showTiles && (
-              <TilesComponent
-                apiKey={process.env.NEXT_PUBLIC_CESIUM_ION_KEY || ""}
-                assetId={selectedAssetId}
-                latitude={selectedLocation?.latitude}
-                longitude={selectedLocation?.longitude}
-              />
-            )}
-
-            {skyboxType === "default" && (
-              <Sky
-                distance={450000}
-                sunPosition={[10, 20, 10]}
-                inclination={0.49}
-                azimuth={0.25}
-              />
-            )}
-            {gridEnabled && (
-              <Grid
-                position={[0, 0, 0]}
-                args={[20, 20]}
-                cellSize={1}
-                cellThickness={0.5}
-                sectionSize={5}
-                sectionThickness={1}
-                fadeDistance={100}
-                sectionColor="white"
-                cellColor="gray"
-                renderOrder={-1}
-              />
-            )}
-
-            <SceneLights ambientLightIntensity={ambientLightIntensity} />
-            <SceneObjects
-              objects={objects as Model[]}
-              previewMode={previewMode}
-              enableXR={enableXR}
-              isPublishMode={isPublishMode}
+          <DeselectionHandler />
+          {canRenderTiles && (
+            <CesiumIonTiles
+              apiKey={"" as any}
+              assetId={selectedAssetId}
+              latitude={selectedLocation?.latitude as number}
+              longitude={selectedLocation?.longitude as number}
             />
-            <SceneObservationPoints
-              points={observationPoints}
-              previewMode={previewMode}
-              enableXR={enableXR}
-              renderObservationPoints={renderObservationPoints}
-            />
-            <SceneTransformControlsNew
-              selectedObject={selectedObject as Model | null}
-              transformControlsRef={transformControlsRef}
-            />
+          )}
 
-            <SceneControls />
+          {skyboxType === "default" && (
+            <Sky
+              distance={450000}
+              sunPosition={[10, 20, 10]}
+              inclination={0.49}
+              azimuth={0.25}
+            />
+          )}
+          {gridEnabled && (
+            <Grid
+              position={[0, 0, 0]}
+              args={[20, 20]}
+              cellSize={1}
+              cellThickness={0.5}
+              sectionSize={5}
+              sectionThickness={1}
+              fadeDistance={100}
+              sectionColor="white"
+              cellColor="gray"
+              renderOrder={-1}
+            />
+          )}
 
-            <CameraSpringController />
-            <CameraPOVCaptureHandler />
-            <ObservationPointHandler />
-          </XRWrapper>
+          <SceneLights ambientLightIntensity={ambientLightIntensity} />
+          <SceneObjects
+            objects={objects as Model[]}
+            previewMode={previewMode}
+            enableXR={false}
+            isPublishMode={isPublishMode}
+          />
+          <SceneObservationPoints
+            points={observationPoints}
+            previewMode={previewMode}
+            enableXR={false}
+            renderObservationPoints={renderObservationPoints}
+          />
+          <SceneTransformControlsNew
+            selectedObject={selectedObject as Model | null}
+            transformControlsRef={transformControlsRef}
+          />
+
+          <SceneControls />
+
+          <CameraPOVCaptureHandler />
+          <ObservationPointHandler />
         </Suspense>
       </Canvas>
       <Loader />

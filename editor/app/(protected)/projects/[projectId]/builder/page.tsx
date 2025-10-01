@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { Box, CircularProgress } from "@mui/material";
 import AdminLayout from "../../../../../app/components/Builder/AdminLayout";
 import SceneCanvas from "../../../../../app/components/Builder/SceneCanvas";
-import { useSceneStore, useWorldStore } from "@envisio/core/state";
+import { useSceneStore, useWorldStore } from "@envisio/core";
 import { showToast } from "../../../../../app/utils/toastUtils";
 import { toast } from "react-toastify";
 

@@ -14,7 +14,7 @@ import {
   Explore,
 } from "@mui/icons-material";
 import { SimulationMode } from "@envisio/engine-cesium/CesiumControls/types";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 import { useCameraControllerManager } from "@envisio/engine-cesium/CesiumControls/hooks/useCameraControllerManager";
 import { createLogger } from "../utils/logger";
 

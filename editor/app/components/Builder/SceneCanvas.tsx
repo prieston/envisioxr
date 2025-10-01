@@ -2,7 +2,7 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import { useWorldStore, useSceneStore } from "@envisio/core/state";
+import { useWorldStore, useSceneStore } from "@envisio/core";
 
 const Scene = dynamic(
   () =>

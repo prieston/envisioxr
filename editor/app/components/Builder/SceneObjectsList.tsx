@@ -15,7 +15,7 @@ import {
   StyledIconButton,
 } from "./SceneObjectsList.styles";
 import { MoreVert } from "@mui/icons-material";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 
 interface SceneObjectsListProps {
   value?: any;

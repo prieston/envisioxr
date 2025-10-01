@@ -19,5 +19,3 @@ export const LocationInfo = styled(Box)(({ theme }) => ({
   backgroundColor: "rgba(255, 255, 255, 0.03)",
   borderRadius: "6px",
 }));
-
-

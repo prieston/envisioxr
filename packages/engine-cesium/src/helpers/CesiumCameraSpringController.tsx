@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import * as Cesium from "cesium";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 
 type Vector3Tuple = [number, number, number];
 

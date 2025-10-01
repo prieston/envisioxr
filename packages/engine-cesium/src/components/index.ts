@@ -5,3 +5,5 @@ export { default as CesiumViewModeControls } from "./CesiumViewModeControlsNew";
 export { default as CesiumViewModeControlsLegacy } from "./CesiumViewModeControls";
 export { default as CesiumCameraSettings } from "./CesiumCameraSettings";
 export { default as CesiumSimulationInstructions } from "./CesiumSimulationInstructions";
+export { default as LocationSearch } from "./LocationSearch";
+export { default as CesiumIonAssetsManager } from "./CesiumIonAssetsManager";

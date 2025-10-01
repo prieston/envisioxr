@@ -1,4 +1,4 @@
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 
 interface WeatherData {
   temperature: number;

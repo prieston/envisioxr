@@ -1,6 +1,6 @@
 import React from "react";
 import { showToast } from "@envisio/core/utils";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 import * as THREE from "three";
 import { localToGeographic } from "@envisio/core/utils";
 import { MinimalButton } from "../AppBar/StyledComponents";

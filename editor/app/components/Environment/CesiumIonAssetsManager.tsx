@@ -26,7 +26,7 @@ import {
   SectionTitle,
   AssetListItem,
 } from "./CesiumIonAssetsManager.styles";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 
 interface CesiumIonAssetsManagerProps {}
 

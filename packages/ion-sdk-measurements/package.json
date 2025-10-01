@@ -62,5 +62,9 @@
   },
   "bugs": {
     "url": "https://github.com/CesiumGS/cesium/issues"
+  },
+  "devDependencies": {
+    "@types/three": "^0.170.0",
+    "@types/uuid": "^9.0.8"
   }
 }

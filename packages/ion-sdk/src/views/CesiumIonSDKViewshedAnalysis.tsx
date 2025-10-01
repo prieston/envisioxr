@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
-// import { useSceneStore } from "@envisio/core/state";
+// import { useSceneStore } from "@envisio/core";
 import { toast } from "react-toastify";
 
 // Use Cesium.Math from "cesium" everywhere
@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import * as Cesium from "cesium";
 
 // Import Ion SDK modules directly
-import { RectangularSensor, ConicSensor } from "@cesiumgs/ion-sdk-sensors";
+// Types exist in d.ts but import as any to avoid strict named export typing
 import {
   createConicSensorOrComposite,
   createRectangularSensor as createIonRectangularSensor,
@@ -19,8 +19,8 @@ import {
   updateFovRadius as updateIonFovRadius,
   updateColors as updateIonColors,
 } from "../utils/sensors";
-import * as IonSensors from "@cesiumgs/ion-sdk-sensors";
-import * as IonGeometry from "@cesiumgs/ion-sdk-geometry";
+import * as IonSensors from "../vendor/cesium-ion-sdk/ion-sdk-sensors";
+import * as IonGeometry from "../vendor/cesium-ion-sdk/ion-sdk-geometry";
 
 // Sensor axis alignment utilities
 function axisToVec(
@@ -164,7 +164,7 @@ function buildCompositeConicSensor(opts: {
     );
 
     const volumeMat = Cesium.Material.fromType("Color", { color: volumeColor });
-    const part = new ConicSensor({
+    const part = new (IonSensors as any).ConicSensor({
       modelMatrix,
       radius,
       outerHalfAngle: partHalfRad,
