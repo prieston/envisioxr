@@ -155,10 +155,12 @@ const SDKObservationPropertiesPanel: React.FC<
                   Field of View: {observationProps.fov}°
                 </Typography>
                 <Slider
-                  value={observationProps.fov}
+                  value={Math.min(180, observationProps.fov)}
                   min={10}
-                  max={360}
-                  onChange={(_, value) => handlePropertyChange("fov", value)}
+                  max={180}
+                  onChange={(_, value) =>
+                    handlePropertyChange("fov", Math.min(180, Number(value)))
+                  }
                   valueLabelDisplay="auto"
                 />
               </Grid>
@@ -176,10 +178,18 @@ const SDKObservationPropertiesPanel: React.FC<
                     {observationProps.fovH || observationProps.fov}°
                   </Typography>
                   <Slider
-                    value={observationProps.fovH || observationProps.fov}
+                    value={Math.min(
+                      180,
+                      observationProps.fovH || observationProps.fov
+                    )}
                     min={10}
-                    max={360}
-                    onChange={(_, value) => handlePropertyChange("fovH", value)}
+                    max={180}
+                    onChange={(_, value) =>
+                      handlePropertyChange(
+                        "fovH",
+                        Math.min(180, Number(value))
+                      )
+                    }
                     valueLabelDisplay="auto"
                   />
                 </Grid>
@@ -195,13 +205,16 @@ const SDKObservationPropertiesPanel: React.FC<
                     °
                   </Typography>
                   <Slider
-                    value={
+                    value={Math.min(
+                      180,
                       observationProps.fovV ||
-                      Math.round(observationProps.fov * 0.6)
-                    }
+                        Math.round(observationProps.fov * 0.6)
+                    )}
                     min={10}
                     max={180}
-                    onChange={(_, value) => handlePropertyChange("fovV", value)}
+                    onChange={(_, value) =>
+                      handlePropertyChange("fovV", Math.min(180, Number(value)))
+                    }
                     valueLabelDisplay="auto"
                   />
                 </Grid>
