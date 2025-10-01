@@ -6,7 +6,7 @@ import { useSceneStore, useWorldStore } from "@envisio/core";
 import { getLeftPanelConfig } from "@envisio/config/factory";
 import SettingRenderer from "../../SettingRenderer";
 
-import { LeftPanelContainer, TabPanel } from "./LeftPanel.styles";
+import { LeftPanelContainer, TabPanel } from "@envisio/ui";
 
 const LeftPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);

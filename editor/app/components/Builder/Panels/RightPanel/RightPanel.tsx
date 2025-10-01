@@ -13,7 +13,7 @@ import { getRightPanelConfig } from "@envisio/config/factory";
 import SettingRenderer from "../../SettingRenderer";
 import { getPositionAtScreenPoint } from "@envisio/engine-cesium";
 
-import { RightPanelContainer, TabPanel } from "./RightPanel.styles";
+import { RightPanelContainer, TabPanel } from "@envisio/ui";
 
 const RightPanelNew: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
