@@ -334,7 +334,8 @@ export abstract class BaseCameraController implements IBaseCameraController {
     // Accept deltas when pointer-locked OR while dragging on the canvas
     const isDragOnCanvas =
       this.inputState.isMouseDown &&
-      (e.target === canvas || e.composedPath?.().includes?.(canvas));
+      (e.target === canvas ||
+        (canvas ? e.composedPath?.().includes?.(canvas) : false));
     if (!locked && !isDragOnCanvas) {
       return; // ignore stray moves
     }

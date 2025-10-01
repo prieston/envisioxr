@@ -2,7 +2,7 @@
 import React from "react";
 import Scene, { SceneProps } from "@envisio/engine-three";
 import dynamic from "next/dynamic";
-import { useWorldStore } from "@envisio/core/state";
+import { useWorldStore } from "@envisio/core";
 
 const CesiumViewer = dynamic(() => import("@envisio/engine-cesium"), {
   ssr: false,

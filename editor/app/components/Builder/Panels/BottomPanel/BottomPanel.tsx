@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import { Divider } from "@mui/material";
-import { useSceneStore, useWorldStore } from "@envisio/core/state";
+import { useSceneStore, useWorldStore } from "@envisio/core";
 import { getBottomPanelConfig } from "@envisio/config/factory";
 import { BottomPanelContainer } from "./BottomPanel.styles";
 import SettingRenderer from "../../SettingRenderer";

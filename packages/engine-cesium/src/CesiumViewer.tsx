@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useWorldStore, useSceneStore } from "@envisio/core/state";
-import iotService from "../../../editor/app/services/IoTService";
+import { useWorldStore, useSceneStore } from "@envisio/core";
+// IoT service is an editor concern; stub locally for engine usage
+const iotService = {
+  initialize: () => {},
+  stopAll: () => {},
+};
 import {
   CesiumPerformanceOptimizer,
   CesiumIonAssetsRenderer,
@@ -193,8 +197,24 @@ export default function CesiumViewer() {
   const world = useWorldStore((s) => s.activeWorld);
   const setCesiumViewer = useSceneStore((s) => s.setCesiumViewer);
   const setCesiumInstance = useSceneStore((s) => s.setCesiumInstance);
-  const selectedObject = useSceneStore((s) => s.selectedObject);
+  // const selectedObject = useSceneStore((s) => s.selectedObject); // Unused for now
   const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
+
+  // Debug logging for store instances
+  const sceneStore = useSceneStore.getState();
+  const worldStore = useWorldStore.getState();
+  console.log(
+    "[CesiumViewer] SceneStore instance:",
+    sceneStore,
+    "Objects count:",
+    sceneStore.objects.length
+  );
+  console.log(
+    "[CesiumViewer] WorldStore instance:",
+    worldStore,
+    "Active world:",
+    worldStore.activeWorld?.id
+  );
   const viewerRef = useRef<any>(null);
   const cesiumRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -279,6 +299,7 @@ export default function CesiumViewer() {
         }
 
         // Create viewer with mobile-optimized configuration
+        if (!containerRef.current) throw new Error("Missing container element");
         viewerRef.current = new Viewer(containerRef.current, {
           // Disable all UI widgets and controls for better performance
           animation: false,
@@ -308,8 +329,7 @@ export default function CesiumViewer() {
               stencil: false,
             },
           },
-          // Add Cesium World Imagery as default basemap
-          imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }),
+          // Imagery provider is configured after viewer creation
           // Remove credits and attribution
           creditContainer: undefined,
           creditViewport: undefined,
@@ -442,6 +462,10 @@ export default function CesiumViewer() {
     if (!viewer || !Cesium || isLoading) return;
 
     try {
+      console.log(
+        "[CesiumViewer] Render pass: objects in store:",
+        objects.length
+      );
       // Track model entity ids we want to keep this render
       const keepModelEntityIds = new Set<string>();
 
@@ -489,6 +513,28 @@ export default function CesiumViewer() {
             latitude = referenceLat + latOffset;
             height = z; // Use z directly as height
           }
+
+          console.log(
+            "[CesiumViewer] Object:",
+            { id: obj.id, name: obj.name, url: obj.url, type: obj.type },
+            "coords:",
+            { longitude, latitude, height },
+            "isModelFile:",
+            !!(
+              obj.url &&
+              obj.type &&
+              (obj.type.includes("gltf") ||
+                obj.type.includes("glb") ||
+                obj.type.includes("obj") ||
+                obj.type.includes("fbx") ||
+                obj.type.includes("dae") ||
+                obj.url.toLowerCase().includes(".gltf") ||
+                obj.url.toLowerCase().includes(".glb") ||
+                obj.url.toLowerCase().includes(".obj") ||
+                obj.url.toLowerCase().includes(".fbx") ||
+                obj.url.toLowerCase().includes(".dae"))
+            )
+          );
 
           // Check if this is a 3D model file (not tiles)
           const isModelFile =
@@ -560,6 +606,12 @@ export default function CesiumViewer() {
                     pixelOffset: new Cesium.Cartesian2(0, -30),
                   },
                 });
+                console.log(
+                  "[CesiumViewer] Added model entity:",
+                  entityId,
+                  "uri:",
+                  obj.url
+                );
               } else {
                 // Update existing entity properties
                 entity.position = entityPosition;
@@ -570,6 +622,7 @@ export default function CesiumViewer() {
                   (entity.model as any).disableDepthTestDistance =
                     Number.POSITIVE_INFINITY;
                 }
+                console.log("[CesiumViewer] Updated model entity:", entityId);
                 // Force a redraw when updating an existing entity
                 viewer.scene.requestRender();
               }
@@ -604,6 +657,10 @@ export default function CesiumViewer() {
                     pixelOffset: new Cesium.Cartesian2(0, -30),
                   },
                 });
+                console.log(
+                  "[CesiumViewer] Fallback point entity added:",
+                  entityId
+                );
               } else {
                 entity.position = pos;
                 viewer.scene.requestRender();
@@ -639,6 +696,10 @@ export default function CesiumViewer() {
                   pixelOffset: new Cesium.Cartesian2(0, -30),
                 },
               });
+              console.log(
+                "[CesiumViewer] Simple point entity added:",
+                entityId
+              );
             } else {
               entity.position = pos;
               viewer.scene.requestRender();
@@ -662,8 +723,15 @@ export default function CesiumViewer() {
       if (toRemove.length > 0) {
         viewer.scene.requestRender();
       }
+      console.log(
+        "[CesiumViewer] Entities kept:",
+        keepModelEntityIds.size,
+        "total in viewer:",
+        viewer.entities.values.length
+      );
     } catch (err) {
       // Error rendering entities
+      console.warn("[CesiumViewer] Error while rendering objects:", err);
     }
   }, [world, isLoading, objects]);
 

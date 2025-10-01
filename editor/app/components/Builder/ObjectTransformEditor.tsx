@@ -15,8 +15,8 @@ import {
   ConstantProperty,
 } from "@cesium/engine";
 // Note: Viewer is imported from @cesium/widgets but we use the viewer from the store
-import { TransformEditor } from "@cesiumgs/ion-sdk-measurements";
-import { useSceneStore } from "@envisio/core/state";
+import { TransformEditor } from "@envisio/ion-sdk";
+import { useSceneStore } from "@envisio/core";
 
 interface ObjectTransformEditorProps {
   selectedObject: {
@@ -31,7 +31,7 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
   selectedObject,
 }) => {
   const { cesiumViewer, transformMode } = useSceneStore();
-  const transformEditorRef = useRef<TransformEditor | null>(null);
+  const transformEditorRef = useRef<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   // When we programmatically sync the gizmo from store, suppress one rAF cycle of change detection
   const suppressChangeRef = useRef(false);
@@ -188,7 +188,7 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
     const boundingSphere = new BoundingSphere(pos, 50.0);
 
     // Create the TransformEditor with proper options
-    const transformEditor = new TransformEditor({
+    const transformEditor: any = new (TransformEditor as any)({
       container: container,
       scene: cesiumViewer.scene,
       transform: transform,
@@ -198,8 +198,8 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
     });
 
     // Set up the onChange callback
-    transformEditor.viewModel.position = pos;
-    transformEditor.viewModel.headingPitchRoll = hpr;
+    (transformEditor as any).viewModel.position = pos;
+    (transformEditor as any).viewModel.headingPitchRoll = hpr;
 
     // Set up efficient change detection
     let lastPosition = pos.clone();
@@ -213,10 +213,10 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
         animationId = requestAnimationFrame(checkForChanges);
         return;
       }
-      if (transformEditor.viewModel.active) {
-        const newPosition = transformEditor.viewModel.position;
-        const newHPR = transformEditor.viewModel.headingPitchRoll;
-        const newScale = transformEditor.viewModel.scale;
+      if ((transformEditor as any).viewModel.active) {
+        const newPosition = (transformEditor as any).viewModel.position;
+        const newHPR = (transformEditor as any).viewModel.headingPitchRoll;
+        const newScale = (transformEditor as any).viewModel.scale;
 
         // Check for position changes
         if (newPosition && !Cartesian3.equals(newPosition, lastPosition)) {
@@ -257,9 +257,9 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
     checkForChanges();
 
     // Configure the transform editor
-    transformEditor.viewModel.setModeTranslation();
-    transformEditor.viewModel.enableNonUniformScaling = true;
-    transformEditor.viewModel.activate();
+    (transformEditor as any).viewModel.setModeTranslation();
+    (transformEditor as any).viewModel.enableNonUniformScaling = true;
+    (transformEditor as any).viewModel.activate();
 
     // Force initial render to show the gizmo
     cesiumViewer.scene.requestRender();
@@ -310,8 +310,8 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
 
     // Update existing gizmo position (suppress echo back into polling loop)
     suppressChangeRef.current = true;
-    transformEditorRef.current.viewModel.position = pos;
-    transformEditorRef.current.viewModel.headingPitchRoll = hpr;
+    (transformEditorRef.current as any).viewModel.position = pos;
+    (transformEditorRef.current as any).viewModel.headingPitchRoll = hpr;
     // Allow polling again on next frame
     requestAnimationFrame(() => {
       suppressChangeRef.current = false;
@@ -323,7 +323,7 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
     if (!transformEditorRef.current || !cesiumViewer) return;
 
     // Temporarily deactivate to ensure clean mode switch
-    transformEditorRef.current.viewModel.deactivate();
+    (transformEditorRef.current as any).viewModel.deactivate();
 
     // Small delay to ensure deactivation takes effect
     setTimeout(() => {
@@ -331,18 +331,18 @@ const ObjectTransformEditor: React.FC<ObjectTransformEditorProps> = ({
 
       switch (transformMode) {
         case "translate":
-          transformEditorRef.current.viewModel.setModeTranslation();
+          (transformEditorRef.current as any).viewModel.setModeTranslation();
           break;
         case "rotate":
-          transformEditorRef.current.viewModel.setModeRotation();
+          (transformEditorRef.current as any).viewModel.setModeRotation();
           break;
         case "scale":
-          transformEditorRef.current.viewModel.setModeScale();
+          (transformEditorRef.current as any).viewModel.setModeScale();
           break;
       }
 
       // Reactivate with new mode
-      transformEditorRef.current.viewModel.activate();
+      (transformEditorRef.current as any).viewModel.activate();
 
       // Force immediate re-render to show the mode change
       cesiumViewer.scene.requestRender();

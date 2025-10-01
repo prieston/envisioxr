@@ -158,12 +158,7 @@ const nextConfig = {
             to: 'public/cesium/Widgets',
             info: { minimized: true },
           },
-          // Copy Ion SDK assets from source to public
-          {
-            from: 'Cesium-ion-SDK-1.133/packages',
-            to: 'public/cesium-ion-sdk',
-            info: { minimized: true },
-          },
+          // Ion SDK now provided as workspace packages; no public copy needed
         ],
       })
     );

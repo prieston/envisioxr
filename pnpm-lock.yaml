@@ -44,6 +44,10 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.30
+        version: 20.19.13
 
   editor:
     dependencies:
@@ -62,6 +66,15 @@ importers:
       '@cesium/widgets':
         specifier: ^13.1.1
         version: 13.1.1
+      '@cesiumgs/ion-sdk-geometry':
+        specifier: workspace:*
+        version: link:../packages/ion-sdk-geometry
+      '@cesiumgs/ion-sdk-measurements':
+        specifier: workspace:*
+        version: link:../packages/ion-sdk-measurements
+      '@cesiumgs/ion-sdk-sensors':
+        specifier: workspace:*
+        version: link:../packages/ion-sdk-sensors
       '@ducanh2912/next-pwa':
         specifier: ^10.0.0
         version: 10.2.9(@types/babel__core@7.20.5)(next@14.2.32(@babel/core@7.28.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(webpack@5.101.3)
@@ -71,6 +84,9 @@ importers:
       '@emotion/styled':
         specifier: ^11.14.0
         version: 11.14.1(@emotion/react@11.14.0(@types/react@18.3.24)(react@18.3.1))(@types/react@18.3.24)(react@18.3.1)
+      '@envisio/core':
+        specifier: workspace:^
+        version: link:../packages/core
       '@envisio/ion-sdk':
         specifier: workspace:^
         version: link:../packages/ion-sdk
@@ -97,13 +113,13 @@ importers:
         version: 9.7.5(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(react@18.3.1)(three@0.170.0)
       '@react-three/drei':
         specifier: ^9.92.7
-        version: 9.122.0(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.24)(@types/three@0.175.0)(immer@10.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)(use-sync-external-store@1.5.0(react@18.3.1))
+        version: 9.122.0(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.24)(@types/three@0.170.0)(immer@10.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)(use-sync-external-store@1.5.0(react@18.3.1))
       '@react-three/fiber':
         specifier: ^8.15.11
         version: 8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)
       '@react-three/postprocessing':
         specifier: ^2.15.11
-        version: 2.19.1(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/three@0.175.0)(react@18.3.1)(three@0.170.0)
+        version: 2.19.1(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/three@0.170.0)(react@18.3.1)(three@0.170.0)
       '@react-three/rapier':
         specifier: ^1.5.0
         version: 1.5.0(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(react@18.3.1)(three@0.170.0)
@@ -119,9 +135,6 @@ importers:
       '@types/react':
         specifier: ^18.3.20
         version: 18.3.24
-      '@types/three':
-        specifier: ^0.175.0
-        version: 0.175.0
       autoprefixer:
         specifier: ^10.4.16
         version: 10.4.21(postcss@8.5.6)
@@ -233,6 +246,13 @@ importers:
       zustand:
         specifier: ^5.0.3
         version: 5.0.8(@types/react@18.3.24)(immer@10.1.3)(react@18.3.1)(use-sync-external-store@1.5.0(react@18.3.1))
+    devDependencies:
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
 
   packages/config:
     dependencies:
@@ -246,6 +266,12 @@ importers:
       '@types/react':
         specifier: ^18.0.0
         version: 18.3.24
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
       typescript:
         specifier: ^5.0.0
         version: 5.9.2
@@ -256,17 +282,27 @@ importers:
         specifier: ^11.0.3
         version: 11.0.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       three:
-        specifier: ^0.161.0
-        version: 0.161.0
+        specifier: ^0.170.0
+        version: 0.170.0
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
       zustand:
         specifier: ^4.5.2
         version: 4.5.7(@types/react@18.3.24)(immer@10.1.3)(react@18.3.1)
+    devDependencies:
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
 
   packages/engine-cesium:
     dependencies:
+      '@envisio/core':
+        specifier: workspace:*
+        version: link:../core
       '@envisio/ion-sdk':
         specifier: workspace:*
         version: link:../ion-sdk
@@ -278,7 +314,7 @@ importers:
         version: 5.18.0(@emotion/react@11.14.0(@types/react@18.3.24)(react@18.3.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.24)(react@18.3.1))(@types/react@18.3.24)(react@18.3.1))(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@react-three/drei':
         specifier: ^9.92.7
-        version: 9.122.0(@react-three/fiber@8.15.11(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.24)(@types/three@0.175.0)(immer@10.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)(use-sync-external-store@1.5.0(react@18.3.1))
+        version: 9.122.0(@react-three/fiber@8.15.11(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.24)(@types/three@0.170.0)(immer@10.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)(use-sync-external-store@1.5.0(react@18.3.1))
       '@react-three/fiber':
         specifier: ^8.15.11
         version: 8.15.11(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)
@@ -298,9 +334,18 @@ importers:
       '@types/cesium':
         specifier: ^1.70.4
         version: 1.70.4
+      '@types/node':
+        specifier: ^20.11.30
+        version: 20.19.13
       '@types/react':
         specifier: ^18.0.0
         version: 18.3.24
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
       typescript:
         specifier: ^5.0.0
         version: 5.9.2
@@ -312,7 +357,7 @@ importers:
         version: 0.4.16(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)
       '@react-three/drei':
         specifier: ^9.92.7
-        version: 9.122.0(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.24)(@types/three@0.175.0)(immer@10.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)(use-sync-external-store@1.5.0(react@18.3.1))
+        version: 9.122.0(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.24)(@types/three@0.170.0)(immer@10.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)(use-sync-external-store@1.5.0(react@18.3.1))
       '@react-three/fiber':
         specifier: ^8.15.11
         version: 8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)
@@ -320,24 +365,21 @@ importers:
         specifier: '>=0.170.0 <1'
         version: 0.170.0
     devDependencies:
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
       typescript:
         specifier: ^5.0.0
         version: 5.9.2
 
   packages/ion-sdk:
     dependencies:
-      '@cesiumgs/ion-sdk-geometry':
-        specifier: file:../../editor/Cesium-ion-SDK-1.133/packages/ion-sdk-geometry
-        version: file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-geometry(@cesium/engine@20.0.1)
-      '@cesiumgs/ion-sdk-sensors':
-        specifier: file:../../editor/Cesium-ion-SDK-1.133/packages/ion-sdk-sensors
-        version: file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-sensors(@cesium/engine@20.0.1)
       '@envisio/core':
         specifier: workspace:*
         version: link:../core
-      '@envisio/engine-cesium':
-        specifier: workspace:*
-        version: link:../engine-cesium
       cesium:
         specifier: '>=1.131.0'
         version: 1.133.1
@@ -351,9 +393,57 @@ importers:
         specifier: ^11.0.3
         version: 11.0.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
       typescript:
         specifier: ^5.0.0
         version: 5.9.2
+
+  packages/ion-sdk-geometry:
+    dependencies:
+      '@cesium/engine':
+        specifier: ^20.0.0
+        version: 20.0.1
+    devDependencies:
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
+
+  packages/ion-sdk-measurements:
+    dependencies:
+      '@cesium/engine':
+        specifier: ^20.0.0
+        version: 20.0.1
+      '@cesium/widgets':
+        specifier: ^13.1.0
+        version: 13.1.1
+    devDependencies:
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
+
+  packages/ion-sdk-sensors:
+    dependencies:
+      '@cesium/engine':
+        specifier: ^20.0.0
+        version: 20.0.1
+    devDependencies:
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
 
   packages/prisma:
     dependencies:
@@ -361,6 +451,12 @@ importers:
         specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
     devDependencies:
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
       prisma:
         specifier: ^5.22.0
         version: 5.22.0
@@ -368,7 +464,14 @@ importers:
         specifier: ^5.3.3
         version: 5.9.2
 
-  packages/ui: {}
+  packages/ui:
+    devDependencies:
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
 
   website:
     dependencies:
@@ -423,9 +526,6 @@ importers:
       '@types/remark-prism':
         specifier: ^1.3.7
         version: 1.3.7
-      '@types/uuid':
-        specifier: ^9.0.8
-        version: 9.0.8
       algoliasearch:
         specifier: ^4.22.1
         version: 4.25.2
@@ -543,6 +643,13 @@ importers:
       zod:
         specifier: ^3.24.2
         version: 3.25.76
+    devDependencies:
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
 
 packages:
 
@@ -1416,18 +1523,6 @@ packages:
   '@cesium/widgets@13.1.1':
     resolution: {integrity: sha512-EIZCSLLJzG0BeNcKjDfQcNv+9KiI9TqqN0RveuZIu++FCs2kL29neImicWEZlSfX38xxQLaogmhZLh2pO73NPg==}
     engines: {node: '>=20.19.0'}
-
-  '@cesiumgs/ion-sdk-geometry@file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-geometry':
-    resolution: {directory: editor/Cesium-ion-SDK-1.133/packages/ion-sdk-geometry, type: directory}
-    engines: {node: '>=20.19.0'}
-    peerDependencies:
-      '@cesium/engine': ^20.0.0
-
-  '@cesiumgs/ion-sdk-sensors@file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-sensors':
-    resolution: {directory: editor/Cesium-ion-SDK-1.133/packages/ion-sdk-sensors, type: directory}
-    engines: {node: '>=20.19.0'}
-    peerDependencies:
-      '@cesium/engine': ^20.0.0
 
   '@choojs/findup@0.2.1':
     resolution: {integrity: sha512-YstAqNb0MCN8PjdLCDfRsBcGVRN41f3vgLvaI0IrIcBp4AqILRSS0DeWNGkicC+f/zRIPJLc+9RURVSepwvfBw==}
@@ -3552,8 +3647,8 @@ packages:
   '@types/tar-stream@3.1.4':
     resolution: {integrity: sha512-921gW0+g29mCJX0fRvqeHzBlE/XclDaAG0Ousy1LCghsOhvaKacDeRGEVzQP9IPfKn8Vysy7FEXAIxycpc/CMg==}
 
-  '@types/three@0.175.0':
-    resolution: {integrity: sha512-ldMSBgtZOZ3g9kJ3kOZSEtZIEITmJOzu8eKVpkhf036GuNkM4mt0NXecrjCn5tMm1OblOF7dZehlaDypBfNokw==}
+  '@types/three@0.170.0':
+    resolution: {integrity: sha512-CUm2uckq+zkCY7ZbFpviRttY+6f9fvwm6YqSqPfA5K22s9w7R4VnA3rzJse8kHVvuzLcTx+CjNCs2NYe0QFAyg==}
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
@@ -8370,9 +8465,6 @@ packages:
     peerDependencies:
       three: '>=0.128.0'
 
-  three@0.161.0:
-    resolution: {integrity: sha512-LC28VFtjbOyEu5b93K0bNRLw1rQlMJ85lilKsYj6dgTu+7i17W+JCCEbvrpmNHF1F3NAUqDSWq50UD7w9H2xQw==}
-
   three@0.165.0:
     resolution: {integrity: sha512-cc96IlVYGydeceu0e5xq70H8/yoVT/tXBxV/W8A/U6uOq7DXc4/s1Mkmnu6SqoYGhSRWWYFOhVwvq6V0VtbplA==}
 
@@ -10747,14 +10839,6 @@ snapshots:
       '@cesium/engine': 20.0.1
       nosleep.js: 0.12.0
 
-  '@cesiumgs/ion-sdk-geometry@file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-geometry(@cesium/engine@20.0.1)':
-    dependencies:
-      '@cesium/engine': 20.0.1
-
-  '@cesiumgs/ion-sdk-sensors@file:editor/Cesium-ion-SDK-1.133/packages/ion-sdk-sensors(@cesium/engine@20.0.1)':
-    dependencies:
-      '@cesium/engine': 20.0.1
-
   '@choojs/findup@0.2.1':
     dependencies:
       commander: 2.20.3
@@ -11997,7 +12081,7 @@ snapshots:
 
   '@react-spring/types@9.7.5': {}
 
-  '@react-three/drei@9.122.0(@react-three/fiber@8.15.11(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.24)(@types/three@0.175.0)(immer@10.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)(use-sync-external-store@1.5.0(react@18.3.1))':
+  '@react-three/drei@9.122.0(@react-three/fiber@8.15.11(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.24)(@types/three@0.170.0)(immer@10.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)(use-sync-external-store@1.5.0(react@18.3.1))':
     dependencies:
       '@babel/runtime': 7.28.4
       '@mediapipe/tasks-vision': 0.10.17
@@ -12010,11 +12094,11 @@ snapshots:
       detect-gpu: 5.0.70
       glsl-noise: 0.0.0
       hls.js: 1.6.12
-      maath: 0.10.8(@types/three@0.175.0)(three@0.170.0)
+      maath: 0.10.8(@types/three@0.170.0)(three@0.170.0)
       meshline: 3.3.1(three@0.170.0)
       react: 18.3.1
       react-composer: 5.0.3(react@18.3.1)
-      stats-gl: 2.4.2(@types/three@0.175.0)(three@0.170.0)
+      stats-gl: 2.4.2(@types/three@0.170.0)(three@0.170.0)
       stats.js: 0.17.0
       suspend-react: 0.1.3(react@18.3.1)
       three: 0.170.0
@@ -12032,7 +12116,7 @@ snapshots:
       - immer
       - use-sync-external-store
 
-  '@react-three/drei@9.122.0(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.24)(@types/three@0.175.0)(immer@10.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)(use-sync-external-store@1.5.0(react@18.3.1))':
+  '@react-three/drei@9.122.0(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.24)(@types/three@0.170.0)(immer@10.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)(use-sync-external-store@1.5.0(react@18.3.1))':
     dependencies:
       '@babel/runtime': 7.28.4
       '@mediapipe/tasks-vision': 0.10.17
@@ -12045,11 +12129,11 @@ snapshots:
       detect-gpu: 5.0.70
       glsl-noise: 0.0.0
       hls.js: 1.6.12
-      maath: 0.10.8(@types/three@0.175.0)(three@0.170.0)
+      maath: 0.10.8(@types/three@0.170.0)(three@0.170.0)
       meshline: 3.3.1(three@0.170.0)
       react: 18.3.1
       react-composer: 5.0.3(react@18.3.1)
-      stats-gl: 2.4.2(@types/three@0.175.0)(three@0.170.0)
+      stats-gl: 2.4.2(@types/three@0.170.0)(three@0.170.0)
       stats.js: 0.17.0
       suspend-react: 0.1.3(react@18.3.1)
       three: 0.170.0
@@ -12107,11 +12191,11 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
 
-  '@react-three/postprocessing@2.19.1(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/three@0.175.0)(react@18.3.1)(three@0.170.0)':
+  '@react-three/postprocessing@2.19.1(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/three@0.170.0)(react@18.3.1)(three@0.170.0)':
     dependencies:
       '@react-three/fiber': 8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)
       buffer: 6.0.3
-      maath: 0.6.0(@types/three@0.175.0)(three@0.170.0)
+      maath: 0.6.0(@types/three@0.170.0)(three@0.170.0)
       n8ao: 1.10.1(postprocessing@6.37.7(three@0.170.0))(three@0.170.0)
       postprocessing: 6.37.7(three@0.170.0)
       react: 18.3.1
@@ -13320,7 +13404,7 @@ snapshots:
     dependencies:
       '@types/node': 20.19.13
 
-  '@types/three@0.175.0':
+  '@types/three@0.170.0':
     dependencies:
       '@tweenjs/tween.js': 23.1.3
       '@types/stats.js': 0.17.4
@@ -16466,14 +16550,14 @@ snapshots:
     dependencies:
       yallist: 4.0.0
 
-  maath@0.10.8(@types/three@0.175.0)(three@0.170.0):
+  maath@0.10.8(@types/three@0.170.0)(three@0.170.0):
     dependencies:
-      '@types/three': 0.175.0
+      '@types/three': 0.170.0
       three: 0.170.0
 
-  maath@0.6.0(@types/three@0.175.0)(three@0.170.0):
+  maath@0.6.0(@types/three@0.170.0)(three@0.170.0):
     dependencies:
-      '@types/three': 0.175.0
+      '@types/three': 0.170.0
       three: 0.170.0
 
   magic-string@0.25.9:
@@ -18636,9 +18720,9 @@ snapshots:
     dependencies:
       escodegen: 2.1.0
 
-  stats-gl@2.4.2(@types/three@0.175.0)(three@0.170.0):
+  stats-gl@2.4.2(@types/three@0.170.0)(three@0.170.0):
     dependencies:
-      '@types/three': 0.175.0
+      '@types/three': 0.170.0
       three: 0.170.0
 
   stats.js@0.17.0: {}
@@ -18989,8 +19073,6 @@ snapshots:
       fflate: 0.6.10
       potpack: 1.0.2
       three: 0.170.0
-
-  three@0.161.0: {}
 
   three@0.165.0: {}
 

@@ -20,6 +20,7 @@
     }
   },
   "dependencies": {
+    "@envisio/core": "workspace:*",
     "@envisio/ion-sdk": "workspace:*",
     "@mui/icons-material": "^5.0.0",
     "@mui/material": "^5.18.0",
@@ -31,7 +32,10 @@
   },
   "devDependencies": {
     "@types/cesium": "^1.70.4",
+    "@types/node": "^20.11.30",
     "@types/react": "^18.0.0",
+    "@types/three": "^0.170.0",
+    "@types/uuid": "^9.0.8",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {

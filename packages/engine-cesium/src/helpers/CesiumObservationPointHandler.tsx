@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 
 const CesiumObservationPointHandler: React.FC = () => {
   const addingObservation = useSceneStore((state) => state.addingObservation);

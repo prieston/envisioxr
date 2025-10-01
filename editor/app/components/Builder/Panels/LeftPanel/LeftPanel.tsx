@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Tabs, Tab } from "@mui/material";
-import { useSceneStore, useWorldStore } from "@envisio/core/state";
+import { useSceneStore, useWorldStore } from "@envisio/core";
 import { getLeftPanelConfig } from "@envisio/config/factory";
 import SettingRenderer from "../../SettingRenderer";
 
@@ -10,8 +10,24 @@ import { LeftPanelContainer, TabPanel } from "./LeftPanel.styles";
 
 const LeftPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const { previewMode } = useSceneStore();
-  const { engine } = useWorldStore();
+  const sceneStore = useSceneStore();
+  const worldStore = useWorldStore();
+  const { previewMode } = sceneStore;
+  const { engine } = worldStore;
+
+  // Debug logging for store instances
+  console.log(
+    "[LeftPanel] SceneStore instance:",
+    sceneStore,
+    "Objects count:",
+    sceneStore.objects.length
+  );
+  console.log(
+    "[LeftPanel] WorldStore instance:",
+    worldStore,
+    "Engine:",
+    worldStore.engine
+  );
 
   // Get all the state values and setters that the configuration depends on
   const {
@@ -23,7 +39,7 @@ const LeftPanel: React.FC = () => {
     setAmbientLightIntensity,
     basemapType,
     setBasemapType,
-  } = useSceneStore();
+  } = sceneStore;
 
   // Recreate configuration whenever state changes
   const config = useMemo(() => {

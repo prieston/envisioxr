@@ -16,7 +16,7 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { Container, SectionTitle } from "./CesiumSkyboxSelector.styles";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 
 // Cesium is loaded as a module, not a global variable
 

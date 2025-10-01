@@ -18,5 +18,3 @@ export const SettingRow = styled(Box)(({ theme }) => ({
   flexDirection: "column",
   gap: theme.spacing(1),
 }));
-
-

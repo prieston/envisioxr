@@ -266,6 +266,15 @@ const useSceneStore = create<SceneState>((set) => ({
   setObjects: (newObjects) => set({ objects: newObjects }),
   addModel: (model) =>
     set((state) => {
+      try {
+        console.log("[SceneStore] addModel called", {
+          name: model?.name,
+          url: model?.url,
+          type: model?.type,
+          position: model?.position,
+          isObservationModel: model?.isObservationModel,
+        });
+      } catch {}
       const camera = state.orbitControlsRef?.object;
       let position: [number, number, number] = [0, 0, 0];
       let coordinateSystem = "local";
@@ -293,14 +302,22 @@ const useSceneStore = create<SceneState>((set) => ({
         isObservationModel: model.isObservationModel || false,
         observationProperties: model.observationProperties,
       };
-      return { objects: [...state.objects, newModel] };
+      const nextObjects = [...state.objects, newModel];
+      try {
+        console.log(
+          "[SceneStore] model added; objects count:",
+          nextObjects.length
+        );
+      } catch {}
+      return { objects: nextObjects };
     }),
   selectObject: (id, ref) =>
-    set((state) => ({
-      selectedObject: state.objects.find((obj) => obj.id === id)
-        ? { ...state.objects.find((obj) => obj.id === id), ref }
-        : null,
-    })),
+    set((state) => {
+      const found = state.objects.find((obj) => obj.id === id);
+      return {
+        selectedObject: found ? (found as any) : null,
+      } as any;
+    }),
   removeObject: (id) =>
     set((state) => ({
       objects: state.objects.filter((obj) => obj.id !== id),

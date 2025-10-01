@@ -13,5 +13,3 @@ export const SectionTitle = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(1),
   color: theme.palette.text.primary,
 }));
-
-

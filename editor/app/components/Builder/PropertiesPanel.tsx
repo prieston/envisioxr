@@ -12,13 +12,11 @@ import {
   Alert,
 } from "@mui/material";
 import { Camera, FlightTakeoff, LocationOn } from "@mui/icons-material";
-import { useSceneStore, useWorldStore } from "@envisio/core/state";
+import { useSceneStore, useWorldStore } from "@envisio/core";
 import * as THREE from "three";
 import useSWR from "swr";
-import {
-  localToGeographic,
-  getPositionAtScreenPoint,
-} from "@envisio/core/utils";
+import { localToGeographic } from "@envisio/core/utils";
+import { getPositionAtScreenPoint } from "@envisio/engine-cesium";
 import { flyToCesiumPosition, flyToThreeObject } from "../../utils/camera";
 import {
   googleMapsLinkForLatLon,
@@ -423,15 +421,22 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       // Cesium fly-to logic
       const { cesiumViewer } = useSceneStore.getState();
       if (cesiumViewer && selectedObject?.position) {
-        const [longitude, latitude, height] = selectedObject.position;
+        const longitude =
+          geographicCoords?.longitude ?? selectedObject.position[0];
+        const latitude =
+          geographicCoords?.latitude ?? selectedObject.position[1];
+        const height = geographicCoords?.altitude ?? selectedObject.position[2];
 
         // Use Cesium's built-in flyTo with a bounding sphere approach
         flyToCesiumPosition(cesiumViewer, longitude, latitude, height);
 
         if (process.env.NODE_ENV === "development") {
-          console.log(
-            `[PropertiesPanel] Flying to Cesium model at: ${longitude}, ${latitude}, ${height}`
-          );
+          console.log(`[PropertiesPanel] Flying to Cesium model at:`, {
+            longitude,
+            latitude,
+            height,
+            coordinateSystem: selectedObject.coordinateSystem,
+          });
         }
       }
     } else {

@@ -1,6 +1,6 @@
 "use client";
 import PreviewScene from "@/app/components/Builder/Scene/PreviewScene";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";

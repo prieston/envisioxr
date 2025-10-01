@@ -7,7 +7,7 @@ import {
   AttachFile as MagnetIcon,
 } from "@mui/icons-material";
 import { MinimalButtonActive } from "./StyledComponents.tsx";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 import { logger } from "./logger.ts";
 
 interface BuilderToolsProps {

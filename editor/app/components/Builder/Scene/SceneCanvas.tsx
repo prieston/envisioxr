@@ -2,7 +2,7 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import { useWorldStore } from "@envisio/core/state";
+import { useWorldStore } from "@envisio/core";
 
 const Scene = dynamic(() => import("@envisio/engine-three"), {
   ssr: false,

@@ -5,7 +5,7 @@ import {
   SectionTitle,
   StyledButtonGroup,
 } from "./CesiumBasemapSelector.styles";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 
 interface CesiumBasemapSelectorProps {
   onBasemapChange: (

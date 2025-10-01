@@ -5,7 +5,7 @@ import { Typography } from "@mui/material";
 import { Save as SaveIcon, Publish as PublishIcon } from "@mui/icons-material";
 import { MinimalButton } from "./StyledComponents";
 import { showToast } from "@envisio/core/utils";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 import ReportGenerator from "../Report/ReportGenerator";
 
 interface BuilderActionsProps {

@@ -21,7 +21,7 @@ export const InstructionText = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(0.5),
 }));
 
-export const KeyHighlight = styled("span")(({ theme }) => ({
+export const KeyHighlight: any = styled("span")(({ theme }) => ({
   backgroundColor: theme.palette.grey[200],
   padding: "2px 6px",
   borderRadius: "4px",
@@ -30,5 +30,3 @@ export const KeyHighlight = styled("span")(({ theme }) => ({
   fontWeight: 600,
   color: theme.palette.text.primary,
 }));
-
-

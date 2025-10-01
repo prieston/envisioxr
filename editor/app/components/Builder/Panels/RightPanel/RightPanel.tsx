@@ -8,10 +8,10 @@ import * as THREE from "three";
 import { setupCesiumClickSelector } from "@envisio/engine-cesium";
 
 import { clientEnv } from "@/lib/env/client";
-import { useSceneStore, useWorldStore } from "@envisio/core/state";
+import { useSceneStore, useWorldStore } from "@envisio/core";
 import { getRightPanelConfig } from "@envisio/config/factory";
 import SettingRenderer from "../../SettingRenderer";
-import { getPositionAtScreenPoint } from "@envisio/core/utils";
+import { getPositionAtScreenPoint } from "@envisio/engine-cesium";
 
 import { RightPanelContainer, TabPanel } from "./RightPanel.styles";
 
@@ -39,8 +39,24 @@ const RightPanelNew: React.FC = () => {
     visibilityRadius: 100,
   });
 
-  const { previewMode } = useSceneStore();
-  const { engine } = useWorldStore();
+  const sceneStore = useSceneStore();
+  const worldStore = useWorldStore();
+  const { previewMode } = sceneStore;
+  const { engine } = worldStore;
+
+  // Debug logging for store instances
+  console.log(
+    "[RightPanel] SceneStore instance:",
+    sceneStore,
+    "Objects count:",
+    sceneStore.objects.length
+  );
+  console.log(
+    "[RightPanel] WorldStore instance:",
+    worldStore,
+    "Engine:",
+    worldStore.engine
+  );
 
   // Setup dropzone for file uploads
   const { getRootProps, getInputProps } = useDropzone({
@@ -79,7 +95,7 @@ const RightPanelNew: React.FC = () => {
     addModel,
     orbitControlsRef,
     scene,
-  } = useSceneStore();
+  } = sceneStore;
 
   // Fetch user's uploaded models when component mounts
   useEffect(() => {
@@ -95,11 +111,11 @@ const RightPanelNew: React.FC = () => {
   }, []);
 
   // Handle position selection mode
+  const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
+
   useEffect(() => {
     if (!selectingPosition) return;
     if (viewMode === "firstPerson") return;
-
-    const { cesiumViewer } = useSceneStore.getState();
 
     // THREE.JS BRANCH (DOM listener on renderer canvas)
     if (engine === "three") {
@@ -144,7 +160,7 @@ const RightPanelNew: React.FC = () => {
 
     // CESIUM BRANCH (ScreenSpaceEventHandler on Cesium canvas)
     if (engine === "cesium" && cesiumViewer) {
-      return setupCesiumClickSelector(cesiumViewer, (pos) => {
+      const detachHandler = setupCesiumClickSelector(cesiumViewer, (pos) => {
         const res = getPositionAtScreenPoint(cesiumViewer, pos.x, pos.y, {
           prefer3DTiles: true,
           preferTerrain: true,
@@ -160,8 +176,52 @@ const RightPanelNew: React.FC = () => {
           showToast("No surface detected at click point");
         }
       });
+
+      // Fallback: direct canvas click listener
+      const canvas: HTMLCanvasElement =
+        (cesiumViewer as any)?.cesiumWidget?.canvas ||
+        (cesiumViewer as any)?.scene?.canvas;
+      const onCanvasClick = (e: MouseEvent) => {
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        console.log("[RightPanel] Fallback canvas click", { x, y });
+        const res = getPositionAtScreenPoint(cesiumViewer, x, y, {
+          prefer3DTiles: true,
+          preferTerrain: true,
+          maxTerrainDistance: 5000,
+          fallbackToEllipsoid: true,
+        });
+        if (res) {
+          const [lon, lat, h] = res.position;
+          setSelectedPosition([lon, lat, h]);
+          showToast(`Position set on ${res.surfaceType} (${res.accuracy})`);
+        }
+      };
+      try {
+        canvas?.addEventListener("click", onCanvasClick, true);
+      } catch (e) {
+        console.warn("Failed to add canvas click listener:", e);
+      }
+
+      return () => {
+        try {
+          canvas?.removeEventListener("click", onCanvasClick, true);
+        } catch (e) {
+          console.warn("Failed to remove canvas click listener:", e);
+        }
+        detachHandler?.();
+      };
     }
-  }, [selectingPosition, engine, viewMode, orbitControlsRef, scene]);
+  }, [
+    selectingPosition,
+    engine,
+    viewMode,
+    orbitControlsRef,
+    scene,
+    cesiumViewer,
+  ]);
 
   const handleModelSelect = (model: any) => {
     // Store the model temporarily

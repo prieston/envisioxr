@@ -1,5 +1,5 @@
 import * as Cesium from "cesium";
-import { ConicSensor, RectangularSensor } from "@cesiumgs/ion-sdk-sensors";
+import * as IonSensors from "../vendor/cesium-ion-sdk/ion-sdk-sensors";
 
 export type IonSensor = any;
 
@@ -90,7 +90,7 @@ function buildCompositeConicSensor(opts: {
     const volumeMat = Cesium.Material.fromType("Color", {
       color: volumeColorPerPart,
     });
-    const part = new ConicSensor({
+    const part = new (IonSensors as any).ConicSensor({
       modelMatrix,
       radius,
       outerHalfAngle: partHalfRad,
@@ -194,7 +194,7 @@ export function createConicSensorOrComposite(opts: {
   const clampedFull = Math.max(1, Math.min(179.9, desiredFullFovDeg));
   const halfRad = Cesium.Math.toRadians(clampedFull / 2);
   const mat = Cesium.Material.fromType("Color", { color: volume });
-  const sensor = new ConicSensor({
+  const sensor = new (IonSensors as any).ConicSensor({
     modelMatrix: opts.modelMatrix,
     radius: Math.max(1, opts.radius),
     outerHalfAngle: halfRad,
@@ -235,7 +235,7 @@ export function createRectangularSensor(opts: {
   const mat = Cesium.Material.fromType("Color", {
     color: opts.sensorColor.withAlpha(0.25),
   });
-  const sensor = new RectangularSensor({
+  const sensor = new (IonSensors as any).RectangularSensor({
     modelMatrix: opts.modelMatrix,
     radius: Math.max(1, opts.radius),
     xHalfAngle: xHalf,

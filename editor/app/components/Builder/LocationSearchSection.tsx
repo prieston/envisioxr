@@ -5,7 +5,7 @@ import {
   SearchContainer,
   LocationInfo,
 } from "./LocationSearchSection.styles";
-import { useSceneStore } from "@envisio/core/state";
+import { useSceneStore } from "@envisio/core";
 import LocationSearch from "../LocationSearch";
 import CesiumIonAssetsManager from "../Environment/CesiumIonAssetsManager";
 

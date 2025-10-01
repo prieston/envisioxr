@@ -252,6 +252,11 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                           type: model.fileType,
                           assetId: model.id,
                         });
+                        console.log("[AssetLibrary] handleModelSelect", {
+                          id: model.id,
+                          url: model.fileUrl,
+                          type: model.fileType,
+                        });
                       }}
                     >
                       Add Models
