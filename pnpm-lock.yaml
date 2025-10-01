@@ -355,6 +355,9 @@ importers:
       3d-tiles-renderer:
         specifier: ^0.4.7
         version: 0.4.16(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)
+      '@envisio/core':
+        specifier: workspace:^
+        version: link:../core
       '@react-three/drei':
         specifier: ^9.92.7
         version: 9.122.0(@react-three/fiber@8.18.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(@types/react@18.3.24)(@types/three@0.170.0)(immer@10.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)(use-sync-external-store@1.5.0(react@18.3.1))
