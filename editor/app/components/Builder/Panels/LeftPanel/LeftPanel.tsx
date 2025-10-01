@@ -15,20 +15,6 @@ const LeftPanel: React.FC = () => {
   const { previewMode } = sceneStore;
   const { engine } = worldStore;
 
-  // Debug logging for store instances
-  console.log(
-    "[LeftPanel] SceneStore instance:",
-    sceneStore,
-    "Objects count:",
-    sceneStore.objects.length
-  );
-  console.log(
-    "[LeftPanel] WorldStore instance:",
-    worldStore,
-    "Engine:",
-    worldStore.engine
-  );
-
   // Get all the state values and setters that the configuration depends on
   const {
     gridEnabled,

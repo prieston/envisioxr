@@ -33,6 +33,7 @@
     "@ducanh2912/next-pwa": "^10.0.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@envisio/core": "workspace:^",
     "@envisio/ion-sdk": "workspace:^",
     "@envisioxr/prisma": "workspace:*",
     "@mui/icons-material": "^6.4.2",

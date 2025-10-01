@@ -44,20 +44,6 @@ const RightPanelNew: React.FC = () => {
   const { previewMode } = sceneStore;
   const { engine } = worldStore;
 
-  // Debug logging for store instances
-  console.log(
-    "[RightPanel] SceneStore instance:",
-    sceneStore,
-    "Objects count:",
-    sceneStore.objects.length
-  );
-  console.log(
-    "[RightPanel] WorldStore instance:",
-    worldStore,
-    "Engine:",
-    worldStore.engine
-  );
-
   // Setup dropzone for file uploads
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -186,7 +172,6 @@ const RightPanelNew: React.FC = () => {
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        console.log("[RightPanel] Fallback canvas click", { x, y });
         const res = getPositionAtScreenPoint(cesiumViewer, x, y, {
           prefer3DTiles: true,
           preferTerrain: true,
@@ -419,14 +404,6 @@ const RightPanelNew: React.FC = () => {
   const handleConfirmModelPlacement = () => {
     if (pendingModel && selectedPosition) {
       // Store the coordinates as-is - Cesium coordinates for Cesium, local coordinates for Three.js
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `[RightPanel] Adding model with position:`,
-          selectedPosition,
-          `Engine:`,
-          engine
-        );
-      }
 
       addModel({
         ...pendingModel,
