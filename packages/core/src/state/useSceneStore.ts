@@ -267,13 +267,6 @@ const useSceneStore = create<SceneState>((set) => ({
   addModel: (model) =>
     set((state) => {
       try {
-        console.log("[SceneStore] addModel called", {
-          name: model?.name,
-          url: model?.url,
-          type: model?.type,
-          position: model?.position,
-          isObservationModel: model?.isObservationModel,
-        });
       } catch {}
       const camera = state.orbitControlsRef?.object;
       let position: [number, number, number] = [0, 0, 0];
@@ -304,10 +297,6 @@ const useSceneStore = create<SceneState>((set) => ({
       };
       const nextObjects = [...state.objects, newModel];
       try {
-        console.log(
-          "[SceneStore] model added; objects count:",
-          nextObjects.length
-        );
       } catch {}
       return { objects: nextObjects };
     }),
@@ -655,14 +644,8 @@ const useSceneStore = create<SceneState>((set) => ({
         duration: 2.0,
         offset: new (cesiumInstance as any).HeadingPitchRange(0, -0.5, 1000),
       });
-      console.log(
-        `[CesiumIon] Flying to asset: ${(asset as any).name} (${(asset as any).assetId})`
-      );
     } catch (error) {
-      console.error(
-        `[CesiumIon] Error flying to asset: ${(asset as any).name} (${(asset as any).assetId}):`,
-        error
-      );
+      // Error flying to asset
     }
   },
 }));
