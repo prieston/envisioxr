@@ -69,5 +69,3 @@ export const StyledIconButton = styled(IconButton)(({ theme }) => ({
     color: theme.palette.text.primary,
   },
 }));
-
-

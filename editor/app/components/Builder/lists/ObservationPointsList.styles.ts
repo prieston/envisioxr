@@ -54,6 +54,9 @@ export const ObservationCard = styled(Card)(() => ({
   boxShadow: "none",
   transition: "background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   position: "relative",
+  "&:not(:last-child)::.after": {
+    right: 0,
+  },
   "&:not(:last-child)::after": {
     content: '""',
     position: "absolute",
@@ -75,5 +78,3 @@ export const ObservationCard = styled(Card)(() => ({
     },
   },
 }));
-
-

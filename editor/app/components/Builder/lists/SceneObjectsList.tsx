@@ -96,7 +96,6 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = () => {
         ))}
       </StyledList>
 
-      {/* Menu for object actions */}
       <Menu
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
@@ -105,15 +104,11 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = () => {
         <MenuItem onClick={handleDeleteOption}>Delete</MenuItem>
       </Menu>
 
-      {/* Delete confirmation dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         PaperProps={{
-          sx: {
-            bgcolor: "background.paper",
-            color: "text.primary",
-          },
+          sx: { bgcolor: "background.paper", color: "text.primary" },
         }}
       >
         <DialogTitle>Delete Object?</DialogTitle>

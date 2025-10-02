@@ -17,9 +17,9 @@ import {
   AccordionSummary,
   AccordionDetails,
   Grid,
-  Divider,
   TextField,
   Alert,
+  Divider,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CloudIcon from "@mui/icons-material/Cloud";
@@ -59,7 +59,6 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
     display: true,
     data: false,
   });
-
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,33 +67,21 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
     enabled: false,
     serviceType: "weather",
     apiEndpoint: "https://api.open-meteo.com/v1/forecast",
-    updateInterval: 300000, // 5 minutes
+    updateInterval: 300000,
     showInScene: true,
     displayFormat: "compact",
     autoRefresh: true,
   };
 
-  const handleSectionToggle = (section: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  const handlePropertyChange = (property: string, value: any) => {
+  const handleSectionToggle = (section: string) =>
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  const handlePropertyChange = (property: string, value: any) =>
     onPropertyChange(`iotProperties.${property}`, value);
-  };
 
-  // fetchWeatherData function removed - now using global IoT service
-
-  // Initialize weather data from store
   useEffect(() => {
-    if (selectedObject?.weatherData) {
-      setWeatherData(selectedObject.weatherData);
-    }
+    if (selectedObject?.weatherData) setWeatherData(selectedObject.weatherData);
   }, [selectedObject?.weatherData]);
 
-  // Auto-fetch weather data when coordinates change and IoT is enabled
   useEffect(() => {
     if (
       iotProps.enabled &&
@@ -103,8 +90,7 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
       !weatherData &&
       selectedObject?.id
     ) {
-      // Use the global IoT service to fetch data
-      import("../../services/IoTService").then(({ default: iotService }) => {
+      import("../../../services/IoTService").then(({ default: iotService }) => {
         iotService.fetchDataForObject(selectedObject.id);
       });
     }
@@ -115,9 +101,6 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
     weatherData,
     selectedObject?.id,
   ]);
-
-  // Auto-refresh is now handled by the global IoT service
-  // No need for local interval management here
 
   const getWindDirection = (degrees: number) => {
     const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
@@ -136,7 +119,6 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
         IoT Device Configuration
       </Typography>
 
-      {/* Connection Settings */}
       <Accordion
         expanded={expandedSections.connection}
         onChange={() => handleSectionToggle("connection")}
@@ -226,7 +208,6 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
         </AccordionDetails>
       </Accordion>
 
-      {/* Display Settings */}
       <Accordion
         expanded={expandedSections.display}
         onChange={() => handleSectionToggle("display")}
@@ -270,7 +251,6 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
         </AccordionDetails>
       </Accordion>
 
-      {/* Data Section */}
       {iotProps.enabled && (
         <Accordion
           expanded={expandedSections.data}
@@ -289,9 +269,8 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
                     setLoading(true);
                     setError(null);
                     try {
-                      // Use the global IoT service to fetch data
                       const { default: iotService } = await import(
-                        "../../services/IoTService"
+                        "../../../services/IoTService"
                       );
                       await iotService.fetchDataForObject(selectedObject.id);
                     } catch (err) {
@@ -392,11 +371,10 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
                     Last updated:{" "}
                     {(() => {
                       const date = weatherData.lastUpdated;
-                      if (date instanceof Date) {
+                      if (date instanceof Date)
                         return date.toLocaleTimeString();
-                      } else if (typeof date === "string") {
+                      else if (typeof date === "string")
                         return new Date(date).toLocaleTimeString();
-                      }
                       return "Unknown";
                     })()}
                   </Typography>
@@ -409,7 +387,6 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
 
       <Divider sx={{ my: 2 }} />
 
-      {/* Status Indicators */}
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
         <Chip
           label={iotProps.enabled ? "IoT Active" : "IoT Inactive"}

@@ -9,7 +9,7 @@ import { useModelSelection } from "./hooks/useModelSelection.ts";
 import { useModelMaterials } from "./hooks/useModelMaterials.ts";
 import ObservationVisibilityArea from "./ObservationVisibilityArea";
 import ActualVisibilityArea from "./ActualVisibilityArea";
-import WeatherData3DDisplay from "../../app/components/Builder/WeatherData3DDisplay";
+import WeatherData3DDisplay from "../../app/components/Builder/overlays/WeatherData3DDisplay";
 
 // // Dynamically import CesiumIonTiles to avoid SSR issues
 // const CesiumIonTiles = dynamic(

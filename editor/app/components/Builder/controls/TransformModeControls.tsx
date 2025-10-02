@@ -19,7 +19,6 @@ const TransformModeControls: React.FC<TransformModeControlsProps> = ({
     "translate" | "rotate" | "scale"
   >("translate");
 
-  // Set initial mode when transform editor is created
   useEffect(() => {
     if (transformEditor && transformEditor.setModeTranslation) {
       transformEditor.setModeTranslation();

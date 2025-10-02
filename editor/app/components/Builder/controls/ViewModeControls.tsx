@@ -14,10 +14,6 @@ import {
   FlightTakeoff,
 } from "@mui/icons-material";
 
-// styles moved to ViewModeControls.styles.ts
-
-// Use shared ViewMode type from core state
-
 interface ViewModeControlsProps {
   viewMode?: ViewMode;
   setViewMode?: (mode: ViewMode) => void;
@@ -30,7 +26,6 @@ const ViewModeControls: React.FC<ViewModeControlsProps> = ({
 }) => {
   return (
     <ViewModeSection previewMode={false}>
-      {/* Row 1: No Simulation (Orbit Controls) */}
       <ViewModeRow>
         <Tooltip title="Orbit Controls">
           <ViewModeButton
@@ -50,7 +45,6 @@ const ViewModeControls: React.FC<ViewModeControlsProps> = ({
         </Tooltip>
       </ViewModeRow>
 
-      {/* Row 2: First Person Simulations */}
       <ViewModeRow>
         <Tooltip title="First Person">
           <ViewModeButton

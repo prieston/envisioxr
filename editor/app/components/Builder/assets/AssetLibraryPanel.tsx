@@ -14,11 +14,8 @@ import {
   Tooltip,
   TextField,
 } from "@mui/material";
-import ModelPreview from "./Scene/ModelPreview";
+import ModelPreview from "../Scene/ModelPreview";
 import ModelMetadataFields from "./ModelMetadataFields";
-
-// Types for props
-// You may want to import these from your types file
 
 type Vector3Tuple = [number, number, number];
 
@@ -152,7 +149,6 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
             color="inherit"
             onClick={() => {
               setSelectingPosition(false);
-              // Optionally clear selectedPosition here if desired
             }}
             sx={{ position: "absolute", top: 8, right: 8 }}
           >
@@ -202,7 +198,6 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
       )}
 
       <Box sx={{ flex: 1, overflow: "auto", pb: 4 }}>
-        {/* My Models Tab */}
         {tabIndex === 0 && (
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
             {userAssets.length === 0 ? (
@@ -276,7 +271,6 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
           </Box>
         )}
 
-        {/* Upload Tab */}
         {tabIndex === 1 && (
           <Box
             sx={{
@@ -287,13 +281,7 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
             }}
           >
             {previewUrl ? (
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                }}
-              >
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <ModelPreview
                   fileUrl={previewUrl}
                   type="glb"
@@ -370,9 +358,7 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                   justifyContent: "center",
                   minHeight: "200px",
                   backgroundColor: "rgba(255, 255, 255, 0.05)",
-                  "&:hover": {
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  },
+                  "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
                 }}
                 {...getRootProps()}
               >

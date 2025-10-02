@@ -1,15 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import ViewModeControls from "./ViewModeControls";
-import PlaybackControls from "./PlaybackControls";
-import ObservationPointsList from "./ObservationPointsList";
-import SceneObjectsList from "./SceneObjectsList";
-import LocationSearchSection from "./LocationSearchSection";
-import PropertiesPanel from "./PropertiesPanel";
-import AssetLibraryPanel from "./AssetLibraryPanel";
+import ViewModeControls from "./controls/ViewModeControls";
+import PlaybackControls from "./controls/PlaybackControls";
+import ObservationPointsList from "./lists/ObservationPointsList";
+import SceneObjectsList from "./lists/SceneObjectsList";
+import LocationSearchSection from "./search/LocationSearchSection";
+import PropertiesPanel from "./properties/PropertiesPanel";
+import AssetLibraryPanel from "./assets/AssetLibraryPanel";
 import LogoHeader from "../AppBar/LogoHeader";
 import ReportGenerator from "../Report/ReportGenerator";
 import BasemapSelector from "../Environment/BasemapSelector";
-import ThreeJSLocationSearchSection from "./ThreeJSLocationSearchSection";
+import ThreeJSLocationSearchSection from "./search/ThreeJSLocationSearchSection";
 import {
   CesiumLocationSearchSection,
   CesiumBasemapSelector,
@@ -21,7 +22,9 @@ import {
   CesiumSimulationInstructions,
 } from "@envisio/engine-cesium/components";
 
-export const componentRegistry: Record<string, React.ComponentType<any>> = {
+export type AnyComponent = React.ComponentType<any>; // intentionally permissive
+
+export const componentRegistry: Record<string, AnyComponent> = {
   ViewModeControls: ViewModeControls,
   PlaybackControls: PlaybackControls,
   ObservationPointsList: ObservationPointsList,
@@ -41,8 +44,6 @@ export const componentRegistry: Record<string, React.ComponentType<any>> = {
   CesiumSimulationInstructions: CesiumSimulationInstructions,
 };
 
-export const getComponent = (
-  componentName: string
-): React.ComponentType<any> | null => {
+export const getComponent = (componentName: string): AnyComponent | null => {
   return componentRegistry[componentName] || null;
 };
