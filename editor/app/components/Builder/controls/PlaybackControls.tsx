@@ -44,7 +44,6 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   const handleNextObservation = () => {
     if (nextObservation && hasNextPoint) {
       nextObservation();
-      // Select the observation point for camera animation
       const nextIndex = (previewIndex || 0) + 1;
       const nextPoint = observationPoints?.[nextIndex];
       if (nextPoint && nextPoint.position && nextPoint.target) {
@@ -56,7 +55,6 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   const handlePrevObservation = () => {
     if (prevObservation && hasPrevPoint) {
       prevObservation();
-      // Select the observation point for camera animation
       const prevIndex = (previewIndex || 0) - 1;
       const prevPoint = observationPoints?.[prevIndex];
       if (prevPoint && prevPoint.position && prevPoint.target) {
@@ -68,11 +66,9 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   const handlePlayback = () => {
     if (togglePlayback) {
       togglePlayback();
-      // Enable preview mode when starting playback
       if (!isPlaying) {
         setPreviewMode?.(true);
       } else {
-        // Disable preview mode when stopping playback
         setPreviewMode?.(false);
       }
     }

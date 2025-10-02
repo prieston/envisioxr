@@ -10,14 +10,14 @@ import {
   Switch,
   Select,
   MenuItem,
-  FormControl,
   InputLabel,
+  FormControl,
+  Grid,
   TextField,
   Chip,
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Grid,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -54,16 +54,10 @@ const SDKObservationPropertiesPanel: React.FC<
     viewshedColor: "#0080ff",
   };
 
-  const handleSectionToggle = (section: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  const handlePropertyChange = (property: string, value: any) => {
+  const handleSectionToggle = (section: string) =>
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  const handlePropertyChange = (property: string, value: any) =>
     onPropertyChange(`observationProperties.${property}`, value);
-  };
 
   const getSensorTypeDescription = (type: string) => {
     switch (type) {
@@ -87,7 +81,6 @@ const SDKObservationPropertiesPanel: React.FC<
         SDK Viewshed Analysis
       </Typography>
 
-      {/* Ion SDK Status */}
       <Paper
         sx={{
           p: 2,
@@ -108,7 +101,6 @@ const SDKObservationPropertiesPanel: React.FC<
         </Typography>
       </Paper>
 
-      {/* Sensor Configuration */}
       <Accordion
         expanded={expandedSections.sensor}
         onChange={() => handleSectionToggle("sensor")}
@@ -148,7 +140,6 @@ const SDKObservationPropertiesPanel: React.FC<
               </Typography>
             </Grid>
 
-            {/* FOV Controls based on sensor type */}
             {observationProps.sensorType === "cone" && (
               <Grid item xs={12}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -185,10 +176,7 @@ const SDKObservationPropertiesPanel: React.FC<
                     min={10}
                     max={180}
                     onChange={(_, value) =>
-                      handlePropertyChange(
-                        "fovH",
-                        Math.min(180, Number(value))
-                      )
+                      handlePropertyChange("fovH", Math.min(180, Number(value)))
                     }
                     valueLabelDisplay="auto"
                   />
@@ -263,7 +251,6 @@ const SDKObservationPropertiesPanel: React.FC<
         </AccordionDetails>
       </Accordion>
 
-      {/* Visualization Options */}
       <Accordion
         expanded={expandedSections.visualization}
         onChange={() => handleSectionToggle("visualization")}
@@ -337,7 +324,6 @@ const SDKObservationPropertiesPanel: React.FC<
         </AccordionDetails>
       </Accordion>
 
-      {/* Status Indicators */}
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
         <Chip label="Ion SDK Active" color="primary" size="small" />
         {observationProps.showSensorGeometry && (

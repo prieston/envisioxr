@@ -48,5 +48,3 @@ export const StyledIconButton = styled(IconButton)(() => ({
       "linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.1), transparent)",
   },
 }));
-
-

@@ -35,17 +35,11 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
   setPreviewMode,
 }) => {
   const handleObservationClick = (point: ObservationPoint, index: number) => {
-    // First select the observation point and set the preview index
     selectObservation?.(point.id);
     setPreviewIndex?.(index);
 
-    // Only trigger camera movement if the point has both position and target set
     if (point.position && point.target) {
-      // Then enable preview mode to trigger camera movement
       setPreviewMode?.(true);
-
-      // Wait for camera movement to complete before disabling preview mode
-      // Using a longer timeout to ensure the camera movement is complete
       setTimeout(() => {
         setPreviewMode?.(false);
       }, 1500);

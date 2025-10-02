@@ -6,8 +6,8 @@ import {
   LocationInfo,
 } from "./LocationSearchSection.styles";
 import { useSceneStore } from "@envisio/core";
-import LocationSearch from "../LocationSearch";
-import CesiumIonAssetsManager from "../Environment/CesiumIonAssetsManager";
+import LocationSearch from "../../LocationSearch";
+import CesiumIonAssetsManager from "../../Environment/CesiumIonAssetsManager";
 
 interface LocationSearchSectionProps {
   value?: any;
@@ -95,7 +95,6 @@ const LocationSearchSection: React.FC<LocationSearchSectionProps> = () => {
         </>
       )}
 
-      {/* Cesium Ion Assets Management */}
       <CesiumIonAssetsManager />
     </Container>
   );

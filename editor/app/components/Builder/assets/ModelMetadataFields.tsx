@@ -3,14 +3,14 @@
 import React from "react";
 import {
   Box,
-  TextField,
-  Button,
   Typography,
-  IconButton,
   Paper,
-  Switch,
-  FormControlLabel,
+  TextField,
+  IconButton,
+  Button,
   Slider,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -49,9 +49,8 @@ const ModelMetadataFields: React.FC<ModelMetadataFieldsProps> = ({
   },
   onObservationPropertiesChange,
 }) => {
-  const handleAddField = () => {
+  const handleAddField = () =>
     onChange([...metadata, { label: "", value: "" }]);
-  };
 
   const handleRemoveField = (index: number) => {
     const newMetadata = metadata.filter((_, i) => i !== index);

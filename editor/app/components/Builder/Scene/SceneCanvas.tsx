@@ -2,14 +2,30 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import { useWorldStore } from "@envisio/core";
+import { useWorldStore, useSceneStore } from "@envisio/core";
 
-const Scene = dynamic(() => import("@envisio/engine-three"), {
-  ssr: false,
-});
+const Scene = dynamic(
+  () =>
+    import("./EngineThreeWrapper").then((m) => ({
+      default: m.Scene || m.default,
+    })),
+  {
+    ssr: false,
+  }
+);
 const CesiumViewer = dynamic(() => import("@envisio/engine-cesium"), {
   ssr: false,
 });
+const ObjectTransformEditor = dynamic(() => import("./ObjectTransformEditor"), {
+  ssr: false,
+});
+const CesiumIonSDKViewshedAnalysis = dynamic(
+  () =>
+    import("@envisio/ion-sdk").then((m) => ({
+      default: m.CesiumIonSDKViewshedAnalysis,
+    })),
+  { ssr: false }
+);
 
 interface SceneCanvasProps {
   initialSceneData: any;
@@ -23,6 +39,9 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
   renderObservationPoints = true,
 }) => {
   const engine = useWorldStore((s) => s.engine);
+  const selectedObject = useSceneStore((s) => s.selectedObject);
+  const objects = useSceneStore((s) => s.objects);
+  const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
   return (
     <div
       style={{
@@ -35,7 +54,33 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
       }}
     >
       {engine === "cesium" ? (
-        <CesiumViewer />
+        <>
+          <CesiumViewer />
+          {selectedObject && (
+            <ObjectTransformEditor selectedObject={selectedObject} />
+          )}
+          {Array.isArray(objects)
+            ? objects
+                .filter(
+                  (obj: any) =>
+                    obj?.isObservationModel && obj?.observationProperties
+                )
+                .map((obj: any) => (
+                  <CesiumIonSDKViewshedAnalysis
+                    key={`ion-viewshed-${obj.id}`}
+                    position={
+                      (obj.position || [0, 0, 0]) as [number, number, number]
+                    }
+                    rotation={
+                      (obj.rotation || [0, 0, 0]) as [number, number, number]
+                    }
+                    observationProperties={obj.observationProperties as any}
+                    objectId={obj.id}
+                    cesiumViewer={cesiumViewer}
+                  />
+                ))
+            : null}
+        </>
       ) : (
         <Scene
           initialSceneData={initialSceneData}
