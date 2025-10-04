@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import ViewModeControls from "./controls/ViewModeControls";
-import PlaybackControls from "./controls/PlaybackControls";
-import ObservationPointsList from "./lists/ObservationPointsList";
-import SceneObjectsList from "./lists/SceneObjectsList";
-import LocationSearchSection from "./search/LocationSearchSection";
-import PropertiesPanel from "./properties/PropertiesPanel";
-import AssetLibraryPanel from "./assets/AssetLibraryPanel";
+import {
+  ViewModeControls,
+  PlaybackControls,
+  ObservationPointsList,
+} from "@envisio/ui";
+import SceneObjectsList from "../Builder/lists/SceneObjectsList";
+import PropertiesPanel from "../Builder/properties/PropertiesPanel";
+import AssetLibraryPanel from "../Builder/assets/AssetLibraryPanel";
 import LogoHeader from "../AppBar/LogoHeader";
 import ReportGenerator from "../Report/ReportGenerator";
 import BasemapSelector from "../Environment/BasemapSelector";
@@ -29,7 +30,7 @@ export const componentRegistry: Record<string, AnyComponent> = {
   PlaybackControls: PlaybackControls,
   ObservationPointsList: ObservationPointsList,
   SceneObjectsList: SceneObjectsList,
-  LocationSearchSection: LocationSearchSection,
+  LocationSearchSection: ThreeJSLocationSearchSection,
   PropertiesPanel: PropertiesPanel,
   AssetLibraryPanel: AssetLibraryPanel,
   LogoHeader: LogoHeader,
