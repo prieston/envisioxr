@@ -30,16 +30,17 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   nextObservation,
   prevObservation,
   observationPoints,
+  previewMode,
   previewIndex,
   setPreviewMode,
   selectObservation,
 }) => {
   const hasNextPoint =
-    isPlaying &&
+    !!previewMode &&
     previewIndex !== undefined &&
     previewIndex < (observationPoints?.length || 0) - 1;
   const hasPrevPoint =
-    isPlaying && previewIndex !== undefined && previewIndex > 0;
+    !!previewMode && previewIndex !== undefined && previewIndex > 0;
 
   const handleNextObservation = () => {
     if (nextObservation && hasNextPoint) {

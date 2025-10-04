@@ -12,7 +12,7 @@ import {
   BottomContainer,
   CanvasContainer,
 } from "./AdminLayout.styles";
-import AdminAppBar from "@/app/components/AppBar/AdminAppBarNew";
+import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 import { BottomPanel, LeftPanel, RightPanel } from "./panels";
 
 const AdminLayout = ({ children, onSave, onPublish }) => {

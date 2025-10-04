@@ -1,11 +1,13 @@
 export { default as AppBar } from "./AppBar";
 export { default as AdminAppBar } from "./AdminAppBar";
-export { default as AdminAppBarNew } from "./AdminAppBarNew";
+export { default as AdminAppBarNew } from "./AdminAppBar";
 export { default as BuilderActions } from "./BuilderActions";
 export { default as BuilderTools } from "./BuilderTools";
 export { default as LogoHeader } from "./LogoHeader";
-export { default as NavigationButtons } from "./NavigationButtons";
-export { default as PublishDialog } from "./PublishDialog";
-export { default as ThemeToggleButton } from "./ThemeToggleButton";
+export {
+  NavigationButtons,
+  PublishDialog,
+  ThemeToggleButton,
+} from "@envisio/ui";
 export { default as TopBarToolRenderer } from "./TopBarToolRenderer";
 export * as StyledComponents from "./StyledComponents";

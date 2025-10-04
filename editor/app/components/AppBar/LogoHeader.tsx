@@ -1,6 +1,7 @@
 "use client";
 import React, { useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useThemeMode } from "@envisio/ui";
 
 export default function LogoHeader() {
@@ -31,13 +32,15 @@ export default function LogoHeader() {
   if (!src) return <span data-mode={mode}>Envisio</span>;
 
   return (
-    <Image
-      src={src}
-      alt={alt}
-      width={width}
-      height={height}
-      priority
-      style={{ height: 28, width: "auto" }}
-    />
+    <Link href="/" aria-label="Go to Home">
+      <Image
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        priority
+        style={{ height: 28, width: "auto" }}
+      />
+    </Link>
   );
 }

@@ -7,7 +7,7 @@ import {
 } from "./LocationSearchSection.styles";
 import { useSceneStore } from "@envisio/core";
 import LocationSearch from "../../LocationSearch";
-import CesiumIonAssetsManager from "../../Environment/CesiumIonAssetsManager";
+import { CesiumIonAssetsManager } from "@envisio/engine-cesium/components";
 
 interface LocationSearchSectionProps {
   value?: any;
