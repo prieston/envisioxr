@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import {
-  ViewModeControls,
-  PlaybackControls,
-  ObservationPointsList,
-} from "@envisio/ui";
+import { ViewModeControls } from "@envisio/ui";
+import PlaybackControls from "../Builder/controls/PlaybackControls";
+import ObservationPointsList from "../Builder/lists/ObservationPointsList";
 import SceneObjectsList from "../Builder/lists/SceneObjectsList";
 import PropertiesPanel from "../Builder/properties/PropertiesPanel";
 import AssetLibraryPanel from "../Builder/assets/AssetLibraryPanel";

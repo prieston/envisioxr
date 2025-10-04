@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Divider, IconButton } from "@mui/material";
 import LogoHeader from "./LogoHeader.tsx";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore, useWorldStore } from "@envisio/core";
+import { getTopBarConfig } from "@envisio/config/factory";
+import TopBarToolRenderer from "./TopBarToolRenderer";
 import {
   AppBarContainer,
   ToolbarContainer,
   LeftSection,
   RightSection,
 } from "./StyledComponents.tsx";
-import BuilderTools from "./BuilderTools.tsx";
-import BuilderActions from "./BuilderActions.tsx";
-import PublishDialog from "./PublishDialog.tsx";
+import { PublishDialog } from "@envisio/ui";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { logger } from "./logger";
 
@@ -34,7 +34,9 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
   logger.debug("🔍 AdminAppBar component called with mode:", mode);
 
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
-  const { transformMode, setTransformMode, selectedObject } = useSceneStore();
+  const { engine } = useWorldStore();
+  const { transformMode, setTransformMode, selectedObject, previewMode } =
+    useSceneStore();
 
   const handleTransformModeChange = (
     mode: "translate" | "rotate" | "scale"
@@ -43,78 +45,123 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
     setTransformMode(mode);
   };
 
-  // Debug logging
+  const handleSave = async () => {
+    if (onSave) {
+      try {
+        await onSave();
+      } catch (error) {
+        // intentionally silent; toast handled upstream
+      }
+    }
+  };
+
+  const handlePublish = () => {
+    setOpenPublishDialog(true);
+  };
+
+  // Config for builder mode
+  const config = useMemo(() => {
+    if (mode !== "builder") return null;
+    return getTopBarConfig(
+      selectedObject,
+      transformMode,
+      handleTransformModeChange,
+      handleSave,
+      handlePublish,
+      previewMode
+    );
+  }, [mode, engine, selectedObject, transformMode, previewMode]);
+
   logger.debug("🔍 AdminAppBar render:", {
     selectedObject,
     transformMode,
     mode,
   });
 
-  logger.debug(
-    "🔍 AdminAppBar BuilderTools should render:",
-    mode === "builder"
-  );
+  if (mode === "builder") {
+    const leftSection = config?.sections.find((s) => s.type === "left");
+    const centerSection = config?.sections.find((s) => s.type === "center");
+    const rightSection = config?.sections.find((s) => s.type === "right");
 
+    return (
+      <>
+        <AppBarContainer position="fixed" className="glass-panel">
+          <ToolbarContainer>
+            <LeftSection>
+              {leftSection?.tools.map((tool) => (
+                <TopBarToolRenderer key={tool.id} tool={tool} />
+              ))}
+              <Divider
+                orientation="vertical"
+                flexItem
+                sx={{ mx: 1, height: 24 }}
+              />
+            </LeftSection>
+
+            <div
+              style={{
+                flexGrow: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              {centerSection?.tools.map((tool) => (
+                <TopBarToolRenderer key={tool.id} tool={tool} />
+              ))}
+            </div>
+
+            <RightSection>
+              {rightSection?.tools.map((tool) => (
+                <TopBarToolRenderer key={tool.id} tool={tool} />
+              ))}
+            </RightSection>
+          </ToolbarContainer>
+        </AppBarContainer>
+
+        <PublishDialog
+          open={openPublishDialog}
+          onClose={() => setOpenPublishDialog(false)}
+          onConfirm={onPublish}
+          title="Publish World"
+          description="Are you sure you want to publish this world? It will be publicly available."
+          confirmLabel="Publish"
+        />
+      </>
+    );
+  }
+
+  // Simple mode (dashboard/edit)
   return (
     <>
       <AppBarContainer position="fixed">
         <ToolbarContainer>
           <LeftSection>
             <LogoHeader />
-            {mode === "builder" && (
-              <Divider
-                orientation="vertical"
-                flexItem
-                sx={{ mx: 1, height: 24 }}
-              />
-            )}
           </LeftSection>
 
-          {mode === "builder" && (
-            <BuilderTools
-              previewMode={false}
-              selectedObject={selectedObject}
-              transformMode={transformMode}
-              onTransformModeChange={handleTransformModeChange}
-            />
-          )}
-
           <RightSection>
-            {mode === "builder" && (
-              <BuilderActions
-                onSave={onSave}
-                onPublish={() => setOpenPublishDialog(true)}
-              />
-            )}
-            {mode === "simple" && (
-              <IconButton
-                onClick={onHelpClick}
-                sx={{
-                  color: "var(--glass-text-secondary, #646464)",
-                  animation: showHelpPulse ? "pulse 2s infinite" : "none",
-                  "&:hover": {
-                    animation: "none",
-                    backgroundColor: "rgba(37, 99, 235, 0.1)",
-                    color: "var(--glass-text-primary, #2563eb)",
-                    transform: "scale(1.1)",
-                  },
-                  transition: "transform 0.2s ease",
-                  "@keyframes pulse": {
-                    "0%": {
-                      transform: "scale(1)",
-                    },
-                    "50%": {
-                      transform: "scale(1.1)",
-                    },
-                    "100%": {
-                      transform: "scale(1)",
-                    },
-                  },
-                }}
-              >
-                <HelpOutlineIcon />
-              </IconButton>
-            )}
+            <IconButton
+              onClick={onHelpClick}
+              sx={{
+                color: "var(--glass-text-secondary, #646464)",
+                animation: showHelpPulse ? "pulse 2s infinite" : "none",
+                "&:hover": {
+                  animation: "none",
+                  backgroundColor: "rgba(37, 99, 235, 0.1)",
+                  color: "var(--glass-text-primary, #2563eb)",
+                  transform: "scale(1.1)",
+                },
+                transition: "transform 0.2s ease",
+                "@keyframes pulse": {
+                  "0%": { transform: "scale(1)" },
+                  "50%": { transform: "scale(1.1)" },
+                  "100%": { transform: "scale(1)" },
+                },
+              }}
+            >
+              <HelpOutlineIcon />
+            </IconButton>
           </RightSection>
         </ToolbarContainer>
       </AppBarContainer>
@@ -123,6 +170,9 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
         open={openPublishDialog}
         onClose={() => setOpenPublishDialog(false)}
         onConfirm={onPublish}
+        title="Publish World"
+        description="Are you sure you want to publish this world? It will be publicly available."
+        confirmLabel="Publish"
       />
     </>
   );

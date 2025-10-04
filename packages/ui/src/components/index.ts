@@ -7,3 +7,6 @@ export { default as ObservationPointsList } from "./lists/ObservationPointsList"
 export * as ObservationPointsListStyles from "./lists/ObservationPointsList.styles";
 export { default as SceneObjectsList } from "./lists/SceneObjectsList";
 export * as SceneObjectsListStyles from "./lists/SceneObjectsList.styles";
+export { default as NavigationButtons } from "./topbar/NavigationButtons";
+export { default as ThemeToggleButton } from "./topbar/ThemeToggleButton";
+export { default as PublishDialog } from "./topbar/PublishDialog";
