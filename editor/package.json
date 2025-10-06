@@ -13,14 +13,13 @@
   "scripts": {
     "lint": "next lint --fix --dir app",
     "dev": "NODE_ENV=development NEXT_TELEMETRY_DISABLED=1 next dev -p 3001",
-    "predev": "node scripts/copy-cesium-assets.js",
-    "prebuild": "node scripts/copy-cesium-assets.js",
     "build": "next build",
     "analyze": "ANALYZE=true next build",
     "start": "next start",
     "vercel:build:editor": "pnpm --filter @envisioxr/prisma generate && pnpm --filter @envisioxr/prisma prisma migrate deploy && pnpm build"
   },
   "dependencies": {
+    "@envisio/config": "workspace:^",
     "@envisio/core": "workspace:^",
     "@envisio/ui": "workspace:^",
     "3d-tiles-renderer": "^0.4.7",

@@ -1,5 +1,5 @@
 // Main component
-export { default as CesiumViewModeControls } from "../components/CesiumViewModeControlsNew";
+export { default as CesiumViewModeControls } from "../components/CesiumViewModeControls";
 
 // Types
 export * from "./types";

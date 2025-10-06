@@ -53,7 +53,9 @@ const CesiumCameraCaptureHandler: React.FC = () => {
           position: newPosition,
           target: newTarget,
         });
-      } catch (error) {}
+      } catch (error) {
+        // Ignore camera capture errors
+      }
     }
   }, [
     capturingPOV,

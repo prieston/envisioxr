@@ -35,8 +35,19 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
 
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
   const { engine } = useWorldStore();
-  const { transformMode, setTransformMode, selectedObject, previewMode } =
-    useSceneStore();
+
+  // Only subscribe to the specific properties we need, excluding weatherData
+  const transformMode = useSceneStore((state) => state.transformMode);
+  const setTransformMode = useSceneStore((state) => state.setTransformMode);
+  const previewMode = useSceneStore((state) => state.previewMode);
+
+  // For selectedObject, only subscribe to the properties we actually use (id, name, etc.)
+  // Exclude weatherData to prevent re-renders when IoT updates
+  const selectedObject = useSceneStore((state) => {
+    if (!state.selectedObject) return null;
+    const { weatherData, ...rest } = state.selectedObject;
+    return rest;
+  });
 
   const handleTransformModeChange = (
     mode: "translate" | "rotate" | "scale"

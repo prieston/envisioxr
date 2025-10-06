@@ -19,6 +19,7 @@ export function setupCesiumClickSelector(
     if (pos) {
       onClick(pos);
     } else {
+      // Ignore click movement errors
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
@@ -28,7 +29,9 @@ export function setupCesiumClickSelector(
   return () => {
     try {
       handler.destroy();
-    } catch {}
+    } catch {
+      // Ignore click handling errors
+    }
     canvas.style.cursor = prev || "auto";
   };
 }

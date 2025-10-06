@@ -30,17 +30,17 @@ const PublishedScenePage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  // Destructure necessary state and actions from the store.
-  const {
-    previewMode,
-    setPreviewMode,
-    setObservationPoints,
-    observationPoints,
-    previewIndex,
-    selectObservation,
-    nextObservation,
-    prevObservation,
-  } = useSceneStore();
+  // Destructure necessary state and actions from the store using selectors
+  const previewMode = useSceneStore((state) => state.previewMode);
+  const setPreviewMode = useSceneStore((state) => state.setPreviewMode);
+  const setObservationPoints = useSceneStore(
+    (state) => state.setObservationPoints
+  );
+  const observationPoints = useSceneStore((state) => state.observationPoints);
+  const previewIndex = useSceneStore((state) => state.previewIndex);
+  const selectObservation = useSceneStore((state) => state.selectObservation);
+  const nextObservation = useSceneStore((state) => state.nextObservation);
+  const prevObservation = useSceneStore((state) => state.prevObservation);
 
   // Enable preview mode and initialize observation points on mount.
   useEffect(() => {

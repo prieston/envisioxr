@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { World, Engine } from "../../../packages/config/src/types/world";
+import type { World, Engine } from "@envisio/config";
 
 interface WorldState {
   activeWorld: World | null;

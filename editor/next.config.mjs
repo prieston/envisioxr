@@ -135,31 +135,30 @@ const nextConfig = {
       use: ['raw-loader', 'glslify-loader'],
     });
 
-    // Copy Cesium static assets with improved configuration (matching working example)
+    // Copy Cesium static assets during build (replaces manual copy script)
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
           {
-            from: 'node_modules/cesium/Build/Cesium/Workers',
-            to: 'public/cesium/Workers',
-            info: { minimized: true },
+            from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/Workers'),
+            to: path.resolve(process.cwd(), 'public/cesium/Workers'),
+            noErrorOnMissing: true,
           },
           {
-            from: 'node_modules/cesium/Build/Cesium/ThirdParty',
-            to: 'public/cesium/ThirdParty',
-            info: { minimized: true },
+            from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/ThirdParty'),
+            to: path.resolve(process.cwd(), 'public/cesium/ThirdParty'),
+            noErrorOnMissing: true,
           },
           {
-            from: 'node_modules/cesium/Build/Cesium/Assets',
-            to: 'public/cesium/Assets',
-            info: { minimized: true },
+            from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/Assets'),
+            to: path.resolve(process.cwd(), 'public/cesium/Assets'),
+            noErrorOnMissing: true,
           },
           {
-            from: 'node_modules/cesium/Build/Cesium/Widgets',
-            to: 'public/cesium/Widgets',
-            info: { minimized: true },
+            from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/Widgets'),
+            to: path.resolve(process.cwd(), 'public/cesium/Widgets'),
+            noErrorOnMissing: true,
           },
-          // Ion SDK now provided as workspace packages; no public copy needed
         ],
       })
     );

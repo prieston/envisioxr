@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import { ViewModeControls } from "@envisio/ui";
-import PlaybackControls from "../Builder/controls/PlaybackControls";
+import {
+  ViewModeControls,
+  PlaybackControls,
+  BasemapSelector,
+} from "@envisio/ui";
 import ObservationPointsList from "../Builder/lists/ObservationPointsList";
 import SceneObjectsList from "../Builder/lists/SceneObjectsList";
 import PropertiesPanel from "../Builder/properties/PropertiesPanel";
 import AssetLibraryPanel from "../Builder/assets/AssetLibraryPanel";
 import LogoHeader from "../AppBar/LogoHeader";
 import ReportGenerator from "../Report/ReportGenerator";
-import BasemapSelector from "../Environment/BasemapSelector";
-import ThreeJSLocationSearchSection from "./search/ThreeJSLocationSearchSection";
+import { ThreeJSLocationSearchSection } from "@envisio/engine-three/components";
 import {
   CesiumLocationSearchSection,
   CesiumBasemapSelector,

@@ -16,12 +16,15 @@ import { useSceneStore, useWorldStore } from "@envisio/core";
 import * as THREE from "three";
 import useSWR from "swr";
 import { localToGeographic } from "@envisio/core/utils";
-import { getPositionAtScreenPoint } from "@envisio/engine-cesium";
-import { flyToCesiumPosition, flyToThreeObject } from "../../../utils/camera";
+import {
+  getPositionAtScreenPoint,
+  flyToCesiumPosition,
+} from "@envisio/engine-cesium";
+import { flyToThreeObject } from "@envisio/engine-three/components";
 import {
   googleMapsLinkForLatLon,
   googleMapsDirectionsLinkLatLon,
-} from "../../../utils/maps";
+} from "@envisio/ui";
 import SDKObservationPropertiesPanel from "./SDKObservationPropertiesPanel";
 import IoTDevicePropertiesPanel from "./IoTDevicePropertiesPanel";
 
