@@ -68,7 +68,9 @@ const CesiumIonAssetsRenderer: React.FC = () => {
             ) {
               cesiumViewer.scene.primitives.remove(tileset);
             }
-          } catch (_error) {}
+          } catch (_error) {
+            // Ignore primitive removal errors
+          }
         },
       };
 
@@ -82,13 +84,19 @@ const CesiumIonAssetsRenderer: React.FC = () => {
                 duration: 2.0,
                 offset: new cesiumInstance.HeadingPitchRange(0, -0.5, 1000),
               });
-            } catch (_error) {}
+            } catch (_error) {
+              // Ignore flyTo errors
+            }
           })
-          .catch((_error: any) => {});
+          .catch((_error: any) => {
+            // Ignore tileset ready promise errors
+          });
       }
 
       cesiumInstance.Ion.defaultAccessToken = originalToken;
-    } catch (error: any) {}
+    } catch (error: any) {
+      // Ignore asset initialization errors
+    }
   };
 
   const enabledAssets = cesiumIonAssets.filter((asset) => asset.enabled);

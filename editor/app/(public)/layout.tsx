@@ -1,5 +1,5 @@
 import "@/global.css";
-import ClientProvider from "../../lib/ClientProvider";
+import { ThemeModeProvider } from "@envisio/ui";
 import { ToastContainer } from "react-toastify";
 
 export const metadata = {
@@ -20,7 +20,7 @@ export default function PublicLayout({ children }) {
         />
       </head>
       <body>
-        <ClientProvider>{children}</ClientProvider>
+        <ThemeModeProvider>{children}</ThemeModeProvider>
         <ToastContainer position="bottom-right" autoClose={3000} />
       </body>
     </html>

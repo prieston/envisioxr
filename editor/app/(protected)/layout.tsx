@@ -2,7 +2,7 @@ import "@/global.css";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ToastContainer } from "react-toastify";
-import ClientProvider from "@/lib/ClientProvider";
+import { ThemeModeProvider } from "@envisio/ui";
 import { serverEnv } from "@/lib/env/server";
 
 export const dynamic = "force-dynamic";
@@ -73,7 +73,7 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body>
-        <ClientProvider>{children}</ClientProvider>
+        <ThemeModeProvider>{children}</ThemeModeProvider>
         <ToastContainer position="bottom-right" autoClose={3000} />
       </body>
     </html>

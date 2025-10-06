@@ -53,8 +53,10 @@ const Model = ({
   isObservationModel,
   observationProperties,
 }: ModelProps) => {
-  const store = useSceneStore();
-  const objectFromStore = store.objects.find((obj) => obj.id === id);
+  // Use selector to only subscribe to the specific object we need
+  const objectFromStore = useSceneStore((state) =>
+    state.objects.find((obj) => obj.id === id)
+  );
   const effectiveObservationProperties =
     objectFromStore?.observationProperties || observationProperties;
 

@@ -4,21 +4,19 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { useWorldStore, useSceneStore } from "@envisio/core";
 
-const Scene = dynamic(
-  () =>
-    import("./EngineThreeWrapper").then((m) => ({
-      default: m.Scene || m.default,
-    })),
-  {
-    ssr: false,
-  }
-);
+const Scene = dynamic(() => import("@envisio/engine-three"), {
+  ssr: false,
+});
 const CesiumViewer = dynamic(() => import("@envisio/engine-cesium"), {
   ssr: false,
 });
-const ObjectTransformEditor = dynamic(() => import("./ObjectTransformEditor"), {
-  ssr: false,
-});
+const CesiumObjectTransformEditor = dynamic(
+  () =>
+    import("@envisio/engine-cesium").then((m) => ({
+      default: m.CesiumObjectTransformEditor,
+    })),
+  { ssr: false }
+);
 const CesiumIonSDKViewshedAnalysis = dynamic(
   () =>
     import("@envisio/ion-sdk").then((m) => ({
@@ -57,7 +55,7 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
         <>
           <CesiumViewer />
           {selectedObject && (
-            <ObjectTransformEditor selectedObject={selectedObject} />
+            <CesiumObjectTransformEditor selectedObject={selectedObject} />
           )}
           {Array.isArray(objects)
             ? objects

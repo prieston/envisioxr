@@ -10,22 +10,24 @@ import { LeftPanelContainer, TabPanel } from "@envisio/ui";
 
 const LeftPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const sceneStore = useSceneStore();
-  const worldStore = useWorldStore();
-  const { previewMode } = sceneStore;
-  const { engine } = worldStore;
+
+  // Use specific selectors instead of subscribing to entire store
+  const previewMode = useSceneStore((state) => state.previewMode);
+  const { engine } = useWorldStore();
 
   // Get all the state values and setters that the configuration depends on
-  const {
-    gridEnabled,
-    setGridEnabled,
-    skyboxType,
-    setSkyboxType,
-    ambientLightIntensity,
-    setAmbientLightIntensity,
-    basemapType,
-    setBasemapType,
-  } = sceneStore;
+  const gridEnabled = useSceneStore((state) => state.gridEnabled);
+  const setGridEnabled = useSceneStore((state) => state.setGridEnabled);
+  const skyboxType = useSceneStore((state) => state.skyboxType);
+  const setSkyboxType = useSceneStore((state) => state.setSkyboxType);
+  const ambientLightIntensity = useSceneStore(
+    (state) => state.ambientLightIntensity
+  );
+  const setAmbientLightIntensity = useSceneStore(
+    (state) => state.setAmbientLightIntensity
+  );
+  const basemapType = useSceneStore((state) => state.basemapType);
+  const setBasemapType = useSceneStore((state) => state.setBasemapType);
 
   // Recreate configuration whenever state changes
   const config = useMemo(() => {

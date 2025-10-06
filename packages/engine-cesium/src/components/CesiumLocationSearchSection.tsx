@@ -7,7 +7,8 @@ import {
 } from "./CesiumLocationSearchSection.styles";
 import * as Cesium from "cesium";
 import { useSceneStore } from "@envisio/core";
-import { LocationSearch, CesiumIonAssetsManager } from ".";
+import { LocationSearch } from "@envisio/ui";
+import { CesiumIonAssetsManager } from ".";
 
 interface CesiumLocationSearchSectionProps {
   value?: any;
@@ -19,13 +20,14 @@ interface CesiumLocationSearchSectionProps {
 const CesiumLocationSearchSection: React.FC<
   CesiumLocationSearchSectionProps
 > = () => {
-  const {
-    selectedAssetId,
-    selectedLocation,
-    setSelectedAssetId,
-    setSelectedLocation,
-    cesiumViewer,
-  } = useSceneStore();
+  // Use specific selectors to avoid unnecessary re-renders
+  const selectedAssetId = useSceneStore((state) => state.selectedAssetId);
+  const selectedLocation = useSceneStore((state) => state.selectedLocation);
+  const setSelectedAssetId = useSceneStore((state) => state.setSelectedAssetId);
+  const setSelectedLocation = useSceneStore(
+    (state) => state.setSelectedLocation
+  );
+  const cesiumViewer = useSceneStore((state) => state.cesiumViewer);
 
   const handleAssetSelect = useCallback(
     (assetId: string, latitude: number, longitude: number) => {

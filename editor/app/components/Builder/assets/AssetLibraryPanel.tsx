@@ -14,7 +14,7 @@ import {
   Tooltip,
   TextField,
 } from "@mui/material";
-import ModelPreview from "../Scene/ModelPreview";
+import ModelPreview from "@envisio/engine-three/components/ModelPreview";
 import ModelMetadataFields from "./ModelMetadataFields";
 
 type Vector3Tuple = [number, number, number];

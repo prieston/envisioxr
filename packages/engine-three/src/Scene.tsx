@@ -10,7 +10,7 @@ import type { SceneProps, Model } from "./components/Scene/types";
 import SceneLights from "./components/Scene/SceneLights";
 import SceneObjects from "./components/Scene/SceneObjects";
 import SceneObservationPoints from "./components/Scene/SceneObservationPoints";
-import SceneTransformControlsNew from "./components/Scene/SceneTransformControlsNew";
+import SceneTransformControls from "./components/Scene/SceneTransformControls";
 import CameraPOVCaptureHandler from "./components/Scene/CameraPOVCaptureHandler";
 import ObservationPointHandler from "./components/Scene/ObservationPointHandler";
 import SceneControls from "./components/Scene/controls/SceneControls";
@@ -182,7 +182,7 @@ export default function Scene({
             enableXR={false}
             renderObservationPoints={renderObservationPoints}
           />
-          <SceneTransformControlsNew
+          <SceneTransformControls
             selectedObject={selectedObject as Model | null}
             transformControlsRef={transformControlsRef}
           />

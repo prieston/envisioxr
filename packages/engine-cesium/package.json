@@ -20,6 +20,7 @@
     }
   },
   "dependencies": {
+    "@cesium/engine": "^20.0.1",
     "@envisio/core": "workspace:*",
     "@envisio/ion-sdk": "workspace:*",
     "@mui/icons-material": "^5.0.0",

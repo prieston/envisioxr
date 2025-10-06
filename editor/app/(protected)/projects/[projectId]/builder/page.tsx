@@ -6,7 +6,7 @@ import { Box, CircularProgress } from "@mui/material";
 import AdminLayout from "../../../../../app/components/Builder/AdminLayout";
 import SceneCanvas from "../../../../../app/components/Builder/Scene/SceneCanvas";
 import { useSceneStore, useWorldStore } from "@envisio/core";
-import { showToast } from "../../../../../app/utils/toastUtils";
+import { showToast } from "@envisio/ui";
 import { toast } from "react-toastify";
 
 // Function to sanitize scene data before saving

@@ -39,10 +39,9 @@ const RightPanelNew: React.FC = () => {
     visibilityRadius: 100,
   });
 
-  const sceneStore = useSceneStore();
-  const worldStore = useWorldStore();
-  const { previewMode } = sceneStore;
-  const { engine } = worldStore;
+  // Use specific selectors instead of subscribing to entire store
+  const previewMode = useSceneStore((state) => state.previewMode);
+  const { engine } = useWorldStore();
 
   // Setup dropzone for file uploads
   const { getRootProps, getInputProps } = useDropzone({
@@ -68,20 +67,35 @@ const RightPanelNew: React.FC = () => {
   const isConfirmDisabled = !previewFile || !friendlyName.trim() || uploading;
 
   // Get all the state values and setters that the configuration depends on
-  const {
-    selectedObject,
-    selectedObservation,
-    viewMode,
-    controlSettings,
-    updateObjectProperty,
-    updateObservationPoint,
-    deleteObservationPoint,
-    setCapturingPOV,
-    updateControlSettings,
-    addModel,
-    orbitControlsRef,
-    scene,
-  } = sceneStore;
+  // Use specific selectors to avoid unnecessary re-renders
+  const selectedObservation = useSceneStore(
+    (state) => state.selectedObservation
+  );
+  const viewMode = useSceneStore((state) => state.viewMode);
+  const controlSettings = useSceneStore((state) => state.controlSettings);
+  const updateObjectProperty = useSceneStore(
+    (state) => state.updateObjectProperty
+  );
+  const updateObservationPoint = useSceneStore(
+    (state) => state.updateObservationPoint
+  );
+  const deleteObservationPoint = useSceneStore(
+    (state) => state.deleteObservationPoint
+  );
+  const setCapturingPOV = useSceneStore((state) => state.setCapturingPOV);
+  const updateControlSettings = useSceneStore(
+    (state) => state.updateControlSettings
+  );
+  const addModel = useSceneStore((state) => state.addModel);
+  const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
+  const scene = useSceneStore((state) => state.scene);
+
+  // For selectedObject, exclude weatherData to prevent re-renders when IoT updates
+  const selectedObject = useSceneStore((state) => {
+    if (!state.selectedObject) return null;
+    const { weatherData, ...rest } = state.selectedObject;
+    return rest;
+  });
 
   // Fetch user's uploaded models when component mounts
   useEffect(() => {

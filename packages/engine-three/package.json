@@ -18,8 +18,11 @@
   "dependencies": {
     "3d-tiles-renderer": "^0.4.7",
     "@envisio/core": "workspace:^",
+    "@react-spring/three": "^9.7.2",
     "@react-three/drei": "^9.92.7",
-    "@react-three/fiber": "^8.15.11"
+    "@react-three/fiber": "^8.15.11",
+    "@react-three/rapier": "^1",
+    "@react-three/xr": "^6"
   },
   "devDependencies": {
     "@types/three": "^0.170.0",

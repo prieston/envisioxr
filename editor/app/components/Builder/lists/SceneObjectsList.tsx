@@ -31,13 +31,18 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = () => {
     string | null
   >(null);
 
-  const {
-    objects,
-    selectedObject,
-    selectObject,
-    removeObject,
-    deselectObject,
-  } = useSceneStore();
+  // Use selectors to avoid re-renders when weatherData updates
+  const objects = useSceneStore((state) => state.objects);
+  const selectObject = useSceneStore((state) => state.selectObject);
+  const removeObject = useSceneStore((state) => state.removeObject);
+  const deselectObject = useSceneStore((state) => state.deselectObject);
+
+  // For selectedObject, exclude weatherData to prevent re-renders
+  const selectedObject = useSceneStore((state) => {
+    if (!state.selectedObject) return null;
+    const { weatherData, ...rest } = state.selectedObject;
+    return rest;
+  });
 
   const handleMenuOpen = (
     e: React.MouseEvent<HTMLButtonElement>,

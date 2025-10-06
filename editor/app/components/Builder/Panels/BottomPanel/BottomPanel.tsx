@@ -4,29 +4,32 @@ import React, { useMemo } from "react";
 import { Divider } from "@mui/material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import { getBottomPanelConfig } from "@envisio/config/factory";
-import { BottomPanelContainer } from "./BottomPanel.styles";
+import { BottomPanelContainer } from "@envisio/ui";
 import SettingRenderer from "../../SettingRenderer";
 
 const BottomPanelNew: React.FC = () => {
-  const { previewMode } = useSceneStore();
+  // Use specific selectors instead of subscribing to entire store
+  const previewMode = useSceneStore((state) => state.previewMode);
   const { engine } = useWorldStore();
 
   // Get all the state values and setters that the configuration depends on
-  const {
-    viewMode,
-    setViewMode,
-    isPlaying,
-    togglePlayback,
-    observationPoints,
-    selectedObservation,
-    addObservationPoint,
-    selectObservation,
-    nextObservation,
-    prevObservation,
-    previewIndex,
-    setPreviewIndex,
-    setPreviewMode,
-  } = useSceneStore();
+  const viewMode = useSceneStore((state) => state.viewMode);
+  const setViewMode = useSceneStore((state) => state.setViewMode);
+  const isPlaying = useSceneStore((state) => state.isPlaying);
+  const togglePlayback = useSceneStore((state) => state.togglePlayback);
+  const observationPoints = useSceneStore((state) => state.observationPoints);
+  const selectedObservation = useSceneStore(
+    (state) => state.selectedObservation
+  );
+  const addObservationPoint = useSceneStore(
+    (state) => state.addObservationPoint
+  );
+  const selectObservation = useSceneStore((state) => state.selectObservation);
+  const nextObservation = useSceneStore((state) => state.nextObservation);
+  const prevObservation = useSceneStore((state) => state.prevObservation);
+  const previewIndex = useSceneStore((state) => state.previewIndex);
+  const setPreviewIndex = useSceneStore((state) => state.setPreviewIndex);
+  const setPreviewMode = useSceneStore((state) => state.setPreviewMode);
 
   // Recreate configuration whenever state changes
   const config = useMemo(() => {
