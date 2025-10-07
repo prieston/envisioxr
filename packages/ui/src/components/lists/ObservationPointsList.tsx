@@ -1,10 +1,11 @@
 import React from "react";
-import { CardContent, Typography } from "@mui/material";
+import { ListItemText, Typography, Box } from "@mui/material";
 import {
   ObservationSection,
-  ObservationCard,
+  ObservationListItem,
+  AddButton,
 } from "./ObservationPointsList.styles";
-import { AddCircleOutline } from "@mui/icons-material";
+import { Add } from "@mui/icons-material";
 
 export type ObservationPoint = {
   id: string | number;
@@ -45,57 +46,37 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
 
   return (
     <ObservationSection previewMode={previewMode || false}>
-      <ObservationCard
-        onClick={onAdd}
-        sx={{
-          backgroundColor: "transparent",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 1,
-        }}
-      >
-        <CardContent
+      {/* Add button */}
+      <AddButton onClick={onAdd} title="Add Observation Point">
+        <Add sx={{ fontSize: "1.2rem" }} />
+        <Typography
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 1,
-            paddingBottom: 0,
-            "&:last-child": { paddingBottom: "16px" },
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            marginLeft: 0.5,
           }}
         >
-          <AddCircleOutline />
-          <Typography variant="caption">Add Point</Typography>
-        </CardContent>
-      </ObservationCard>
+          Add Point
+        </Typography>
+      </AddButton>
+
+      {/* List items */}
       {items?.map((point, index) => (
-        <ObservationCard
+        <ObservationListItem
           key={point.id}
-          className={
+          selected={
             (previewMode && index === previewIndex) ||
             (!previewMode && selectedId === point.id)
-              ? "selected"
-              : ""
           }
           onClick={() => handleClick(point, index)}
         >
-          <CardContent
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              width: "100%",
-              padding: "8px 16px",
-              "&:last-child": { paddingBottom: "8px" },
+          <ListItemText
+            primary={point.title || `Point ${index + 1}`}
+            primaryTypographyProps={{
+              noWrap: true,
             }}
-          >
-            <Typography variant="subtitle2" noWrap>
-              {point.title || "Untitled"}
-            </Typography>
-          </CardContent>
-        </ObservationCard>
+          />
+        </ObservationListItem>
       ))}
     </ObservationSection>
   );

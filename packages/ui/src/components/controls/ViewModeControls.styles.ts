@@ -30,15 +30,15 @@ export const ViewModeButton: React.FC<ButtonProps> = styled(Button)(
     minWidth: 40,
     height: 40,
     padding: theme.spacing(0.5),
-    borderRadius: 0,
+    borderRadius: "8px", // Design system: 8px for clickable items
     backgroundColor: "transparent",
-    color: "inherit",
+    color: "rgba(51, 65, 85, 0.7)", // Design system color
     border: "none",
     boxShadow: "none",
     transition: "background-color 0.15s ease, color 0.15s ease",
     "&:hover": {
-      backgroundColor: "rgba(0, 0, 0, 0.04)",
-      color: "inherit",
+      backgroundColor: "rgba(37, 99, 235, 0.08)", // Blue tint on hover
+      color: "#2563eb",
     },
     "&.active": {
       backgroundColor: "rgba(37, 99, 235, 0.12)",
