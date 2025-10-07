@@ -84,42 +84,53 @@ export const RightSection = styled(Box)(({ theme: _theme }) => ({
   color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
 }));
 
-export const MinimalButton = styled(Button)(({ theme: _theme }) => ({
-  backgroundColor: "transparent",
-  color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
-  border: "none",
-  padding: "4px 8px",
-  minWidth: "64px",
-  width: "64px",
-  flexDirection: "column",
-  gap: "2px",
-  "& .MuiButton-startIcon": {
-    margin: 0,
-  },
-  "& .MuiButton-endIcon": {
-    margin: 0,
-  },
-  "&:hover": {
-    backgroundColor: "transparent",
-    color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
-  },
-  "&.Mui-disabled": {
-    color: "var(--glass-text-secondary, rgba(15, 23, 42, 0.5))",
-  },
-}));
-
-export const MinimalButtonActive = styled(MinimalButton)<{ active?: boolean }>(
+export const MinimalButton = styled(Button)<{ active?: boolean }>(
   ({ theme: _theme, active }) => ({
+    backgroundColor: active
+      ? "rgba(37, 99, 235, 0.12)" // Blue background when active
+      : "transparent",
     color: active
-      ? "var(--glass-text-primary, rgba(15, 23, 42, 0.95))"
-      : "var(--glass-text-secondary, rgba(15, 23, 42, 0.7))",
+      ? "#2563eb" // Blue text when active
+      : "rgba(51, 65, 85, 0.7)",
+    border: "none",
+    borderRadius: "6px",
+    padding: "6px 12px", // Balanced padding
+    minWidth: "52px",
+    height: "42px", // Fixed height
+    minHeight: "42px",
+    maxHeight: "42px",
+    width: "auto",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "4px", // Space between icon and text
+    transition: "background-color 0.15s ease, color 0.15s ease",
+    fontSize: "1.25rem",
+    fontWeight: 400,
+    "& .MuiButton-startIcon": {
+      margin: 0,
+    },
+    "& .MuiButton-endIcon": {
+      margin: 0,
+    },
+    "& .MuiSvgIcon-root": {
+      fontSize: "1.1rem", // Icon size
+    },
     "&:hover": {
-      color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
+      backgroundColor: active
+        ? "rgba(37, 99, 235, 0.16)" // Darker blue on hover when active
+        : "rgba(37, 99, 235, 0.08)", // Light blue on hover when inactive
+      color: "#2563eb",
+    },
+    "&.Mui-disabled": {
+      color: "rgba(51, 65, 85, 0.4)",
+      opacity: 0.5,
     },
   })
 );
 
 export const NavigationButton = styled(MinimalButton)(() => ({
-  minWidth: "64px",
-  width: "64px",
+  minWidth: "52px",
+  width: "auto",
 }));
