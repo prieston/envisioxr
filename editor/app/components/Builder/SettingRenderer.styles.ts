@@ -26,7 +26,7 @@ export const CustomSettingContainer = styled(Box)(({ theme }) => ({
 }));
 
 export const SettingLabel = styled(Typography)(({ theme }) => ({
-  fontSize: "0.813rem",
+  fontSize: "0.813rem", // 13px - section title
   fontWeight: 600,
   marginBottom: theme.spacing(0.75),
   color: "rgba(51, 65, 85, 0.95)",
@@ -34,8 +34,9 @@ export const SettingLabel = styled(Typography)(({ theme }) => ({
 }));
 
 export const SettingDescription = styled(Typography)(({ theme }) => ({
-  fontSize: "0.75rem",
-  lineHeight: 1.5,
+  fontSize: "0.75rem", // 12px - descriptions
+  fontWeight: 400,
+  lineHeight: 1.4,
   color: "rgba(100, 116, 139, 0.85)",
   marginBottom: theme.spacing(1.25),
 }));

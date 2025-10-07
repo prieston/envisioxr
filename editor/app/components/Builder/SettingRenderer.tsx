@@ -111,7 +111,10 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             sx={{
               borderRadius: "8px",
               backgroundColor: "rgba(255, 255, 255, 0.8)",
-              fontSize: "0.875rem",
+              fontSize: "0.75rem", // 12px - dropdown text
+              "& .MuiSelect-select": {
+                padding: "8.5px 14px", // Standard input padding
+              },
               "& .MuiOutlinedInput-notchedOutline": {
                 borderColor: "rgba(226, 232, 240, 0.8)",
               },
@@ -129,7 +132,7 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
                 key={option.value}
                 value={option.value}
                 sx={{
-                  fontSize: "0.875rem",
+                  fontSize: "0.75rem", // 12px - menu items
                   "&.Mui-selected": {
                     backgroundColor: "rgba(37, 99, 235, 0.08)",
                     "&:hover": {
@@ -156,7 +159,7 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
               borderRadius: "8px",
               textTransform: "none",
               fontWeight: 500,
-              fontSize: "0.875rem",
+              fontSize: "0.75rem", // 12px - button text
               borderColor: "rgba(37, 99, 235, 0.3)",
               color: "#2563eb",
               padding: "6px 16px",
@@ -183,7 +186,10 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
               "& .MuiOutlinedInput-root": {
                 borderRadius: "8px",
                 backgroundColor: "rgba(255, 255, 255, 0.8)",
-                fontSize: "0.875rem",
+                fontSize: "0.75rem", // 12px - input text
+                "& input": {
+                  padding: "8.5px 14px", // Standard input padding
+                },
                 "& fieldset": {
                   borderColor: "rgba(226, 232, 240, 0.8)",
                 },
@@ -218,7 +224,10 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
               "& .MuiOutlinedInput-root": {
                 borderRadius: "8px",
                 backgroundColor: "rgba(255, 255, 255, 0.8)",
-                fontSize: "0.875rem",
+                fontSize: "0.75rem", // 12px - input text
+                "& input": {
+                  padding: "8.5px 14px", // Standard input padding
+                },
                 "& fieldset": {
                   borderColor: "rgba(226, 232, 240, 0.8)",
                 },

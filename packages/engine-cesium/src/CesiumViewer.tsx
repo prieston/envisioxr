@@ -373,8 +373,45 @@ export default function CesiumViewer() {
         // Check viewshed capability for debugging (no assignment to avoid lint errors)
         canSupportViewshed(viewerRef.current);
 
+        // Apply saved time simulation settings from store
+        const {
+          cesiumLightingEnabled,
+          cesiumShadowsEnabled,
+          cesiumCurrentTime,
+        } = useSceneStore.getState();
+
+        // Apply lighting settings
+        if (cesiumLightingEnabled && viewerRef.current.scene) {
+          viewerRef.current.scene.sun.show = true;
+          viewerRef.current.scene.globe.enableLighting = true;
+          if (viewerRef.current.scene.skyAtmosphere) {
+            viewerRef.current.scene.skyAtmosphere.show = true;
+          }
+        } else {
+          viewerRef.current.scene.globe.enableLighting = false;
+        }
+
+        // Apply shadow settings
+        if (cesiumShadowsEnabled) {
+          viewerRef.current.shadows = true;
+          if (viewerRef.current.shadowMap) {
+            viewerRef.current.shadowMap.enabled = true;
+            viewerRef.current.shadowMap.size = 2048;
+          }
+        }
+
+        // Apply saved time if available
+        if (cesiumCurrentTime && viewerRef.current.clock) {
+          try {
+            const jsDate = new Date(cesiumCurrentTime);
+            const julianDate = Cesium.JulianDate.fromDate(jsDate);
+            viewerRef.current.clock.currentTime = julianDate;
+          } catch (error) {
+            // Ignore time parsing errors
+          }
+        }
+
         // Set up error handling for the viewer
-        viewerRef.current.scene.globe.enableLighting = false;
         viewerRef.current.scene.debugShowFramesPerSecond = false;
 
         // Apply custom styling to ensure full size and hide credits

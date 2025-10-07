@@ -6,7 +6,7 @@ import {
   BasemapSelector,
 } from "@envisio/ui";
 import ObservationPointsList from "../Builder/lists/ObservationPointsList";
-import SceneObjectsList from "../Builder/lists/SceneObjectsList";
+import SceneObjectsListWrapper from "../Builder/lists/SceneObjectsListWrapper";
 import PropertiesPanel from "../Builder/properties/PropertiesPanel";
 import AssetLibraryPanel from "../Builder/assets/AssetLibraryPanel";
 import LogoHeader from "../AppBar/LogoHeader";
@@ -15,6 +15,7 @@ import { ThreeJSLocationSearchSection } from "@envisio/engine-three/components";
 import {
   CesiumLocationSearchSection,
   CesiumBasemapSelector,
+  CesiumDateTimeSelector,
   CesiumIonAssetsManager,
 } from "@envisio/engine-cesium/components";
 import {
@@ -29,7 +30,7 @@ export const componentRegistry: Record<string, AnyComponent> = {
   ViewModeControls: ViewModeControls,
   PlaybackControls: PlaybackControls,
   ObservationPointsList: ObservationPointsList,
-  SceneObjectsList: SceneObjectsList,
+  SceneObjectsList: SceneObjectsListWrapper,
   LocationSearchSection: ThreeJSLocationSearchSection,
   PropertiesPanel: PropertiesPanel,
   AssetLibraryPanel: AssetLibraryPanel,
@@ -39,6 +40,7 @@ export const componentRegistry: Record<string, AnyComponent> = {
   ThreeJSLocationSearchSection: ThreeJSLocationSearchSection,
   CesiumLocationSearchSection: CesiumLocationSearchSection,
   CesiumBasemapSelector: CesiumBasemapSelector,
+  CesiumDateTimeSelector: CesiumDateTimeSelector,
   CesiumIonAssetsManager: CesiumIonAssetsManager,
   CesiumViewModeControls: CesiumViewModeControls,
   CesiumCameraSettings: CesiumCameraSettings,

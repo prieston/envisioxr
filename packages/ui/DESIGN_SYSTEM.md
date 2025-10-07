@@ -44,47 +44,166 @@ A comprehensive guide to the EnvisioXR UI design system for consistent, premium 
 
 ## Typography
 
+**App-First Typography System** - Optimized for dense, professional application interfaces.
+
 ### Font Sizes
 
 ```css
---text-xs: 0.75rem /* 12px - descriptions, captions */ --text-sm: 0.813rem
-  /* 13px - labels, section titles */ --text-base: 0.875rem
-  /* 14px - body text, inputs */ --text-lg: 0.9rem /* 14.4px - card titles */
-  --text-xl: 1rem /* 16px - headings */;
+/* Application Typography Scale */
+--text-xs: 0.688rem /* 11px - tiny labels, badges */ --text-sm: 0.75rem
+  /* 12px - body text, switches, inputs, descriptions */ --text-base: 0.813rem
+  /* 13px - section titles, labels, emphasis */ --text-lg: 0.875rem
+  /* 14px - headings, card titles */ --text-xl: 1rem
+  /* 16px - page titles, major headings */;
 ```
 
 ### Font Weights
 
 ```css
---font-normal: 400 --font-medium: 500 --font-semibold: 600;
+--font-normal: 400 /* Body text, descriptions */ --font-medium: 500
+  /* Subtle emphasis */ --font-semibold: 600 /* Labels, section titles */
+  --font-bold: 700 /* Strong emphasis (rarely used) */;
 ```
 
-### Font Styles
+---
 
-**Labels & Titles:**
+### Typography Hierarchy for Apps
+
+#### 1. Section Titles (Panel Headers, Tab Sections)
+
+**Use Case:** "Environment", "Time Simulation", "Properties"
 
 ```css
-font-size: 0.813rem;
-font-weight: 600;
+font-size: 0.813rem; /* 13px */
+font-weight: 600; /* Semibold */
 color: rgba(51, 65, 85, 0.95);
 letter-spacing: 0.01em;
+text-transform: none; /* Keep natural casing */
 ```
 
-**Descriptions:**
+```jsx
+<Typography
+  sx={{
+    fontSize: "0.813rem",
+    fontWeight: 600,
+    color: "rgba(51, 65, 85, 0.95)",
+    letterSpacing: "0.01em",
+    mb: 1,
+  }}
+>
+  Time Simulation
+</Typography>
+```
+
+#### 2. Control Labels (Switches, Inputs, Buttons)
+
+**Use Case:** "Enable Daytime Lighting", input field labels, button text
 
 ```css
-font-size: 0.75rem;
-line-height: 1.5;
+font-size: 0.75rem; /* 12px */
+font-weight: 400; /* Normal */
+color: rgba(51, 65, 85, 0.95);
+```
+
+```jsx
+<Typography
+  sx={{
+    fontSize: "0.75rem",
+    fontWeight: 400,
+    color: "rgba(51, 65, 85, 0.95)",
+  }}
+>
+  Enable Daytime Lighting
+</Typography>
+```
+
+#### 3. Descriptions & Helper Text
+
+**Use Case:** Secondary information, hints, captions
+
+```css
+font-size: 0.75rem; /* 12px */
+font-weight: 400; /* Normal */
+color: rgba(100, 116, 139, 0.85);
+line-height: 1.4;
+```
+
+```jsx
+<Typography
+  sx={{
+    fontSize: "0.75rem",
+    fontWeight: 400,
+    color: "rgba(100, 116, 139, 0.85)",
+    lineHeight: 1.4,
+  }}
+>
+  Sync with current date & time
+</Typography>
+```
+
+#### 4. Input Field Text
+
+**Use Case:** Text inside inputs, dropdowns, text fields
+
+```css
+font-size: 0.75rem; /* 12px */
+font-weight: 400; /* Normal */
+color: rgba(51, 65, 85, 0.95);
+```
+
+#### 5. List Items & Table Rows
+
+**Use Case:** Scene objects list, property values
+
+```css
+/* Primary text */
+font-size: 0.75rem; /* 12px */
+font-weight: 600; /* Semibold for emphasis */
+color: rgba(51, 65, 85, 0.95);
+
+/* Secondary text */
+font-size: 0.688rem; /* 11px */
+font-weight: 400; /* Normal */
 color: rgba(100, 116, 139, 0.85);
 ```
 
-**Body Text:**
+---
+
+### Quick Reference Table
+
+| Element Type       | Size | Weight | Color     | Example           |
+| ------------------ | ---- | ------ | --------- | ----------------- |
+| **Section Title**  | 13px | 600    | Slate-700 | "Environment"     |
+| **Control Label**  | 12px | 400    | Slate-700 | "Enable Lighting" |
+| **Description**    | 12px | 400    | Slate-500 | Helper text       |
+| **Input Text**     | 12px | 400    | Slate-700 | User input        |
+| **List Primary**   | 12px | 600    | Slate-700 | Object name       |
+| **List Secondary** | 11px | 400    | Slate-500 | Object type       |
+
+---
+
+### Why This Scale Works for Apps
+
+1. **Compact** - 12px base allows more content in panels
+2. **Hierarchical** - Clear distinction between sections (13px bold) and content (12px normal)
+3. **Readable** - 12px is readable on modern displays
+4. **Professional** - Matches tools like Figma, VSCode, Blender
+5. **Scannable** - Bold section headers stand out, content recedes
+
+---
+
+## Border Radius
+
+All interactive and container elements use consistent border radius:
 
 ```css
-font-size: 0.875rem;
-font-weight: 500;
-color: rgba(71, 85, 105, 0.9);
+/* Standard for all interactive elements */
+--border-radius-sm: 8px /* Buttons, inputs, list items, dropdowns, tabs */
+  --border-radius-md: 12px /* Cards, setting containers, panels */
+  --border-radius-lg: 20px /* Main containers, dialogs */;
 ```
+
+**Rule:** All clickable items (buttons, list items, tabs, dropdowns, icon buttons) MUST have `border-radius: 8px`.
 
 ---
 
@@ -101,8 +220,11 @@ color: rgba(71, 85, 105, 0.9);
 
 - **Between settings:** 12px (`spacing-1.5`)
 - **Panel padding:** 20px (`spacing-2.5`)
+- **Input/Control padding (white containers):** `14px` left/right, `8.5px` top/bottom
 - **Label to control:** 6px (`spacing-0.75`)
 - **Title to content:** 10px (`spacing-1.25`)
+
+**Note:** The `14px × 8.5px` padding is specifically for white-background containers housing switches, inputs, dropdowns, and other interactive controls.
 
 ---
 
@@ -329,6 +451,8 @@ For search fields or simpler inputs without the TextField wrapper:
 
 ### Switches
 
+**Important:** Switches do NOT get white background containers. They are binary toggles, not data inputs.
+
 ```jsx
 <Switch
   checked={checked}
@@ -342,6 +466,285 @@ For search fields or simpler inputs without the TextField wrapper:
     },
   }}
 />
+```
+
+---
+
+## Control Types & Background Rules
+
+### When to Use White Backgrounds
+
+**INPUT-LIKE CONTROLS** (require white background + border):
+
+These controls accept, display, or select data:
+
+- ✅ **Text Fields** - user types text
+- ✅ **Number Inputs** - user types numbers
+- ✅ **Dropdowns/Selects** - user selects from options
+- ✅ **Date/Time Pickers** - user selects date/time
+- ✅ **Search Inputs** - user types to search
+
+**Visual Pattern:**
+
+```jsx
+sx={{
+  backgroundColor: "rgba(255, 255, 255, 0.8)",
+  border: "1px solid rgba(226, 232, 240, 0.8)",
+  borderRadius: "8px",
+  // ... hover/focus states
+}}
+```
+
+---
+
+### When NOT to Use White Backgrounds
+
+**INLINE TOGGLE CONTROLS** (no background container):
+
+These are small, inline controls that don't need individual containers:
+
+- ❌ **Inline Checkboxes** - in forms or lists where they're part of a larger row
+- ❌ **Radio Buttons in groups** - when multiple options are visually grouped together
+
+**Exception: Standalone Switches DO Get Backgrounds**
+
+When switches are presented as **individual setting items** (like in settings panels), they SHOULD get white backgrounds because:
+
+1. Each switch is a separate, clickable control
+2. They need visual organization and boundaries
+3. The entire row is interactive, not just the toggle
+4. Improves scannability and organization
+
+**Visual Pattern for Setting Switches:**
+
+```jsx
+// ✅ Each switch gets a white background container
+<Box
+  sx={{
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    border: "1px solid rgba(226, 232, 240, 0.8)",
+    borderRadius: "8px",
+    padding: "12px 16px",
+    marginBottom: "8px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    transition: "border-color 0.15s ease",
+    "&:hover": {
+      borderColor: "rgba(37, 99, 235, 0.4)",
+      cursor: "pointer",
+    },
+  }}
+>
+  <Typography sx={{ fontSize: "0.875rem", fontWeight: 600 }}>
+    Enable Daytime Lighting
+  </Typography>
+  <Switch checked={value} onChange={handleChange} />
+</Box>
+```
+
+---
+
+### SLIDER CONTROLS (no background)
+
+Sliders also don't need backgrounds:
+
+- ❌ **Sliders** - visual representation of range
+
+**Why no background?**
+
+- The track itself is the visual element
+- The thumb provides the interactive affordance
+- Background would compete with the track
+
+---
+
+### Summary Table
+
+| Control Type         | White Background | Border | Example          | Notes                       |
+| -------------------- | ---------------- | ------ | ---------------- | --------------------------- |
+| Text Input           | ✅ Yes           | ✅ Yes | Name field       | Always                      |
+| Number Input         | ✅ Yes           | ✅ Yes | Age field        | Always                      |
+| Dropdown/Select      | ✅ Yes           | ✅ Yes | Country selector | Always                      |
+| Date/Time Picker     | ✅ Yes           | ✅ Yes | Birthdate        | Always                      |
+| Search Input         | ✅ Yes           | ✅ Yes | Search bar       | Always                      |
+| **Switch (Setting)** | ✅ Yes           | ✅ Yes | Enable Lighting  | When standalone in settings |
+| **Switch (Inline)**  | ❌ No            | ❌ No  | Enable feature   | When inline in forms        |
+| **Checkbox**         | ❌ No            | ❌ No  | Agree to terms   | Inline only                 |
+| **Radio Button**     | ❌ No            | ❌ No  | Choose option    | Inline only                 |
+| **Slider**           | ❌ No            | ❌ No  | Volume control   | Track is visual             |
+
+---
+
+### Visual Reasoning
+
+**Why this distinction matters:**
+
+1. **White backgrounds = "interactive control/field"**
+   - User expects to type, select, toggle, or modify something
+   - The white box signals "this is a clickable/interactive item"
+   - Examples: text boxes, dropdowns, **setting switches**
+
+2. **Standalone vs Inline controls:**
+   - **Standalone setting switches** = individual, organized items → need backgrounds
+   - **Inline form checkboxes** = part of a larger form flow → no individual backgrounds
+   - Context determines the treatment
+
+3. **Organization and scannability:**
+   - In settings panels, each switch is a separate decision point
+   - White backgrounds create clear visual boundaries between options
+   - Users can quickly scan and identify each setting
+   - Hover states on the container reinforce clickability
+
+4. **Visual hierarchy:**
+   - White background = "this is a distinct, actionable item"
+   - No background = "this is part of a larger context"
+   - Settings switches are distinct items, so they get backgrounds
+
+---
+
+### Visual Examples
+
+**✅ CORRECT - Data inputs get white backgrounds:**
+
+```jsx
+// User enters their name
+<TextField
+  label="Name"
+  value="John Doe"
+  sx={{
+    "& .MuiOutlinedInput-root": {
+      backgroundColor: "rgba(255, 255, 255, 0.8)", // ✅ White bg
+      border: "1px solid rgba(226, 232, 240, 0.8)", // ✅ Border
+    }
+  }}
+/>
+
+// User selects a country
+<Select
+  value="USA"
+  sx={{
+    backgroundColor: "rgba(255, 255, 255, 0.8)", // ✅ White bg
+    border: "1px solid rgba(226, 232, 240, 0.8)", // ✅ Border
+  }}
+/>
+```
+
+**✅ CORRECT - Binary toggles organized with spacing:**
+
+```jsx
+// Multiple switches need consistent spacing and alignment
+<Box sx={{ width: "100%" }}>
+  <FormControlLabel
+    control={<Switch checked={true} />}
+    label="Enable Daytime Lighting"
+    sx={{
+      mb: 1.5, // ✅ Consistent spacing between switches
+      width: "100%", // ✅ Full width for alignment
+      marginLeft: 0, // ✅ Remove default MUI margin
+      display: "flex",
+      justifyContent: "space-between", // ✅ Label left, switch right
+    }}
+  />
+
+  <FormControlLabel
+    control={<Switch checked={false} />}
+    label="Enable Cast Shadows"
+    sx={{
+      mb: 1.5,
+      width: "100%",
+      marginLeft: 0,
+      display: "flex",
+      justifyContent: "space-between",
+    }}
+  />
+</Box>
+
+// Setting container provides the overall grouping, not individual switch containers
+<Box sx={{
+  backgroundColor: "rgba(248, 250, 252, 0.6)", // ✅ Container for the group
+  padding: "16px",
+  borderRadius: "12px",
+  marginBottom: "12px"
+}}>
+  {/* Multiple switches inside */}
+  <FormControlLabel
+    control={<Switch />}
+    label="Enable Shadows"
+    sx={{ mb: 1.5, width: "100%", marginLeft: 0 }}
+  />
+  <FormControlLabel
+    control={<Switch />}
+    label="Enable Lighting"
+    sx={{ width: "100%", marginLeft: 0 }}
+  />
+</Box>
+```
+
+**❌ INCORRECT - Don't wrap switches in white boxes:**
+
+```jsx
+// ❌ DON'T DO THIS - creates visual clutter
+<Box
+  sx={{
+    backgroundColor: "rgba(255, 255, 255, 0.8)", // ❌ Unnecessary
+    border: "1px solid rgba(226, 232, 240, 0.8)", // ❌ Unnecessary
+    padding: "8px",
+    borderRadius: "8px",
+  }}
+>
+  <FormControlLabel control={<Switch />} label="Enable Feature" />
+</Box>
+```
+
+---
+
+### Switch Organization Best Practices
+
+**Problem:** Switches without backgrounds can look disorganized and floating.
+
+**Solution:** Use consistent spacing, alignment, and full-width layout:
+
+```jsx
+// ✅ Well-organized switches
+<FormControlLabel
+  control={<Switch />}
+  label="Enable Feature"
+  sx={{
+    mb: 1.5, // Consistent bottom margin
+    width: "100%", // Full width prevents floating
+    marginLeft: 0, // Remove MUI default margin
+    display: "flex", // Flex for alignment
+    justifyContent: "space-between", // Label left, switch right
+  }}
+/>
+```
+
+**Key Organization Rules:**
+
+1. **Full Width** - Always set `width: "100%"` to prevent switches from floating
+2. **Consistent Spacing** - Use `mb: 1.5` (12px) between switches
+3. **Remove Default Margin** - Set `marginLeft: 0` to override MUI defaults
+4. **Alignment** - Use `justifyContent: "space-between"` for label left, switch right
+5. **Visual Grouping** - Related switches should be in the same container
+
+**Typography for Switch Labels:**
+
+```jsx
+// Create a styled label component
+const SwitchLabel = styled(Typography)({
+  fontSize: "0.875rem",
+  fontWeight: 600,
+  color: "rgba(51, 65, 85, 0.95)",
+  letterSpacing: "0.01em",
+});
+
+// Use it
+<FormControlLabel
+  control={<Switch />}
+  label={<SwitchLabel>Enable Feature</SwitchLabel>}
+  sx={{ mb: 1.5, width: "100%", marginLeft: 0 }}
+/>;
 ```
 
 ---

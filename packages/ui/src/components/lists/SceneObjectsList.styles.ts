@@ -11,62 +11,55 @@ export const StyledList: React.FC<ListProps> = styled(List)(
 export const ObjectListItem: React.FC<ListItemProps & { selected: boolean }> =
   styled(ListItem)<{ selected: boolean }>(({ theme, selected }) => ({
     cursor: "pointer",
-    borderRadius: 0,
-    marginBottom: theme.spacing(0.5),
-    marginLeft: `-${theme.spacing(2)}`,
-    marginRight: `-${theme.spacing(2)}`,
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2),
-    paddingTop: theme.spacing(1.5),
-    paddingBottom: theme.spacing(1.5),
-    backgroundColor: selected ? "rgba(37, 99, 235, 0.12)" : "transparent",
-    color: selected ? "#2563eb" : "inherit",
+    borderRadius: "8px",
+    marginBottom: theme.spacing(1),
+    padding: theme.spacing(1.5, 2),
+    backgroundColor: selected
+      ? "rgba(37, 99, 235, 0.12)"
+      : "rgba(248, 250, 252, 0.6)",
+    color: selected ? "#2563eb" : "rgba(51, 65, 85, 0.95)",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     flex: 1,
-    border: "none",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    position: "relative",
-    "&::before": {
-      content: '""',
-      position: "absolute",
-      left: 0,
-      right: 0,
-      top: 0,
-      bottom: 0,
-      backgroundColor: "transparent",
-      transition: "background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-      zIndex: -1,
-    },
+    border: "1px solid",
+    borderColor: selected
+      ? "rgba(37, 99, 235, 0.2)"
+      : "rgba(226, 232, 240, 0.8)",
+    transition:
+      "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease",
     "&:hover": {
-      "&::before": {
-        backgroundColor: selected
-          ? "rgba(37, 99, 235, 0.16)"
-          : "rgba(37, 99, 235, 0.08)",
-      },
-      color: selected ? "#2563eb" : "#2563eb",
-      transform: "translateX(4px)",
+      backgroundColor: selected
+        ? "rgba(37, 99, 235, 0.16)"
+        : "rgba(248, 250, 252, 0.9)",
+      borderColor: "rgba(37, 99, 235, 0.2)",
+      color: "#2563eb",
     },
-    "&:active": { transform: "translateX(2px)" },
   }));
 
 export const StyledListItemText: React.FC<any> = styled(ListItemText)(
   ({ theme }) => ({
-    "& .MuiListItemText-primary": { fontSize: "0.9rem", fontWeight: 500 },
+    "& .MuiListItemText-primary": {
+      fontSize: "0.875rem",
+      fontWeight: 600,
+      letterSpacing: "0.01em",
+    },
     "& .MuiListItemText-secondary": {
-      fontSize: "0.8rem",
-      color: theme.palette.text.secondary,
+      fontSize: "0.75rem",
+      color: "rgba(100, 116, 139, 0.85)",
+      marginTop: "4px",
     },
   })
 );
 
 export const StyledIconButton: React.FC<IconButtonProps> = styled(IconButton)(
   ({ theme }) => ({
-    color: theme.palette.text.secondary,
+    color: "rgba(100, 116, 139, 0.85)",
+    borderRadius: "8px",
+    transition: "color 0.15s ease, background-color 0.15s ease",
     "&:hover": {
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
-      color: theme.palette.text.primary,
+      backgroundColor: "rgba(37, 99, 235, 0.08)",
+      color: "#2563eb",
     },
   })
 );
