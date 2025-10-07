@@ -66,6 +66,10 @@ export default function ProjectCard({
         "&:hover": {
           boxShadow: "0 25px 50px -12px rgba(37, 99, 235, 0.25)",
           background: "rgba(37, 99, 235, 0.1)",
+          // Trigger button underline animation on card hover
+          "& .action-button::after": {
+            maxWidth: "100%",
+          },
         },
         "&.selected": {
           background: "rgba(37, 99, 235, 0.12)",
@@ -138,21 +142,27 @@ export default function ProjectCard({
             color: "#2563eb",
             textTransform: "none",
             position: "relative",
-            overflow: "hidden",
+            overflow: "visible",
             px: 0,
             pt: 2,
             pb: 0.5,
+            "&:hover": {
+              backgroundColor: "transparent",
+            },
             "&::after": {
               content: '""',
               position: "absolute",
               bottom: 0,
               left: 0,
-              width: 0,
-              height: 1,
+              right: 0,
+              width: "100%",
+              maxWidth: 0,
+              height: "1px",
               background: "#2563eb",
-              transition: "width 0.3s ease",
+              transition: "max-width 0.3s ease",
+              borderRadius: 0,
             },
-            "&:hover::after": { width: "100%" },
+            "&:hover::after": { maxWidth: "100%" },
           }}
         >
           Open Project

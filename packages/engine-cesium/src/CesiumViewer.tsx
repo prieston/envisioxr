@@ -771,6 +771,46 @@ export default function CesiumViewer() {
 
   return (
     <>
+      {isLoading && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            zIndex: 9999,
+            pointerEvents: "none",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                border: "3px solid rgba(37, 99, 235, 0.2)",
+                borderTopColor: "#2563eb",
+                borderRadius: "50%",
+                animation: "spin 0.8s linear infinite",
+                margin: "0 auto 12px",
+              }}
+            />
+            <style>{`
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
+            `}</style>
+            <p style={{ color: "#2563eb", fontSize: 14, fontWeight: 500 }}>
+              Loading Scene...
+            </p>
+          </div>
+        </div>
+      )}
       <div
         style={{
           width: "100%",
@@ -785,7 +825,6 @@ export default function CesiumViewer() {
           minHeight: "100%",
         }}
         ref={containerRef}
-        className={isLoading ? "opacity-50" : ""}
       />
       {viewerRef.current && (
         <>
