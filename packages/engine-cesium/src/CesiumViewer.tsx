@@ -883,8 +883,13 @@ export default function CesiumViewer() {
             }
 
             return observationObjects.map((obj) => {
-              const [longitude, latitude, height] = obj.position || [0, 0, 0];
-              const rotation = obj.rotation || [0, 0, 0];
+              const position = Array.isArray(obj.position)
+                ? obj.position
+                : [0, 0, 0];
+              const [longitude, latitude, height] = position;
+              const rotation = Array.isArray(obj.rotation)
+                ? obj.rotation
+                : [0, 0, 0];
 
               const observationProps = {
                 sensorType: obj.observationProperties?.sensorType || "cone",
