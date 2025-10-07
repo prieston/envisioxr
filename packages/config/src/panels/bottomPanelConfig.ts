@@ -16,6 +16,12 @@ export const createThreeJSBottomPanelConfig = (
   setPreviewIndex: (index: number) => void,
   setPreviewMode: (mode: boolean) => void
 ): PanelConfiguration => {
+  // Calculate current index for canNext/canPrev
+  const currentIndex =
+    observationPoints && selectedObservation
+      ? observationPoints.findIndex((p: any) => p.id === selectedObservation.id)
+      : -1;
+
   return {
     id: "bottom-panel",
     name: "Bottom Panel",
@@ -42,13 +48,13 @@ export const createThreeJSBottomPanelConfig = (
             customProps: {
               isPlaying,
               togglePlayback,
-              nextObservation,
-              prevObservation,
-              observationPoints,
-              previewMode,
-              previewIndex,
-              setPreviewMode,
-              selectObservation,
+              next: nextObservation,
+              prev: prevObservation,
+              canNext:
+                observationPoints.length > 0 &&
+                currentIndex >= 0 &&
+                currentIndex < observationPoints.length - 1,
+              canPrev: observationPoints.length > 0 && currentIndex > 0,
             },
           },
           {
@@ -89,6 +95,12 @@ export const createCesiumBottomPanelConfig = (
   setPreviewIndex: (index: number) => void,
   setPreviewMode: (mode: boolean) => void
 ): PanelConfiguration => {
+  // Calculate current index for canNext/canPrev
+  const currentIndex =
+    observationPoints && selectedObservation
+      ? observationPoints.findIndex((p: any) => p.id === selectedObservation.id)
+      : -1;
+
   return {
     id: "bottom-panel",
     name: "Bottom Panel",
@@ -115,13 +127,13 @@ export const createCesiumBottomPanelConfig = (
             customProps: {
               isPlaying,
               togglePlayback,
-              nextObservation,
-              prevObservation,
-              observationPoints,
-              previewMode,
-              previewIndex,
-              setPreviewMode,
-              selectObservation,
+              next: nextObservation,
+              prev: prevObservation,
+              canNext:
+                observationPoints.length > 0 &&
+                currentIndex >= 0 &&
+                currentIndex < observationPoints.length - 1,
+              canPrev: observationPoints.length > 0 && currentIndex > 0,
             },
           },
           {
