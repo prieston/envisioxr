@@ -3,6 +3,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { useWorldStore, useSceneStore } from "@envisio/core";
+import PlaybackManager from "./PlaybackManager";
 
 const Scene = dynamic(() => import("@envisio/engine-three"), {
   ssr: false,
@@ -41,52 +42,57 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
   const objects = useSceneStore((s) => s.objects);
   const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%", // Takes full height of its container
-        display: "flex",
-        flexGrow: 1,
-        overflow: "hidden",
-        pointerEvents: "auto", // Allow panning and interaction with the canvas
-      }}
-    >
-      {engine === "cesium" ? (
-        <>
-          <CesiumViewer />
-          {selectedObject && (
-            <CesiumObjectTransformEditor selectedObject={selectedObject} />
-          )}
-          {Array.isArray(objects)
-            ? objects
-                .filter(
-                  (obj: any) =>
-                    obj?.isObservationModel && obj?.observationProperties
-                )
-                .map((obj: any) => (
-                  <CesiumIonSDKViewshedAnalysis
-                    key={`ion-viewshed-${obj.id}`}
-                    position={
-                      (obj.position || [0, 0, 0]) as [number, number, number]
-                    }
-                    rotation={
-                      (obj.rotation || [0, 0, 0]) as [number, number, number]
-                    }
-                    observationProperties={obj.observationProperties as any}
-                    objectId={obj.id}
-                    cesiumViewer={cesiumViewer}
-                  />
-                ))
-            : null}
-        </>
-      ) : (
-        <Scene
-          initialSceneData={initialSceneData}
-          onSceneDataChange={onSceneDataChange}
-          renderObservationPoints={renderObservationPoints}
-        />
-      )}
-    </div>
+    <>
+      {/* Playback Manager - handles automatic observation cycling */}
+      <PlaybackManager />
+
+      <div
+        style={{
+          width: "100%",
+          height: "100%", // Takes full height of its container
+          display: "flex",
+          flexGrow: 1,
+          overflow: "hidden",
+          pointerEvents: "auto", // Allow panning and interaction with the canvas
+        }}
+      >
+        {engine === "cesium" ? (
+          <>
+            <CesiumViewer />
+            {selectedObject && (
+              <CesiumObjectTransformEditor selectedObject={selectedObject} />
+            )}
+            {Array.isArray(objects)
+              ? objects
+                  .filter(
+                    (obj: any) =>
+                      obj?.isObservationModel && obj?.observationProperties
+                  )
+                  .map((obj: any) => (
+                    <CesiumIonSDKViewshedAnalysis
+                      key={`ion-viewshed-${obj.id}`}
+                      position={
+                        (obj.position || [0, 0, 0]) as [number, number, number]
+                      }
+                      rotation={
+                        (obj.rotation || [0, 0, 0]) as [number, number, number]
+                      }
+                      observationProperties={obj.observationProperties as any}
+                      objectId={obj.id}
+                      cesiumViewer={cesiumViewer}
+                    />
+                  ))
+              : null}
+          </>
+        ) : (
+          <Scene
+            initialSceneData={initialSceneData}
+            onSceneDataChange={onSceneDataChange}
+            renderObservationPoints={renderObservationPoints}
+          />
+        )}
+      </div>
+    </>
   );
 };
 

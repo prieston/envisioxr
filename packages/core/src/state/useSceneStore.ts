@@ -270,7 +270,16 @@ const useSceneStore = create<SceneState>((set) => ({
   setCesiumInstance: (instance) => set({ cesiumInstance: instance }),
   setBasemapType: (type) => set({ basemapType: type }),
   setViewMode: (mode) => set({ viewMode: mode }),
-  togglePlayback: () => set((state) => ({ isPlaying: !state.isPlaying })),
+  togglePlayback: () =>
+    set((state) => {
+      const newIsPlaying = !state.isPlaying;
+      // When starting playback, enable preview mode
+      // When stopping, disable preview mode
+      return {
+        isPlaying: newIsPlaying,
+        previewMode: newIsPlaying,
+      };
+    }),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
   setPreviewIndex: (index) => set({ previewIndex: index }),
   // Time simulation setters
@@ -562,17 +571,38 @@ const useSceneStore = create<SceneState>((set) => ({
   startPreview: () => set({ previewMode: true, previewIndex: 0 }),
   exitPreview: () => set({ previewMode: false, previewIndex: 0 }),
   nextObservation: () =>
-    set((state) => ({
-      previewIndex:
-        state.previewIndex < state.observationPoints.length - 1
-          ? state.previewIndex + 1
-          : state.previewIndex,
-    })),
+    set((state) => {
+      // Can't go next if at last observation or no observations
+      if (
+        state.observationPoints.length === 0 ||
+        state.previewIndex >= state.observationPoints.length - 1
+      ) {
+        return state; // No change
+      }
+
+      const newIndex = state.previewIndex + 1;
+      const nextPoint = state.observationPoints[newIndex];
+
+      return {
+        previewIndex: newIndex,
+        selectedObservation: nextPoint || state.selectedObservation,
+      };
+    }),
   prevObservation: () =>
-    set((state) => ({
-      previewIndex:
-        state.previewIndex > 0 ? state.previewIndex - 1 : state.previewIndex,
-    })),
+    set((state) => {
+      // Can't go prev if at first observation or no observations
+      if (state.observationPoints.length === 0 || state.previewIndex <= 0) {
+        return state; // No change
+      }
+
+      const newIndex = state.previewIndex - 1;
+      const prevPoint = state.observationPoints[newIndex];
+
+      return {
+        previewIndex: newIndex,
+        selectedObservation: prevPoint || state.selectedObservation,
+      };
+    }),
   resetScene: () =>
     set({
       objects: [],
