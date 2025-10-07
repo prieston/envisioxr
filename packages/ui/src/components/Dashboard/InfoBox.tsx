@@ -22,8 +22,7 @@ export default function InfoBox({ onDismiss, open }: InfoBoxProps) {
         borderRadius: "16px",
         boxShadow: "var(--glass-shadow, 0 8px 32px rgba(37, 99, 235, 0.15))",
         marginBottom: "24px",
-        transition:
-          "max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease",
+        transition: "max-height 0.2s ease, opacity 0.2s ease",
         opacity: open ? 1 : 0,
         position: "relative",
         "&::before": {

@@ -184,7 +184,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
         backgroundColor: "transparent",
       }}
     >
-      <Box sx={{ p: boxPadding }}>
+      <Box>
         <Input
           fullWidth
           placeholder="Search for a location..."
@@ -193,6 +193,27 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
           startAdornment={
             <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />
           }
+          sx={{
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            borderRadius: "8px",
+            border: "1px solid rgba(226, 232, 240, 0.8)",
+            padding: "0 12px",
+            minHeight: "38px",
+            fontSize: "0.875rem",
+            transition: "background-color 0.15s ease, border-color 0.15s ease",
+            "&:hover": {
+              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              borderColor: "rgba(37, 99, 235, 0.3)",
+            },
+            "&.Mui-focused": {
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              borderColor: "#2563eb",
+              outline: "none",
+            },
+            "&:before, &:after": {
+              display: "none", // Remove default MUI Input underline
+            },
+          }}
         />
       </Box>
 

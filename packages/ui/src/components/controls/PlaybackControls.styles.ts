@@ -20,7 +20,7 @@ export const StyledIconButton: React.FC<IconButtonProps> = styled(IconButton)(
     color: "inherit",
     border: "none",
     boxShadow: "none",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    transition: "background-color 0.15s ease, color 0.15s ease",
     position: "relative",
     "&:hover": {
       backgroundColor: "rgba(0, 0, 0, 0.04)",
