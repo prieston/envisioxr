@@ -17,7 +17,10 @@ const sanitizeSceneData = (
   selectedLocation,
   showTiles,
   basemapType,
-  cesiumIonAssets
+  cesiumIonAssets,
+  cesiumLightingEnabled,
+  cesiumShadowsEnabled,
+  cesiumCurrentTime
 ) => {
   // Ensure we have valid arrays to work with
   const safeObjects = Array.isArray(objects) ? objects : [];
@@ -194,6 +197,9 @@ const sanitizeSceneData = (
     showTiles,
     basemapType: basemapType || "cesium",
     cesiumIonAssets: Array.isArray(cesiumIonAssets) ? cesiumIonAssets : [],
+    cesiumLightingEnabled: cesiumLightingEnabled || false,
+    cesiumShadowsEnabled: cesiumShadowsEnabled || false,
+    cesiumCurrentTime: cesiumCurrentTime || null,
   };
 };
 
@@ -235,6 +241,9 @@ export default function BuilderPage() {
             showTiles,
             basemapType,
             cesiumIonAssets,
+            cesiumLightingEnabled,
+            cesiumShadowsEnabled,
+            cesiumCurrentTime,
           } = data.project.sceneData;
 
           if (Array.isArray(objects)) {
@@ -258,6 +267,16 @@ export default function BuilderPage() {
           }
           if (Array.isArray(cesiumIonAssets)) {
             useSceneStore.setState({ cesiumIonAssets });
+          }
+          // Restore time simulation settings
+          if (cesiumLightingEnabled !== undefined) {
+            useSceneStore.setState({ cesiumLightingEnabled });
+          }
+          if (cesiumShadowsEnabled !== undefined) {
+            useSceneStore.setState({ cesiumShadowsEnabled });
+          }
+          if (cesiumCurrentTime !== undefined) {
+            useSceneStore.setState({ cesiumCurrentTime });
           }
         }
       } catch (error) {
@@ -289,7 +308,10 @@ export default function BuilderPage() {
         storeState.selectedLocation,
         storeState.showTiles,
         storeState.basemapType,
-        storeState.cesiumIonAssets
+        storeState.cesiumIonAssets,
+        storeState.cesiumLightingEnabled,
+        storeState.cesiumShadowsEnabled,
+        storeState.cesiumCurrentTime
       );
 
       const response = await fetch(`/api/projects/${projectId}`, {

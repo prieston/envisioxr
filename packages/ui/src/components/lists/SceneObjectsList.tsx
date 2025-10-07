@@ -94,20 +94,93 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = ({
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
         onClose={handleMenuClose}
+        sx={{
+          "& .MuiPaper-root": {
+            borderRadius: "8px",
+            border: "1px solid rgba(226, 232, 240, 0.8)",
+            boxShadow:
+              "0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+          },
+        }}
       >
-        <MenuItem onClick={handleDeleteOption}>Delete</MenuItem>
+        <MenuItem
+          onClick={handleDeleteOption}
+          sx={{
+            fontSize: "0.875rem",
+            fontWeight: 500,
+            color: "rgba(51, 65, 85, 0.95)",
+            padding: "8px 16px",
+            transition: "background-color 0.15s ease, color 0.15s ease",
+            "&:hover": {
+              backgroundColor: "rgba(239, 68, 68, 0.08)",
+              color: "#ef4444",
+            },
+          }}
+        >
+          Delete
+        </MenuItem>
       </Menu>
 
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: "12px",
+            padding: "8px",
+            boxShadow:
+              "0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+          },
+        }}
       >
-        <DialogTitle>Delete Object?</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
+        <DialogTitle
+          sx={{
+            fontSize: "1rem",
+            fontWeight: 600,
+            color: "rgba(51, 65, 85, 0.95)",
+          }}
+        >
+          Delete Object?
+        </DialogTitle>
+        <DialogActions sx={{ padding: "16px" }}>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            sx={{
+              minHeight: "38px",
+              borderRadius: "8px",
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.875rem",
+              color: "rgba(100, 116, 139, 0.85)",
+              border: "1px solid rgba(226, 232, 240, 0.8)",
+              padding: "0 16px",
+              transition: "border-color 0.15s ease, color 0.15s ease",
+              "&:hover": {
+                borderColor: "rgba(37, 99, 235, 0.2)",
+                color: "#2563eb",
+                backgroundColor: "transparent",
+              },
+            }}
+          >
             Cancel
           </Button>
-          <Button onClick={confirmDelete} color="error">
+          <Button
+            onClick={confirmDelete}
+            sx={{
+              minHeight: "38px",
+              borderRadius: "8px",
+              textTransform: "none",
+              fontWeight: 600,
+              fontSize: "0.875rem",
+              backgroundColor: "#ef4444",
+              color: "#ffffff",
+              padding: "0 16px",
+              transition: "background-color 0.15s ease",
+              "&:hover": {
+                backgroundColor: "#dc2626",
+              },
+            }}
+          >
             Delete
           </Button>
         </DialogActions>

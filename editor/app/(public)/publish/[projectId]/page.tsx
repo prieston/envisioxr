@@ -84,6 +84,9 @@ const PublishedScenePage = () => {
             showTiles,
             basemapType,
             cesiumIonAssets,
+            cesiumLightingEnabled,
+            cesiumShadowsEnabled,
+            cesiumCurrentTime,
           } = data.project.sceneData;
 
           // Initialize objects (GLB models, etc.)
@@ -105,6 +108,16 @@ const PublishedScenePage = () => {
           }
           if (Array.isArray(cesiumIonAssets)) {
             useSceneStore.setState({ cesiumIonAssets });
+          }
+          // Restore time simulation settings
+          if (cesiumLightingEnabled !== undefined) {
+            useSceneStore.setState({ cesiumLightingEnabled });
+          }
+          if (cesiumShadowsEnabled !== undefined) {
+            useSceneStore.setState({ cesiumShadowsEnabled });
+          }
+          if (cesiumCurrentTime !== undefined) {
+            useSceneStore.setState({ cesiumCurrentTime });
           }
         }
       } catch (error) {

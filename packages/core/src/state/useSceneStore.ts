@@ -111,6 +111,10 @@ interface SceneState {
   skyboxType: "default" | "none";
   showTiles: boolean;
   magnetEnabled: boolean;
+  // Time simulation settings
+  cesiumLightingEnabled: boolean;
+  cesiumShadowsEnabled: boolean;
+  cesiumCurrentTime: string | null; // ISO string
   viewMode: ViewMode;
   isThirdPerson: boolean;
   isPlaying: boolean;
@@ -136,6 +140,10 @@ interface SceneState {
   setViewMode: (mode: ViewMode) => void;
   togglePlayback: () => void;
   setPlaybackSpeed: (speed: number) => void;
+  // Time simulation setters
+  setCesiumLightingEnabled: (enabled: boolean) => void;
+  setCesiumShadowsEnabled: (enabled: boolean) => void;
+  setCesiumCurrentTime: (time: string | null) => void;
   setPreviewMode: (value: boolean) => void;
   setTransformMode: (mode: "translate" | "rotate" | "scale") => void;
   setObjects: (newObjects: Model[]) => void;
@@ -248,6 +256,10 @@ const useSceneStore = create<SceneState>((set) => ({
   capturingPOV: false,
   previewMode: false,
   transformMode: "translate",
+  // Time simulation defaults
+  cesiumLightingEnabled: false,
+  cesiumShadowsEnabled: false,
+  cesiumCurrentTime: null,
   setGridEnabled: (enabled) => set({ gridEnabled: enabled }),
   setAmbientLightIntensity: (intensity) =>
     set({ ambientLightIntensity: intensity }),
@@ -261,6 +273,11 @@ const useSceneStore = create<SceneState>((set) => ({
   togglePlayback: () => set((state) => ({ isPlaying: !state.isPlaying })),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
   setPreviewIndex: (index) => set({ previewIndex: index }),
+  // Time simulation setters
+  setCesiumLightingEnabled: (enabled) =>
+    set({ cesiumLightingEnabled: enabled }),
+  setCesiumShadowsEnabled: (enabled) => set({ cesiumShadowsEnabled: enabled }),
+  setCesiumCurrentTime: (time) => set({ cesiumCurrentTime: time }),
   setPreviewMode: (value) => set({ previewMode: value }),
   setTransformMode: (mode) => set({ transformMode: mode }),
   setObjects: (newObjects) => set({ objects: newObjects }),
@@ -574,6 +591,9 @@ const useSceneStore = create<SceneState>((set) => ({
       playbackSpeed: 1,
       tilesRenderer: null,
       cesiumIonAssets: [],
+      cesiumLightingEnabled: false,
+      cesiumShadowsEnabled: false,
+      cesiumCurrentTime: null,
     }),
   setOrbitControlsRef: (ref) => set({ orbitControlsRef: ref }),
   setScene: (scene) => set({ scene }),
