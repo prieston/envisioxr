@@ -15,7 +15,7 @@ import { ThreeJSLocationSearchSection } from "@envisio/engine-three/components";
 import {
   CesiumLocationSearchSection,
   CesiumBasemapSelector,
-  CesiumSkyboxSelector,
+  CesiumIonAssetsManager,
 } from "@envisio/engine-cesium/components";
 import {
   CesiumViewModeControls,
@@ -39,7 +39,7 @@ export const componentRegistry: Record<string, AnyComponent> = {
   ThreeJSLocationSearchSection: ThreeJSLocationSearchSection,
   CesiumLocationSearchSection: CesiumLocationSearchSection,
   CesiumBasemapSelector: CesiumBasemapSelector,
-  CesiumSkyboxSelector: CesiumSkyboxSelector,
+  CesiumIonAssetsManager: CesiumIonAssetsManager,
   CesiumViewModeControls: CesiumViewModeControls,
   CesiumCameraSettings: CesiumCameraSettings,
   CesiumSimulationInstructions: CesiumSimulationInstructions,

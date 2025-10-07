@@ -67,28 +67,37 @@ const LeftPanel: React.FC = () => {
         onChange={handleTabChange}
         variant="fullWidth"
         sx={{
-          borderBottom: 1,
-          borderColor: "divider",
-          mb: 1,
-          minHeight: "32px",
+          mb: 2,
+          minHeight: "40px",
           "& .MuiTab-root": {
-            color: "text.secondary",
-            minHeight: "32px",
-            padding: "4px 8px",
-            fontSize: "0.875rem",
+            color: "rgba(100, 116, 139, 0.8)",
+            minHeight: "40px",
+            padding: "8px 12px",
+            fontSize: "0.813rem",
+            fontWeight: 500,
             flexDirection: "row",
-            gap: "4px",
+            gap: "6px",
             justifyContent: "center",
-            marginBottom: "6px",
+            borderRadius: "8px",
+            margin: "0 2px",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+            textTransform: "none",
+            "&:hover": {
+              backgroundColor: "rgba(37, 99, 235, 0.08)",
+              color: "#2563eb",
+            },
             "&.Mui-selected": {
-              color: "primary.main",
+              color: "#2563eb",
+              backgroundColor: "rgba(37, 99, 235, 0.12)",
+              fontWeight: 600,
             },
             "& .MuiSvgIcon-root": {
               marginBottom: 0,
+              fontSize: "1.1rem",
             },
           },
           "& .MuiTabs-indicator": {
-            height: "2px",
+            display: "none",
           },
         }}
       >

@@ -1,10 +1,6 @@
 import React, { useCallback, useState } from "react";
-import { Button } from "@mui/material";
-import {
-  Container,
-  SectionTitle,
-  StyledButtonGroup,
-} from "./CesiumBasemapSelector.styles";
+import { Select, MenuItem, FormControl } from "@mui/material";
+import { Container, SectionTitle } from "./CesiumBasemapSelector.styles";
 import { useSceneStore } from "@envisio/core";
 
 interface CesiumBasemapSelectorProps {
@@ -169,41 +165,85 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
   return (
     <Container>
       <SectionTitle>Basemap</SectionTitle>
-      <StyledButtonGroup
-        orientation="vertical"
-        variant="outlined"
-        size="small"
-        disabled={disabled}
-      >
-        <Button
-          onClick={() => handleBasemapChange("cesium")}
-          variant={selectedBasemap === "cesium" ? "contained" : "outlined"}
+      <FormControl fullWidth size="small">
+        <Select
+          value={selectedBasemap}
+          onChange={(e) => handleBasemapChange(e.target.value as any)}
+          disabled={disabled}
+          sx={{
+            borderRadius: "8px",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            fontSize: "0.875rem",
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: "rgba(226, 232, 240, 0.8)",
+            },
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: "rgba(37, 99, 235, 0.4)",
+            },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#2563eb",
+              borderWidth: "2px",
+            },
+          }}
         >
-          Cesium World Imagery
-        </Button>
-        <Button
-          onClick={() => handleBasemapChange("google")}
-          variant={selectedBasemap === "google" ? "contained" : "outlined"}
-        >
-          Google Satellite
-        </Button>
-        <Button
-          onClick={() => handleBasemapChange("google-photorealistic")}
-          variant={
-            selectedBasemap === "google-photorealistic"
-              ? "contained"
-              : "outlined"
-          }
-        >
-          Google Photorealistic
-        </Button>
-        <Button
-          onClick={() => handleBasemapChange("none")}
-          variant={selectedBasemap === "none" ? "contained" : "outlined"}
-        >
-          No Basemap
-        </Button>
-      </StyledButtonGroup>
+          <MenuItem
+            value="cesium"
+            sx={{
+              fontSize: "0.875rem",
+              "&.Mui-selected": {
+                backgroundColor: "rgba(37, 99, 235, 0.08)",
+                "&:hover": {
+                  backgroundColor: "rgba(37, 99, 235, 0.12)",
+                },
+              },
+            }}
+          >
+            Cesium World Imagery
+          </MenuItem>
+          <MenuItem
+            value="google"
+            sx={{
+              fontSize: "0.875rem",
+              "&.Mui-selected": {
+                backgroundColor: "rgba(37, 99, 235, 0.08)",
+                "&:hover": {
+                  backgroundColor: "rgba(37, 99, 235, 0.12)",
+                },
+              },
+            }}
+          >
+            Google Satellite
+          </MenuItem>
+          <MenuItem
+            value="google-photorealistic"
+            sx={{
+              fontSize: "0.875rem",
+              "&.Mui-selected": {
+                backgroundColor: "rgba(37, 99, 235, 0.08)",
+                "&:hover": {
+                  backgroundColor: "rgba(37, 99, 235, 0.12)",
+                },
+              },
+            }}
+          >
+            Google Photorealistic
+          </MenuItem>
+          <MenuItem
+            value="none"
+            sx={{
+              fontSize: "0.875rem",
+              "&.Mui-selected": {
+                backgroundColor: "rgba(37, 99, 235, 0.08)",
+                "&:hover": {
+                  backgroundColor: "rgba(37, 99, 235, 0.12)",
+                },
+              },
+            }}
+          >
+            No Basemap
+          </MenuItem>
+        </Select>
+      </FormControl>
     </Container>
   );
 };

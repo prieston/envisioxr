@@ -110,14 +110,10 @@ export const createCesiumLeftPanelConfig = (
         icon: Landscape,
         settings: [
           {
-            id: "skybox-type",
+            id: "location-search",
             type: "custom",
-            label: "Skybox Type",
-            customComponent: "CesiumSkyboxSelector",
-            customProps: {
-              value: skyboxType,
-              onChange: setSkyboxType,
-            },
+            label: "Location & Tiles",
+            customComponent: "CesiumLocationSearchSection",
           },
           {
             id: "basemap-selector",
@@ -130,10 +126,10 @@ export const createCesiumLeftPanelConfig = (
             },
           },
           {
-            id: "location-search",
+            id: "cesium-assets",
             type: "custom",
-            label: "Location & Tiles",
-            customComponent: "CesiumLocationSearchSection",
+            label: "Cesium Assets",
+            customComponent: "CesiumIonAssetsManager",
           },
         ],
       },

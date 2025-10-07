@@ -11,7 +11,7 @@ export const ViewModeSection = styled(Box, {
   pointerEvents: previewMode ? "none" : "auto",
   opacity: previewMode ? 0.5 : 1,
   filter: previewMode ? "grayscale(100%)" : "none",
-  transition: "opacity 0.3s ease, filter 0.3s ease",
+  transition: "opacity 0.15s ease, filter 0.15s ease",
 }));
 
 export const ViewModeRow = styled(Box)(({ theme }) => ({

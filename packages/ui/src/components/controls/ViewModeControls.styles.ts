@@ -16,7 +16,7 @@ export const ViewModeSection: React.FC<BoxProps & { previewMode: boolean }> =
     pointerEvents: previewMode ? "none" : "auto",
     opacity: previewMode ? 0.5 : 1,
     filter: previewMode ? "grayscale(100%)" : "none",
-    transition: "opacity 0.3s ease, filter 0.3s ease",
+    transition: "opacity 0.15s ease, filter 0.15s ease",
   }));
 
 export const ViewModeRow: React.FC<BoxProps> = styled(Box)(({ theme }) => ({
@@ -35,7 +35,7 @@ export const ViewModeButton: React.FC<ButtonProps> = styled(Button)(
     color: "inherit",
     border: "none",
     boxShadow: "none",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    transition: "background-color 0.15s ease, color 0.15s ease",
     "&:hover": {
       backgroundColor: "rgba(0, 0, 0, 0.04)",
       color: "inherit",

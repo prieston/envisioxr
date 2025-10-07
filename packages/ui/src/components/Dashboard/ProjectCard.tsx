@@ -62,9 +62,8 @@ export default function ProjectCard({
         border: "1px solid rgba(37, 99, 235, 0.3)",
         borderRadius: "16px",
         boxShadow: "0 8px 32px rgba(37, 99, 235, 0.15)",
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: "background-color 0.15s ease, border-color 0.15s ease",
         "&:hover": {
-          boxShadow: "0 25px 50px -12px rgba(37, 99, 235, 0.25)",
           background: "rgba(37, 99, 235, 0.1)",
           // Trigger button underline animation on card hover
           "& .action-button::after": {
@@ -87,14 +86,12 @@ export default function ProjectCard({
           background:
             "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.1) 100%)",
           opacity: 0,
-          transform: "scale(0.95)",
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: "opacity 0.15s ease",
           pointerEvents: "none",
           zIndex: 1,
         },
         "&:hover::before": {
           opacity: 1,
-          transform: "scale(1)",
         },
       }}
     >

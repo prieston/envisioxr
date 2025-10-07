@@ -1,14 +1,12 @@
 import React, { useCallback } from "react";
-import { Typography } from "@mui/material";
 import {
   Container,
   SearchContainer,
-  LocationInfo,
+  SectionTitle,
 } from "./CesiumLocationSearchSection.styles";
 import * as Cesium from "cesium";
 import { useSceneStore } from "@envisio/core";
 import { LocationSearch } from "@envisio/ui";
-import { CesiumIonAssetsManager } from ".";
 
 interface CesiumLocationSearchSectionProps {
   value?: any;
@@ -21,8 +19,6 @@ const CesiumLocationSearchSection: React.FC<
   CesiumLocationSearchSectionProps
 > = () => {
   // Use specific selectors to avoid unnecessary re-renders
-  const selectedAssetId = useSceneStore((state) => state.selectedAssetId);
-  const selectedLocation = useSceneStore((state) => state.selectedLocation);
   const setSelectedAssetId = useSceneStore((state) => state.setSelectedAssetId);
   const setSelectedLocation = useSceneStore(
     (state) => state.setSelectedLocation
@@ -47,26 +43,10 @@ const CesiumLocationSearchSection: React.FC<
 
   return (
     <Container>
+      <SectionTitle>Location Search</SectionTitle>
       <SearchContainer>
         <LocationSearch onAssetSelect={handleAssetSelect} />
       </SearchContainer>
-
-      {selectedLocation && (
-        <LocationInfo>
-          <Typography variant="caption" display="block" color="text.secondary">
-            Latitude: {selectedLocation.latitude.toFixed(6)}
-          </Typography>
-          <Typography variant="caption" display="block" color="text.secondary">
-            Longitude: {selectedLocation.longitude.toFixed(6)}
-          </Typography>
-          <Typography variant="caption" display="block" color="text.secondary">
-            Asset ID: {selectedAssetId}
-          </Typography>
-        </LocationInfo>
-      )}
-
-      {/* Cesium Ion Assets Management */}
-      <CesiumIonAssetsManager />
     </Container>
   );
 };

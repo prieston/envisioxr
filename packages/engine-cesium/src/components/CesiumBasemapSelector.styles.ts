@@ -1,25 +1,15 @@
 import { styled } from "@mui/material/styles";
-import { Box, Typography, ButtonGroup } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 export const Container = styled(Box)(({ theme }) => ({
-  "& > *:not(:last-child)": {
-    marginBottom: theme.spacing(2),
-  },
+  width: "100%",
+  marginBottom: theme.spacing(1.5),
 }));
 
 export const SectionTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "0.9rem",
-  fontWeight: 500,
-  marginBottom: theme.spacing(1),
-  color: theme.palette.text.primary,
-}));
-
-export const StyledButtonGroup = styled(ButtonGroup)(({ theme }) => ({
-  width: "100%",
-  "& .MuiButton-root": {
-    flex: 1,
-    fontSize: "0.8rem",
-    padding: theme.spacing(1),
-    textTransform: "none",
-  },
+  fontSize: "0.813rem",
+  fontWeight: 600,
+  marginBottom: theme.spacing(0.75),
+  color: "rgba(51, 65, 85, 0.95)",
+  letterSpacing: "0.01em",
 }));

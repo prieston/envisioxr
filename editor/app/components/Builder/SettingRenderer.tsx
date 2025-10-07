@@ -53,9 +53,18 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
                 checked={value ?? setting.defaultValue ?? false}
                 onChange={(e) => handleChange(e.target.checked)}
                 disabled={setting.disabled}
+                sx={{
+                  "& .MuiSwitch-switchBase.Mui-checked": {
+                    color: "#2563eb",
+                  },
+                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                    backgroundColor: "#2563eb",
+                  },
+                }}
               />
             }
             label=""
+            sx={{ margin: 0 }}
           />
         );
 
@@ -70,6 +79,24 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             marks={setting.marks}
             disabled={setting.disabled}
             valueLabelDisplay="auto"
+            sx={{
+              color: "#2563eb",
+              height: 4,
+              "& .MuiSlider-thumb": {
+                width: 16,
+                height: 16,
+                "&:hover, &.Mui-focusVisible": {
+                  boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+                },
+              },
+              "& .MuiSlider-track": {
+                border: "none",
+              },
+              "& .MuiSlider-rail": {
+                opacity: 0.3,
+                backgroundColor: "rgba(100, 116, 139, 0.3)",
+              },
+            }}
           />
         );
 
@@ -81,9 +108,36 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             fullWidth
             size="small"
             disabled={setting.disabled}
+            sx={{
+              borderRadius: "8px",
+              backgroundColor: "rgba(255, 255, 255, 0.8)",
+              fontSize: "0.875rem",
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "rgba(226, 232, 240, 0.8)",
+              },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "rgba(37, 99, 235, 0.4)",
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#2563eb",
+                borderWidth: "2px",
+              },
+            }}
           >
             {setting.options?.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
+              <MenuItem
+                key={option.value}
+                value={option.value}
+                sx={{
+                  fontSize: "0.875rem",
+                  "&.Mui-selected": {
+                    backgroundColor: "rgba(37, 99, 235, 0.08)",
+                    "&:hover": {
+                      backgroundColor: "rgba(37, 99, 235, 0.12)",
+                    },
+                  },
+                }}
+              >
                 {option.label}
               </MenuItem>
             ))}
@@ -98,6 +152,19 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             disabled={setting.disabled}
             fullWidth
             size="small"
+            sx={{
+              borderRadius: "8px",
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.875rem",
+              borderColor: "rgba(37, 99, 235, 0.3)",
+              color: "#2563eb",
+              padding: "6px 16px",
+              "&:hover": {
+                borderColor: "#2563eb",
+                backgroundColor: "rgba(37, 99, 235, 0.08)",
+              },
+            }}
           >
             {setting.label}
           </Button>
@@ -112,6 +179,23 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             size="small"
             disabled={setting.disabled}
             variant="outlined"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                fontSize: "0.875rem",
+                "& fieldset": {
+                  borderColor: "rgba(226, 232, 240, 0.8)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "rgba(37, 99, 235, 0.4)",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#2563eb",
+                  borderWidth: "2px",
+                },
+              },
+            }}
           />
         );
 
@@ -129,6 +213,23 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
               min: setting.min,
               max: setting.max,
               step: setting.step,
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                fontSize: "0.875rem",
+                "& fieldset": {
+                  borderColor: "rgba(226, 232, 240, 0.8)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "rgba(37, 99, 235, 0.4)",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#2563eb",
+                  borderWidth: "2px",
+                },
+              },
             }}
           />
         );
