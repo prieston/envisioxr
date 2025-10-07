@@ -34,7 +34,8 @@ const CesiumWeatherData3DDisplay: React.FC<WeatherData3DDisplayProps> = ({
     if (!viewer || !Cesium || !showInScene || !position) return;
 
     const id = entityIdRef.current;
-    const [lon, lat, h] = position;
+    const posArray = Array.isArray(position) ? position : [0, 0, 0];
+    const [lon, lat, h] = posArray;
 
     const t =
       weatherData?.temperature != null

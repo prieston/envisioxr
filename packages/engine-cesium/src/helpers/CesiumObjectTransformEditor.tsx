@@ -171,8 +171,14 @@ const CesiumObjectTransformEditor: React.FC<
     }
 
     // place target at selectedObject's initial pose (optional safety)
-    const [lon = 0, lat = 0, hgt = 0] = selectedObject.position || [0, 0, 0];
-    const [hd = 0, pt = 0, rl = 0] = selectedObject.rotation || [0, 0, 0];
+    const posArray = Array.isArray(selectedObject.position)
+      ? selectedObject.position
+      : [0, 0, 0];
+    const rotArray = Array.isArray(selectedObject.rotation)
+      ? selectedObject.rotation
+      : [0, 0, 0];
+    const [lon = 0, lat = 0, hgt = 0] = posArray;
+    const [hd = 0, pt = 0, rl = 0] = rotArray;
     const pos = Cartesian3.fromDegrees(lon, lat, hgt);
     const hpr = new HeadingPitchRoll(hd, pt, rl);
     applyTRStoEntity(targetEntity as any, pos, hpr);
@@ -303,8 +309,14 @@ const CesiumObjectTransformEditor: React.FC<
   useEffect(() => {
     if (!transformEditorRef.current || !selectedObject) return;
 
-    const [lon = 0, lat = 0, hgt = 0] = selectedObject.position || [0, 0, 0];
-    const [hd = 0, pt = 0, rl = 0] = selectedObject.rotation || [0, 0, 0];
+    const posArray = Array.isArray(selectedObject.position)
+      ? selectedObject.position
+      : [0, 0, 0];
+    const rotArray = Array.isArray(selectedObject.rotation)
+      ? selectedObject.rotation
+      : [0, 0, 0];
+    const [lon = 0, lat = 0, hgt = 0] = posArray;
+    const [hd = 0, pt = 0, rl = 0] = rotArray;
     const pos = Cartesian3.fromDegrees(lon, lat, hgt);
     const hpr = new HeadingPitchRoll(hd, pt, rl);
 
