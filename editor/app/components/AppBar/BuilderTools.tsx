@@ -6,7 +6,7 @@ import {
   AspectRatio as AspectRatioIcon,
   AttachFile as MagnetIcon,
 } from "@mui/icons-material";
-import { MinimalButtonActive } from "./StyledComponents.tsx";
+import { MinimalButton } from "./StyledComponents.tsx";
 import { useSceneStore } from "@envisio/core";
 import { logger } from "./logger.ts";
 
@@ -49,34 +49,67 @@ const BuilderTools: React.FC<BuilderToolsProps> = ({
     >
       {Boolean(selectedObject) && !previewMode && (
         <>
-          <MinimalButtonActive
+          <MinimalButton
             active={transformMode === "translate"}
             onClick={() => onTransformModeChange("translate")}
           >
             <OpenWithIcon />
-            <Typography variant="caption">Move</Typography>
-          </MinimalButtonActive>
-          <MinimalButtonActive
+            <Typography
+              sx={{
+                fontSize: "0.75rem", // 12px - toolbar labels
+                fontWeight: 400, // Normal weight
+                letterSpacing: "0.01em",
+                lineHeight: 1,
+              }}
+            >
+              Move
+            </Typography>
+          </MinimalButton>
+          <MinimalButton
             active={transformMode === "rotate"}
             onClick={() => onTransformModeChange("rotate")}
           >
             <RotateRightIcon />
-            <Typography variant="caption">Rotate</Typography>
-          </MinimalButtonActive>
-          <MinimalButtonActive
+            <Typography
+              sx={{
+                fontSize: "0.75rem", // 12px - toolbar labels
+                fontWeight: 400, // Normal weight
+                letterSpacing: "0.01em",
+                lineHeight: 1,
+              }}
+            >
+              Rotate
+            </Typography>
+          </MinimalButton>
+          <MinimalButton
             active={transformMode === "scale"}
             onClick={() => onTransformModeChange("scale")}
           >
             <AspectRatioIcon />
-            <Typography variant="caption">Scale</Typography>
-          </MinimalButtonActive>
-          <MinimalButtonActive
-            active={magnetEnabled}
-            onClick={handleMagnetToggle}
-          >
+            <Typography
+              sx={{
+                fontSize: "0.75rem", // 12px - toolbar labels
+                fontWeight: 400, // Normal weight
+                letterSpacing: "0.01em",
+                lineHeight: 1,
+              }}
+            >
+              Scale
+            </Typography>
+          </MinimalButton>
+          <MinimalButton active={magnetEnabled} onClick={handleMagnetToggle}>
             <MagnetIcon />
-            <Typography variant="caption">Magnet</Typography>
-          </MinimalButtonActive>
+            <Typography
+              sx={{
+                fontSize: "0.75rem", // 12px - toolbar labels
+                fontWeight: 400, // Normal weight
+                letterSpacing: "0.01em",
+                lineHeight: 1,
+              }}
+            >
+              Magnet
+            </Typography>
+          </MinimalButton>
         </>
       )}
     </Box>

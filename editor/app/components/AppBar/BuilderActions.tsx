@@ -35,11 +35,29 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
         disabled={previewMode}
       >
         <SaveIcon />
-        <Typography variant="caption">Save</Typography>
+        <Typography
+          sx={{
+            fontSize: "0.75rem", // 12px - toolbar labels
+            fontWeight: 400, // Normal weight
+            letterSpacing: "0.01em",
+            lineHeight: 1,
+          }}
+        >
+          Save
+        </Typography>
       </MinimalButton>
       <MinimalButton onClick={onPublish} disabled={previewMode}>
         <PublishIcon />
-        <Typography variant="caption">Publish</Typography>
+        <Typography
+          sx={{
+            fontSize: "0.75rem", // 12px - toolbar labels
+            fontWeight: 400, // Normal weight
+            letterSpacing: "0.01em",
+            lineHeight: 1,
+          }}
+        >
+          Publish
+        </Typography>
       </MinimalButton>
     </>
   );

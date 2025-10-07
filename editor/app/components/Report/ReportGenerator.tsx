@@ -479,7 +479,16 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
   return (
     <MinimalButton onClick={generateReport} disabled={disabled}>
       <DescriptionIcon />
-      <Typography variant="caption">Report</Typography>
+      <Typography
+        sx={{
+          fontSize: "0.75rem",
+          fontWeight: 400, // Normal weight
+          letterSpacing: "0.01em",
+          lineHeight: 1,
+        }}
+      >
+        Report
+      </Typography>
     </MinimalButton>
   );
 };

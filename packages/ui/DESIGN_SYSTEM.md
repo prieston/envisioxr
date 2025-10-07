@@ -50,10 +50,11 @@ A comprehensive guide to the EnvisioXR UI design system for consistent, premium 
 
 ```css
 /* Application Typography Scale */
---text-xs: 0.688rem /* 11px - tiny labels, badges */ --text-sm: 0.75rem
-  /* 12px - body text, switches, inputs, descriptions */ --text-base: 0.813rem
-  /* 13px - section titles, labels, emphasis */ --text-lg: 0.875rem
-  /* 14px - headings, card titles */ --text-xl: 1rem
+--text-xxs: 0.625rem /* 10px - toolbar buttons, ultra-compact labels */
+  --text-xs: 0.688rem /* 11px - tiny labels, badges, subsection titles */
+  --text-sm: 0.75rem /* 12px - body text, switches, inputs, descriptions */
+  --text-base: 0.813rem /* 13px - section titles, labels, emphasis */
+  --text-lg: 0.875rem /* 14px - headings, card titles */ --text-xl: 1rem
   /* 16px - page titles, major headings */;
 ```
 
@@ -167,6 +168,38 @@ font-weight: 400; /* Normal */
 color: rgba(100, 116, 139, 0.85);
 ```
 
+#### 6. Toolbar Button Labels
+
+**Use Case:** Top bar buttons (Move, Rotate, Save, Publish)
+
+```css
+font-size: 0.75rem; /* 12px - toolbar labels */
+font-weight: 600; /* Bold */
+letter-spacing: 0.01em; /* Minimal spacing */
+line-height: 1; /* Compact line height */
+color: rgba(51, 65, 85, 0.85);
+```
+
+```jsx
+<Typography
+  sx={{
+    fontSize: "0.75rem",
+    fontWeight: 600,
+    letterSpacing: "0.01em",
+    lineHeight: 1,
+  }}
+>
+  Save
+</Typography>
+```
+
+**Toolbar Icons:**
+
+```css
+/* Icon size for compact toolbars */
+font-size: 1.1rem; /* ~17.6px - smaller than default 24px */
+```
+
 ---
 
 ### Quick Reference Table
@@ -179,6 +212,7 @@ color: rgba(100, 116, 139, 0.85);
 | **Input Text**     | 12px | 400    | Slate-700 | User input        |
 | **List Primary**   | 12px | 600    | Slate-700 | Object name       |
 | **List Secondary** | 11px | 400    | Slate-500 | Object type       |
+| **Toolbar Button** | 12px | 600    | Slate-600 | "Save"            |
 
 ---
 
