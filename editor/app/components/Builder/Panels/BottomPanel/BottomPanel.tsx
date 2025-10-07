@@ -71,14 +71,24 @@ const BottomPanelNew: React.FC = () => {
 
   return (
     <BottomPanelContainer previewMode={previewMode} className="glass-panel">
-      {currentTab.settings.map((setting, index) => (
-        <React.Fragment key={setting.id}>
-          <SettingRenderer setting={setting} />
-          {index < currentTab.settings.length - 1 && (
-            <Divider orientation="vertical" flexItem />
-          )}
-        </React.Fragment>
-      ))}
+      {currentTab.settings.map((setting, index) => {
+        // Determine flex basis: observation points take remaining space, others fit content
+        const flexStyle =
+          setting.id === "observation-points"
+            ? { flex: "1 1 auto", minWidth: 0, display: "flex" } // Take remaining space
+            : { flex: "0 0 auto", display: "flex" }; // Width based on content
+
+        return (
+          <React.Fragment key={setting.id}>
+            <div style={flexStyle}>
+              <SettingRenderer setting={setting} />
+            </div>
+            {index < currentTab.settings.length - 1 && (
+              <Divider orientation="vertical" flexItem />
+            )}
+          </React.Fragment>
+        );
+      })}
     </BottomPanelContainer>
   );
 };
