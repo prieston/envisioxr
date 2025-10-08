@@ -158,7 +158,7 @@ interface SceneState {
   setModelScale: (id: string, newScale: Vector3) => void;
   setObservationPoints: (newPoints: ObservationPoint[]) => void;
   addObservationPoint: () => void;
-  selectObservation: (id: number) => void;
+  selectObservation: (id: number | null) => void;
   updateObservationPoint: (
     id: number,
     updates: Partial<ObservationPoint>
@@ -331,6 +331,7 @@ const useSceneStore = create<SceneState>((set) => ({
       const found = state.objects.find((obj) => obj.id === id);
       return {
         selectedObject: found ? (found as any) : null,
+        selectedObservation: null, // Deselect any selected observation
       } as any;
     }),
   removeObject: (id) =>
@@ -498,9 +499,11 @@ const useSceneStore = create<SceneState>((set) => ({
     }),
   selectObservation: (id) =>
     set((state) => ({
-      selectedObservation: state.observationPoints.find(
-        (point) => point.id === id
-      ),
+      selectedObservation:
+        id === null
+          ? null
+          : state.observationPoints.find((point) => point.id === id),
+      selectedObject: null, // Deselect any selected object
     })),
   updateObservationPoint: (id, updates) =>
     set((state) => {
