@@ -122,7 +122,35 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
       <Tabs
         value={tabIndex}
         onChange={(e, newValue) => setTabIndex(newValue)}
-        sx={{ mb: 2 }}
+        variant="fullWidth"
+        sx={{
+          flexShrink: 0,
+          mb: 2,
+          minHeight: "48px",
+          "& .MuiTab-root": {
+            color: "rgba(100, 116, 139, 0.8)",
+            minHeight: "40px",
+            padding: "8px 12px",
+            fontSize: "0.813rem", // 13px
+            fontWeight: 500,
+            borderRadius: "8px",
+            margin: "0 2px",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+            textTransform: "none",
+            "&:hover": {
+              backgroundColor: "rgba(37, 99, 235, 0.08)",
+              color: "#2563eb",
+            },
+            "&.Mui-selected": {
+              color: "#2563eb",
+              backgroundColor: "rgba(37, 99, 235, 0.12)",
+              fontWeight: 600,
+            },
+          },
+          "& .MuiTabs-indicator": {
+            display: "none",
+          },
+        }}
       >
         <Tab label="Your Models" />
         <Tab label="Upload Model" />
@@ -204,7 +232,21 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
               <Typography>No uploaded models found.</Typography>
             ) : (
               userAssets.map((model, index) => (
-                <Card key={index} sx={{ width: "100%" }}>
+                <Card
+                  key={index}
+                  sx={{
+                    width: "100%",
+                    borderRadius: "8px", // Design system
+                    border: "1px solid rgba(226, 232, 240, 0.8)",
+                    backgroundColor: "rgba(248, 250, 252, 0.6)",
+                    transition:
+                      "border-color 0.15s ease, box-shadow 0.15s ease",
+                    "&:hover": {
+                      borderColor: "rgba(37, 99, 235, 0.3)",
+                      boxShadow: "0 2px 8px rgba(37, 99, 235, 0.1)",
+                    },
+                  }}
+                >
                   {model.thumbnail && (
                     <CardMedia
                       style={{ background: "white" }}
@@ -348,17 +390,22 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
               <Box
                 sx={{
                   padding: 4,
-                  border: "2px dashed #aaa",
+                  border: "2px dashed rgba(100, 116, 139, 0.3)",
                   textAlign: "center",
                   cursor: "pointer",
-                  borderRadius: 1,
+                  borderRadius: "8px", // Design system
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                   minHeight: "200px",
-                  backgroundColor: "rgba(255, 255, 255, 0.05)",
-                  "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
+                  backgroundColor: "rgba(248, 250, 252, 0.3)",
+                  transition:
+                    "background-color 0.15s ease, border-color 0.15s ease",
+                  "&:hover": {
+                    backgroundColor: "rgba(37, 99, 235, 0.05)",
+                    borderColor: "rgba(37, 99, 235, 0.4)",
+                  },
                 }}
                 {...getRootProps()}
               >
