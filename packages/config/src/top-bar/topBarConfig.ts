@@ -3,8 +3,6 @@ import {
   OpenWith as OpenWithIcon,
   RotateRight as RotateRightIcon,
   AspectRatio as AspectRatioIcon,
-  Save as SaveIcon,
-  Publish as PublishIcon,
 } from "@mui/icons-material";
 
 export const createThreeJSTopBarConfig = (
@@ -13,7 +11,15 @@ export const createThreeJSTopBarConfig = (
   onTransformModeChange: (mode: "translate" | "rotate" | "scale") => void,
   onSave?: () => Promise<void>,
   onPublish?: () => void,
-  previewMode: boolean = false
+  previewMode: boolean = false,
+  positioningProps?: {
+    selectingPosition: boolean;
+    setSelectingPosition: (selecting: boolean) => void;
+    selectedPosition: [number, number, number] | null;
+    setSelectedPosition: (position: [number, number, number] | null) => void;
+    pendingModel: any;
+    setPendingModel: (model: any) => void;
+  }
 ): TopBarConfiguration => {
   return {
     id: "top-bar",
@@ -71,36 +77,14 @@ export const createThreeJSTopBarConfig = (
         type: "right",
         tools: [
           {
-            id: "report-generator",
+            id: "builder-actions",
             type: "custom",
-            label: "Report",
-            customComponent: "ReportGenerator",
+            label: "Builder Actions",
+            customComponent: "BuilderActions",
             customProps: {
-              disabled: previewMode,
-            },
-          },
-          {
-            id: "save-action",
-            type: "action",
-            label: "Save",
-            icon: SaveIcon,
-            disabled: previewMode,
-            onClick: async () => {
-              if (onSave) {
-                await onSave();
-              }
-            },
-          },
-          {
-            id: "publish-action",
-            type: "action",
-            label: "Publish",
-            icon: PublishIcon,
-            disabled: previewMode,
-            onClick: () => {
-              if (onPublish) {
-                onPublish();
-              }
+              onSave,
+              onPublish,
+              ...positioningProps,
             },
           },
         ],
@@ -115,7 +99,15 @@ export const createCesiumTopBarConfig = (
   onTransformModeChange: (mode: "translate" | "rotate" | "scale") => void,
   onSave?: () => Promise<void>,
   onPublish?: () => void,
-  previewMode: boolean = false
+  previewMode: boolean = false,
+  positioningProps?: {
+    selectingPosition: boolean;
+    setSelectingPosition: (selecting: boolean) => void;
+    selectedPosition: [number, number, number] | null;
+    setSelectedPosition: (position: [number, number, number] | null) => void;
+    pendingModel: any;
+    setPendingModel: (model: any) => void;
+  }
 ): TopBarConfiguration => {
   return {
     id: "top-bar",
@@ -173,36 +165,14 @@ export const createCesiumTopBarConfig = (
         type: "right",
         tools: [
           {
-            id: "report-generator",
+            id: "builder-actions",
             type: "custom",
-            label: "Report",
-            customComponent: "ReportGenerator",
+            label: "Builder Actions",
+            customComponent: "BuilderActions",
             customProps: {
-              disabled: previewMode,
-            },
-          },
-          {
-            id: "save-action",
-            type: "action",
-            label: "Save",
-            icon: SaveIcon,
-            disabled: previewMode,
-            onClick: async () => {
-              if (onSave) {
-                await onSave();
-              }
-            },
-          },
-          {
-            id: "publish-action",
-            type: "action",
-            label: "Publish",
-            icon: PublishIcon,
-            disabled: previewMode,
-            onClick: () => {
-              if (onPublish) {
-                onPublish();
-              }
+              onSave,
+              onPublish,
+              ...positioningProps,
             },
           },
         ],

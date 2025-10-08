@@ -27,8 +27,8 @@
   "devDependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@mui/material": "^6.4.1",
     "@mui/icons-material": "^6.4.2",
+    "@mui/material": "^6.4.1",
     "@storybook/addon-docs": "^9.1.10",
     "@storybook/addon-links": "^9.1.10",
     "@storybook/addon-onboarding": "^9.1.10",
@@ -39,5 +39,8 @@
     "eslint-plugin-storybook": "^9.1.10",
     "react-toastify": "^10.0.6",
     "storybook": "^9.1.10"
+  },
+  "dependencies": {
+    "react-dropzone": "^14.3.5"
   }
 }

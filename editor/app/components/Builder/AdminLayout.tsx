@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   AnimatedBackground,
   GlowingContainer,
@@ -14,8 +14,48 @@ import {
 } from "./AdminLayout.styles";
 import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 import { BottomPanel, LeftPanel, RightPanel } from "./panels";
+import ModelPositioningManager from "./ModelPositioningManager";
+import { useSceneStore } from "@envisio/core";
+import { showToast } from "@envisio/core/utils";
 
 const AdminLayout = ({ children, onSave, onPublish }) => {
+  const [selectingPosition, setSelectingPosition] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<
+    [number, number, number] | null
+  >(null);
+  const [pendingModel, setPendingModel] = useState<any>(null);
+
+  const addModel = useSceneStore((state) => state.addModel);
+
+  const handlePositionSelected = (position: [number, number, number]) => {
+    setSelectedPosition(position);
+  };
+
+  const handleConfirmPlacement = () => {
+    if (pendingModel && selectedPosition) {
+      addModel({
+        ...pendingModel,
+        position: selectedPosition,
+        scale: [1, 1, 1],
+        rotation: [0, 0, 0],
+      });
+      showToast(`Added ${pendingModel.name} to scene`);
+
+      // Reset state
+      setPendingModel(null);
+      setSelectedPosition(null);
+      setSelectingPosition(false);
+    }
+  };
+
+  const handleCancelPlacement = () => {
+    setPendingModel(null);
+    setSelectedPosition(null);
+    setSelectingPosition(false);
+    showToast("Model placement cancelled");
+    // TODO: Reopen asset modal - need to pass callback from AdminAppBar
+  };
+
   return (
     <>
       {/* Animated background */}
@@ -45,10 +85,30 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
       {/* Full viewport canvas background */}
       <CanvasContainer>{children}</CanvasContainer>
 
+      {/* Model Positioning Overlay */}
+      <ModelPositioningManager
+        selectingPosition={selectingPosition}
+        selectedPosition={selectedPosition}
+        pendingModel={pendingModel}
+        onPositionSelected={handlePositionSelected}
+        onConfirm={handleConfirmPlacement}
+        onCancel={handleCancelPlacement}
+      />
+
       {/* Glass panels overlay */}
       <LayoutContainer className="glass-layout">
         {/* App Bar with the onSave and onPublish props */}
-        <AdminAppBar mode="builder" onSave={onSave} onPublish={onPublish} />
+        <AdminAppBar
+          mode="builder"
+          onSave={onSave}
+          onPublish={onPublish}
+          selectingPosition={selectingPosition}
+          setSelectingPosition={setSelectingPosition}
+          selectedPosition={selectedPosition}
+          setSelectedPosition={setSelectedPosition}
+          pendingModel={pendingModel}
+          setPendingModel={setPendingModel}
+        />
 
         {/* Main Content: Left Panel | Builder (Scene) | Right Panel */}
         <MainContent>

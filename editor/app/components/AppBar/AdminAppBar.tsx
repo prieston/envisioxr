@@ -22,6 +22,13 @@ interface AdminAppBarProps {
   onPublish?: () => Promise<void>;
   onHelpClick?: () => void;
   showHelpPulse?: boolean;
+  // Model positioning props
+  selectingPosition?: boolean;
+  setSelectingPosition?: (selecting: boolean) => void;
+  selectedPosition?: [number, number, number] | null;
+  setSelectedPosition?: (position: [number, number, number] | null) => void;
+  pendingModel?: any;
+  setPendingModel?: (model: any) => void;
 }
 
 const AdminAppBar: React.FC<AdminAppBarProps> = ({
@@ -30,6 +37,12 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
   onPublish,
   onHelpClick,
   showHelpPulse = false,
+  selectingPosition = false,
+  setSelectingPosition,
+  selectedPosition = null,
+  setSelectedPosition,
+  pendingModel = null,
+  setPendingModel,
 }) => {
   logger.debug("🔍 AdminAppBar component called with mode:", mode);
 
@@ -79,9 +92,26 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
       handleTransformModeChange,
       handleSave,
       handlePublish,
-      previewMode
+      previewMode,
+      {
+        selectingPosition,
+        setSelectingPosition,
+        selectedPosition,
+        setSelectedPosition,
+        pendingModel,
+        setPendingModel,
+      }
     );
-  }, [mode, engine, selectedObject, transformMode, previewMode]);
+  }, [
+    mode,
+    engine,
+    selectedObject,
+    transformMode,
+    previewMode,
+    selectingPosition,
+    selectedPosition,
+    pendingModel,
+  ]);
 
   logger.debug("🔍 AdminAppBar render:", {
     selectedObject,
