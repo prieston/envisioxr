@@ -113,6 +113,11 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   );
   const [repositioning, setRepositioning] = useState(false);
 
+  // Check if this is a Cesium Ion asset (non-editable)
+  const isCesiumIonAsset =
+    localObject?.type === "cesium-ion-tileset" ||
+    localObject?.type === "cesiumIonAsset";
+
   useEffect(() => {
     if (selectedObject) {
       setLocalObject(selectedObject);
@@ -259,6 +264,21 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   const handleFlyToObject = () => {
     const { engine } = useWorldStore.getState();
 
+    // Check if this is a Cesium Ion asset
+    if (isCesiumIonAsset && selectedObject?.assetId) {
+      const { flyToCesiumIonAsset, cesiumIonAssets } = useSceneStore.getState();
+      // Find the asset in cesiumIonAssets by its assetId field
+      const asset = cesiumIonAssets.find(
+        (a) => a.assetId === selectedObject.assetId
+      );
+      if (asset) {
+        flyToCesiumIonAsset(asset.id);
+      } else {
+        console.warn("Cesium Ion asset not found:", selectedObject.assetId);
+      }
+      return;
+    }
+
     if (engine === "cesium") {
       const { cesiumViewer } = useSceneStore.getState();
       if (cesiumViewer && selectedObject?.position) {
@@ -358,10 +378,10 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       >
         <ObjectActionsSection
           onFlyToObject={handleFlyToObject}
-          onReposition={handleReposition}
+          onReposition={isCesiumIonAsset ? undefined : handleReposition}
           repositioning={repositioning}
         />
-        {repositioning && (
+        {repositioning && !isCesiumIonAsset && (
           <Alert
             severity="info"
             action={
@@ -378,32 +398,38 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             Click anywhere in the scene to reposition the model
           </Alert>
         )}
+
         <ModelInformationSection object={localObject} />
 
-        <ObservationModelSection
-          object={localObject}
-          onPropertyChange={handlePropertyChange}
-          onCalculateViewshed={() => {
-            useSceneStore
-              .getState()
-              .startVisibilityCalculation(selectedObject.id);
-          }}
-          isCalculating={useSceneStore.getState().isCalculatingVisibility}
-          updateObjectProperty={updateObjectProperty}
-        />
+        {/* Only show these sections for regular models, not Cesium Ion assets */}
+        {!isCesiumIonAsset && (
+          <>
+            <ObservationModelSection
+              object={localObject}
+              onPropertyChange={handlePropertyChange}
+              onCalculateViewshed={() => {
+                useSceneStore
+                  .getState()
+                  .startVisibilityCalculation(selectedObject.id);
+              }}
+              isCalculating={useSceneStore.getState().isCalculatingVisibility}
+              updateObjectProperty={updateObjectProperty}
+            />
 
-        <IoTDevicePropertiesPanel
-          selectedObject={localObject}
-          onPropertyChange={handlePropertyChange}
-          geographicCoords={geographicCoords}
-        />
+            <IoTDevicePropertiesPanel
+              selectedObject={localObject}
+              onPropertyChange={handlePropertyChange}
+              geographicCoords={geographicCoords}
+            />
 
-        <TransformLocationSection
-          object={localObject}
-          geographicCoords={geographicCoords}
-          onPropertyChange={handlePropertyChange}
-          updateObjectProperty={updateObjectProperty}
-        />
+            <TransformLocationSection
+              object={localObject}
+              geographicCoords={geographicCoords}
+              onPropertyChange={handlePropertyChange}
+              updateObjectProperty={updateObjectProperty}
+            />
+          </>
+        )}
       </Box>
     );
   }

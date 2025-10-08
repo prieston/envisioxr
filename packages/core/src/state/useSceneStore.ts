@@ -335,11 +335,26 @@ const useSceneStore = create<SceneState>((set) => ({
       } as any;
     }),
   removeObject: (id) =>
-    set((state) => ({
-      objects: state.objects.filter((obj) => obj.id !== id),
-      selectedObject:
-        state.selectedObject?.id === id ? null : state.selectedObject,
-    })),
+    set((state) => {
+      // Find the object to check if it's a Cesium Ion asset
+      const objectToRemove = state.objects.find((obj) => obj.id === id);
+      const isCesiumIonAsset =
+        objectToRemove?.type === "cesium-ion-tileset" ||
+        objectToRemove?.type === "cesiumIonAsset";
+
+      return {
+        objects: state.objects.filter((obj) => obj.id !== id),
+        selectedObject:
+          state.selectedObject?.id === id ? null : state.selectedObject,
+        // Also remove from cesiumIonAssets if it's a Cesium Ion asset
+        cesiumIonAssets: isCesiumIonAsset
+          ? state.cesiumIonAssets.filter((asset) => {
+              // Match by assetId (Cesium Ion ID), not internal id
+              return asset.assetId !== objectToRemove.assetId;
+            })
+          : state.cesiumIonAssets,
+      };
+    }),
   updateObjectProperty: (id, property, value) => {
     set((state) => {
       const updatedObjects = state.objects.map((obj) => {

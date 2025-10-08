@@ -131,12 +131,6 @@ export const createCesiumLeftPanelConfig = (
             label: "Date & Time",
             customComponent: "CesiumDateTimeSelector",
           },
-          {
-            id: "cesium-assets",
-            type: "custom",
-            label: "Cesium Assets",
-            customComponent: "CesiumIonAssetsManager",
-          },
         ],
       },
     ],

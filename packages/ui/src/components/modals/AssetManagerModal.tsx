@@ -11,14 +11,12 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import { Close, CloudUpload, Folder, Public, Add } from "@mui/icons-material";
+import { Close, CloudUpload, Folder, Public } from "@mui/icons-material";
 import {
   MyLibraryTab,
   UploadModelTab,
-  CesiumIonAssetTab,
   UploadToIonTab,
   type LibraryAsset,
-  type CesiumAsset,
 } from "./tabs";
 
 export interface AssetManagerModalProps {
@@ -46,16 +44,6 @@ export interface AssetManagerModalProps {
   }) => Promise<void>;
   customModelUploading?: boolean;
   customModelUploadProgress?: number;
-  // Cesium Ion Asset props
-  cesiumAssets?: CesiumAsset[];
-  onCesiumAssetAdd?: (data: {
-    assetId: string;
-    name: string;
-    apiKey?: string;
-  }) => void;
-  onCesiumAssetToggle?: (assetId: string) => void;
-  onCesiumAssetRemove?: (assetId: string) => void;
-  onCesiumAssetFlyTo?: (assetId: string) => void;
   // Upload to Ion props
   onCesiumIonUpload?: (data: {
     file: File;
@@ -82,12 +70,6 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
   onCustomModelUpload,
   customModelUploading = false,
   customModelUploadProgress = 0,
-  // Cesium Ion Asset
-  cesiumAssets = [],
-  onCesiumAssetAdd,
-  onCesiumAssetToggle,
-  onCesiumAssetRemove,
-  onCesiumAssetFlyTo,
   // Upload to Ion
   onCesiumIonUpload,
   ionUploading = false,
@@ -201,7 +183,6 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
       >
         <Tab icon={<Folder />} iconPosition="start" label="My Library" />
         <Tab icon={<CloudUpload />} iconPosition="start" label="Upload Model" />
-        <Tab icon={<Add />} iconPosition="start" label="Cesium Ion Asset" />
         <Tab icon={<Public />} iconPosition="start" label="Upload to Ion" />
       </Tabs>
 
@@ -242,19 +223,8 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
             />
           )}
 
-          {/* Cesium Ion Asset Tab */}
-          {activeTab === 2 && onCesiumAssetAdd && (
-            <CesiumIonAssetTab
-              assets={cesiumAssets}
-              onAddAsset={onCesiumAssetAdd}
-              onToggleAsset={onCesiumAssetToggle}
-              onRemoveAsset={onCesiumAssetRemove}
-              onFlyTo={onCesiumAssetFlyTo}
-            />
-          )}
-
           {/* Upload to Ion Tab */}
-          {activeTab === 3 && onCesiumIonUpload && (
+          {activeTab === 2 && onCesiumIonUpload && (
             <UploadToIonTab
               onUpload={onCesiumIonUpload}
               uploading={ionUploading}

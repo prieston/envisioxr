@@ -5,7 +5,7 @@ import { SettingContainer, SettingLabel } from "../SettingRenderer.styles";
 
 interface ObjectActionsSectionProps {
   onFlyToObject: () => void;
-  onReposition: () => void;
+  onReposition?: () => void;
   repositioning: boolean;
 }
 
@@ -39,29 +39,31 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
         >
           Fly to Object
         </Button>
-        <Button
-          variant="outlined"
-          onClick={onReposition}
-          startIcon={<LocationOn />}
-          sx={{
-            flex: 1,
-            borderRadius: "8px",
-            textTransform: "none",
-            fontWeight: 500,
-            fontSize: "0.75rem",
-            borderColor: "rgba(37, 99, 235, 0.3)",
-            color: "#2563eb",
-            padding: "6px 16px",
-            "&:hover": {
-              borderColor: "#2563eb",
-              backgroundColor: "rgba(37, 99, 235, 0.08)",
-            },
-          }}
-          disabled={repositioning}
-          data-testid="reposition-button"
-        >
-          {repositioning ? "Repositioning..." : "Reposition"}
-        </Button>
+        {onReposition && (
+          <Button
+            variant="outlined"
+            onClick={onReposition}
+            startIcon={<LocationOn />}
+            sx={{
+              flex: 1,
+              borderRadius: "8px",
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.75rem",
+              borderColor: "rgba(37, 99, 235, 0.3)",
+              color: "#2563eb",
+              padding: "6px 16px",
+              "&:hover": {
+                borderColor: "#2563eb",
+                backgroundColor: "rgba(37, 99, 235, 0.08)",
+              },
+            }}
+            disabled={repositioning}
+            data-testid="reposition-button"
+          >
+            {repositioning ? "Repositioning..." : "Reposition"}
+          </Button>
+        )}
       </Box>
     </SettingContainer>
   );

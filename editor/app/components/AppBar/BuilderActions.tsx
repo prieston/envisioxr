@@ -14,7 +14,6 @@ import ReportGenerator from "../Report/ReportGenerator";
 import {
   AssetManagerModal,
   type LibraryAsset,
-  type CesiumAsset,
 } from "@envisio/ui";
 import { clientEnv } from "@/lib/env/client";
 
@@ -207,10 +206,43 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
 
   // Handle model selection (trigger positioning mode)
   const handleModelSelect = (model: LibraryAsset) => {
+    // Check if this is a Cesium Ion asset
+    const isCesiumAsset =
+      (model as any).assetType === "cesiumIonAsset" ||
+      (model as any).cesiumAssetId;
+
+    if (isCesiumAsset) {
+      // For Cesium Ion assets, add to both cesiumIonAssets and objects arrays
+      addCesiumIonAsset({
+        name: model.name || model.originalFilename,
+        apiKey: (model as any).cesiumApiKey || "",
+        assetId: (model as any).cesiumAssetId,
+        enabled: true,
+      });
+
+      // Also add to objects array so it appears in scene objects list
+      addModel({
+        name: model.name || model.originalFilename,
+        type: "cesium-ion-tileset",
+        apiKey: (model as any).cesiumApiKey,
+        assetId: (model as any).cesiumAssetId,
+        position: [0, 0, 0], // Placeholder, actual position handled by Cesium
+        scale: [1, 1, 1],
+        rotation: [0, 0, 0],
+      });
+
+      setAssetManagerOpen(false);
+      showToast(
+        `Added Cesium Ion asset: ${model.name || model.originalFilename}`
+      );
+      return;
+    }
+
+    // For regular models, trigger positioning mode
     if (setPendingModel && setSelectingPosition && setSelectedPosition) {
       // Store the model temporarily and enter positioning mode
       setPendingModel({
-        name: model.originalFilename,
+        name: model.name || model.originalFilename,
         url: model.fileUrl,
         type: model.fileType,
         fileType: model.fileType,
@@ -223,14 +255,14 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
     } else {
       // Fallback: add directly at origin if positioning not available
       addModel({
-        name: model.originalFilename,
+        name: model.name || model.originalFilename,
         url: model.fileUrl,
         type: model.fileType,
         position: [0, 0, 0],
         scale: [1, 1, 1],
         rotation: [0, 0, 0],
       });
-      showToast(`Added ${model.originalFilename} to scene`);
+      showToast(`Added ${model.name || model.originalFilename} to scene`);
     }
   };
 
@@ -295,18 +327,57 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
   };
 
   // Handle Cesium Ion asset addition
-  const handleCesiumAssetAdd = (data: {
+  const handleCesiumAssetAdd = async (data: {
     assetId: string;
     name: string;
     apiKey?: string;
   }) => {
-    addCesiumIonAsset({
-      name: data.name,
-      apiKey: data.apiKey || "",
-      assetId: data.assetId,
-      enabled: true,
-    });
-    showToast(`Added Cesium Ion asset: ${data.name}`);
+    try {
+      // Save to database
+      const res = await fetch("/api/models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assetType: "cesiumIonAsset",
+          cesiumAssetId: data.assetId,
+          cesiumApiKey: data.apiKey,
+          name: data.name,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to save Cesium Ion asset");
+      }
+
+      const { asset: newAsset } = await res.json();
+      showToast(`Saved Cesium Ion asset: ${data.name}`);
+
+      // Add to userAssets list
+      setUserAssets((prev) => [...prev, newAsset]);
+
+      // Add to scene store for immediate rendering (both arrays)
+      addCesiumIonAsset({
+        name: data.name,
+        apiKey: data.apiKey || "",
+        assetId: data.assetId,
+        enabled: true,
+      });
+
+      // Also add to objects array so it appears in scene objects list
+      addModel({
+        name: data.name,
+        type: "cesium-ion-tileset",
+        apiKey: data.apiKey,
+        assetId: data.assetId,
+        position: [0, 0, 0], // Placeholder, actual position handled by Cesium
+        scale: [1, 1, 1],
+        rotation: [0, 0, 0],
+      });
+    } catch (error) {
+      console.error("Cesium Ion asset save error:", error);
+      showToast("An error occurred while saving Cesium Ion asset.");
+    }
   };
 
   // Handle upload to Cesium Ion
@@ -398,12 +469,6 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
         onCustomModelUpload={handleCustomModelUpload}
         customModelUploading={uploading}
         customModelUploadProgress={uploadProgress}
-        // Cesium Ion Asset
-        cesiumAssets={cesiumAssets}
-        onCesiumAssetAdd={handleCesiumAssetAdd}
-        onCesiumAssetToggle={toggleCesiumIonAsset}
-        onCesiumAssetRemove={removeCesiumIonAsset}
-        onCesiumAssetFlyTo={flyToCesiumIonAsset}
         // Upload to Ion
         onCesiumIonUpload={handleUploadToIon}
         ionUploading={ionUploading}
