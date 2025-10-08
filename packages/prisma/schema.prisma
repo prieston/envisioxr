@@ -96,6 +96,8 @@ model Asset {
   fileUrl          String // URL to the file in your cloud storage
   fileType         String // e.g., "glb", "3dm", "jpg", etc.
   originalFilename String
+  name             String? // User-defined friendly name for the asset
+  description      String? // User-defined description of the asset
   thumbnail        String? // URL for the captured thumbnail image
   metadata         Json? // Stores descriptive information about the model
   createdAt        DateTime @default(now())

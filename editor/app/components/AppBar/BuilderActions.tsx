@@ -261,6 +261,45 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
     }
   };
 
+  // Handle asset update (name, description, metadata, thumbnail)
+  const handleAssetUpdate = async (
+    assetId: string,
+    updates: {
+      name?: string;
+      description?: string;
+      metadata?: Record<string, string>;
+      thumbnail?: string;
+    }
+  ) => {
+    try {
+      const res = await fetch("/api/models/metadata", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assetId, ...updates }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        showToast("Asset updated successfully.");
+        // Update local state with the returned asset data
+        setUserAssets((prev) =>
+          prev.map((asset) =>
+            asset.id === assetId ? { ...asset, ...data.asset } : asset
+          )
+        );
+      } else {
+        const errorData = await res.json();
+        console.error("Update failed:", errorData);
+        showToast(
+          `Failed to update asset: ${errorData.error || "Unknown error"}`
+        );
+      }
+    } catch (error) {
+      console.error("Asset update error:", error);
+      showToast("An error occurred while updating asset.");
+    }
+  };
+
   // Handle Cesium Ion asset addition
   const handleCesiumAssetAdd = (data: {
     assetId: string;
@@ -360,6 +399,7 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
         userAssets={userAssets}
         onModelSelect={handleModelSelect}
         onAssetDelete={handleDeleteModel}
+        onAssetUpdate={handleAssetUpdate}
         // Upload Model
         onCustomModelUpload={handleCustomModelUpload}
         customModelUploading={uploading}

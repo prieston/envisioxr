@@ -41,6 +41,9 @@
     "storybook": "^9.1.10"
   },
   "dependencies": {
-    "react-dropzone": "^14.3.5"
+    "@react-three/drei": "^9.92.7",
+    "@react-three/fiber": "^8.15.11",
+    "react-dropzone": "^14.3.5",
+    "three": "^0.170.0"
   }
 }
