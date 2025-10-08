@@ -1,9 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { Tooltip } from "@mui/material";
-import { ViewModeSection, ViewModeRow, ViewModeButton, } from "./ViewModeControls.styles";
-import { ThreeSixty, Settings, Person, DirectionsCarFilled, FlightTakeoff, } from "@mui/icons-material";
-const ViewModeControls = ({ viewMode, setViewMode, }) => {
-    return (_jsxs(ViewModeSection, { previewMode: false, children: [_jsxs(ViewModeRow, { children: [_jsx(Tooltip, { title: "Orbit Controls", children: _jsx(ViewModeButton, { className: viewMode === "orbit" ? "active" : "", onClick: () => setViewMode === null || setViewMode === void 0 ? void 0 : setViewMode("orbit"), children: _jsx(ThreeSixty, {}) }) }), _jsx(Tooltip, { title: "Control Settings", children: _jsx(ViewModeButton, { className: viewMode === "settings" ? "active" : "", onClick: () => setViewMode === null || setViewMode === void 0 ? void 0 : setViewMode("settings"), children: _jsx(Settings, {}) }) })] }), _jsxs(ViewModeRow, { children: [_jsx(Tooltip, { title: "First Person", children: _jsx(ViewModeButton, { className: viewMode === "firstPerson" ? "active" : "", onClick: () => setViewMode === null || setViewMode === void 0 ? void 0 : setViewMode("firstPerson"), children: _jsx(Person, {}) }) }), _jsx(Tooltip, { title: "Car Mode", children: _jsx(ViewModeButton, { className: viewMode === "car" ? "active" : "", onClick: () => setViewMode === null || setViewMode === void 0 ? void 0 : setViewMode("car"), children: _jsx(DirectionsCarFilled, {}) }) }), _jsx(Tooltip, { title: "Flight Mode", children: _jsx(ViewModeButton, { className: viewMode === "flight" ? "active" : "", onClick: () => setViewMode === null || setViewMode === void 0 ? void 0 : setViewMode("flight"), children: _jsx(FlightTakeoff, {}) }) })] })] }));
-};
-export default ViewModeControls;
-//# sourceMappingURL=ViewModeControls.js.map
