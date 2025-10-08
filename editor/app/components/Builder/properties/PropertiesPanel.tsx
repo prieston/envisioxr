@@ -384,7 +384,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           const index = parseInt(child);
           if (!isNaN(index)) {
             const prevArray = prev[parent];
-            const array = Array.isArray(prevArray) ? [...prevArray] : [];
+            const array = Array.isArray(prevArray) ? [...prevArray] : [0, 0, 0];
             (array as any)[index] = value;
             return {
               ...prev,
@@ -406,6 +406,17 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           "observationProperties",
           updatedProperties
         );
+      } else if (property.includes(".")) {
+        // For array properties like position.0, update the entire array
+        const [parent, child] = property.split(".");
+        const index = parseInt(child);
+        if (!isNaN(index)) {
+          const currentArray = Array.isArray(selectedObject[parent])
+            ? [...selectedObject[parent]]
+            : [0, 0, 0];
+          currentArray[index] = value as number;
+          updateObjectProperty(selectedObject.id, parent, currentArray);
+        }
       } else {
         updateObjectProperty(selectedObject.id, property, value);
       }
@@ -691,6 +702,12 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           )}
         </SettingContainer>
 
+        {/* Descriptive Info */}
+        <SettingContainer>
+          <SettingLabel>Descriptive Info</SettingLabel>
+          <ModelMetadata assetId={selectedObject.assetId} />
+        </SettingContainer>
+
         {repositioning && (
           <Alert
             severity="info"
@@ -714,12 +731,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           onPropertyChange={handlePropertyChange}
           geographicCoords={geographicCoords}
         />
-
-        {/* Descriptive Info */}
-        <SettingContainer>
-          <SettingLabel>Descriptive Info</SettingLabel>
-          <ModelMetadata assetId={selectedObject.assetId} />
-        </SettingContainer>
 
         {/* Transform & Location */}
         <SettingContainer>
@@ -756,7 +767,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             </Button>
           )}
 
-          {/* Position */}
+          {/* Geographic Coordinates - editable for Cesium */}
           <Box sx={{ mb: 2 }}>
             <Typography
               sx={{
@@ -766,80 +777,65 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 mb: 0.75,
               }}
             >
-              Position
+              Geographic Coordinates
             </Typography>
             <Box display="flex" gap={1}>
               <TextField
-                size="small"
-                label="X"
+                label="Longitude"
                 type="number"
                 value={localObject?.position?.[0] || 0}
-                onChange={(e) =>
-                  handlePropertyChange("position.0", Number(e.target.value))
-                }
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  // Clamp longitude between -180 and 180
+                  const clampedValue = Math.max(-180, Math.min(180, value));
+                  handlePropertyChange("position.0", clampedValue);
+                }}
+                size="small"
+                inputProps={{
+                  step: 0.000001,
+                  min: -180,
+                  max: 180,
+                }}
                 sx={{ ...textFieldStyles, flex: 1 }}
               />
               <TextField
-                size="small"
-                label="Y"
+                label="Latitude"
                 type="number"
                 value={localObject?.position?.[1] || 0}
-                onChange={(e) =>
-                  handlePropertyChange("position.1", Number(e.target.value))
-                }
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  // Clamp latitude between -90 and 90
+                  const clampedValue = Math.max(-90, Math.min(90, value));
+                  handlePropertyChange("position.1", clampedValue);
+                }}
+                size="small"
+                inputProps={{
+                  step: 0.000001,
+                  min: -90,
+                  max: 90,
+                }}
                 sx={{ ...textFieldStyles, flex: 1 }}
               />
               <TextField
-                size="small"
-                label="Z"
+                label="Altitude (m)"
                 type="number"
                 value={localObject?.position?.[2] || 0}
-                onChange={(e) =>
-                  handlePropertyChange("position.2", Number(e.target.value))
-                }
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  // Allow altitude from -1000m (below sea level) to 100000m (space)
+                  const clampedValue = Math.max(-1000, Math.min(100000, value));
+                  handlePropertyChange("position.2", clampedValue);
+                }}
+                size="small"
+                inputProps={{
+                  step: 0.1,
+                  min: -1000,
+                  max: 100000,
+                }}
                 sx={{ ...textFieldStyles, flex: 1 }}
               />
             </Box>
           </Box>
-
-          {/* Geographic Coordinates */}
-          {geographicCoords && (
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                sx={{
-                  fontSize: "0.75rem",
-                  fontWeight: 500,
-                  color: "rgba(100, 116, 139, 0.8)",
-                  mb: 0.75,
-                }}
-              >
-                Geographic Coordinates
-              </Typography>
-              <Box display="flex" gap={1}>
-                <TextField
-                  label="Latitude"
-                  value={geographicCoords.latitude.toFixed(6)}
-                  size="small"
-                  disabled
-                  sx={{ ...textFieldStyles, flex: 1 }}
-                />
-                <TextField
-                  label="Longitude"
-                  value={geographicCoords.longitude.toFixed(6)}
-                  size="small"
-                  disabled
-                  sx={{ ...textFieldStyles, flex: 1 }}
-                />
-                <TextField
-                  label="Altitude"
-                  value={geographicCoords.altitude.toFixed(2)}
-                  size="small"
-                  disabled
-                  sx={{ ...textFieldStyles, flex: 1 }}
-                />
-              </Box>
-            </Box>
-          )}
 
           {/* Rotation */}
           <Box sx={{ mb: 2 }}>
@@ -862,6 +858,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 onChange={(e) =>
                   handlePropertyChange("rotation.0", Number(e.target.value))
                 }
+                inputProps={{ step: 0.01 }}
                 sx={{ ...textFieldStyles, flex: 1 }}
               />
               <TextField
@@ -872,6 +869,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 onChange={(e) =>
                   handlePropertyChange("rotation.1", Number(e.target.value))
                 }
+                inputProps={{ step: 0.01 }}
                 sx={{ ...textFieldStyles, flex: 1 }}
               />
               <TextField
@@ -882,6 +880,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 onChange={(e) =>
                   handlePropertyChange("rotation.2", Number(e.target.value))
                 }
+                inputProps={{ step: 0.01 }}
                 sx={{ ...textFieldStyles, flex: 1 }}
               />
             </Box>
@@ -897,40 +896,30 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 mb: 0.75,
               }}
             >
-              Scale
+              Scale (Uniform)
             </Typography>
-            <Box display="flex" gap={1}>
-              <TextField
-                size="small"
-                label="X"
-                type="number"
-                value={localObject?.scale?.[0] || 1}
-                onChange={(e) =>
-                  handlePropertyChange("scale.0", Number(e.target.value))
-                }
-                sx={{ ...textFieldStyles, flex: 1 }}
-              />
-              <TextField
-                size="small"
-                label="Y"
-                type="number"
-                value={localObject?.scale?.[1] || 1}
-                onChange={(e) =>
-                  handlePropertyChange("scale.1", Number(e.target.value))
-                }
-                sx={{ ...textFieldStyles, flex: 1 }}
-              />
-              <TextField
-                size="small"
-                label="Z"
-                type="number"
-                value={localObject?.scale?.[2] || 1}
-                onChange={(e) =>
-                  handlePropertyChange("scale.2", Number(e.target.value))
-                }
-                sx={{ ...textFieldStyles, flex: 1 }}
-              />
-            </Box>
+            <TextField
+              size="small"
+              label="Scale"
+              type="number"
+              value={localObject?.scale?.[0] || 1}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                // Apply uniform scale to all axes
+                const uniformScale = [value, value, value];
+                updateObjectProperty(selectedObject.id, "scale", uniformScale);
+                setLocalObject((prev) =>
+                  prev ? { ...prev, scale: uniformScale } : prev
+                );
+              }}
+              inputProps={{
+                step: 0.01,
+                min: 0.01,
+                max: 100,
+              }}
+              fullWidth
+              sx={textFieldStyles}
+            />
           </Box>
         </SettingContainer>
 
