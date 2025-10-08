@@ -25,6 +25,9 @@ const BottomPanelNew: React.FC = () => {
     (state) => state.addObservationPoint
   );
   const selectObservation = useSceneStore((state) => state.selectObservation);
+  const deleteObservationPoint = useSceneStore(
+    (state) => state.deleteObservationPoint
+  );
   const nextObservation = useSceneStore((state) => state.nextObservation);
   const prevObservation = useSceneStore((state) => state.prevObservation);
   const previewIndex = useSceneStore((state) => state.previewIndex);
@@ -42,6 +45,7 @@ const BottomPanelNew: React.FC = () => {
       selectedObservation,
       addObservationPoint,
       selectObservation,
+      deleteObservationPoint,
       nextObservation,
       prevObservation,
       previewMode,
@@ -59,6 +63,7 @@ const BottomPanelNew: React.FC = () => {
     selectedObservation,
     addObservationPoint,
     selectObservation,
+    deleteObservationPoint,
     nextObservation,
     prevObservation,
     previewMode,
