@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, Suspense, useRef } from "react";
 import {
   Box,
   Button,
@@ -9,9 +9,21 @@ import {
   LinearProgress,
   IconButton,
   Paper,
+  CircularProgress,
 } from "@mui/material";
-import { CloudUpload, Close } from "@mui/icons-material";
+import { CloudUpload, Close, CameraAlt } from "@mui/icons-material";
 import { useDropzone } from "react-dropzone";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, useGLTF } from "@react-three/drei";
+
+interface ModelProps {
+  url: string;
+}
+
+const Model: React.FC<ModelProps> = ({ url }) => {
+  const { scene } = useGLTF(url);
+  return <primitive object={scene} />;
+};
 
 export interface UploadModelTabProps {
   onUpload: (data: {
@@ -39,6 +51,7 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
     { label: "Category", value: "" },
     { label: "Description", value: "" },
   ]);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -110,6 +123,13 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
 
   const handleRemoveMetadata = (index: number) => {
     setMetadata(metadata.filter((_, i) => i !== index));
+  };
+
+  const captureScreenshot = () => {
+    if (canvasRef.current) {
+      const dataUrl = canvasRef.current.toDataURL("image/png");
+      setScreenshot(dataUrl);
+    }
   };
 
   if (!selectedFile) {
@@ -222,6 +242,110 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
           <Close />
         </IconButton>
       </Paper>
+
+      {/* Model Preview */}
+      {previewUrl && (
+        <Paper
+          sx={{
+            p: 2,
+            borderRadius: "12px",
+            border: "1px solid rgba(226, 232, 240, 0.8)",
+            backgroundColor: "rgba(248, 250, 252, 0.6)",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 1,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                color: "rgba(51, 65, 85, 0.95)",
+              }}
+            >
+              Model Preview
+            </Typography>
+            <Button
+              size="small"
+              startIcon={<CameraAlt />}
+              onClick={captureScreenshot}
+              disabled={uploading}
+              sx={{
+                borderRadius: "8px",
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                color: "#2563eb",
+                borderColor: "rgba(37, 99, 235, 0.3)",
+                "&:hover": {
+                  borderColor: "#2563eb",
+                  backgroundColor: "rgba(37, 99, 235, 0.08)",
+                },
+              }}
+              variant="outlined"
+            >
+              Capture Screenshot
+            </Button>
+          </Box>
+
+          <Box
+            sx={{
+              width: "100%",
+              height: "300px",
+              borderRadius: "8px",
+              overflow: "hidden",
+              backgroundColor: "#f8fafc",
+              border: "1px solid rgba(226, 232, 240, 0.8)",
+            }}
+          >
+            <Canvas
+              ref={canvasRef}
+              camera={{ position: [5, 5, 5], fov: 50 }}
+              gl={{ preserveDrawingBuffer: true }}
+            >
+              <ambientLight intensity={0.5} />
+              <directionalLight position={[10, 10, 5]} intensity={1} />
+              <Suspense fallback={null}>
+                <Model url={previewUrl} />
+              </Suspense>
+              <OrbitControls />
+            </Canvas>
+          </Box>
+
+          {screenshot && (
+            <Box sx={{ mt: 2 }}>
+              <Typography
+                sx={{
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                  color: "rgba(51, 65, 85, 0.95)",
+                  mb: 1,
+                }}
+              >
+                Captured Screenshot
+              </Typography>
+              <Box
+                component="img"
+                src={screenshot}
+                alt="Screenshot"
+                sx={{
+                  width: "100%",
+                  height: "auto",
+                  maxHeight: "200px",
+                  objectFit: "contain",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(226, 232, 240, 0.8)",
+                }}
+              />
+            </Box>
+          )}
+        </Paper>
+      )}
 
       {/* Friendly Name */}
       <TextField
