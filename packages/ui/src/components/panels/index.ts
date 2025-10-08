@@ -12,7 +12,7 @@ export const LeftPanelContainer: React.FC<PanelContainerProps & BoxProps> =
     shouldForwardProp: (prop: PropertyKey) => prop !== "previewMode",
   })<PanelContainerProps>(
     ({ theme, previewMode }: { theme: any; previewMode: boolean }) => ({
-      width: "300px",
+      width: "360px",
       height: "100%",
       maxHeight: "calc(100vh - 120px)",
       marginRight: "8px",

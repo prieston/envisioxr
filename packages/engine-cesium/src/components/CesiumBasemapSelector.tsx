@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { Select, MenuItem, FormControl } from "@mui/material";
-import { Container, SectionTitle } from "./CesiumBasemapSelector.styles";
+import { SettingContainer, SettingLabel } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
 
 interface CesiumBasemapSelectorProps {
@@ -163,8 +163,8 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
   }
 
   return (
-    <Container>
-      <SectionTitle>Basemap</SectionTitle>
+    <SettingContainer>
+      <SettingLabel>Basemap</SettingLabel>
       <FormControl fullWidth size="small">
         <Select
           value={selectedBasemap}
@@ -244,7 +244,7 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
           </MenuItem>
         </Select>
       </FormControl>
-    </Container>
+    </SettingContainer>
   );
 };
 

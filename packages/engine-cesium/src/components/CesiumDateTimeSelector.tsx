@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   TextField,
   FormControl,
-  FormControlLabel,
   IconButton,
   Box,
   Tooltip,
@@ -10,9 +9,8 @@ import {
   MenuItem,
 } from "@mui/material";
 import { PlayArrow, Pause, LockClock } from "@mui/icons-material";
+import { SettingContainer, SettingLabel } from "@envisio/ui";
 import {
-  Container,
-  SectionTitle,
   DateTimeContainer,
   StyledSwitch,
   GreenSwitch,
@@ -402,14 +400,14 @@ const CesiumDateTimeSelector: React.FC<CesiumDateTimeSelectorProps> = ({
   ]);
 
   return (
-    <Container>
-      <SectionTitle>Time Simulation</SectionTitle>
+    <SettingContainer>
+      <SettingLabel>Time Simulation</SettingLabel>
 
       {/* Enable Lighting Switch */}
       <SwitchContainer
         onClick={() => !disabled && handleLightingToggle(!lightingEnabled)}
       >
-        <SwitchLabel>Enable Daytime Lighting</SwitchLabel>
+        <SwitchLabel>Daytime Lighting</SwitchLabel>
         <StyledSwitch
           checked={lightingEnabled}
           onChange={(e) => handleLightingToggle(e.target.checked)}
@@ -422,7 +420,7 @@ const CesiumDateTimeSelector: React.FC<CesiumDateTimeSelectorProps> = ({
       <SwitchContainer
         onClick={() => !disabled && handleShadowsToggle(!shadowsEnabled)}
       >
-        <SwitchLabel>Enable Cast Shadows</SwitchLabel>
+        <SwitchLabel>Cast Shadows</SwitchLabel>
         <StyledSwitch
           checked={shadowsEnabled}
           onChange={(e) => handleShadowsToggle(e.target.checked)}
@@ -569,7 +567,7 @@ const CesiumDateTimeSelector: React.FC<CesiumDateTimeSelectorProps> = ({
           </Tooltip>
         </Box>
       </JoystickContainer>
-    </Container>
+    </SettingContainer>
   );
 };
 
