@@ -12,6 +12,14 @@ export const getTopBarConfig = (
   onSave?: () => Promise<void>,
   onPublish?: () => void,
   previewMode: boolean = false,
+  positioningProps?: {
+    selectingPosition: boolean;
+    setSelectingPosition: (selecting: boolean) => void;
+    selectedPosition: [number, number, number] | null;
+    setSelectedPosition: (position: [number, number, number] | null) => void;
+    pendingModel: any;
+    setPendingModel: (model: any) => void;
+  },
   worldStoreState?: any
 ): TopBarConfiguration => {
   const engine = getEngine(worldStoreState);
@@ -24,7 +32,8 @@ export const getTopBarConfig = (
         onTransformModeChange,
         onSave,
         onPublish,
-        previewMode
+        previewMode,
+        positioningProps
       );
     case "cesium":
       return createCesiumTopBarConfig(
@@ -33,7 +42,8 @@ export const getTopBarConfig = (
         onTransformModeChange,
         onSave,
         onPublish,
-        previewMode
+        previewMode,
+        positioningProps
       );
     default:
       return createThreeJSTopBarConfig(
@@ -42,7 +52,8 @@ export const getTopBarConfig = (
         onTransformModeChange,
         onSave,
         onPublish,
-        previewMode
+        previewMode,
+        positioningProps
       ); // Default to ThreeJS
   }
 };

@@ -361,21 +361,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           onReposition={handleReposition}
           repositioning={repositioning}
         />
-
-        <ModelInformationSection object={localObject} />
-
-        <ObservationModelSection
-          object={localObject}
-          onPropertyChange={handlePropertyChange}
-          onCalculateViewshed={() => {
-            useSceneStore
-              .getState()
-              .startVisibilityCalculation(selectedObject.id);
-          }}
-          isCalculating={useSceneStore.getState().isCalculatingVisibility}
-          updateObjectProperty={updateObjectProperty}
-        />
-
         {repositioning && (
           <Alert
             severity="info"
@@ -393,6 +378,19 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             Click anywhere in the scene to reposition the model
           </Alert>
         )}
+        <ModelInformationSection object={localObject} />
+
+        <ObservationModelSection
+          object={localObject}
+          onPropertyChange={handlePropertyChange}
+          onCalculateViewshed={() => {
+            useSceneStore
+              .getState()
+              .startVisibilityCalculation(selectedObject.id);
+          }}
+          isCalculating={useSceneStore.getState().isCalculatingVisibility}
+          updateObjectProperty={updateObjectProperty}
+        />
 
         <IoTDevicePropertiesPanel
           selectedObject={localObject}

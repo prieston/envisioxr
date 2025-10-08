@@ -11,6 +11,7 @@ import PropertiesPanel from "../Builder/properties/PropertiesPanel";
 import AssetLibraryPanel from "../Builder/assets/AssetLibraryPanel";
 import LogoHeader from "../AppBar/LogoHeader";
 import ReportGenerator from "../Report/ReportGenerator";
+import BuilderActions from "../AppBar/BuilderActions";
 import { ThreeJSLocationSearchSection } from "@envisio/engine-three/components";
 import {
   CesiumLocationSearchSection,
@@ -36,6 +37,7 @@ export const componentRegistry: Record<string, AnyComponent> = {
   AssetLibraryPanel: AssetLibraryPanel,
   LogoHeader: LogoHeader,
   ReportGenerator: ReportGenerator,
+  BuilderActions: BuilderActions,
   BasemapSelector: BasemapSelector,
   ThreeJSLocationSearchSection: ThreeJSLocationSearchSection,
   CesiumLocationSearchSection: CesiumLocationSearchSection,
