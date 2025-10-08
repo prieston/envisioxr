@@ -72,11 +72,8 @@ const BottomPanelNew: React.FC = () => {
   return (
     <BottomPanelContainer previewMode={previewMode} className="glass-panel">
       {currentTab.settings.map((setting, index) => {
-        // Determine flex basis: observation points take remaining space, others fit content
-        const flexStyle =
-          setting.id === "observation-points"
-            ? { flex: "1 1 auto", minWidth: 0, display: "flex" } // Take remaining space
-            : { flex: "0 0 auto", display: "flex" }; // Width based on content
+        // All sections fit their content
+        const flexStyle = { flex: "0 0 auto", display: "flex" };
 
         return (
           <React.Fragment key={setting.id}>

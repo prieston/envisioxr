@@ -87,9 +87,26 @@ class IoTService {
   }
 
   private async fetchWeatherDataForObject(obj: any) {
-    if (!obj.iotProperties?.enabled || !obj.position) return;
+    if (!obj.iotProperties?.enabled) return;
 
-    const [longitude, latitude] = obj.position;
+    let longitude = 0;
+    let latitude = 0;
+
+    try {
+      if (!obj.position) return;
+      const pos = obj.position;
+      if (Array.isArray(pos) && pos.length >= 2) {
+        longitude = pos[0];
+        latitude = pos[1];
+      } else {
+        return;
+      }
+    } catch (e) {
+      // Position might be a getter that throws or not be an array
+      console.warn("Could not access position for IoT object:", obj.id);
+      return;
+    }
+
     const iotProps = obj.iotProperties;
 
     try {

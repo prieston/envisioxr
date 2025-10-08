@@ -16,6 +16,7 @@ import {
 } from "./SettingRenderer.styles";
 import { PanelSetting } from "@envisio/core/types";
 import { getComponent } from "./ComponentRegistry";
+import { textFieldStyles, selectStyles, menuItemStyles } from "@envisio/ui";
 
 interface SettingRendererProps {
   setting: PanelSetting;
@@ -108,38 +109,13 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             fullWidth
             size="small"
             disabled={setting.disabled}
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "rgba(255, 255, 255, 0.8)",
-              fontSize: "0.75rem", // 12px - dropdown text
-              "& .MuiSelect-select": {
-                padding: "8.5px 14px", // Standard input padding
-              },
-              "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: "rgba(226, 232, 240, 0.8)",
-              },
-              "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: "rgba(37, 99, 235, 0.4)",
-              },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#2563eb",
-                borderWidth: "2px",
-              },
-            }}
+            sx={selectStyles}
           >
             {setting.options?.map((option) => (
               <MenuItem
                 key={option.value}
                 value={option.value}
-                sx={{
-                  fontSize: "0.75rem", // 12px - menu items
-                  "&.Mui-selected": {
-                    backgroundColor: "rgba(37, 99, 235, 0.08)",
-                    "&:hover": {
-                      backgroundColor: "rgba(37, 99, 235, 0.12)",
-                    },
-                  },
-                }}
+                sx={menuItemStyles}
               >
                 {option.label}
               </MenuItem>
@@ -182,26 +158,7 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             size="small"
             disabled={setting.disabled}
             variant="outlined"
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "8px",
-                backgroundColor: "rgba(255, 255, 255, 0.8)",
-                fontSize: "0.75rem", // 12px - input text
-                "& input": {
-                  padding: "8.5px 14px", // Standard input padding
-                },
-                "& fieldset": {
-                  borderColor: "rgba(226, 232, 240, 0.8)",
-                },
-                "&:hover fieldset": {
-                  borderColor: "rgba(37, 99, 235, 0.4)",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#2563eb",
-                  borderWidth: "2px",
-                },
-              },
-            }}
+            sx={textFieldStyles}
           />
         );
 
@@ -220,26 +177,7 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
               max: setting.max,
               step: setting.step,
             }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "8px",
-                backgroundColor: "rgba(255, 255, 255, 0.8)",
-                fontSize: "0.75rem", // 12px - input text
-                "& input": {
-                  padding: "8.5px 14px", // Standard input padding
-                },
-                "& fieldset": {
-                  borderColor: "rgba(226, 232, 240, 0.8)",
-                },
-                "&:hover fieldset": {
-                  borderColor: "rgba(37, 99, 235, 0.4)",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#2563eb",
-                  borderWidth: "2px",
-                },
-              },
-            }}
+            sx={textFieldStyles}
           />
         );
 

@@ -49,7 +49,9 @@ export const ObservationListItem: React.FC<ListItemButtonProps> = styled(
 )(({ theme }) => ({
   borderRadius: "8px", // Design system: 8px for clickable items
   padding: theme.spacing(1, 1.5),
-  minWidth: "120px", // Minimum width for horizontal cards
+  width: "140px", // Fixed width for horizontal cards
+  minWidth: "140px",
+  maxWidth: "140px",
   height: "100%",
   flexShrink: 0, // Don't shrink in horizontal layout
   backgroundColor: "rgba(248, 250, 252, 0.6)",
@@ -85,7 +87,9 @@ export const AddButton: React.FC<IconButtonProps> = styled(IconButton)(
   ({ theme }) => ({
     borderRadius: "8px",
     padding: theme.spacing(1, 1.5),
-    minWidth: "120px",
+    width: "140px",
+    minWidth: "140px",
+    maxWidth: "140px",
     height: "100%",
     flexShrink: 0,
     backgroundColor: "rgba(248, 250, 252, 0.6)",

@@ -1,28 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Box,
   Typography,
-  Paper,
   Slider,
-  FormControlLabel,
   Switch,
+  FormControlLabel,
   Select,
   MenuItem,
-  InputLabel,
-  FormControl,
-  Grid,
-  TextField,
-  Chip,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import SettingsIcon from "@mui/icons-material/Settings";
-import PaletteIcon from "@mui/icons-material/Palette";
+import { selectStyles, menuItemStyles } from "@envisio/ui";
 
 interface SDKObservationPropertiesPanelProps {
   selectedObject: any;
@@ -39,11 +27,6 @@ const SDKObservationPropertiesPanel: React.FC<
   onCalculateViewshed: _onCalculateViewshed,
   isCalculating: _isCalculating,
 }) => {
-  const [expandedSections, setExpandedSections] = useState({
-    sensor: true,
-    visualization: true,
-  });
-
   const observationProps = selectedObject?.observationProperties || {
     sensorType: "cone",
     fov: 60,
@@ -54,284 +37,359 @@ const SDKObservationPropertiesPanel: React.FC<
     viewshedColor: "#0080ff",
   };
 
-  const handleSectionToggle = (section: string) =>
-    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   const handlePropertyChange = (property: string, value: any) =>
     onPropertyChange(`observationProperties.${property}`, value);
 
-  const getSensorTypeDescription = (type: string) => {
-    switch (type) {
-      case "cone":
-        return "Traditional conical field of view - good for cameras and spotlights";
-      case "rectangle":
-        return "Rectangular field of view - good for surveillance cameras";
-      default:
-        return "Select a sensor type";
-    }
-  };
-
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography
-        variant="h6"
-        gutterBottom
-        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-      >
-        <VisibilityIcon />
-        SDK Viewshed Analysis
-      </Typography>
-
-      <Paper
-        sx={{
-          p: 2,
-          mb: 2,
-          bgcolor: "success.light",
-          color: "success.contrastText",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
-            🚀 Professional Ion SDK Active
-          </Typography>
-          <Chip label="Ion SDK" color="primary" size="small" />
-        </Box>
-        <Typography variant="caption" sx={{ display: "block", mt: 1 }}>
-          Enhanced sensors with professional materials, GPU acceleration, and
-          advanced features
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      {/* Sensor Configuration */}
+      <Box>
+        <Typography
+          sx={{
+            fontSize: "0.688rem",
+            fontWeight: 600,
+            color: "rgba(51, 65, 85, 0.85)",
+            mb: 0.5,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}
+        >
+          Sensor Configuration
         </Typography>
-      </Paper>
+        <Typography
+          sx={{
+            fontSize: "0.75rem",
+            color: "rgba(100, 116, 139, 0.7)",
+            mb: 1.5,
+          }}
+        >
+          Configure field of view and visibility range
+        </Typography>
 
-      <Accordion
-        expanded={expandedSections.sensor}
-        onChange={() => handleSectionToggle("sensor")}
-        sx={{ mb: 2 }}
-      >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography
-            variant="subtitle1"
-            sx={{ display: "flex", alignItems: "center", gap: 1 }}
-          >
-            <SettingsIcon />
-            Professional Sensor Configuration
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Sensor Type</InputLabel>
-                <Select
-                  value={observationProps.sensorType}
-                  onChange={(e) =>
-                    handlePropertyChange("sensorType", e.target.value)
-                  }
-                  label="Sensor Type"
-                >
-                  <MenuItem value="cone">Cone</MenuItem>
-                  <MenuItem value="rectangle">Rectangle</MenuItem>
-                </Select>
-              </FormControl>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {/* Sensor Type */}
+          <Box>
+            <Typography
+              sx={{
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                color: "rgba(100, 116, 139, 0.8)",
+                mb: 0.75,
+              }}
+            >
+              Sensor Type
+            </Typography>
+            <Select
+              value={observationProps.sensorType}
+              onChange={(e) =>
+                handlePropertyChange("sensorType", e.target.value)
+              }
+              fullWidth
+              size="small"
+              sx={selectStyles}
+            >
+              <MenuItem value="cone" sx={menuItemStyles}>
+                Cone
+              </MenuItem>
+              <MenuItem value="rectangle" sx={menuItemStyles}>
+                Rectangle
+              </MenuItem>
+            </Select>
+          </Box>
+
+          {/* Field of View (Cone) */}
+          {observationProps.sensorType === "cone" && (
+            <Box>
               <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mt: 1, display: "block" }}
+                sx={{
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                  color: "rgba(100, 116, 139, 0.8)",
+                  mb: 0.5,
+                }}
               >
-                {getSensorTypeDescription(observationProps.sensorType)}
+                Field of View: {observationProps.fov}°
               </Typography>
-            </Grid>
+              <Slider
+                value={Math.min(180, observationProps.fov)}
+                min={10}
+                max={180}
+                onChange={(_, value) =>
+                  handlePropertyChange("fov", Math.min(180, Number(value)))
+                }
+                valueLabelDisplay="auto"
+                sx={{
+                  color: "#2563eb",
+                  height: 4,
+                  "& .MuiSlider-thumb": {
+                    width: 16,
+                    height: 16,
+                    "&:hover, &.Mui-focusVisible": {
+                      boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+                    },
+                  },
+                  "& .MuiSlider-track": {
+                    border: "none",
+                  },
+                  "& .MuiSlider-rail": {
+                    opacity: 0.3,
+                    backgroundColor: "rgba(100, 116, 139, 0.3)",
+                  },
+                }}
+              />
+            </Box>
+          )}
 
-            {observationProps.sensorType === "cone" && (
-              <Grid item xs={12}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Field of View: {observationProps.fov}°
+          {/* Horizontal/Vertical FOV (Rectangle) */}
+          {observationProps.sensorType === "rectangle" && (
+            <>
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "0.75rem",
+                    fontWeight: 500,
+                    color: "rgba(100, 116, 139, 0.8)",
+                    mb: 0.5,
+                  }}
+                >
+                  Horizontal FOV:{" "}
+                  {observationProps.fovH || observationProps.fov}°
                 </Typography>
                 <Slider
-                  value={Math.min(180, observationProps.fov)}
+                  value={Math.min(
+                    180,
+                    observationProps.fovH || observationProps.fov
+                  )}
                   min={10}
                   max={180}
                   onChange={(_, value) =>
-                    handlePropertyChange("fov", Math.min(180, Number(value)))
+                    handlePropertyChange("fovH", Math.min(180, Number(value)))
                   }
                   valueLabelDisplay="auto"
+                  sx={{
+                    color: "#2563eb",
+                    height: 4,
+                    "& .MuiSlider-thumb": {
+                      width: 16,
+                      height: 16,
+                      "&:hover, &.Mui-focusVisible": {
+                        boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+                      },
+                    },
+                    "& .MuiSlider-track": {
+                      border: "none",
+                    },
+                    "& .MuiSlider-rail": {
+                      opacity: 0.3,
+                      backgroundColor: "rgba(100, 116, 139, 0.3)",
+                    },
+                  }}
                 />
-              </Grid>
-            )}
-
-            {observationProps.sensorType === "rectangle" && (
-              <>
-                <Grid item xs={6}>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    Horizontal FOV:{" "}
-                    {observationProps.fovH || observationProps.fov}°
-                  </Typography>
-                  <Slider
-                    value={Math.min(
-                      180,
-                      observationProps.fovH || observationProps.fov
-                    )}
-                    min={10}
-                    max={180}
-                    onChange={(_, value) =>
-                      handlePropertyChange("fovH", Math.min(180, Number(value)))
-                    }
-                    valueLabelDisplay="auto"
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    Vertical FOV:{" "}
-                    {observationProps.fovV ||
-                      Math.round(observationProps.fov * 0.6)}
-                    °
-                  </Typography>
-                  <Slider
-                    value={Math.min(
-                      180,
-                      observationProps.fovV ||
-                        Math.round(observationProps.fov * 0.6)
-                    )}
-                    min={10}
-                    max={180}
-                    onChange={(_, value) =>
-                      handlePropertyChange("fovV", Math.min(180, Number(value)))
-                    }
-                    valueLabelDisplay="auto"
-                  />
-                </Grid>
-              </>
-            )}
-
-            {observationProps.sensorType === "dome" && (
-              <Grid item xs={12}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Max Polar Angle:{" "}
-                  {observationProps.maxPolar ||
-                    Math.round(observationProps.fov * 0.5)}
+              </Box>
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "0.75rem",
+                    fontWeight: 500,
+                    color: "rgba(100, 116, 139, 0.8)",
+                    mb: 0.5,
+                  }}
+                >
+                  Vertical FOV:{" "}
+                  {observationProps.fovV ||
+                    Math.round(observationProps.fov * 0.6)}
                   °
                 </Typography>
                 <Slider
-                  value={
-                    observationProps.maxPolar ||
-                    Math.round(observationProps.fov * 0.5)
-                  }
+                  value={Math.min(
+                    180,
+                    observationProps.fovV ||
+                      Math.round(observationProps.fov * 0.6)
+                  )}
                   min={10}
                   max={180}
                   onChange={(_, value) =>
-                    handlePropertyChange("maxPolar", value)
+                    handlePropertyChange("fovV", Math.min(180, Number(value)))
                   }
                   valueLabelDisplay="auto"
+                  sx={{
+                    color: "#2563eb",
+                    height: 4,
+                    "& .MuiSlider-thumb": {
+                      width: 16,
+                      height: 16,
+                      "&:hover, &.Mui-focusVisible": {
+                        boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+                      },
+                    },
+                    "& .MuiSlider-track": {
+                      border: "none",
+                    },
+                    "& .MuiSlider-rail": {
+                      opacity: 0.3,
+                      backgroundColor: "rgba(100, 116, 139, 0.3)",
+                    },
+                  }}
                 />
-              </Grid>
-            )}
+              </Box>
+            </>
+          )}
 
-            <Grid item xs={12}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Visibility Radius: {observationProps.visibilityRadius}m
-              </Typography>
-              <Slider
-                value={observationProps.visibilityRadius}
-                min={100}
-                max={10000}
-                step={100}
-                onChange={(_, value) =>
-                  handlePropertyChange("visibilityRadius", value)
-                }
-                valueLabelDisplay="auto"
-              />
-            </Grid>
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
+          {/* Visibility Radius */}
+          <Box>
+            <Typography
+              sx={{
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                color: "rgba(100, 116, 139, 0.8)",
+                mb: 0.5,
+              }}
+            >
+              Visibility Radius: {observationProps.visibilityRadius}m
+            </Typography>
+            <Slider
+              value={observationProps.visibilityRadius}
+              min={100}
+              max={10000}
+              step={100}
+              onChange={(_, value) =>
+                handlePropertyChange("visibilityRadius", value)
+              }
+              valueLabelDisplay="auto"
+              sx={{
+                color: "#2563eb",
+                height: 4,
+                "& .MuiSlider-thumb": {
+                  width: 16,
+                  height: 16,
+                  "&:hover, &.Mui-focusVisible": {
+                    boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+                  },
+                },
+                "& .MuiSlider-track": {
+                  border: "none",
+                },
+                "& .MuiSlider-rail": {
+                  opacity: 0.3,
+                  backgroundColor: "rgba(100, 116, 139, 0.3)",
+                },
+              }}
+            />
+          </Box>
+        </Box>
+      </Box>
 
-      <Accordion
-        expanded={expandedSections.visualization}
-        onChange={() => handleSectionToggle("visualization")}
-        sx={{ mb: 2 }}
-      >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography
-            variant="subtitle1"
-            sx={{ display: "flex", alignItems: "center", gap: 1 }}
+      {/* Visualization Settings */}
+      <Box>
+        <Typography
+          sx={{
+            fontSize: "0.688rem",
+            fontWeight: 600,
+            color: "rgba(51, 65, 85, 0.85)",
+            mb: 0.5,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}
+        >
+          Visualization
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: "0.75rem",
+            color: "rgba(100, 116, 139, 0.7)",
+            mb: 1.5,
+          }}
+        >
+          Control visibility of sensor geometry and viewshed
+        </Typography>
+
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {/* Show Sensor Geometry */}
+          <Box
+            sx={{
+              backgroundColor: "#ffffff",
+              borderRadius: "8px",
+              border: "1px solid rgba(226, 232, 240, 0.8)",
+            }}
           >
-            <PaletteIcon />
-            Visualization
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={observationProps.showSensorGeometry}
-                    onChange={(e) =>
-                      handlePropertyChange(
-                        "showSensorGeometry",
-                        e.target.checked
-                      )
-                    }
-                  />
-                }
-                label="Show Sensor Geometry"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={observationProps.showViewshed}
-                    onChange={(e) =>
-                      handlePropertyChange("showViewshed", e.target.checked)
-                    }
-                  />
-                }
-                label="Show Viewshed Analysis"
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Sensor Color"
-                type="color"
-                value={observationProps.sensorColor || "#00ff00"}
-                onChange={(e) =>
-                  handlePropertyChange("sensorColor", e.target.value)
-                }
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Viewshed Color"
-                type="color"
-                value={observationProps.viewshedColor || "#0080ff"}
-                onChange={(e) =>
-                  handlePropertyChange("viewshedColor", e.target.value)
-                }
-                size="small"
-              />
-            </Grid>
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={observationProps.showSensorGeometry}
+                  onChange={(e) =>
+                    handlePropertyChange("showSensorGeometry", e.target.checked)
+                  }
+                  sx={{
+                    "& .MuiSwitch-switchBase.Mui-checked": {
+                      color: "#2563eb",
+                    },
+                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                      backgroundColor: "#2563eb",
+                    },
+                  }}
+                />
+              }
+              label="Show Sensor Geometry"
+              sx={{
+                margin: 0,
+                padding: "8.5px 14px",
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                "& .MuiFormControlLabel-label": {
+                  fontSize: "0.75rem",
+                  fontWeight: 400,
+                  color: "rgba(51, 65, 85, 0.9)",
+                  flex: 1,
+                },
+              }}
+              labelPlacement="start"
+            />
+          </Box>
 
-      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-        <Chip label="Ion SDK Active" color="primary" size="small" />
-        {observationProps.showSensorGeometry && (
-          <Chip label="Sensor Visible" color="secondary" size="small" />
-        )}
-        {observationProps.showViewshed && (
-          <Chip label="Viewshed Active" color="success" size="small" />
-        )}
+          {/* Show Viewshed */}
+          <Box
+            sx={{
+              backgroundColor: "#ffffff",
+              borderRadius: "8px",
+              border: "1px solid rgba(226, 232, 240, 0.8)",
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={observationProps.showViewshed}
+                  onChange={(e) =>
+                    handlePropertyChange("showViewshed", e.target.checked)
+                  }
+                  sx={{
+                    "& .MuiSwitch-switchBase.Mui-checked": {
+                      color: "#2563eb",
+                    },
+                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                      backgroundColor: "#2563eb",
+                    },
+                  }}
+                />
+              }
+              label="Show Viewshed"
+              sx={{
+                margin: 0,
+                padding: "8.5px 14px",
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                "& .MuiFormControlLabel-label": {
+                  fontSize: "0.75rem",
+                  fontWeight: 400,
+                  color: "rgba(51, 65, 85, 0.9)",
+                  flex: 1,
+                },
+              }}
+              labelPlacement="start"
+            />
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

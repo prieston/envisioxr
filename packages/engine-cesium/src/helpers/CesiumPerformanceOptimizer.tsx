@@ -15,7 +15,8 @@ export default function CesiumPerformanceOptimizer({
     memoryMonitor: any;
   }>({ frameRateMonitor: null, memoryMonitor: null });
 
-  const { skyboxType } = useSceneStore();
+  const skyboxType = useSceneStore((state) => state.skyboxType);
+  const lightingEnabled = useSceneStore((state) => state.cesiumLightingEnabled);
 
   useEffect(() => {
     if (!viewer) return;
@@ -24,19 +25,27 @@ export default function CesiumPerformanceOptimizer({
     const globe = scene.globe;
 
     const applyOptimizations = () => {
-      globe.enableLighting = false;
+      // Don't override lighting if it's enabled by user
+      if (!lightingEnabled) {
+        globe.enableLighting = false;
+        scene.sun.show = false;
+      }
+
       globe.maximumScreenSpaceError = 2.0;
       globe.tileCacheSize = 1000;
 
       scene.fog.enabled = false;
+
+      // Handle skybox and atmosphere based on skyboxType
       if (skyboxType === "default") {
         if (scene.skyBox) scene.skyBox.show = true;
+        // Always show atmosphere when skybox is default, regardless of lighting
         if (scene.skyAtmosphere) scene.skyAtmosphere.show = true;
       } else if (skyboxType === "none") {
         if (scene.skyBox) scene.skyBox.show = false;
         if (scene.skyAtmosphere) scene.skyAtmosphere.show = false;
       }
-      scene.sun.show = false;
+
       scene.moon.show = false;
 
       scene.debugShowFramesPerSecond = false;
@@ -125,7 +134,7 @@ export default function CesiumPerformanceOptimizer({
         cancelAnimationFrame(optimizationRef.current.frameRateMonitor);
       }
     };
-  }, [viewer, skyboxType]);
+  }, [viewer, skyboxType, lightingEnabled]);
 
   return null;
 }

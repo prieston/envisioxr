@@ -4,30 +4,23 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Paper,
   Switch,
   FormControlLabel,
   Select,
   MenuItem,
-  FormControl,
-  InputLabel,
-  Button,
-  Chip,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Grid,
   TextField,
+  Button,
   Alert,
-  Divider,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import CloudIcon from "@mui/icons-material/Cloud";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import ThermostatIcon from "@mui/icons-material/Thermostat";
 import AirIcon from "@mui/icons-material/Air";
-import WbSunnyIcon from "@mui/icons-material/WbSunny";
-import DeviceHubIcon from "@mui/icons-material/DeviceHub";
-import RefreshIcon from "@mui/icons-material/Refresh";
+import {
+  SettingContainer,
+  SettingLabel,
+  SettingDescription,
+} from "../SettingRenderer.styles";
+import { textFieldStyles, selectStyles, menuItemStyles } from "@envisio/ui";
 
 interface IoTDevicePropertiesPanelProps {
   selectedObject: any;
@@ -54,11 +47,6 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
   onPropertyChange,
   geographicCoords,
 }) => {
-  const [expandedSections, setExpandedSections] = useState({
-    connection: true,
-    display: true,
-    data: false,
-  });
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,14 +55,12 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
     enabled: false,
     serviceType: "weather",
     apiEndpoint: "https://api.open-meteo.com/v1/forecast",
-    updateInterval: 300000,
+    updateInterval: 1000,
     showInScene: true,
     displayFormat: "compact",
     autoRefresh: true,
   };
 
-  const handleSectionToggle = (section: string) =>
-    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   const handlePropertyChange = (property: string, value: any) =>
     onPropertyChange(`iotProperties.${property}`, value);
 
@@ -109,158 +95,289 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
   };
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography
-        variant="h6"
-        gutterBottom
-        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-      >
-        <DeviceHubIcon />
-        IoT Device Configuration
-      </Typography>
+    <Box>
+      {/* IoT Connection Settings Section */}
+      <SettingContainer>
+        <SettingLabel>IoT Connection Settings</SettingLabel>
 
-      <Accordion
-        expanded={expandedSections.connection}
-        onChange={() => handleSectionToggle("connection")}
-      >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="subtitle1">Connection Settings</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
+        {/* Enable IoT Device Switch */}
+        <Box
+          sx={{
+            backgroundColor: "#ffffff",
+            borderRadius: "8px",
+            border: "1px solid rgba(226, 232, 240, 0.8)",
+            mb: 2,
+          }}
+        >
+          <FormControlLabel
+            control={
+              <Switch
+                checked={iotProps.enabled}
+                onChange={(e) =>
+                  handlePropertyChange("enabled", e.target.checked)
+                }
+                sx={{
+                  "& .MuiSwitch-switchBase.Mui-checked": {
+                    color: "#2563eb",
+                  },
+                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                    backgroundColor: "#2563eb",
+                  },
+                }}
+              />
+            }
+            label="Enable IoT Device"
+            sx={{
+              margin: 0,
+              padding: "8.5px 14px",
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+              "& .MuiFormControlLabel-label": {
+                fontSize: "0.75rem",
+                fontWeight: 400,
+                color: "rgba(51, 65, 85, 0.9)",
+                flex: 1,
+              },
+            }}
+            labelPlacement="start"
+          />
+        </Box>
+
+        {iotProps.enabled && (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {/* Service Type */}
+            <Box>
+              <Typography
+                sx={{
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                  color: "rgba(100, 116, 139, 0.8)",
+                  mb: 0.75,
+                }}
+              >
+                Service Type
+              </Typography>
+              <Select
+                value={iotProps.serviceType}
+                onChange={(e) =>
+                  handlePropertyChange("serviceType", e.target.value)
+                }
+                fullWidth
+                size="small"
+                sx={selectStyles}
+              >
+                <MenuItem value="weather" sx={menuItemStyles}>
+                  Weather Service
+                </MenuItem>
+                <MenuItem value="custom" sx={menuItemStyles}>
+                  Custom API
+                </MenuItem>
+              </Select>
+            </Box>
+
+            {/* API Endpoint */}
+            <Box>
+              <Typography
+                sx={{
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                  color: "rgba(100, 116, 139, 0.8)",
+                  mb: 0.75,
+                }}
+              >
+                API Endpoint
+              </Typography>
+              <TextField
+                fullWidth
+                value={iotProps.apiEndpoint}
+                onChange={(e) =>
+                  handlePropertyChange("apiEndpoint", e.target.value)
+                }
+                size="small"
+                disabled={iotProps.serviceType === "weather"}
+                sx={textFieldStyles}
+              />
+            </Box>
+
+            {/* Update Interval */}
+            <Box>
+              <Typography
+                sx={{
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                  color: "rgba(100, 116, 139, 0.8)",
+                  mb: 0.75,
+                }}
+              >
+                Update Interval (ms)
+              </Typography>
+              <TextField
+                fullWidth
+                type="number"
+                value={iotProps.updateInterval}
+                onChange={(e) =>
+                  handlePropertyChange("updateInterval", Number(e.target.value))
+                }
+                size="small"
+                sx={textFieldStyles}
+              />
+            </Box>
+
+            {/* Auto Refresh Switch */}
+            <Box
+              sx={{
+                backgroundColor: "#ffffff",
+                borderRadius: "8px",
+                border: "1px solid rgba(226, 232, 240, 0.8)",
+              }}
+            >
               <FormControlLabel
                 control={
                   <Switch
-                    checked={iotProps.enabled}
+                    checked={iotProps.autoRefresh}
                     onChange={(e) =>
-                      handlePropertyChange("enabled", e.target.checked)
+                      handlePropertyChange("autoRefresh", e.target.checked)
                     }
+                    sx={{
+                      "& .MuiSwitch-switchBase.Mui-checked": {
+                        color: "#2563eb",
+                      },
+                      "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
+                        {
+                          backgroundColor: "#2563eb",
+                        },
+                    }}
                   />
                 }
-                label="Enable IoT Device"
+                label="Auto Refresh"
+                sx={{
+                  margin: 0,
+                  padding: "8.5px 14px",
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  "& .MuiFormControlLabel-label": {
+                    fontSize: "0.75rem",
+                    fontWeight: 400,
+                    color: "rgba(51, 65, 85, 0.9)",
+                    flex: 1,
+                  },
+                }}
+                labelPlacement="start"
               />
-            </Grid>
+            </Box>
 
-            {iotProps.enabled && (
-              <>
-                <Grid item xs={12}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>Service Type</InputLabel>
-                    <Select
-                      value={iotProps.serviceType}
-                      onChange={(e) =>
-                        handlePropertyChange("serviceType", e.target.value)
-                      }
-                      label="Service Type"
-                    >
-                      <MenuItem value="weather">Weather Service</MenuItem>
-                      <MenuItem value="custom">Custom API</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+            {/* Display Settings Subsection */}
+            <Box sx={{ mt: 2 }}>
+              <Typography
+                sx={{
+                  fontSize: "0.688rem",
+                  fontWeight: 600,
+                  color: "rgba(51, 65, 85, 0.85)",
+                  mb: 1.5,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Display Settings
+              </Typography>
 
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="API Endpoint"
-                    value={iotProps.apiEndpoint}
-                    onChange={(e) =>
-                      handlePropertyChange("apiEndpoint", e.target.value)
-                    }
-                    size="small"
-                    disabled={iotProps.serviceType === "weather"}
-                  />
-                </Grid>
-
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Update Interval (ms)"
-                    type="number"
-                    value={iotProps.updateInterval}
-                    onChange={(e) =>
-                      handlePropertyChange(
-                        "updateInterval",
-                        Number(e.target.value)
-                      )
-                    }
-                    size="small"
-                  />
-                </Grid>
-
-                <Grid item xs={6}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {/* Show in Scene Switch */}
+                <Box
+                  sx={{
+                    backgroundColor: "#ffffff",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(226, 232, 240, 0.8)",
+                  }}
+                >
                   <FormControlLabel
                     control={
                       <Switch
-                        checked={iotProps.autoRefresh}
+                        checked={iotProps.showInScene}
                         onChange={(e) =>
-                          handlePropertyChange("autoRefresh", e.target.checked)
+                          handlePropertyChange("showInScene", e.target.checked)
                         }
+                        sx={{
+                          "& .MuiSwitch-switchBase.Mui-checked": {
+                            color: "#2563eb",
+                          },
+                          "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
+                            {
+                              backgroundColor: "#2563eb",
+                            },
+                        }}
                       />
                     }
-                    label="Auto Refresh"
+                    label="Show in 3D Scene"
+                    sx={{
+                      margin: 0,
+                      padding: "8.5px 14px",
+                      width: "100%",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      "& .MuiFormControlLabel-label": {
+                        fontSize: "0.75rem",
+                        fontWeight: 400,
+                        color: "rgba(51, 65, 85, 0.9)",
+                        flex: 1,
+                      },
+                    }}
+                    labelPlacement="start"
                   />
-                </Grid>
-              </>
-            )}
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
+                </Box>
 
-      <Accordion
-        expanded={expandedSections.display}
-        onChange={() => handleSectionToggle("display")}
-      >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="subtitle1">Display Settings</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={iotProps.showInScene}
+                {/* Display Format */}
+                <Box>
+                  <Typography
+                    sx={{
+                      fontSize: "0.75rem",
+                      fontWeight: 500,
+                      color: "rgba(100, 116, 139, 0.8)",
+                      mb: 0.75,
+                    }}
+                  >
+                    Display Format
+                  </Typography>
+                  <Select
+                    value={iotProps.displayFormat}
                     onChange={(e) =>
-                      handlePropertyChange("showInScene", e.target.checked)
+                      handlePropertyChange("displayFormat", e.target.value)
                     }
-                  />
-                }
-                label="Show in 3D Scene"
-              />
-            </Grid>
+                    fullWidth
+                    size="small"
+                    sx={selectStyles}
+                  >
+                    <MenuItem value="compact" sx={menuItemStyles}>
+                      Compact
+                    </MenuItem>
+                    <MenuItem value="detailed" sx={menuItemStyles}>
+                      Detailed
+                    </MenuItem>
+                    <MenuItem value="minimal" sx={menuItemStyles}>
+                      Minimal
+                    </MenuItem>
+                  </Select>
+                </Box>
+              </Box>
+            </Box>
 
-            <Grid item xs={12}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Display Format</InputLabel>
-                <Select
-                  value={iotProps.displayFormat}
-                  onChange={(e) =>
-                    handlePropertyChange("displayFormat", e.target.value)
-                  }
-                  label="Display Format"
-                >
-                  <MenuItem value="compact">Compact</MenuItem>
-                  <MenuItem value="detailed">Detailed</MenuItem>
-                  <MenuItem value="minimal">Minimal</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
+            {/* Live Data Subsection */}
+            <Box sx={{ mt: 2 }}>
+              <Typography
+                sx={{
+                  fontSize: "0.688rem",
+                  fontWeight: 600,
+                  color: "rgba(51, 65, 85, 0.85)",
+                  mb: 1.5,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Live Data
+              </Typography>
 
-      {iotProps.enabled && (
-        <Accordion
-          expanded={expandedSections.data}
-          onChange={() => handleSectionToggle("data")}
-        >
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1">Live Data</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box sx={{ mb: 2 }}>
               <Button
                 variant="outlined"
                 startIcon={<RefreshIcon />}
@@ -286,120 +403,152 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
                 }}
                 disabled={loading || !geographicCoords}
                 fullWidth
-                sx={{ mb: 2 }}
+                sx={{
+                  borderRadius: "8px",
+                  textTransform: "none",
+                  fontWeight: 500,
+                  fontSize: "0.75rem",
+                  borderColor: "rgba(37, 99, 235, 0.3)",
+                  color: "#2563eb",
+                  padding: "6px 16px",
+                  mb: 2,
+                  "&:hover": {
+                    borderColor: "#2563eb",
+                    backgroundColor: "rgba(37, 99, 235, 0.08)",
+                  },
+                }}
               >
                 {loading ? "Fetching..." : "Refresh Data"}
               </Button>
 
               {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <Alert severity="error" sx={{ mb: 2, fontSize: "0.75rem" }}>
                   {error}
                 </Alert>
               )}
 
               {!geographicCoords && (
-                <Alert severity="warning" sx={{ mb: 2 }}>
+                <Alert severity="warning" sx={{ mb: 2, fontSize: "0.75rem" }}>
                   Geographic coordinates not available. Move the model to a
                   valid location.
                 </Alert>
               )}
 
               {weatherData && (
-                <Paper variant="outlined" sx={{ p: 2 }}>
+                <Box
+                  sx={{
+                    backgroundColor: "#ffffff",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(226, 232, 240, 0.8)",
+                    padding: "14px",
+                  }}
+                >
                   <Typography
-                    variant="subtitle2"
-                    gutterBottom
-                    sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                    sx={{
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      color: "rgba(51, 65, 85, 0.9)",
+                      mb: 2,
+                    }}
                   >
-                    <CloudIcon />
                     Current Weather Data
                   </Typography>
 
-                  <Grid container spacing={1}>
-                    <Grid item xs={6}>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <ThermostatIcon fontSize="small" />
-                        <Typography variant="body2">
-                          {weatherData.temperature.toFixed(1)}°C
-                        </Typography>
-                      </Box>
-                    </Grid>
-
-                    <Grid item xs={6}>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <AirIcon fontSize="small" />
-                        <Typography variant="body2">
-                          {weatherData.windSpeed.toFixed(1)} m/s{" "}
-                          {getWindDirection(weatherData.windDirection)}
-                        </Typography>
-                      </Box>
-                    </Grid>
-
-                    <Grid item xs={6}>
-                      <Typography variant="body2">
-                        Humidity: {weatherData.humidity}%
-                      </Typography>
-                    </Grid>
-
-                    <Grid item xs={6}>
-                      <Typography variant="body2">
-                        Pressure: {weatherData.pressure} hPa
-                      </Typography>
-                    </Grid>
-
-                    <Grid item xs={12}>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <WbSunnyIcon fontSize="small" />
-                        <Typography variant="body2">
-                          {weatherData.description}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  </Grid>
-
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ mt: 1, display: "block" }}
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
                   >
-                    Last updated:{" "}
-                    {(() => {
-                      const date = weatherData.lastUpdated;
-                      if (date instanceof Date)
-                        return date.toLocaleTimeString();
-                      else if (typeof date === "string")
-                        return new Date(date).toLocaleTimeString();
-                      return "Unknown";
-                    })()}
-                  </Typography>
-                </Paper>
+                    {/* Temperature */}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <ThermostatIcon
+                        sx={{
+                          fontSize: "1rem",
+                          color: "rgba(100, 116, 139, 0.7)",
+                        }}
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: "0.75rem",
+                          color: "rgba(51, 65, 85, 0.9)",
+                        }}
+                      >
+                        Temperature: {weatherData.temperature.toFixed(1)}°C
+                      </Typography>
+                    </Box>
+
+                    {/* Wind */}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <AirIcon
+                        sx={{
+                          fontSize: "1rem",
+                          color: "rgba(100, 116, 139, 0.7)",
+                        }}
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: "0.75rem",
+                          color: "rgba(51, 65, 85, 0.9)",
+                        }}
+                      >
+                        Wind: {weatherData.windSpeed.toFixed(1)} m/s{" "}
+                        {getWindDirection(weatherData.windDirection)}
+                      </Typography>
+                    </Box>
+
+                    {/* Humidity */}
+                    <Typography
+                      sx={{
+                        fontSize: "0.75rem",
+                        color: "rgba(51, 65, 85, 0.9)",
+                      }}
+                    >
+                      Humidity: {weatherData.humidity}%
+                    </Typography>
+
+                    {/* Pressure */}
+                    <Typography
+                      sx={{
+                        fontSize: "0.75rem",
+                        color: "rgba(51, 65, 85, 0.9)",
+                      }}
+                    >
+                      Pressure: {weatherData.pressure} hPa
+                    </Typography>
+
+                    {/* Description */}
+                    <Typography
+                      sx={{
+                        fontSize: "0.75rem",
+                        color: "rgba(51, 65, 85, 0.9)",
+                      }}
+                    >
+                      {weatherData.description}
+                    </Typography>
+
+                    {/* Last Updated */}
+                    <Typography
+                      sx={{
+                        fontSize: "0.688rem",
+                        color: "rgba(100, 116, 139, 0.7)",
+                        mt: 0.5,
+                      }}
+                    >
+                      Last updated:{" "}
+                      {(() => {
+                        const date = weatherData.lastUpdated;
+                        if (date instanceof Date)
+                          return date.toLocaleTimeString();
+                        else if (typeof date === "string")
+                          return new Date(date).toLocaleTimeString();
+                        return "Unknown";
+                      })()}
+                    </Typography>
+                  </Box>
+                </Box>
               )}
             </Box>
-          </AccordionDetails>
-        </Accordion>
-      )}
-
-      <Divider sx={{ my: 2 }} />
-
-      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-        <Chip
-          label={iotProps.enabled ? "IoT Active" : "IoT Inactive"}
-          color={iotProps.enabled ? "success" : "default"}
-          size="small"
-        />
-        {weatherData && (
-          <Chip label="Data Available" color="primary" size="small" />
+          </Box>
         )}
-        {iotProps.showInScene && (
-          <Chip label="3D Display" color="secondary" size="small" />
-        )}
-      </Box>
+      </SettingContainer>
     </Box>
   );
 };

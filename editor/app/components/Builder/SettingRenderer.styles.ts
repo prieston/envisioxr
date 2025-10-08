@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 import { Box, Typography } from "@mui/material";
 
 export const SettingContainer = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(1.5),
+  marginBottom: theme.spacing(2),
   padding: theme.spacing(2),
   backgroundColor: "rgba(248, 250, 252, 0.6)",
   borderRadius: "12px",
