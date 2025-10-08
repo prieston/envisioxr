@@ -15,15 +15,6 @@ const CesiumCameraSpringController: React.FC = () => {
   const capturingPOV = useSceneStore((state) => state.capturingPOV);
 
   const animationRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const startPositionRef = useRef<Cesium.Cartesian3 | null>(null);
-  const startTargetRef = useRef<Cesium.Cartesian3 | null>(null);
-  const targetPositionRef = useRef<Cesium.Cartesian3 | null>(null);
-  const targetTargetRef = useRef<Cesium.Cartesian3 | null>(null);
-
-  const animationDuration = 1500;
-  const easingFunction = (t: number) =>
-    t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 
   const startCameraAnimation = (
     startPos: Cesium.Cartesian3,
@@ -33,74 +24,50 @@ const CesiumCameraSpringController: React.FC = () => {
   ) => {
     if (!cesiumViewer) return;
 
-    startPositionRef.current = startPos;
-    startTargetRef.current = startTarget;
-    targetPositionRef.current = endPos;
-    targetTargetRef.current = endTarget;
-    startTimeRef.current = performance.now();
+    // Cancel any ongoing animation
+    if (animationRef.current) {
+      cesiumViewer.camera.cancelFlight();
+    }
 
-    const animate = (currentTime: number) => {
-      if (
-        !cesiumViewer ||
-        !startPositionRef.current ||
-        !startTargetRef.current ||
-        !targetPositionRef.current ||
-        !targetTargetRef.current
-      ) {
-        return;
-      }
+    // Calculate the direction from end position to end target
+    const direction = Cesium.Cartesian3.subtract(
+      endTarget,
+      endPos,
+      new Cesium.Cartesian3()
+    );
+    Cesium.Cartesian3.normalize(direction, direction);
 
-      const elapsed = currentTime - startTimeRef.current;
-      const progress = Math.min(elapsed / animationDuration, 1);
-      const eased = easingFunction(progress);
+    // Calculate the up vector
+    const up = cesiumViewer.scene.globe.ellipsoid.geodeticSurfaceNormal(
+      endPos,
+      new Cesium.Cartesian3()
+    );
 
-      const currentPosition = Cesium.Cartesian3.lerp(
-        startPositionRef.current,
-        targetPositionRef.current,
-        eased,
-        new Cesium.Cartesian3()
-      );
-
-      const currentTarget = Cesium.Cartesian3.lerp(
-        startTargetRef.current,
-        targetTargetRef.current,
-        eased,
-        new Cesium.Cartesian3()
-      );
-
-      const direction = Cesium.Cartesian3.subtract(
-        currentTarget,
-        currentPosition,
-        new Cesium.Cartesian3()
-      );
-      Cesium.Cartesian3.normalize(direction, direction);
-
-      const up = cesiumViewer.scene.globe.ellipsoid.geodeticSurfaceNormal(
-        currentPosition,
-        new Cesium.Cartesian3()
-      );
-
-      cesiumViewer.camera.setView({
-        destination: currentPosition,
-        orientation: { direction, up },
-      });
-
-      if (progress < 1) {
-        animationRef.current = requestAnimationFrame(animate);
-      } else {
-        animationRef.current = null;
+    // Use Cesium's built-in flyTo for smooth, synchronized camera movement
+    cesiumViewer.camera.flyTo({
+      destination: endPos,
+      orientation: {
+        direction: direction,
+        up: up,
+      },
+      duration: 1.5, // 1.5 seconds
+      easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
+      complete: () => {
         // Turn off preview mode when animation completes
         setPreviewMode(false);
-      }
-    };
+        animationRef.current = null;
+      },
+    });
 
-    animationRef.current = requestAnimationFrame(animate);
+    // Store a reference to track that animation is running
+    // We'll use a dummy value since flyTo manages its own animation
+    animationRef.current = 1 as any;
   };
 
   useEffect(() => {
     // Cancel any ongoing animation first
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
+    if (animationRef.current && cesiumViewer) {
+      cesiumViewer.camera.cancelFlight();
       animationRef.current = null;
     }
 
@@ -153,11 +120,11 @@ const CesiumCameraSpringController: React.FC = () => {
 
   useEffect(() => {
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
+      if (animationRef.current && cesiumViewer) {
+        cesiumViewer.camera.cancelFlight();
       }
     };
-  }, []);
+  }, [cesiumViewer]);
 
   return null;
 };
