@@ -2,8 +2,7 @@
  * Cesium Compatibility Layer
  * Maps the monolithic cesium package to the modular structure expected by Ion SDK
  */
-
-import * as Cesium from 'cesium';
+import * as Cesium from "cesium";
 
 // Create compatibility exports for @cesium/engine
 export const {
