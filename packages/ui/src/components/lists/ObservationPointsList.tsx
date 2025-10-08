@@ -30,7 +30,7 @@ export interface ObservationPointsListProps {
   observationPoints?: ObservationPoint[];
   selectedObservation?: ObservationPoint | { id: string | number };
   addObservationPoint?: () => void;
-  selectObservation?: (id: string | number) => void;
+  selectObservation?: (id: string | number | null) => void;
   deleteObservationPoint?: (id: string | number) => void;
   previewMode?: boolean;
   previewIndex?: number;
@@ -45,9 +45,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
   selectObservation,
   deleteObservationPoint,
   previewMode,
-  previewIndex,
   setPreviewIndex,
-  setPreviewMode,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -56,12 +54,13 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
   >(null);
 
   const handleClick = (point: ObservationPoint, index: number) => {
-    selectObservation?.(point.id);
-    setPreviewIndex?.(index);
-
-    if (point.position && point.target) {
-      setPreviewMode?.(true);
-      // Preview mode will be turned off by the camera animation controller when complete
+    // Toggle selection: deselect if clicking the same observation
+    if (selectedObservation?.id === point.id) {
+      selectObservation?.(null); // Deselect
+      setPreviewIndex?.(0);
+    } else {
+      selectObservation?.(point.id);
+      setPreviewIndex?.(index);
     }
   };
 
@@ -108,10 +107,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
       {observationPoints?.map((point, index) => (
         <ObservationListItem
           key={point.id}
-          selected={
-            (previewMode && index === previewIndex) ||
-            (!previewMode && selectedObservation?.id === point.id)
-          }
+          selected={selectedObservation?.id === point.id}
           onClick={() => handleClick(point, index)}
         >
           <ListItemText

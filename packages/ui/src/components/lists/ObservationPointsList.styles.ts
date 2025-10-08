@@ -1,7 +1,7 @@
 import { styled } from "@mui/material/styles";
-import { Box, ListItemButton, IconButton } from "@mui/material";
+import { Box, ListItem, IconButton } from "@mui/material";
 import type { BoxProps } from "@mui/material/Box";
-import type { ListItemButtonProps } from "@mui/material/ListItemButton";
+import type { ListItemProps } from "@mui/material/ListItem";
 import type { IconButtonProps } from "@mui/material/IconButton";
 
 // Container for horizontal layout (columns)
@@ -44,9 +44,10 @@ export const ObservationSection: React.FC<BoxProps & { previewMode: boolean }> =
   }));
 
 // List item for horizontal layout (card-like)
-export const ObservationListItem: React.FC<ListItemButtonProps> = styled(
-  ListItemButton
-)(({ theme }) => ({
+export const ObservationListItem: React.FC<
+  ListItemProps & { selected: boolean }
+> = styled(ListItem)<{ selected: boolean }>(({ theme, selected }) => ({
+  cursor: "pointer",
   borderRadius: "8px", // Design system: 8px for clickable items
   padding: theme.spacing(1, 1.5),
   width: "140px", // Fixed width for horizontal cards
@@ -54,27 +55,23 @@ export const ObservationListItem: React.FC<ListItemButtonProps> = styled(
   maxWidth: "140px",
   height: "100%",
   flexShrink: 0, // Don't shrink in horizontal layout
-  backgroundColor: "rgba(248, 250, 252, 0.6)",
-  border: "1px solid rgba(226, 232, 240, 0.8)",
-  color: "rgba(51, 65, 85, 0.95)", // Match SceneObjectsList default text color
+  backgroundColor: selected
+    ? "rgba(37, 99, 235, 0.12)"
+    : "rgba(248, 250, 252, 0.6)",
+  border: "1px solid",
+  borderColor: selected ? "rgba(37, 99, 235, 0.2)" : "rgba(226, 232, 240, 0.8)",
+  color: selected ? "#2563eb" : "rgba(51, 65, 85, 0.95)", // Match SceneObjectsList
   transition:
     "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   "&:hover": {
-    backgroundColor: "rgba(248, 250, 252, 0.9)",
-    borderColor: "rgba(37, 99, 235, 0.3)",
+    backgroundColor: selected
+      ? "rgba(37, 99, 235, 0.16)"
+      : "rgba(248, 250, 252, 0.9)",
+    borderColor: "rgba(37, 99, 235, 0.2)",
     color: "#2563eb", // Match SceneObjectsList hover color
-  },
-  "&.Mui-selected": {
-    backgroundColor: "rgba(37, 99, 235, 0.08)",
-    borderColor: "rgba(37, 99, 235, 0.4)",
-    color: "#2563eb",
-    "&:hover": {
-      backgroundColor: "rgba(37, 99, 235, 0.12)",
-      borderColor: "rgba(37, 99, 235, 0.5)",
-    },
   },
   "& .MuiListItemText-primary": {
     fontSize: "0.875rem", // 14px - match SceneObjectsList

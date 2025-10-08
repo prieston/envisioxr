@@ -53,8 +53,7 @@ const CesiumCameraSpringController: React.FC = () => {
       duration: 1.5, // 1.5 seconds
       easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
       complete: () => {
-        // Turn off preview mode when animation completes
-        setPreviewMode(false);
+        // Animation complete - keep preview mode on for next/prev navigation
         animationRef.current = null;
       },
     });

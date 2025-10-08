@@ -1,8 +1,8 @@
 import React from "react";
-import { Box, Typography, TextField, Button } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import { LocationOn } from "@mui/icons-material";
 import { SettingContainer, SettingLabel } from "../SettingRenderer.styles";
-import { googleMapsLinkForLatLon, textFieldStyles } from "@envisio/ui";
+import { googleMapsLinkForLatLon } from "@envisio/ui";
 import { ModelObject, GeographicCoords } from "./types";
 
 interface TransformLocationSectionProps {
@@ -11,6 +11,36 @@ interface TransformLocationSectionProps {
   onPropertyChange: (property: string, value: number) => void;
   updateObjectProperty: (id: string, property: string, value: unknown) => void;
 }
+
+// Read-only info display component
+const InfoDisplay = (props: { label: string; value: string }) => (
+  <Box sx={{ flex: 1 }}>
+    <Typography
+      sx={{
+        fontSize: "0.75rem",
+        fontWeight: 500,
+        color: "rgba(100, 116, 139, 0.8)",
+        mb: 0.5,
+      }}
+    >
+      {props.label}
+    </Typography>
+    <Typography
+      sx={{
+        fontSize: "0.75rem",
+        fontWeight: 400,
+        color: "rgba(51, 65, 85, 0.9)",
+        fontFamily: "monospace",
+        backgroundColor: "rgba(248, 250, 252, 0.8)",
+        padding: "6px 12px",
+        borderRadius: "6px",
+        border: "1px solid rgba(226, 232, 240, 0.8)",
+      }}
+    >
+      {props.value}
+    </Typography>
+  </Box>
+);
 
 const TransformLocationSection: React.FC<TransformLocationSectionProps> = ({
   object,
@@ -53,7 +83,7 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> = ({
         </Button>
       )}
 
-      {/* Geographic Coordinates - editable for Cesium */}
+      {/* Geographic Coordinates - Read Only */}
       <Box sx={{ mb: 2 }}>
         <Typography
           sx={{
@@ -66,61 +96,22 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> = ({
           Geographic Coordinates
         </Typography>
         <Box display="flex" gap={1}>
-          <TextField
+          <InfoDisplay
             label="Longitude"
-            type="number"
-            value={object.position?.[0] || 0}
-            onChange={(e) => {
-              const value = Number(e.target.value);
-              const clampedValue = Math.max(-180, Math.min(180, value));
-              onPropertyChange("position.0", clampedValue);
-            }}
-            size="small"
-            inputProps={{
-              step: 0.000001,
-              min: -180,
-              max: 180,
-            }}
-            sx={{ ...textFieldStyles, flex: 1 }}
+            value={(object.position?.[0] || 0).toFixed(6)}
           />
-          <TextField
+          <InfoDisplay
             label="Latitude"
-            type="number"
-            value={object.position?.[1] || 0}
-            onChange={(e) => {
-              const value = Number(e.target.value);
-              const clampedValue = Math.max(-90, Math.min(90, value));
-              onPropertyChange("position.1", clampedValue);
-            }}
-            size="small"
-            inputProps={{
-              step: 0.000001,
-              min: -90,
-              max: 90,
-            }}
-            sx={{ ...textFieldStyles, flex: 1 }}
+            value={(object.position?.[1] || 0).toFixed(6)}
           />
-          <TextField
+          <InfoDisplay
             label="Altitude (m)"
-            type="number"
-            value={object.position?.[2] || 0}
-            onChange={(e) => {
-              const value = Number(e.target.value);
-              const clampedValue = Math.max(-1000, Math.min(100000, value));
-              onPropertyChange("position.2", clampedValue);
-            }}
-            size="small"
-            inputProps={{
-              step: 0.1,
-              min: -1000,
-              max: 100000,
-            }}
-            sx={{ ...textFieldStyles, flex: 1 }}
+            value={(object.position?.[2] || 0).toFixed(2)}
           />
         </Box>
       </Box>
 
-      {/* Rotation */}
+      {/* Rotation - Read Only */}
       <Box sx={{ mb: 2 }}>
         <Typography
           sx={{
@@ -133,43 +124,22 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> = ({
           Rotation
         </Typography>
         <Box display="flex" gap={1}>
-          <TextField
-            size="small"
+          <InfoDisplay
             label="X"
-            type="number"
-            value={object.rotation?.[0] || 0}
-            onChange={(e) =>
-              onPropertyChange("rotation.0", Number(e.target.value))
-            }
-            inputProps={{ step: 0.01 }}
-            sx={{ ...textFieldStyles, flex: 1 }}
+            value={(object.rotation?.[0] || 0).toFixed(2)}
           />
-          <TextField
-            size="small"
+          <InfoDisplay
             label="Y"
-            type="number"
-            value={object.rotation?.[1] || 0}
-            onChange={(e) =>
-              onPropertyChange("rotation.1", Number(e.target.value))
-            }
-            inputProps={{ step: 0.01 }}
-            sx={{ ...textFieldStyles, flex: 1 }}
+            value={(object.rotation?.[1] || 0).toFixed(2)}
           />
-          <TextField
-            size="small"
+          <InfoDisplay
             label="Z"
-            type="number"
-            value={object.rotation?.[2] || 0}
-            onChange={(e) =>
-              onPropertyChange("rotation.2", Number(e.target.value))
-            }
-            inputProps={{ step: 0.01 }}
-            sx={{ ...textFieldStyles, flex: 1 }}
+            value={(object.rotation?.[2] || 0).toFixed(2)}
           />
         </Box>
       </Box>
 
-      {/* Scale */}
+      {/* Scale - Read Only */}
       <Box>
         <Typography
           sx={{
@@ -179,26 +149,13 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> = ({
             mb: 0.75,
           }}
         >
-          Scale (Uniform)
+          Scale
         </Typography>
-        <TextField
-          size="small"
-          label="Scale"
-          type="number"
-          value={object.scale?.[0] || 1}
-          onChange={(e) => {
-            const value = Number(e.target.value);
-            const uniformScale = [value, value, value];
-            updateObjectProperty(object.id, "scale", uniformScale);
-          }}
-          inputProps={{
-            step: 0.01,
-            min: 0.01,
-            max: 100,
-          }}
-          fullWidth
-          sx={textFieldStyles}
-        />
+        <Box display="flex" gap={1}>
+          <InfoDisplay label="X" value={(object.scale?.[0] || 1).toFixed(2)} />
+          <InfoDisplay label="Y" value={(object.scale?.[1] || 1).toFixed(2)} />
+          <InfoDisplay label="Z" value={(object.scale?.[2] || 1).toFixed(2)} />
+        </Box>
       </Box>
     </SettingContainer>
   );

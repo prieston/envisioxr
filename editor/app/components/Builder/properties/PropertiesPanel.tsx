@@ -7,7 +7,7 @@ import {
   Paper,
   Alert,
 } from "@mui/material";
-import { Camera } from "@mui/icons-material";
+import { Camera, FlightTakeoff } from "@mui/icons-material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import * as THREE from "three";
 import { localToGeographic } from "@envisio/core/utils";
@@ -71,12 +71,10 @@ const InfoText = (props: { label: string; value: string }) => (
   >
     <Typography
       sx={{
-        fontSize: "0.688rem",
+        fontSize: "0.75rem",
         fontWeight: 500,
-        color: "rgba(100, 116, 139, 0.7)",
-        mb: 0.25,
-        textTransform: "uppercase",
-        letterSpacing: "0.05em",
+        color: "rgba(100, 116, 139, 0.8)",
+        mb: 0.75,
       }}
     >
       {props.label}
@@ -233,6 +231,28 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   ) => {
     if (selectedObservation) {
       updateObservationPoint(selectedObservation.id, { [property]: value });
+    }
+  };
+
+  const handleFlyToObservation = () => {
+    if (
+      selectedObservation &&
+      selectedObservation.position &&
+      selectedObservation.target
+    ) {
+      const setPreviewMode = useSceneStore.getState().setPreviewMode;
+      const setPreviewIndex = useSceneStore.getState().setPreviewIndex;
+      const observationPoints = useSceneStore.getState().observationPoints;
+
+      // Find the index of the current observation
+      const index = observationPoints.findIndex(
+        (point) => point.id === selectedObservation.id
+      );
+
+      if (index !== -1) {
+        setPreviewIndex(index);
+        setPreviewMode(true);
+      }
     }
   };
 
@@ -401,6 +421,63 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           overflow: "auto",
         }}
       >
+        {/* Observation Point Actions */}
+        <SettingContainer>
+          <SettingLabel>Observation Point Actions</SettingLabel>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              variant="outlined"
+              onClick={handleFlyToObservation}
+              disabled={
+                !selectedObservation.position || !selectedObservation.target
+              }
+              startIcon={<FlightTakeoff />}
+              sx={{
+                flex: 1,
+                borderRadius: "8px",
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                borderColor: "rgba(37, 99, 235, 0.3)",
+                color: "#2563eb",
+                padding: "6px 16px",
+                "&:hover": {
+                  borderColor: "#2563eb",
+                  backgroundColor: "rgba(37, 99, 235, 0.08)",
+                },
+                "&:disabled": {
+                  borderColor: "rgba(226, 232, 240, 0.8)",
+                  color: "rgba(100, 116, 139, 0.4)",
+                },
+              }}
+            >
+              Fly To
+            </Button>
+
+            <Button
+              variant="outlined"
+              onClick={() => setCapturingPOV(true)}
+              startIcon={<Camera />}
+              sx={{
+                flex: 1,
+                borderRadius: "8px",
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                borderColor: "rgba(37, 99, 235, 0.3)",
+                color: "#2563eb",
+                padding: "6px 16px",
+                "&:hover": {
+                  borderColor: "#2563eb",
+                  backgroundColor: "rgba(37, 99, 235, 0.08)",
+                },
+              }}
+            >
+              Capture Position
+            </Button>
+          </Box>
+        </SettingContainer>
+
         <SettingContainer>
           <SettingLabel>Observation Point Settings</SettingLabel>
 
@@ -442,38 +519,14 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             />
           </Box>
 
-          {/* Capture Camera Position Button */}
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={() => setCapturingPOV(true)}
-            startIcon={<Camera />}
-            sx={{
-              mb: 2,
-              borderRadius: "8px",
-              textTransform: "none",
-              fontWeight: 500,
-              fontSize: "0.75rem",
-              borderColor: "rgba(37, 99, 235, 0.3)",
-              color: "#2563eb",
-              padding: "6px 16px",
-              "&:hover": {
-                borderColor: "#2563eb",
-                backgroundColor: "rgba(37, 99, 235, 0.08)",
-              },
-            }}
-          >
-            Capture Camera Position
-          </Button>
-
           {/* Position Info - Display Only */}
           <InfoText
             label="Camera Position"
             value={
               selectedObservation.position
-                ? `Lat: ${selectedObservation.position[0].toFixed(
+                ? `Long: ${selectedObservation.position[1].toFixed(
                     6
-                  )}, Long: ${selectedObservation.position[1].toFixed(
+                  )}, Lat: ${selectedObservation.position[0].toFixed(
                     6
                   )}, Alt: ${selectedObservation.position[2].toFixed(2)}m`
                 : "Not captured"
@@ -485,9 +538,9 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             label="Camera Target"
             value={
               selectedObservation.target
-                ? `Lat: ${selectedObservation.target[0].toFixed(
+                ? `Long: ${selectedObservation.target[1].toFixed(
                     6
-                  )}, Long: ${selectedObservation.target[1].toFixed(
+                  )}, Lat: ${selectedObservation.target[0].toFixed(
                     6
                   )}, Alt: ${selectedObservation.target[2].toFixed(2)}m`
                 : "Not captured"
