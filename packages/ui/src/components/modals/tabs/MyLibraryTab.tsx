@@ -16,6 +16,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Chip,
 } from "@mui/material";
 import {
   Delete,
@@ -24,6 +25,8 @@ import {
   Close,
   AddCircleOutline,
   CameraAlt,
+  Public,
+  ViewInAr,
 } from "@mui/icons-material";
 import { MetadataTable, type MetadataRow } from "../../table";
 import ModelPreviewDialog from "../ModelPreviewDialog";
@@ -38,6 +41,10 @@ export interface LibraryAsset {
   fileUrl: string;
   fileType: string;
   description?: string;
+  // Cesium Ion specific fields
+  assetType?: "model" | "cesiumIonAsset";
+  cesiumAssetId?: string;
+  cesiumApiKey?: string;
 }
 
 interface MyLibraryTabProps {
@@ -238,7 +245,7 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                     },
                   }}
                 >
-                  {(asset.thumbnailUrl || asset.thumbnail) && (
+                  {asset.thumbnailUrl || asset.thumbnail ? (
                     <CardMedia
                       component="img"
                       height="80"
@@ -249,19 +256,67 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                         backgroundColor: "rgba(248, 250, 252, 0.8)",
                       }}
                     />
-                  )}
-                  <CardContent sx={{ padding: "8px !important" }}>
-                    <Typography
-                      variant="caption"
-                      fontWeight={600}
-                      noWrap
+                  ) : (
+                    <Box
                       sx={{
-                        fontSize: "0.75rem",
-                        color: "rgba(51, 65, 85, 0.95)",
+                        height: "80px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "rgba(248, 250, 252, 0.8)",
                       }}
                     >
-                      {asset.name || asset.originalFilename}
-                    </Typography>
+                      {asset.assetType === "cesiumIonAsset" ? (
+                        <Public sx={{ fontSize: "2.5rem", color: "#2563eb" }} />
+                      ) : (
+                        <ViewInAr
+                          sx={{
+                            fontSize: "2.5rem",
+                            color: "rgba(100, 116, 139, 0.4)",
+                          }}
+                        />
+                      )}
+                    </Box>
+                  )}
+                  <CardContent sx={{ padding: "8px !important" }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0.5,
+                        minHeight: "42px",
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        fontWeight={600}
+                        noWrap
+                        sx={{
+                          fontSize: "0.75rem",
+                          color: "rgba(51, 65, 85, 0.95)",
+                        }}
+                      >
+                        {asset.name || asset.originalFilename}
+                      </Typography>
+                      {asset.assetType === "cesiumIonAsset" && (
+                        <Chip
+                          icon={<Public />}
+                          label="Cesium Ion"
+                          size="small"
+                          sx={{
+                            height: "18px",
+                            fontSize: "0.625rem",
+                            fontWeight: 500,
+                            color: "#2563eb",
+                            backgroundColor: "rgba(37, 99, 235, 0.1)",
+                            "& .MuiChip-icon": {
+                              fontSize: "0.75rem",
+                              color: "#2563eb",
+                            },
+                          }}
+                        />
+                      )}
+                    </Box>
                   </CardContent>
                 </Card>
               </Grid>

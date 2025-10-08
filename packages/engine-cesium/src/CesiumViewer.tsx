@@ -490,6 +490,14 @@ export default function CesiumViewer() {
       if (objects.length > 0) {
         // Render actual objects from world data
         objects.forEach((obj) => {
+          // Skip Cesium Ion assets - they're rendered by CesiumIonAssetsRenderer
+          if (
+            obj.type === "cesium-ion-tileset" ||
+            obj.type === "cesiumIonAsset"
+          ) {
+            return;
+          }
+
           const [x = 0, y = 0, z = 0] = obj.position || [];
 
           // Skip objects without positions
