@@ -1,5 +1,5 @@
 import React from "react";
-import { ListItemText, Typography, Box } from "@mui/material";
+import { ListItemText, Typography } from "@mui/material";
 import {
   ObservationSection,
   ObservationListItem,
@@ -15,10 +15,10 @@ export type ObservationPoint = {
 };
 
 export interface ObservationPointsListProps {
-  items?: ObservationPoint[];
-  selectedId?: string | number | null;
-  onAdd?: () => void;
-  onSelect?: (id: string | number) => void;
+  observationPoints?: ObservationPoint[];
+  selectedObservation?: ObservationPoint | { id: string | number };
+  addObservationPoint?: () => void;
+  selectObservation?: (id: string | number) => void;
   previewMode?: boolean;
   previewIndex?: number;
   setPreviewIndex?: (index: number) => void;
@@ -26,17 +26,23 @@ export interface ObservationPointsListProps {
 }
 
 const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
-  items,
-  selectedId,
-  onAdd,
-  onSelect,
+  observationPoints,
+  selectedObservation,
+  addObservationPoint,
+  selectObservation,
   previewMode,
   previewIndex,
   setPreviewIndex,
   setPreviewMode,
 }) => {
+  console.log("[ObservationPointsList] Props received:", {
+    observationPoints,
+    selectedObservation,
+    count: observationPoints?.length,
+  });
+
   const handleClick = (point: ObservationPoint, index: number) => {
-    onSelect?.(point.id);
+    selectObservation?.(point.id);
     setPreviewIndex?.(index);
     if (point.position && point.target) {
       setPreviewMode?.(true);
@@ -47,7 +53,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
   return (
     <ObservationSection previewMode={previewMode || false}>
       {/* Add button */}
-      <AddButton onClick={onAdd} title="Add Observation Point">
+      <AddButton onClick={addObservationPoint} title="Add Observation Point">
         <Add sx={{ fontSize: "1.2rem" }} />
         <Typography
           sx={{
@@ -61,12 +67,12 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
       </AddButton>
 
       {/* List items */}
-      {items?.map((point, index) => (
+      {observationPoints?.map((point, index) => (
         <ObservationListItem
           key={point.id}
           selected={
             (previewMode && index === previewIndex) ||
-            (!previewMode && selectedId === point.id)
+            (!previewMode && selectedObservation?.id === point.id)
           }
           onClick={() => handleClick(point, index)}
         >
@@ -74,6 +80,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
             primary={point.title || `Point ${index + 1}`}
             primaryTypographyProps={{
               noWrap: true,
+              sx: { color: "inherit" }, // Inherit color from parent
             }}
           />
         </ObservationListItem>

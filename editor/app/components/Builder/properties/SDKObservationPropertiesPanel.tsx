@@ -249,9 +249,9 @@ const SDKObservationPropertiesPanel: React.FC<
             </Typography>
             <Slider
               value={observationProps.visibilityRadius}
-              min={100}
-              max={10000}
-              step={100}
+              min={10}
+              max={2500}
+              step={10}
               onChange={(_, value) =>
                 handlePropertyChange("visibilityRadius", value)
               }

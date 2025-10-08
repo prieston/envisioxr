@@ -56,6 +56,7 @@ export const ObservationListItem: React.FC<ListItemButtonProps> = styled(
   flexShrink: 0, // Don't shrink in horizontal layout
   backgroundColor: "rgba(248, 250, 252, 0.6)",
   border: "1px solid rgba(226, 232, 240, 0.8)",
+  color: "rgba(51, 65, 85, 0.95)", // Match SceneObjectsList default text color
   transition:
     "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease",
   display: "flex",
@@ -64,6 +65,7 @@ export const ObservationListItem: React.FC<ListItemButtonProps> = styled(
   "&:hover": {
     backgroundColor: "rgba(248, 250, 252, 0.9)",
     borderColor: "rgba(37, 99, 235, 0.3)",
+    color: "#2563eb", // Match SceneObjectsList hover color
   },
   "&.Mui-selected": {
     backgroundColor: "rgba(37, 99, 235, 0.08)",
@@ -75,7 +77,7 @@ export const ObservationListItem: React.FC<ListItemButtonProps> = styled(
     },
   },
   "& .MuiListItemText-primary": {
-    fontSize: "0.75rem", // 12px
+    fontSize: "0.875rem", // 14px - match SceneObjectsList
     fontWeight: 600,
     letterSpacing: "0.01em",
     textAlign: "center",

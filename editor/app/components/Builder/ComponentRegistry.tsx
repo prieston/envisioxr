@@ -4,8 +4,8 @@ import {
   ViewModeControls,
   PlaybackControls,
   BasemapSelector,
+  ObservationPointsList,
 } from "@envisio/ui";
-import ObservationPointsList from "../Builder/lists/ObservationPointsList";
 import SceneObjectsListWrapper from "../Builder/lists/SceneObjectsListWrapper";
 import PropertiesPanel from "../Builder/properties/PropertiesPanel";
 import AssetLibraryPanel from "../Builder/assets/AssetLibraryPanel";
@@ -48,5 +48,11 @@ export const componentRegistry: Record<string, AnyComponent> = {
 };
 
 export const getComponent = (componentName: string): AnyComponent | null => {
-  return componentRegistry[componentName] || null;
+  const component = componentRegistry[componentName] || null;
+  console.log(
+    `[ComponentRegistry] Looking up "${componentName}":`,
+    component ? "FOUND" : "NOT FOUND",
+    component
+  );
+  return component;
 };

@@ -61,7 +61,24 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = ({
   };
 
   const handlePropertyChange = (property: string, value: any) => {
-    onPropertyChange(`iotProperties.${property}`, value);
+    // If enabling IoT for the first time, initialize all properties
+    if (
+      property === "enabled" &&
+      value === true &&
+      !selectedObject.iotProperties
+    ) {
+      onPropertyChange("iotProperties", {
+        enabled: true,
+        serviceType: "weather",
+        apiEndpoint: "https://api.open-meteo.com/v1/forecast",
+        updateInterval: 1000,
+        showInScene: true,
+        displayFormat: "compact",
+        autoRefresh: true,
+      });
+    } else {
+      onPropertyChange(`iotProperties.${property}`, value);
+    }
   };
 
   useEffect(() => {
