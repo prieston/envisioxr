@@ -192,6 +192,13 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
           }
 
           if (CustomComponent) {
+            console.log(
+              `[SettingRenderer] Rendering custom component: ${setting.customComponent}`,
+              {
+                customProps: setting.customProps,
+                component: CustomComponent.name || CustomComponent,
+              }
+            );
             return (
               <CustomComponent
                 value={value ?? setting.defaultValue}
