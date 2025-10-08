@@ -28,6 +28,15 @@ export interface AssetManagerModalProps {
   userAssets?: LibraryAsset[];
   onModelSelect?: (model: LibraryAsset) => void;
   onAssetDelete?: (assetId: string) => void;
+  onAssetUpdate?: (
+    assetId: string,
+    updates: {
+      name?: string;
+      description?: string;
+      metadata?: Record<string, string>;
+      thumbnail?: string;
+    }
+  ) => void;
   // Upload Model props
   onCustomModelUpload?: (data: {
     file: File;
@@ -68,6 +77,7 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
   userAssets = [],
   onModelSelect,
   onAssetDelete,
+  onAssetUpdate,
   // Upload Model
   onCustomModelUpload,
   customModelUploading = false,
@@ -152,29 +162,40 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
         onChange={handleTabChange}
         variant="fullWidth"
         sx={{
+          mb: 2,
+          minHeight: "48px",
+          paddingY: "4px",
+          backgroundColor: "rgba(255, 255, 255, 0.6)",
           borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
-          backgroundColor: "rgba(255, 255, 255, 0.8)",
           "& .MuiTab-root": {
             color: "rgba(100, 116, 139, 0.8)",
-            minHeight: "56px",
-            padding: "12px 16px",
-            fontSize: "0.875rem",
+            minHeight: "40px",
+            padding: "8px 12px",
+            fontSize: "0.813rem",
             fontWeight: 500,
-            textTransform: "none",
+            flexDirection: "row",
+            gap: "6px",
+            justifyContent: "center",
+            borderRadius: "8px",
+            margin: "4px 2px",
             transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+            textTransform: "none",
             "&:hover": {
               backgroundColor: "rgba(37, 99, 235, 0.08)",
               color: "#2563eb",
             },
             "&.Mui-selected": {
               color: "#2563eb",
+              backgroundColor: "rgba(37, 99, 235, 0.12)",
               fontWeight: 600,
+            },
+            "& .MuiSvgIcon-root": {
+              marginBottom: 0,
+              fontSize: "1.1rem",
             },
           },
           "& .MuiTabs-indicator": {
-            height: "3px",
-            borderRadius: "3px 3px 0 0",
-            backgroundColor: "#2563eb",
+            display: "none",
           },
         }}
       >
@@ -190,11 +211,14 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
           padding: "24px",
           backgroundColor: "rgba(255, 255, 255, 0.5)",
           overflow: "auto",
+          height: "500px",
+          minHeight: "500px",
+          maxHeight: "500px",
         }}
       >
         <Box
           sx={{
-            minHeight: "400px",
+            height: "100%",
             display: "flex",
             flexDirection: "column",
           }}
@@ -205,6 +229,7 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
               assets={userAssets}
               onAssetSelect={handleModelSelectWrapper}
               onAssetDelete={onAssetDelete}
+              onAssetUpdate={onAssetUpdate}
             />
           )}
 
