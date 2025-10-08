@@ -1,8 +1,8 @@
 import React from "react";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, TextField } from "@mui/material";
 import { LocationOn } from "@mui/icons-material";
 import { SettingContainer, SettingLabel } from "../SettingRenderer.styles";
-import { googleMapsLinkForLatLon } from "@envisio/ui";
+import { googleMapsLinkForLatLon, textFieldStyles } from "@envisio/ui";
 import { ModelObject, GeographicCoords } from "./types";
 
 interface TransformLocationSectionProps {
@@ -12,34 +12,18 @@ interface TransformLocationSectionProps {
   updateObjectProperty: (id: string, property: string, value: unknown) => void;
 }
 
-// Read-only info display component
-const InfoDisplay = (props: { label: string; value: string }) => (
-  <Box sx={{ flex: 1 }}>
-    <Typography
-      sx={{
-        fontSize: "0.75rem",
-        fontWeight: 500,
-        color: "rgba(100, 116, 139, 0.8)",
-        mb: 0.5,
-      }}
-    >
-      {props.label}
-    </Typography>
-    <Typography
-      sx={{
-        fontSize: "0.75rem",
-        fontWeight: 400,
-        color: "rgba(51, 65, 85, 0.9)",
-        fontFamily: "monospace",
-        backgroundColor: "rgba(248, 250, 252, 0.8)",
-        padding: "6px 12px",
-        borderRadius: "6px",
-        border: "1px solid rgba(226, 232, 240, 0.8)",
-      }}
-    >
-      {props.value}
-    </Typography>
-  </Box>
+// Label component for inputs
+const InputLabel = (props: { children: React.ReactNode }) => (
+  <Typography
+    sx={{
+      fontSize: "0.75rem",
+      fontWeight: 500,
+      color: "rgba(100, 116, 139, 0.8)",
+      mb: 0.75,
+    }}
+  >
+    {props.children}
+  </Typography>
 );
 
 const TransformLocationSection: React.FC<TransformLocationSectionProps> = ({
@@ -83,79 +67,140 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> = ({
         </Button>
       )}
 
-      {/* Geographic Coordinates - Read Only */}
+      {/* Geographic Coordinates - Editable */}
       <Box sx={{ mb: 2 }}>
-        <Typography
-          sx={{
-            fontSize: "0.75rem",
-            fontWeight: 500,
-            color: "rgba(100, 116, 139, 0.8)",
-            mb: 0.75,
-          }}
-        >
-          Geographic Coordinates
-        </Typography>
         <Box display="flex" gap={1}>
-          <InfoDisplay
-            label="Longitude"
-            value={(object.position?.[0] || 0).toFixed(6)}
-          />
-          <InfoDisplay
-            label="Latitude"
-            value={(object.position?.[1] || 0).toFixed(6)}
-          />
-          <InfoDisplay
-            label="Altitude (m)"
-            value={(object.position?.[2] || 0).toFixed(2)}
-          />
+          <Box sx={{ flex: 1 }}>
+            <InputLabel>Longitude</InputLabel>
+            <TextField
+              type="number"
+              value={object.position?.[0] || 0}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                const clampedValue = Math.max(-180, Math.min(180, value));
+                onPropertyChange("position.0", clampedValue);
+              }}
+              size="small"
+              inputProps={{
+                step: 0.000001,
+                min: -180,
+                max: 180,
+              }}
+              fullWidth
+              sx={textFieldStyles}
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <InputLabel>Latitude</InputLabel>
+            <TextField
+              type="number"
+              value={object.position?.[1] || 0}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                const clampedValue = Math.max(-90, Math.min(90, value));
+                onPropertyChange("position.1", clampedValue);
+              }}
+              size="small"
+              inputProps={{
+                step: 0.000001,
+                min: -90,
+                max: 90,
+              }}
+              fullWidth
+              sx={textFieldStyles}
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <InputLabel>Altitude (m)</InputLabel>
+            <TextField
+              type="number"
+              value={object.position?.[2] || 0}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                const clampedValue = Math.max(-1000, Math.min(100000, value));
+                onPropertyChange("position.2", clampedValue);
+              }}
+              size="small"
+              inputProps={{
+                step: 0.1,
+                min: -1000,
+                max: 100000,
+              }}
+              fullWidth
+              sx={textFieldStyles}
+            />
+          </Box>
         </Box>
       </Box>
 
-      {/* Rotation - Read Only */}
+      {/* Rotation - Editable */}
       <Box sx={{ mb: 2 }}>
-        <Typography
-          sx={{
-            fontSize: "0.75rem",
-            fontWeight: 500,
-            color: "rgba(100, 116, 139, 0.8)",
-            mb: 0.75,
-          }}
-        >
-          Rotation
-        </Typography>
         <Box display="flex" gap={1}>
-          <InfoDisplay
-            label="X"
-            value={(object.rotation?.[0] || 0).toFixed(2)}
-          />
-          <InfoDisplay
-            label="Y"
-            value={(object.rotation?.[1] || 0).toFixed(2)}
-          />
-          <InfoDisplay
-            label="Z"
-            value={(object.rotation?.[2] || 0).toFixed(2)}
-          />
+          <Box sx={{ flex: 1 }}>
+            <InputLabel>X Rotation</InputLabel>
+            <TextField
+              size="small"
+              type="number"
+              value={object.rotation?.[0] || 0}
+              onChange={(e) =>
+                onPropertyChange("rotation.0", Number(e.target.value))
+              }
+              inputProps={{ step: 0.01 }}
+              fullWidth
+              sx={textFieldStyles}
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <InputLabel>Y Rotation</InputLabel>
+            <TextField
+              size="small"
+              type="number"
+              value={object.rotation?.[1] || 0}
+              onChange={(e) =>
+                onPropertyChange("rotation.1", Number(e.target.value))
+              }
+              inputProps={{ step: 0.01 }}
+              fullWidth
+              sx={textFieldStyles}
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <InputLabel>Z Rotation</InputLabel>
+            <TextField
+              size="small"
+              type="number"
+              value={object.rotation?.[2] || 0}
+              onChange={(e) =>
+                onPropertyChange("rotation.2", Number(e.target.value))
+              }
+              inputProps={{ step: 0.01 }}
+              fullWidth
+              sx={textFieldStyles}
+            />
+          </Box>
         </Box>
       </Box>
 
-      {/* Scale - Read Only */}
+      {/* Scale - Editable (Uniform) */}
       <Box>
-        <Typography
-          sx={{
-            fontSize: "0.75rem",
-            fontWeight: 500,
-            color: "rgba(100, 116, 139, 0.8)",
-            mb: 0.75,
+        <InputLabel>Scale (Uniform)</InputLabel>
+        <TextField
+          size="small"
+          type="number"
+          value={object.scale?.[0] || 1}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            const uniformScale = [value, value, value];
+            updateObjectProperty(object.id, "scale", uniformScale);
           }}
-        >
-          Scale
-        </Typography>
-        <Box display="flex" gap={1}>
-          <InfoDisplay label="X" value={(object.scale?.[0] || 1).toFixed(2)} />
-          <InfoDisplay label="Y" value={(object.scale?.[1] || 1).toFixed(2)} />
-          <InfoDisplay label="Z" value={(object.scale?.[2] || 1).toFixed(2)} />
-        </Box>
+          inputProps={{
+            step: 0.01,
+            min: 0.01,
+            max: 100,
+          }}
+          fullWidth
+          sx={textFieldStyles}
+        />
       </Box>
     </SettingContainer>
   );
