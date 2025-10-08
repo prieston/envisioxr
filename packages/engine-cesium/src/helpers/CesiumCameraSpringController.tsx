@@ -9,6 +9,7 @@ type Vector3Tuple = [number, number, number];
 const CesiumCameraSpringController: React.FC = () => {
   const cesiumViewer = useSceneStore((state) => state.cesiumViewer);
   const previewMode = useSceneStore((state) => state.previewMode);
+  const setPreviewMode = useSceneStore((state) => state.setPreviewMode);
   const previewIndex = useSceneStore((state) => state.previewIndex);
   const observationPoints = useSceneStore((state) => state.observationPoints);
   const capturingPOV = useSceneStore((state) => state.capturingPOV);
@@ -88,6 +89,8 @@ const CesiumCameraSpringController: React.FC = () => {
         animationRef.current = requestAnimationFrame(animate);
       } else {
         animationRef.current = null;
+        // Turn off preview mode when animation completes
+        setPreviewMode(false);
       }
     };
 
@@ -95,6 +98,12 @@ const CesiumCameraSpringController: React.FC = () => {
   };
 
   useEffect(() => {
+    // Cancel any ongoing animation first
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+
     if (
       previewMode &&
       observationPoints.length > 0 &&
@@ -102,6 +111,7 @@ const CesiumCameraSpringController: React.FC = () => {
       cesiumViewer
     ) {
       const currentPoint = observationPoints[previewIndex];
+
       if (currentPoint && currentPoint.position && currentPoint.target) {
         const position = Array.isArray(currentPoint.position)
           ? (currentPoint.position as Vector3Tuple)
@@ -131,11 +141,6 @@ const CesiumCameraSpringController: React.FC = () => {
         );
 
         startCameraAnimation(startPos, startTarget, endPos, endTarget);
-      }
-    } else if (capturingPOV) {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
       }
     }
   }, [
