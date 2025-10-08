@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
+import { SettingContainer, SettingLabel } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
 
 export default function CesiumIonAssetsManager() {
@@ -42,10 +43,8 @@ export default function CesiumIonAssetsManager() {
   };
 
   return (
-    <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 1 }}>
-      <Typography variant="subtitle2" color="text.primary">
-        Cesium Ion Assets
-      </Typography>
+    <SettingContainer>
+      <SettingLabel>Cesium Ion Assets</SettingLabel>
 
       <Button variant="outlined" size="small" onClick={() => setOpen(true)}>
         Add Asset
@@ -139,6 +138,6 @@ export default function CesiumIonAssetsManager() {
           ))}
         </Box>
       )}
-    </Box>
+    </SettingContainer>
   );
 }

@@ -1,9 +1,6 @@
 import React, { useCallback } from "react";
-import {
-  Container,
-  SearchContainer,
-  SectionTitle,
-} from "./CesiumLocationSearchSection.styles";
+import { Box } from "@mui/material";
+import { SettingContainer, SettingLabel } from "@envisio/ui";
 import * as Cesium from "cesium";
 import { useSceneStore } from "@envisio/core";
 import { LocationSearch } from "@envisio/ui";
@@ -42,12 +39,12 @@ const CesiumLocationSearchSection: React.FC<
   );
 
   return (
-    <Container>
-      <SectionTitle>Location Search</SectionTitle>
-      <SearchContainer>
+    <SettingContainer>
+      <SettingLabel>Location Search</SettingLabel>
+      <Box>
         <LocationSearch onAssetSelect={handleAssetSelect} />
-      </SearchContainer>
-    </Container>
+      </Box>
+    </SettingContainer>
   );
 };
 
