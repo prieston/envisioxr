@@ -116,15 +116,18 @@ const CesiumCameraSpringController: React.FC = () => {
           Cesium.Cartesian3.clone(cesiumViewer.camera.direction),
           new Cesium.Cartesian3()
         );
-        const endPos = new Cesium.Cartesian3(
-          position[0],
-          position[1],
-          position[2]
+
+        // Convert geographic coordinates (lat, long, alt) to Cartesian3
+        // position is [latitude, longitude, altitude]
+        const endPos = Cesium.Cartesian3.fromDegrees(
+          position[1], // longitude
+          position[0], // latitude
+          position[2] // altitude
         );
-        const endTarget = new Cesium.Cartesian3(
-          target[0],
-          target[1],
-          target[2]
+        const endTarget = Cesium.Cartesian3.fromDegrees(
+          target[1], // longitude
+          target[0], // latitude
+          target[2] // altitude
         );
 
         startCameraAnimation(startPos, startTarget, endPos, endTarget);

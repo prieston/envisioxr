@@ -13,9 +13,9 @@ import {
   FlightTakeoff,
   Explore,
 } from "@mui/icons-material";
-import { SimulationMode } from "@envisio/engine-cesium/CesiumControls/types";
+import { SimulationMode } from "../CesiumControls/types";
 import { useSceneStore } from "@envisio/core";
-import { useCameraControllerManager } from "@envisio/engine-cesium/CesiumControls/hooks/useCameraControllerManager";
+import { useCameraControllerManager } from "../CesiumControls/hooks/useCameraControllerManager";
 import { createLogger } from "../utils/logger";
 
 const logger = createLogger("CesiumViewModeControls");

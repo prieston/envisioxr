@@ -19,6 +19,7 @@ import ObjectActionsSection from "./ObjectActionsSection";
 import ModelInformationSection from "./ModelInformationSection";
 import ObservationModelSection from "./ObservationModelSection";
 import TransformLocationSection from "./TransformLocationSection";
+import { SettingContainer, SettingLabel } from "../SettingRenderer.styles";
 import {
   ModelObject,
   ObservationPoint,
@@ -49,6 +50,52 @@ const PropertyLabel = (props: { children: React.ReactNode }) => (
   <Typography fontSize="0.875rem" color="text.secondary" mb={0.5}>
     {props.children}
   </Typography>
+);
+const InputLabel = (props: { children: React.ReactNode }) => (
+  <Typography
+    sx={{
+      fontSize: "0.75rem",
+      fontWeight: 500,
+      color: "rgba(100, 116, 139, 0.8)",
+      mb: 0.75,
+    }}
+  >
+    {props.children}
+  </Typography>
+);
+const InfoText = (props: { label: string; value: string }) => (
+  <Box
+    sx={{
+      mb: 1.5,
+    }}
+  >
+    <Typography
+      sx={{
+        fontSize: "0.688rem",
+        fontWeight: 500,
+        color: "rgba(100, 116, 139, 0.7)",
+        mb: 0.25,
+        textTransform: "uppercase",
+        letterSpacing: "0.05em",
+      }}
+    >
+      {props.label}
+    </Typography>
+    <Typography
+      sx={{
+        fontSize: "0.75rem",
+        fontWeight: 400,
+        color: "rgba(51, 65, 85, 0.9)",
+        fontFamily: "monospace",
+        backgroundColor: "rgba(248, 250, 252, 0.8)",
+        padding: "6px 12px",
+        borderRadius: "6px",
+        border: "1px solid rgba(226, 232, 240, 0.8)",
+      }}
+    >
+      {props.value}
+    </Typography>
+  </Box>
 );
 
 const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
@@ -354,90 +401,99 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           overflow: "auto",
         }}
       >
-        <PropertyGroup>
-          <Typography variant="subtitle1" gutterBottom>
-            Observation Point Settings
-          </Typography>
-          <TextField
-            fullWidth
-            size="small"
-            label="Title"
-            value={selectedObservation.title || ""}
-            onChange={(e) => handleObservationChange("title", e.target.value)}
-            sx={{ ...textFieldStyles, mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            size="small"
-            label="Description"
-            multiline
-            rows={4}
-            value={(selectedObservation.description as string) || ""}
-            onChange={(e) =>
-              handleObservationChange("description", e.target.value)
-            }
-            sx={{ ...textFieldStyles, mb: 2 }}
-          />
+        <SettingContainer>
+          <SettingLabel>Observation Point Settings</SettingLabel>
+
+          {/* Title Input */}
+          <Box sx={{ mb: 2 }}>
+            <InputLabel>Title</InputLabel>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Enter title"
+              value={selectedObservation.title || ""}
+              onChange={(e) => handleObservationChange("title", e.target.value)}
+              sx={textFieldStyles}
+            />
+          </Box>
+
+          {/* Description Input */}
+          <Box sx={{ mb: 2 }}>
+            <InputLabel>Description</InputLabel>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Enter description"
+              multiline
+              rows={4}
+              value={(selectedObservation.description as string) || ""}
+              onChange={(e) =>
+                handleObservationChange("description", e.target.value)
+              }
+              sx={{
+                ...textFieldStyles,
+                "& .MuiOutlinedInput-root": {
+                  ...textFieldStyles["& .MuiOutlinedInput-root"],
+                  "& textarea": {
+                    padding: "0px",
+                  },
+                },
+              }}
+            />
+          </Box>
+
+          {/* Capture Camera Position Button */}
           <Button
             fullWidth
-            variant="contained"
-            color="primary"
+            variant="outlined"
             onClick={() => setCapturingPOV(true)}
             startIcon={<Camera />}
-            sx={{ mb: 2 }}
+            sx={{
+              mb: 2,
+              borderRadius: "8px",
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.75rem",
+              borderColor: "rgba(37, 99, 235, 0.3)",
+              color: "#2563eb",
+              padding: "6px 16px",
+              "&:hover": {
+                borderColor: "#2563eb",
+                backgroundColor: "rgba(37, 99, 235, 0.08)",
+              },
+            }}
           >
             Capture Camera Position
           </Button>
-          {selectedObservation.position && (
-            <>
-              <PropertyLabel>Position</PropertyLabel>
-              <Box display="flex" gap={1}>
-                <TextField
-                  size="small"
-                  label="X"
-                  type="number"
-                  value={selectedObservation.position[0]}
-                  onChange={(e) => {
-                    const newPosition: Vector3Tuple = [
-                      Number(e.target.value),
-                      selectedObservation.position![1],
-                      selectedObservation.position![2],
-                    ];
-                    handleObservationChange("position", newPosition);
-                  }}
-                />
-                <TextField
-                  size="small"
-                  label="Y"
-                  type="number"
-                  value={selectedObservation.position[1]}
-                  onChange={(e) => {
-                    const newPosition: Vector3Tuple = [
-                      selectedObservation.position![0],
-                      Number(e.target.value),
-                      selectedObservation.position![2],
-                    ];
-                    handleObservationChange("position", newPosition);
-                  }}
-                />
-                <TextField
-                  size="small"
-                  label="Z"
-                  type="number"
-                  value={selectedObservation.position[2]}
-                  onChange={(e) => {
-                    const newPosition: Vector3Tuple = [
-                      selectedObservation.position![0],
-                      selectedObservation.position![1],
-                      Number(e.target.value),
-                    ];
-                    handleObservationChange("position", newPosition);
-                  }}
-                />
-              </Box>
-            </>
-          )}
-        </PropertyGroup>
+
+          {/* Position Info - Display Only */}
+          <InfoText
+            label="Camera Position"
+            value={
+              selectedObservation.position
+                ? `Lat: ${selectedObservation.position[0].toFixed(
+                    6
+                  )}, Long: ${selectedObservation.position[1].toFixed(
+                    6
+                  )}, Alt: ${selectedObservation.position[2].toFixed(2)}m`
+                : "Not captured"
+            }
+          />
+
+          {/* Target Info - Display Only */}
+          <InfoText
+            label="Camera Target"
+            value={
+              selectedObservation.target
+                ? `Lat: ${selectedObservation.target[0].toFixed(
+                    6
+                  )}, Long: ${selectedObservation.target[1].toFixed(
+                    6
+                  )}, Alt: ${selectedObservation.target[2].toFixed(2)}m`
+                : "Not captured"
+            }
+          />
+        </SettingContainer>
       </Box>
     );
   }
