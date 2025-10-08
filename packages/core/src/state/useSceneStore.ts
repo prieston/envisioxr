@@ -476,58 +476,15 @@ const useSceneStore = create<SceneState>((set) => ({
   addObservationPoint: () =>
     set((state) => {
       const id = Date.now();
-      let position: [number, number, number] | null = null;
-      let target: [number, number, number] | null = null;
 
-      // Three.js camera capture
-      const threeCamera: any = state.orbitControlsRef?.object;
-      if (state.scene && threeCamera) {
-        const camPos = threeCamera.position as THREE.Vector3;
-        const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(
-          threeCamera.quaternion
-        );
-        const lookAt = camPos.clone().add(dir.multiplyScalar(10));
-        position = [camPos.x, camPos.y, camPos.z];
-        target = [lookAt.x, lookAt.y, lookAt.z];
-      }
-
-      // Cesium camera capture (fallback when available)
-      if (
-        (!position || !target) &&
-        state.cesiumViewer &&
-        state.cesiumInstance
-      ) {
-        try {
-          const ci: any = state.cesiumInstance;
-          const camera = (state.cesiumViewer as any).camera;
-          const posEC = camera.position;
-          const dirEC = camera.direction;
-          const carto = ci.Cartographic.fromCartesian(posEC);
-          const lon = ci.Math.toDegrees(carto.longitude);
-          const lat = ci.Math.toDegrees(carto.latitude);
-          const h = carto.height;
-          position = [lon, lat, h];
-          const ahead = ci.Cartesian3.add(
-            posEC,
-            ci.Cartesian3.multiplyByScalar(dirEC, 10, new ci.Cartesian3()),
-            new ci.Cartesian3()
-          );
-          const cartoT = ci.Cartographic.fromCartesian(ahead);
-          const lonT = ci.Math.toDegrees(cartoT.longitude);
-          const latT = ci.Math.toDegrees(cartoT.latitude);
-          const hT = cartoT.height;
-          target = [lonT, latT, hT];
-        } catch {
-          // ignore cesium capture errors
-        }
-      }
-
+      // New observation points start without camera position/target
+      // User must explicitly capture camera position using the "Capture Camera Position" button
       const newPoint = {
         id,
         title: "New Observation Point",
         description: "",
-        position: position ?? null,
-        target: target ?? null,
+        position: null,
+        target: null,
       } as const;
 
       const observationPoints = [...state.observationPoints, newPoint];

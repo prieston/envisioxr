@@ -2,7 +2,8 @@
 
 import React, { useEffect } from "react";
 import { useThree } from "@react-three/fiber";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore, useWorldStore } from "@envisio/core";
+import { localToGeographic } from "@envisio/core/utils";
 import * as THREE from "three";
 
 type Vector3Tuple = [number, number, number];
@@ -19,6 +20,7 @@ const CameraPOVCaptureHandler: React.FC = () => {
   const setCapturingPOV = useSceneStore((state) => state.setCapturingPOV);
   const viewMode = useSceneStore((state) => state.viewMode);
   const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
+  const tilesRenderer = useSceneStore((state) => state.tilesRenderer);
 
   useEffect(() => {
     if (capturingPOV && selectedObservation) {
@@ -32,21 +34,31 @@ const CameraPOVCaptureHandler: React.FC = () => {
       );
       const currentTarget = new THREE.Vector3().addVectors(
         currentPosition,
-        forward
+        forward.multiplyScalar(100)
       );
 
-      // Convert to arrays for storage
-      const newPosition: Vector3Tuple = [
-        currentPosition.x,
-        currentPosition.y,
-        currentPosition.z,
-      ];
+      // Convert local coordinates to geographic if tilesRenderer is available
+      let newPosition: Vector3Tuple;
+      let newTarget: Vector3Tuple;
 
-      const newTarget: Vector3Tuple = [
-        currentTarget.x,
-        currentTarget.y,
-        currentTarget.z,
-      ];
+      if (tilesRenderer) {
+        const posGeo = localToGeographic(tilesRenderer, currentPosition);
+        const targetGeo = localToGeographic(tilesRenderer, currentTarget);
+        newPosition = [posGeo.latitude, posGeo.longitude, posGeo.altitude];
+        newTarget = [
+          targetGeo.latitude,
+          targetGeo.longitude,
+          targetGeo.altitude,
+        ];
+      } else {
+        // Fallback to local coordinates if no tilesRenderer
+        newPosition = [
+          currentPosition.x,
+          currentPosition.y,
+          currentPosition.z,
+        ];
+        newTarget = [currentTarget.x, currentTarget.y, currentTarget.z];
+      }
 
       // Update the observation point with the new position and target
       updateObservationPoint(selectedObservation.id, {
