@@ -100,12 +100,25 @@ export async function POST(request: NextRequest) {
   }
   const userId = session.user.id;
   try {
-    // Expecting a JSON body with key, originalFilename, fileType, thumbnail, and metadata
+    // Expecting a JSON body with key, originalFilename, name, fileType, thumbnail, and metadata
     const body = await request.json();
-    const { key, originalFilename, fileType, thumbnail, metadata } = body;
-    if (!key || !originalFilename || !fileType) {
-      return NextResponse.json({ error: "Missing file data" }, { status: 400 });
+    console.log("Creating asset with data:", body);
+
+    const { key, originalFilename, name, fileType, thumbnail, metadata } = body;
+
+    if (!key) {
+      return NextResponse.json({ error: "Missing key" }, { status: 400 });
     }
+    if (!originalFilename) {
+      return NextResponse.json(
+        { error: "Missing originalFilename" },
+        { status: 400 }
+      );
+    }
+    if (!fileType) {
+      return NextResponse.json({ error: "Missing fileType" }, { status: 400 });
+    }
+
     // Construct the public file URL from your DigitalOcean Spaces bucket
     const fileUrl = `${serverEnv.DO_SPACES_ENDPOINT}/${serverEnv.DO_SPACES_BUCKET}/${key}`;
 
@@ -129,6 +142,7 @@ export async function POST(request: NextRequest) {
         userId,
         fileUrl,
         originalFilename,
+        name: name || originalFilename, // Use provided name or fallback to originalFilename
         fileType,
         thumbnail: thumbnail || null,
         metadata: metadataObject,

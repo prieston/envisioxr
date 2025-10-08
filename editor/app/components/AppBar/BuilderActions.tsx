@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Typography } from "@mui/material";
 import {
   Save as SaveIcon,
@@ -33,11 +33,8 @@ interface BuilderActionsProps {
 const BuilderActions: React.FC<BuilderActionsProps> = ({
   onSave,
   onPublish,
-  selectingPosition = false,
   setSelectingPosition,
-  selectedPosition = null,
   setSelectedPosition,
-  pendingModel = null,
   setPendingModel,
 }) => {
   const { previewMode } = useSceneStore();
@@ -95,7 +92,7 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
     formData.append("file", file);
     formData.append("fileName", fileName);
     formData.append("fileType", fileType);
-    formData.append("bucketName", clientEnv.NEXT_PUBLIC_S3_BUCKET || "");
+    formData.append("bucketName", clientEnv.NEXT_PUBLIC_DO_SPACES_BUCKET);
 
     return new Promise<any>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -115,14 +112,27 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
         if (xhr.status >= 200 && xhr.status < 300) {
           resolve(JSON.parse(xhr.responseText));
         } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            reject(
+              new Error(
+                `Upload failed: ${errorResponse.error || xhr.statusText}`
+              )
+            );
+          } catch {
+            reject(
+              new Error(
+                `Upload failed with status ${xhr.status}: ${xhr.statusText}`
+              )
+            );
+          }
         }
       });
 
       xhr.addEventListener("error", () => reject(new Error("Upload failed")));
       xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
 
-      xhr.open("POST", "/api/upload");
+      xhr.open("POST", "/api/s3-upload");
       xhr.send(formData);
     });
   };
@@ -147,56 +157,40 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
       );
 
       // Upload thumbnail if available
-      let thumbnailUpload = null;
+      let thumbnailUrl = null;
       if (data.screenshot) {
         const thumbnailBlob = dataURLtoBlob(data.screenshot);
-        const thumbnailFileName = data.friendlyName + "-thumbnail.png";
-        thumbnailUpload = await uploadFileWithProgress(
+        const thumbnailFileName = `${data.friendlyName}-thumbnail.png`;
+        const thumbnailUpload = await uploadFileWithProgress(
           thumbnailBlob,
           thumbnailFileName,
           "image/png",
           null
         );
+        thumbnailUrl = thumbnailUpload.url;
       }
 
       // Save model metadata to database
-      const postData = {
-        asset: {
-          originalFilename: data.friendlyName,
-          fileUrl: modelUpload.fileUrl,
-          fileType: data.file.type,
-        },
-        thumbnail: thumbnailUpload ? thumbnailUpload.publicUrl : null,
-        metadata: data.metadata.reduce((acc: any, item) => {
-          if (item.label && item.value) {
-            acc[item.label] = item.value;
-          }
-          return acc;
-        }, {}),
-      };
-
-      const saveResponse = await fetch("/api/models", {
+      const res = await fetch("/api/models", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(postData),
+        body: JSON.stringify({
+          key: modelUpload.key,
+          originalFilename: data.file.name,
+          name: data.friendlyName,
+          fileType: data.file.type,
+          thumbnail: thumbnailUrl,
+          metadata: data.metadata,
+        }),
       });
 
-      if (!saveResponse.ok) {
-        throw new Error("Failed to save model metadata");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to create model record");
       }
 
-      const saveResult = await saveResponse.json();
-      showToast(`Uploaded ${data.friendlyName} successfully.`);
-
-      // Add the new model to the userAssets list
-      const newModel: LibraryAsset = {
-        id: saveResult.asset.id,
-        originalFilename: data.friendlyName,
-        fileUrl: modelUpload.fileUrl,
-        fileType: data.file.type,
-        thumbnail: thumbnailUpload?.publicUrl,
-        metadata: postData.metadata,
-      };
+      const { asset: newModel } = await res.json();
+      showToast("Model uploaded and added to library!");
       setUserAssets((prev) => [...prev, newModel]);
 
       // Automatically add to scene
@@ -316,7 +310,7 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
   };
 
   // Handle upload to Cesium Ion
-  const handleUploadToIon = async (data: {
+  const handleUploadToIon = async (_data: {
     file: File;
     name: string;
     description: string;
