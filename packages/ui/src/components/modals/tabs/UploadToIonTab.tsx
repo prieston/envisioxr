@@ -14,8 +14,21 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  FormHelperText,
+  Switch,
+  FormControlLabel,
+  Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
-import { CloudUpload, Close, Public } from "@mui/icons-material";
+import {
+  CloudUpload,
+  Close,
+  Public,
+  ExpandMore,
+  Settings,
+} from "@mui/icons-material";
 import { useDropzone } from "react-dropzone";
 
 export interface UploadToIonTabProps {
@@ -24,9 +37,18 @@ export interface UploadToIonTabProps {
     name: string;
     description: string;
     sourceType: string;
+    accessToken: string;
     longitude?: number;
     latitude?: number;
     height?: number;
+    options?: {
+      dracoCompression?: boolean;
+      ktx2Compression?: boolean;
+      webpImages?: boolean;
+      geometricCompression?: string;
+      epsgCode?: string;
+      makeDownloadable?: boolean;
+    };
   }) => Promise<{ assetId: string }>;
   uploading?: boolean;
   uploadProgress?: number;
@@ -40,11 +62,20 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [sourceType, setSourceType] = useState("3D_MODEL");
+  const [sourceType, setSourceType] = useState("3DTILES");
+  const [accessToken, setAccessToken] = useState("");
   const [longitude, setLongitude] = useState<string>("");
   const [latitude, setLatitude] = useState<string>("");
   const [height, setHeight] = useState<string>("0");
   const [uploadedAssetId, setUploadedAssetId] = useState<string | null>(null);
+
+  // Advanced options
+  const [dracoCompression, setDracoCompression] = useState(true);
+  const [ktx2Compression, setKtx2Compression] = useState(true);
+  const [webpImages, setWebpImages] = useState(false);
+  const [geometricCompression, setGeometricCompression] = useState("Draco");
+  const [epsgCode, setEpsgCode] = useState("");
+  const [makeDownloadable, setMakeDownloadable] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -68,15 +99,22 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
     setSelectedFile(null);
     setName("");
     setDescription("");
-    setSourceType("3D_MODEL");
+    setSourceType("3DTILES");
+    setAccessToken("");
     setLongitude("");
     setLatitude("");
     setHeight("0");
     setUploadedAssetId(null);
+    setDracoCompression(true);
+    setKtx2Compression(true);
+    setWebpImages(false);
+    setGeometricCompression("Draco");
+    setEpsgCode("");
+    setMakeDownloadable(false);
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !name) return;
+    if (!selectedFile || !name || !accessToken) return;
 
     try {
       const result = await onUpload({
@@ -84,9 +122,18 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         name,
         description,
         sourceType,
+        accessToken,
         longitude: longitude ? parseFloat(longitude) : undefined,
         latitude: latitude ? parseFloat(latitude) : undefined,
         height: height ? parseFloat(height) : undefined,
+        options: {
+          dracoCompression,
+          ktx2Compression,
+          webpImages,
+          geometricCompression,
+          epsgCode: epsgCode || undefined,
+          makeDownloadable,
+        },
       });
 
       setUploadedAssetId(result.assetId);
@@ -187,9 +234,9 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <Alert severity="info" icon={<Public />}>
-          Upload your georeferenced 3D model to Cesium Ion for tiling and
-          optimization. This is ideal for large models that need to be streamed
-          efficiently.
+          Upload your georeferenced 3D model to your Cesium Ion account for
+          tiling and optimization. You'll need a Cesium Ion access token with{" "}
+          <strong>assets:write</strong> permission.
         </Alert>
         <Box
           {...getRootProps()}
@@ -331,22 +378,234 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         }}
       />
 
+      <TextField
+        fullWidth
+        label="Cesium Ion Access Token"
+        value={accessToken}
+        onChange={(e) => setAccessToken(e.target.value)}
+        disabled={uploading}
+        required
+        type="password"
+        placeholder="Enter your Cesium Ion access token"
+        helperText="Get your token from https://ion.cesium.com/tokens (requires assets:write scope)"
+        sx={{
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "8px",
+          },
+        }}
+      />
+
       <FormControl fullWidth>
-        <InputLabel>Source Type</InputLabel>
+        <InputLabel>What kind of data is this?</InputLabel>
         <Select
           value={sourceType}
           onChange={(e) => setSourceType(e.target.value)}
           disabled={uploading}
-          label="Source Type"
+          label="What kind of data is this?"
           sx={{
             borderRadius: "8px",
           }}
         >
-          <MenuItem value="3D_MODEL">3D Model</MenuItem>
-          <MenuItem value="3D_TILES">3D Tiles</MenuItem>
-          <MenuItem value="CAPTURE">Photogrammetry Capture</MenuItem>
+          <MenuItem value="3DTILES">3D Model (tile as 3D Tiles)</MenuItem>
+          <MenuItem value="GLTF">3D Model (convert to glTF)</MenuItem>
+          <MenuItem value="3DTILES_BIM">
+            Architecture, Engineering or Construction model (BIM/CAD)
+          </MenuItem>
+          <MenuItem value="3DTILES_PHOTOGRAMMETRY">
+            3D Capture / Reality Model / Photogrammetry
+          </MenuItem>
+          <MenuItem value="POINTCLOUD">Point Cloud</MenuItem>
+          <MenuItem value="IMAGERY">Imagery</MenuItem>
+          <MenuItem value="TERRAIN">Terrain</MenuItem>
+          <MenuItem value="GEOJSON">GeoJSON</MenuItem>
+          <MenuItem value="KML">KML/KMZ</MenuItem>
+          <MenuItem value="CZML">CZML</MenuItem>
         </Select>
       </FormControl>
+
+      {/* Options based on selected type */}
+      {(sourceType === "3DTILES" ||
+        sourceType === "GLTF" ||
+        sourceType === "3DTILES_BIM" ||
+        sourceType === "3DTILES_PHOTOGRAMMETRY" ||
+        sourceType === "POINTCLOUD") && (
+        <Accordion
+          defaultExpanded
+          sx={{
+            borderRadius: "8px !important",
+            "&:before": { display: "none" },
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMore />}
+            sx={{
+              borderRadius: "8px",
+              "& .MuiAccordionSummary-content": {
+                alignItems: "center",
+                gap: 1,
+              },
+            }}
+          >
+            <Settings sx={{ fontSize: "1.25rem", color: "#2563eb" }} />
+            <Typography sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
+              {sourceType === "3DTILES_BIM"
+                ? "BIM/CAD Options"
+                : sourceType === "3DTILES_PHOTOGRAMMETRY"
+                  ? "3D Capture Options"
+                  : sourceType === "GLTF"
+                    ? "Model Options"
+                    : sourceType === "POINTCLOUD"
+                      ? "Point Cloud Options"
+                      : "3D Model Options"}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails
+            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          >
+            {/* Draco Compression */}
+            {(sourceType === "3DTILES" ||
+              sourceType === "GLTF" ||
+              sourceType === "3DTILES_PHOTOGRAMMETRY") && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={dracoCompression}
+                    onChange={(e) => setDracoCompression(e.target.checked)}
+                    disabled={uploading}
+                  />
+                }
+                label={
+                  <Typography sx={{ fontSize: "0.875rem" }}>
+                    Draco compression
+                  </Typography>
+                }
+              />
+            )}
+
+            {/* KTX2 Compression */}
+            {(sourceType === "3DTILES_BIM" ||
+              sourceType === "3DTILES_PHOTOGRAMMETRY") && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={ktx2Compression}
+                    onChange={(e) => setKtx2Compression(e.target.checked)}
+                    disabled={uploading}
+                  />
+                }
+                label={
+                  <Typography sx={{ fontSize: "0.875rem" }}>
+                    KTX2 compression
+                  </Typography>
+                }
+              />
+            )}
+
+            {/* WebP Images */}
+            {sourceType === "3DTILES" && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={webpImages}
+                    onChange={(e) => setWebpImages(e.target.checked)}
+                    disabled={uploading}
+                  />
+                }
+                label={
+                  <Typography sx={{ fontSize: "0.875rem" }}>
+                    WebP images
+                  </Typography>
+                }
+              />
+            )}
+
+            {/* Geometric Compression */}
+            {(sourceType === "3DTILES_BIM" ||
+              sourceType === "3DTILES_PHOTOGRAMMETRY") && (
+              <FormControl fullWidth size="small">
+                <InputLabel>Geometric Compression</InputLabel>
+                <Select
+                  value={geometricCompression}
+                  onChange={(e) => setGeometricCompression(e.target.value)}
+                  disabled={uploading}
+                  label="Geometric Compression"
+                  sx={{ borderRadius: "8px" }}
+                >
+                  <MenuItem value="Draco">Draco</MenuItem>
+                  <MenuItem value="Meshopt">Meshopt</MenuItem>
+                  <MenuItem value="None">None</MenuItem>
+                </Select>
+              </FormControl>
+            )}
+
+            {/* EPSG Code */}
+            {sourceType === "3DTILES_BIM" && (
+              <TextField
+                fullWidth
+                size="small"
+                label="EPSG Code (optional)"
+                value={epsgCode}
+                onChange={(e) => setEpsgCode(e.target.value)}
+                disabled={uploading}
+                placeholder="e.g., 4326"
+                helperText="Coordinate reference system code"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px",
+                  },
+                }}
+              />
+            )}
+
+            {/* Info alerts based on type */}
+            {sourceType === "3DTILES_BIM" && (
+              <Alert severity="info" sx={{ fontSize: "0.75rem" }}>
+                Ion will tile your BIM/CAD model into a 3D Tiles 1.1 tileset.
+                For Cesium clients, we recommend using Cesium for Unreal v2.11.0
+                or later, Cesium for Unity v1.14.0 or later, and CesiumJS
+                v1.124.0 or later.
+              </Alert>
+            )}
+
+            {sourceType === "3DTILES_PHOTOGRAMMETRY" && (
+              <Alert severity="info" sx={{ fontSize: "0.75rem" }}>
+                Ion will tile your photogrammetry, scan, or other mesh into a 3D
+                Tiles 1.1 tileset. A 3D Tiles 1.1 client is required.
+              </Alert>
+            )}
+
+            {sourceType === "GLTF" && (
+              <Alert severity="info" sx={{ fontSize: "0.75rem" }}>
+                Ion will convert your model to glTF format for easy integration.
+              </Alert>
+            )}
+
+            {sourceType === "POINTCLOUD" && (
+              <Alert severity="info" sx={{ fontSize: "0.75rem" }}>
+                Ion will tile your point cloud data into a 3D Tiles tileset for
+                efficient streaming.
+              </Alert>
+            )}
+          </AccordionDetails>
+        </Accordion>
+      )}
+
+      {/* Make available for download */}
+      <FormControlLabel
+        control={
+          <Switch
+            checked={makeDownloadable}
+            onChange={(e) => setMakeDownloadable(e.target.checked)}
+            disabled={uploading}
+          />
+        }
+        label={
+          <Typography sx={{ fontSize: "0.875rem" }}>
+            Make available for download
+          </Typography>
+        }
+      />
 
       {/* Georeferencing (Optional) */}
       <Typography
@@ -455,7 +714,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         <Button
           variant="contained"
           onClick={handleUpload}
-          disabled={!name || uploading}
+          disabled={!name || !accessToken || uploading}
           startIcon={<Public />}
           sx={{
             borderRadius: "8px",
