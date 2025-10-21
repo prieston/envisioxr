@@ -377,6 +377,126 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
     }
   };
 
+  // Save Cesium Ion asset to the library after tiling completes
+  const saveCesiumIonAssetToLibrary = async (
+    assetId: number,
+    assetInfo: any,
+    accessToken: string
+  ): Promise<void> => {
+    try {
+      // Save to your database via API
+      const response = await fetch("/api/models", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: assetInfo.name || `Ion Asset ${assetId}`,
+          originalFilename: assetInfo.name,
+          description: assetInfo.description || "",
+          fileType: "cesium-ion",
+          assetType: "cesiumIonAsset",
+          cesiumAssetId: String(assetId),
+          cesiumApiKey: accessToken, // Note: In production, store this securely
+          metadata: {
+            ionAssetId: String(assetId),
+            type: assetInfo.type,
+            status: assetInfo.status,
+            bytes: assetInfo.bytes,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // eslint-disable-next-line no-console
+      console.log("✅ Ion asset saved to library:", data);
+
+      // Refresh the library to show the new asset
+      fetch("/api/models")
+        .then((res) => res.json())
+        .then((data) => {
+          setUserAssets(data.assets || []);
+          showToast("Ion asset added to your library!");
+        })
+        .catch((err) => {
+          console.error("Error refreshing library:", err);
+        });
+    } catch (error) {
+      console.error("Error saving Ion asset:", error);
+      throw error;
+    }
+  };
+
+  // Poll Cesium Ion asset status until tiling completes
+  const pollAssetStatus = async (
+    assetId: number,
+    accessToken: string
+  ): Promise<void> => {
+    const maxAttempts = 40; // 40 attempts * 3s = 2 minutes max
+    const pollInterval = 3000; // 3 seconds
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const response = await fetch(
+          `https://api.cesium.com/v1/assets/${assetId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              Accept: "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch asset status: ${response.status}`);
+        }
+
+        const assetInfo = await response.json();
+        const status = assetInfo.status;
+        const percentComplete = assetInfo.percentComplete || 0;
+
+        // eslint-disable-next-line no-console
+        console.log(
+          `🔄 Tiling status: ${status} (${percentComplete}% complete)`
+        );
+
+        if (status === "COMPLETE") {
+          // eslint-disable-next-line no-console
+          console.log("✅ Tiling complete!");
+          showToast(`Tiling complete! Asset ${assetId} is ready.`);
+
+          // Save the Ion asset to the library
+          try {
+            await saveCesiumIonAssetToLibrary(assetId, assetInfo, accessToken);
+          } catch (saveError) {
+            console.error("Failed to save Ion asset to library:", saveError);
+          }
+
+          return;
+        }
+
+        if (status === "ERROR" || status === "FAILED") {
+          const errorMessage = assetInfo.error?.message || "Tiling failed";
+          throw new Error(errorMessage);
+        }
+
+        // Continue polling
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      } catch (error) {
+        console.error("Error polling asset status:", error);
+        throw error;
+      }
+    }
+
+    throw new Error(
+      `Timeout waiting for tiling to complete after ${(maxAttempts * pollInterval) / 1000}s`
+    );
+  };
+
   // Handle upload to Cesium Ion
   const handleUploadToIon = async (data: {
     file: File;
@@ -591,6 +711,14 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
       );
 
       showToast(`Successfully uploaded to Cesium Ion! Asset ID: ${inferredId}`);
+
+      // Poll for tiling status
+      // eslint-disable-next-line no-console
+      console.log("🔄 Starting to poll for tiling status...");
+      pollAssetStatus(inferredId, accessToken).catch((err) => {
+        console.error("Polling error:", err);
+        showToast(`Tiling status check failed: ${err.message}`);
+      });
 
       return { assetId: String(inferredId) };
     } catch (error) {
