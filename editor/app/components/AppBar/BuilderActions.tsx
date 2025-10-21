@@ -11,10 +11,7 @@ import { MinimalButton } from "./StyledComponents";
 import { showToast } from "@envisio/core/utils";
 import { useSceneStore } from "@envisio/core";
 import ReportGenerator from "../Report/ReportGenerator";
-import {
-  AssetManagerModal,
-  type LibraryAsset,
-} from "@envisio/ui";
+import { AssetManagerModal, type LibraryAsset } from "@envisio/ui";
 import { clientEnv } from "@/lib/env/client";
 
 interface BuilderActionsProps {
@@ -381,44 +378,226 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
   };
 
   // Handle upload to Cesium Ion
-  const handleUploadToIon = async (_data: {
+  const handleUploadToIon = async (data: {
     file: File;
     name: string;
     description: string;
     sourceType: string;
+    accessToken: string;
     longitude?: number;
     latitude?: number;
     height?: number;
+    options?: {
+      dracoCompression?: boolean;
+      ktx2Compression?: boolean;
+      webpImages?: boolean;
+      geometricCompression?: string;
+      epsgCode?: string;
+      makeDownloadable?: boolean;
+    };
   }): Promise<{ assetId: string }> => {
     setIonUploading(true);
     setIonUploadProgress(0);
 
     try {
-      // TODO: Implement actual Cesium Ion upload using their API
-      // This is a placeholder implementation
-      // You'll need to use the Cesium Ion REST API or SDK
+      const {
+        file,
+        name,
+        description,
+        sourceType,
+        accessToken,
+        longitude,
+        latitude,
+        height,
+        options,
+      } = data;
 
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setIonUploadProgress((prev) => Math.min(prev + 10, 90));
-      }, 200);
+      // Step 1: Create asset on Cesium Ion and get upload credentials (10% progress)
+      setIonUploadProgress(10);
 
-      // Placeholder: Upload file and create asset on Cesium Ion
-      // In reality, you'd use fetch or axios to call Cesium Ion API
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Map our sourceType to Cesium Ion's expected type and sourceType
+      let ionType = sourceType;
+      let uploadSourceType: string | undefined = undefined;
 
-      clearInterval(progressInterval);
+      // Handle the different asset types
+      if (sourceType === "3DTILES" || sourceType === "GLTF") {
+        ionType = sourceType;
+        uploadSourceType = "3D_MODEL";
+      } else if (sourceType === "3DTILES_BIM") {
+        ionType = "3DTILES";
+        uploadSourceType = "3D_MODEL"; // BIM/CAD models
+      } else if (sourceType === "3DTILES_PHOTOGRAMMETRY") {
+        ionType = "3DTILES";
+        uploadSourceType = "3D_CAPTURE"; // Photogrammetry/Reality capture
+      } else if (sourceType === "POINTCLOUD") {
+        ionType = "3DTILES";
+        uploadSourceType = "POINT_CLOUD";
+      } else if (sourceType === "IMAGERY") {
+        uploadSourceType = "RASTER_IMAGERY";
+      } else if (sourceType === "TERRAIN") {
+        uploadSourceType = "RASTER_TERRAIN";
+      }
+
+      // Build Ion-compatible options
+      // Note: Compression options are typically set after upload via asset settings
+      // During creation, we only send sourceType, position, and CRS
+      const ionOptions: any = {};
+
+      if (uploadSourceType) {
+        ionOptions.sourceType = uploadSourceType;
+      }
+
+      // Add position if provided
+      if (longitude !== undefined && latitude !== undefined) {
+        ionOptions.position = { longitude, latitude, height: height || 0 };
+      }
+
+      // Add coordinate reference system if provided
+      if (options?.epsgCode) {
+        ionOptions.inputCrs = `EPSG:${options.epsgCode}`;
+      }
+
+      const createAssetResponse = await fetch("/api/ion-upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          description,
+          type: ionType,
+          accessToken,
+          options: ionOptions,
+        }),
+      });
+
+      if (!createAssetResponse.ok) {
+        const errorData = await createAssetResponse.json();
+        console.error("Cesium Ion API Error Response:", errorData);
+
+        // Try to extract a meaningful error message
+        let errorMessage =
+          errorData.error || "Failed to create asset on Cesium Ion";
+        if (errorData.details) {
+          try {
+            const details =
+              typeof errorData.details === "string"
+                ? JSON.parse(errorData.details)
+                : errorData.details;
+            if (details.message) {
+              errorMessage = details.message;
+            }
+          } catch (e) {
+            // details is already a string
+            errorMessage = errorData.details;
+          }
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const { assetId, uploadLocation, onComplete } =
+        await createAssetResponse.json();
+
+      // Derive assetId from prefix if missing (defensive fallback)
+      const inferredId =
+        assetId ??
+        (() => {
+          const match = /sources\/(\d+)\//.exec(uploadLocation?.prefix || "");
+          return match ? Number(match[1]) : undefined;
+        })();
+
+      if (!inferredId) {
+        throw new Error(
+          "Ion response missing assetId and prefix; cannot proceed."
+        );
+      }
+
+      // eslint-disable-next-line no-console
+      console.log("📋 Asset ID:", inferredId);
+
+      setIonUploadProgress(20);
+
+      // Step 2: Upload file to S3 using AWS SDK with Ion's temporary credentials
+      // uploadLocation contains { endpoint, bucket, prefix, accessKey, secretAccessKey, sessionToken }
+      // eslint-disable-next-line no-console
+      console.log("Uploading to S3 with credentials from Ion");
+      // eslint-disable-next-line no-console
+      console.log("Bucket:", uploadLocation.bucket);
+      // eslint-disable-next-line no-console
+      console.log("Key:", `${uploadLocation.prefix}${file.name}`);
+
+      // Convert File to ArrayBuffer for AWS SDK compatibility
+      const fileBuffer = await file.arrayBuffer();
+
+      // Dynamically import AWS SDK (to avoid SSR issues)
+      const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+
+      const s3Client = new S3Client({
+        region: "us-east-1", // Ion's upload bucket is in us-east-1
+        endpoint: uploadLocation.endpoint,
+        credentials: {
+          accessKeyId: uploadLocation.accessKey,
+          secretAccessKey: uploadLocation.secretAccessKey,
+          sessionToken: uploadLocation.sessionToken,
+        },
+      });
+
+      const s3Key = `${uploadLocation.prefix}${file.name}`;
+
+      try {
+        // Upload the file buffer to S3
+        await s3Client.send(
+          new PutObjectCommand({
+            Bucket: uploadLocation.bucket,
+            Key: s3Key,
+            Body: new Uint8Array(fileBuffer),
+            ContentType: file.type || "application/octet-stream",
+          })
+        );
+
+        setIonUploadProgress(90);
+      } catch (s3Error) {
+        console.error("S3 upload error:", s3Error);
+        throw new Error(
+          `S3 upload failed: ${s3Error instanceof Error ? s3Error.message : "Unknown error"}`
+        );
+      }
+
+      // Step 3: Notify Cesium Ion that upload is complete
+      const completeResponse = await fetch("/api/ion-upload", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ onComplete, accessToken }),
+      });
+
+      if (!completeResponse.ok) {
+        const errorData = await completeResponse.json();
+        throw new Error(errorData.error || "Failed to complete upload");
+      }
+
       setIonUploadProgress(100);
 
-      // Placeholder asset ID - replace with actual from Cesium Ion response
-      const assetId = `temp-${Date.now()}`;
+      // Log the asset details for easy access
+      // eslint-disable-next-line no-console
+      console.log("✅ Cesium Ion Upload Complete!");
+      // eslint-disable-next-line no-console
+      console.log("Asset ID:", inferredId);
+      // eslint-disable-next-line no-console
+      console.log(
+        `View your asset at: https://ion.cesium.com/assets/${inferredId}`
+      );
 
-      showToast(`Successfully uploaded to Cesium Ion!`);
+      showToast(`Successfully uploaded to Cesium Ion! Asset ID: ${inferredId}`);
 
-      return { assetId };
+      return { assetId: String(inferredId) };
     } catch (error) {
       console.error("Ion upload error:", error);
-      showToast("An error occurred during Cesium Ion upload.");
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showToast(`Cesium Ion upload failed: ${errorMessage}`);
       throw error;
     } finally {
       setIonUploading(false);
