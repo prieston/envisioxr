@@ -50,6 +50,7 @@ export interface AssetManagerModalProps {
     name: string;
     description: string;
     sourceType: string;
+    accessToken: string;
     longitude?: number;
     latitude?: number;
     height?: number;

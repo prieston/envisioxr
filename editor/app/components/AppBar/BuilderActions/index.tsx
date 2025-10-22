@@ -35,9 +35,6 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
   const [assetManagerOpen, setAssetManagerOpen] = useState(false);
   const { previewMode } = useSceneStore();
 
-  // Get Cesium Ion assets from store
-  const cesiumIonAssets = useSceneStore((s) => s.cesiumIonAssets) || [];
-
   // Custom hooks for managing assets and Cesium Ion
   const {
     userAssets,
@@ -72,15 +69,6 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
       showToast("Save action not yet implemented.");
     }
   };
-
-  // Transform cesiumIonAssets to match CesiumAsset interface
-  const cesiumAssets = cesiumIonAssets.map((asset: any) => ({
-    id: asset.id?.toString() || "",
-    assetId: asset.assetId,
-    name: asset.name,
-    apiKey: asset.apiKey,
-    enabled: asset.enabled,
-  }));
 
   return (
     <>
