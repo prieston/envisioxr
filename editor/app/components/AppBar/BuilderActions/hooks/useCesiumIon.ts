@@ -152,19 +152,41 @@ export const useCesiumIon = () => {
 
       const { ionType, uploadSourceType } = mapSourceType(sourceType);
 
-      // Build Ion-compatible options
+      // Build Ion-compatible options for IFC/BIM
       const ionOptions: any = {};
 
+      // sourceType: "BIM_CAD" for IFC/BIM tiling
       if (uploadSourceType) {
         ionOptions.sourceType = uploadSourceType;
       }
 
+      // position: object shape { longitude, latitude, height }
+      // Sets the origin point where Ion places the model on the globe
       if (longitude !== undefined && latitude !== undefined) {
-        ionOptions.position = { longitude, latitude, height: height || 0 };
+        ionOptions.position = {
+          longitude,
+          latitude,
+          height: height || 0,
+        };
       }
 
+      // inputCrs: "EPSG:xxxx" format for IFC without embedded CRS
       if (options?.epsgCode) {
         ionOptions.inputCrs = `EPSG:${options.epsgCode}`;
+      }
+
+      // geometryCompression: "MESHOPT" or "DRACO" for BIM/CAD (note: no "ric" in field name)
+      // Remove "NONE" option as Ion doesn't accept it
+      if (options?.geometricCompression) {
+        const compression = options.geometricCompression.toUpperCase();
+        if (compression === "MESHOPT" || compression === "DRACO") {
+          ionOptions.geometryCompression = compression;
+        }
+      }
+
+      // textureFormat: "KTX2" for BIM/CAD uploads
+      if (uploadSourceType === "BIM_CAD" && options?.ktx2Compression) {
+        ionOptions.textureFormat = "KTX2";
       }
 
       const createAssetResponse = await fetch("/api/ion-upload", {
@@ -204,11 +226,12 @@ export const useCesiumIon = () => {
         throw new Error(errorMessage);
       }
 
-      const { assetId, uploadLocation, onComplete } =
+      const { assetId, assetMetadata, uploadLocation, onComplete } =
         await createAssetResponse.json();
 
-      // Derive assetId from prefix if missing
+      // Prefer assetMetadata.id over assetId or regex parsing
       const inferredId =
+        assetMetadata?.id ??
         assetId ??
         (() => {
           const match = /sources\/(\d+)\//.exec(uploadLocation?.prefix || "");
@@ -217,7 +240,7 @@ export const useCesiumIon = () => {
 
       if (!inferredId) {
         throw new Error(
-          "Ion response missing assetId and prefix; cannot proceed."
+          "Ion response missing assetMetadata.id, assetId, and prefix; cannot proceed."
         );
       }
 

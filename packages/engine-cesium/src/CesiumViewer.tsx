@@ -14,6 +14,7 @@ import {
   CesiumObservationPointHandler,
   CesiumCameraSpringController,
   CesiumPreviewModeController,
+  CesiumFeatureSelector,
 } from "./helpers";
 import dynamic from "next/dynamic";
 const CesiumIonSDKViewshedAnalysis = dynamic<any>(
@@ -954,6 +955,9 @@ export default function CesiumViewer() {
             ))}
 
           {/* Transform editor is now rendered by the editor app */}
+
+          {/* Feature selector for 3D Tiles metadata */}
+          <CesiumFeatureSelector />
         </>
       )}
     </>

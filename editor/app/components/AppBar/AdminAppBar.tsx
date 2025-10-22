@@ -14,7 +14,6 @@ import {
 } from "./StyledComponents.tsx";
 import { PublishDialog } from "@envisio/ui";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { logger } from "./logger";
 
 interface AdminAppBarProps {
   mode?: string;
@@ -44,8 +43,6 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
   pendingModel = null,
   setPendingModel,
 }) => {
-  logger.debug("🔍 AdminAppBar component called with mode:", mode);
-
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
   const { engine } = useWorldStore();
 
@@ -65,7 +62,6 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
   const handleTransformModeChange = (
     mode: "translate" | "rotate" | "scale"
   ) => {
-    logger.debug("🔧 AdminAppBar transform mode change:", mode);
     setTransformMode(mode);
   };
 
@@ -112,12 +108,6 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
     selectedPosition,
     pendingModel,
   ]);
-
-  logger.debug("🔍 AdminAppBar render:", {
-    selectedObject,
-    transformMode,
-    mode,
-  });
 
   if (mode === "builder") {
     const leftSection = config?.sections.find((s) => s.type === "left");

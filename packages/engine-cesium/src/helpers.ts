@@ -7,3 +7,4 @@ export { default as CesiumPreviewModeController } from "./helpers/CesiumPreviewM
 export { setupCesiumClickSelector } from "./helpers/CesiumScreenClickSelector";
 export { default as CesiumObjectTransformEditor } from "./helpers/CesiumObjectTransformEditor";
 export { default as CesiumWeatherData3DDisplay } from "./helpers/CesiumWeatherData3DDisplay";
+export { default as CesiumFeatureSelector } from "./helpers/CesiumFeatureSelector";

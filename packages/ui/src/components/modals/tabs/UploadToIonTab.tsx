@@ -91,6 +91,8 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
       "model/gltf-binary": [".glb"],
       "model/gltf+json": [".gltf"],
       "application/zip": [".zip"],
+      "application/x-step": [".ifc"],
+      "application/ifc": [".ifc"],
     },
     multiple: false,
   });
@@ -292,7 +294,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
               color: "rgba(100, 116, 139, 0.6)",
             }}
           >
-            Supported formats: GLB, GLTF, ZIP (with textures)
+            Supported formats: GLB, GLTF, IFC, ZIP (with textures)
           </Typography>
         </Box>
       </Box>
