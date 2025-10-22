@@ -24,13 +24,8 @@ const PlaybackManager: React.FC = () => {
       intervalRef.current = null;
     }
 
-    // Only start interval if playing and have observation points
-    if (isPlaying && observationPoints && observationPoints.length > 0) {
-      // Cycle through observation points every 3 seconds
-      intervalRef.current = setInterval(() => {
-        nextObservation();
-      }, 3000);
-    }
+    // Auto-cycling disabled - play button only enables preview mode
+    // Users can manually navigate between observation points using next/prev buttons
 
     // Cleanup on unmount or when dependencies change
     return () => {
