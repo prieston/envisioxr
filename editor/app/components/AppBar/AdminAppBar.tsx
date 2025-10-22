@@ -58,7 +58,7 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
   // Exclude weatherData to prevent re-renders when IoT updates
   const selectedObject = useSceneStore((state) => {
     if (!state.selectedObject) return null;
-    const { weatherData, ...rest } = state.selectedObject;
+    const { ...rest } = state.selectedObject;
     return rest;
   });
 
