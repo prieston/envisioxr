@@ -6,6 +6,8 @@ import {
   Button,
   Paper,
   Alert,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import { Camera, FlightTakeoff } from "@mui/icons-material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
@@ -19,6 +21,7 @@ import ObjectActionsSection from "./ObjectActionsSection";
 import ModelInformationSection from "./ModelInformationSection";
 import ObservationModelSection from "./ObservationModelSection";
 import TransformLocationSection from "./TransformLocationSection";
+import CesiumFeatureProperties from "./CesiumFeatureProperties";
 import { SettingContainer, SettingLabel } from "../SettingRenderer.styles";
 import {
   ModelObject,
@@ -108,10 +111,12 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   updateControlSettings,
 }) => {
   const { orbitControlsRef } = useSceneStore();
+  const selectedCesiumFeature = useSceneStore((s) => s.selectedCesiumFeature);
   const [localObject, setLocalObject] = useState<ModelObject | null>(
     selectedObject
   );
   const [repositioning, setRepositioning] = useState(false);
+  const [showEmptyFields, setShowEmptyFields] = useState(false);
 
   // Check if this is a Cesium Ion asset (non-editable)
   const isCesiumIonAsset =
@@ -362,6 +367,107 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           sx={{ mb: 2 }}
         />
       </PropertyGroup>
+    );
+  }
+
+  // Cesium feature properties (when clicking on 3D Tiles features) - CHECK FIRST
+  if (
+    selectedCesiumFeature &&
+    selectedCesiumFeature.properties &&
+    Object.keys(selectedCesiumFeature.properties).length > 0
+  ) {
+    const setSelectedCesiumFeature =
+      useSceneStore.getState().setSelectedCesiumFeature;
+
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          overflow: "auto",
+        }}
+      >
+        {/* Header section matching ObjectActionsSection style */}
+        <Box
+          sx={{
+            padding: "16px",
+            borderBottom: "1px solid rgba(226, 232, 240, 0.6)",
+            backgroundColor: "rgba(248, 250, 252, 0.4)",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 1,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                color: "rgba(51, 65, 85, 0.95)",
+              }}
+            >
+              IFC Element Properties
+            </Typography>
+            <Button
+              size="small"
+              onClick={() => setSelectedCesiumFeature(null)}
+              sx={{
+                minWidth: "auto",
+                padding: "4px 8px",
+                fontSize: "0.7rem",
+              }}
+            >
+              Clear
+            </Button>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "0.7rem",
+                color: "rgba(100, 116, 139, 0.8)",
+              }}
+            >
+              {Object.keys(selectedCesiumFeature.properties).length} properties
+            </Typography>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={showEmptyFields}
+                  onChange={(e) => setShowEmptyFields(e.target.checked)}
+                  size="small"
+                  sx={{
+                    padding: "4px",
+                  }}
+                />
+              }
+              label="Show empty"
+              sx={{
+                margin: 0,
+                "& .MuiFormControlLabel-label": {
+                  fontSize: "0.7rem",
+                  color: "rgba(100, 116, 139, 0.9)",
+                },
+              }}
+            />
+          </Box>
+        </Box>
+
+        <CesiumFeatureProperties
+          properties={selectedCesiumFeature.properties}
+          showEmptyFields={showEmptyFields}
+        />
+      </Box>
     );
   }
 

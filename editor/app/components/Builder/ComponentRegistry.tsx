@@ -51,10 +51,5 @@ export const componentRegistry: Record<string, AnyComponent> = {
 
 export const getComponent = (componentName: string): AnyComponent | null => {
   const component = componentRegistry[componentName] || null;
-  console.log(
-    `[ComponentRegistry] Looking up "${componentName}":`,
-    component ? "FOUND" : "NOT FOUND",
-    component
-  );
   return component;
 };

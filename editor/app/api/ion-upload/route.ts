@@ -21,16 +21,27 @@ interface CesiumIonUploadRequest {
   options?: {
     sourceType?: string;
     position?: {
-      longitude?: number;
-      latitude?: number;
-      height?: number;
+      longitude: number;
+      latitude: number;
+      height: number;
     };
-    inputCrs?: string;
+    inputCrs?: string; // "EPSG:xxxx" format for IFC without embedded CRS
+    geometryCompression?: string; // "MESHOPT" | "DRACO" for BIM/CAD
+    textureFormat?: string; // "KTX2" for BIM/CAD
   };
 }
 
 interface CesiumIonAssetResponse {
-  assetId: number;
+  assetId?: number; // Optional: prefer assetMetadata.id
+  assetMetadata?: {
+    id: number;
+    name: string;
+    description?: string;
+    type?: string;
+    bytes?: number;
+    dateAdded?: string;
+    status?: string;
+  };
   uploadLocation: {
     endpoint: string;
     bucket: string;
@@ -89,19 +100,37 @@ export async function POST(request: NextRequest) {
     const cleanOptions: Record<string, any> = {};
 
     if (options) {
-      // Only add sourceType if provided
+      // sourceType: "BIM_CAD" for IFC/BIM tiling (not "3D_MODEL")
       if (options.sourceType) {
         cleanOptions.sourceType = options.sourceType;
       }
 
-      // Only add position if provided
+      // position: object shape { longitude, latitude, height }
+      // Sets the origin point where Ion places the model on the globe
       if (options.position) {
-        cleanOptions.position = options.position;
+        cleanOptions.position = {
+          longitude: options.position.longitude,
+          latitude: options.position.latitude,
+          height: options.position.height,
+        };
       }
 
-      // Only add inputCrs if provided
+      // inputCrs: "EPSG:xxxx" format for IFC without embedded CRS
       if (options.inputCrs) {
         cleanOptions.inputCrs = options.inputCrs;
+      }
+
+      // geometryCompression: "MESHOPT" or "DRACO" for BIM/CAD (note: no "ric" in field name)
+      if (options.geometryCompression) {
+        const compression = options.geometryCompression.toUpperCase();
+        if (compression === "MESHOPT" || compression === "DRACO") {
+          cleanOptions.geometryCompression = compression;
+        }
+      }
+
+      // textureFormat: "KTX2" for BIM/CAD
+      if (options.textureFormat) {
+        cleanOptions.textureFormat = options.textureFormat.toUpperCase();
       }
     }
 
@@ -110,23 +139,36 @@ export async function POST(request: NextRequest) {
       assetPayload.options = cleanOptions;
     }
 
+    // Log final payload for debugging
+    // eslint-disable-next-line no-console
+    console.log(
+      "🔍 Final assetPayload before sending:",
+      JSON.stringify(assetPayload, null, 2)
+    );
+
     // Ion automatically determines the upload location
+    // Do NOT add any query parameters (like assetRegion) - Cesium Ion doesn't support them on this endpoint
     const endpoint = "https://api.cesium.com/v1/assets";
 
     // Safety guard: ensure no assetRegion parameter sneaks in
-    if (endpoint.includes("assetRegion=")) {
-      throw new Error("Do not use assetRegion on Ion create asset endpoint");
+    if (endpoint.includes("assetRegion=") || endpoint.includes("?")) {
+      throw new Error(
+        "Do not use query parameters on Ion create asset endpoint"
+      );
     }
 
     // Prepare request details
-    const requestInit = {
+    // Important: No query params, only body params
+    const bodyString = JSON.stringify(assetPayload);
+    const requestInit: RequestInit = {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify(assetPayload),
+      body: bodyString,
+      redirect: "manual", // Don't follow redirects that might add query params
     };
 
     // eslint-disable-next-line no-console
@@ -138,11 +180,11 @@ export async function POST(request: NextRequest) {
           method: requestInit.method,
           headers: {
             Authorization: `Bearer ${accessToken.substring(0, 20)}...`,
-            "Content-Type": requestInit.headers["Content-Type"],
-            Accept: requestInit.headers.Accept,
+            "Content-Type": "application/json",
+            Accept: "application/json",
           },
           hasBody: !!requestInit.body,
-          payloadSize: requestInit.body.length,
+          payloadSize: bodyString.length,
         },
         null,
         2
@@ -150,6 +192,10 @@ export async function POST(request: NextRequest) {
     );
     // eslint-disable-next-line no-console
     console.log("📦 Payload:", JSON.stringify(assetPayload, null, 2));
+    // eslint-disable-next-line no-console
+    console.log("🔍 Request URL (should have NO query params):", endpoint);
+    // eslint-disable-next-line no-console
+    console.log("🔍 Request method:", requestInit.method);
 
     // Step 1: Create a new asset on Cesium Ion using user's token
     const createAssetResponse = await fetch(endpoint, requestInit);
@@ -186,31 +232,44 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line no-console
     console.log("🔍 ION RAW RESPONSE:", rawText);
 
-    const assetData: CesiumIonAssetResponse = JSON.parse(rawText);
+    const ionResponse: CesiumIonAssetResponse = JSON.parse(rawText);
 
-    // Hard assert in dev - warn if assetId is missing
-    if (!assetData.assetId && assetData.uploadLocation?.prefix) {
-      // eslint-disable-next-line no-console
-      console.warn(
-        "⚠️  No assetId in Ion response, but prefix exists:",
-        assetData.uploadLocation.prefix
+    // Prefer assetMetadata.id over assetId or regex parsing
+    const assetId =
+      ionResponse.assetMetadata?.id ??
+      ionResponse.assetId ??
+      (() => {
+        const match = /sources\/(\d+)\//.exec(
+          ionResponse.uploadLocation?.prefix || ""
+        );
+        return match ? Number(match[1]) : undefined;
+      })();
+
+    if (!assetId) {
+      throw new Error(
+        "Ion response missing assetMetadata.id, assetId, and prefix; cannot proceed."
       );
     }
+
+    // eslint-disable-next-line no-console
+    console.log("✅ Asset created with ID:", assetId);
 
     // Log the parsed data structure
     // eslint-disable-next-line no-console
     console.log("📦 Parsed Ion Response:", {
-      assetId: assetData.assetId,
-      uploadLocationKeys: Object.keys(assetData.uploadLocation || {}),
-      hasOnComplete: !!assetData.onComplete,
+      assetId,
+      hasAssetMetadata: !!ionResponse.assetMetadata,
+      uploadLocationKeys: Object.keys(ionResponse.uploadLocation || {}),
+      hasOnComplete: !!ionResponse.onComplete,
     });
 
     // Return upload credentials and asset information to the client
-    // Relay everything unchanged from Ion
+    // Include assetMetadata for better tracking
     return NextResponse.json({
-      assetId: assetData.assetId,
-      uploadLocation: assetData.uploadLocation,
-      onComplete: assetData.onComplete,
+      assetId,
+      assetMetadata: ionResponse.assetMetadata,
+      uploadLocation: ionResponse.uploadLocation,
+      onComplete: ionResponse.onComplete,
     });
   } catch (error) {
     console.error("Ion upload API error:", error);

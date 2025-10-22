@@ -113,7 +113,7 @@ export const useCesiumIonUpload = () => {
       uploadSourceType = "3D_MODEL";
     } else if (sourceType === "3DTILES_BIM") {
       ionType = "3DTILES";
-      uploadSourceType = "3D_MODEL";
+      uploadSourceType = "BIM_CAD"; // Changed from "3D_MODEL" to "BIM_CAD"
     } else if (sourceType === "3DTILES_PHOTOGRAMMETRY") {
       ionType = "3DTILES";
       uploadSourceType = "3D_CAPTURE";
@@ -176,4 +176,3 @@ export const useCesiumIonUpload = () => {
     uploadToS3,
   };
 };
-

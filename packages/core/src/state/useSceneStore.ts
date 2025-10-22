@@ -95,6 +95,11 @@ interface SceneState {
   observationPoints: ObservationPoint[];
   selectedObject: Model | null;
   selectedObservation: ObservationPoint | null;
+  selectedCesiumFeature: {
+    properties: Record<string, any>;
+    worldPosition?: any; // Cesium Cartesian3
+    drillPickCount?: number; // Number of overlapping features (Shift+click)
+  } | null;
   selectedAssetId: string;
   selectedLocation: {
     latitude: number;
@@ -203,6 +208,13 @@ interface SceneState {
   toggleCesiumIonAsset: (id: string) => void;
   setCesiumIonAssets: (assets: CesiumIonAsset[]) => void;
   flyToCesiumIonAsset: (assetId: string) => void;
+  setSelectedCesiumFeature: (
+    feature: {
+      properties: Record<string, any>;
+      worldPosition?: any;
+      drillPickCount?: number;
+    } | null
+  ) => void;
 }
 
 const findIntersectionPoint = (
@@ -233,6 +245,7 @@ const useSceneStore = create<SceneState>((set) => ({
   observationPoints: [],
   selectedObject: null,
   selectedObservation: null,
+  selectedCesiumFeature: null,
   selectedAssetId: "2275207",
   selectedLocation: null,
   orbitControlsRef: null,
@@ -726,6 +739,8 @@ const useSceneStore = create<SceneState>((set) => ({
       // Error flying to asset
     }
   },
+  setSelectedCesiumFeature: (feature) =>
+    set({ selectedCesiumFeature: feature }),
 }));
 
 export default useSceneStore;
