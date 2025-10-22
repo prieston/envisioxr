@@ -3,9 +3,8 @@ import { showToast } from "@envisio/core/utils";
 import { useSceneStore } from "@envisio/core";
 import * as THREE from "three";
 import { localToGeographic } from "@envisio/core/utils";
-import { MinimalButton } from "../AppBar/StyledComponents";
 import { Description as DescriptionIcon } from "@mui/icons-material";
-import { Typography } from "@mui/material";
+import { ActionButton } from "@envisio/ui";
 
 interface ReportGeneratorProps {
   onClose?: () => void;
@@ -477,19 +476,12 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
   };
 
   return (
-    <MinimalButton onClick={generateReport} disabled={disabled}>
-      <DescriptionIcon />
-      <Typography
-        sx={{
-          fontSize: "0.75rem",
-          fontWeight: 400, // Normal weight
-          letterSpacing: "0.01em",
-          lineHeight: 1,
-        }}
-      >
-        Report
-      </Typography>
-    </MinimalButton>
+    <ActionButton
+      icon={<DescriptionIcon />}
+      label="Report"
+      onClick={generateReport}
+      disabled={disabled}
+    />
   );
 };
 
