@@ -17,11 +17,47 @@ const CesiumFeatureSelector: React.FC = () => {
   const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
   const cesiumInstance = useSceneStore((s) => s.cesiumInstance);
   const previewMode = useSceneStore((s) => s.previewMode);
+  const selectedCesiumFeature = useSceneStore((s) => s.selectedCesiumFeature);
   const setSelectedCesiumFeature = useSceneStore(
     (s) => s.setSelectedCesiumFeature
   );
   const deselectObject = useSceneStore((s) => s.deselectObject);
   const handlerRef = useRef<any>(null);
+  const highlightedFeatureRef = useRef<any>(null);
+  const originalColorRef = useRef<any>(null);
+
+  // Helper to restore previous feature's color
+  const restoreHighlight = () => {
+    if (highlightedFeatureRef.current && originalColorRef.current) {
+      try {
+        highlightedFeatureRef.current.color = originalColorRef.current;
+      } catch {
+        // Feature might no longer be valid
+      }
+      highlightedFeatureRef.current = null;
+      originalColorRef.current = null;
+    }
+  };
+
+  // Helper to highlight a feature
+  const highlightFeature = (feature: any) => {
+    if (!cesiumInstance) return;
+
+    try {
+      // Store original color
+      originalColorRef.current = feature.color
+        ? cesiumInstance.Color.clone(feature.color)
+        : cesiumInstance.Color.WHITE.clone();
+
+      // Set highlight color (bright cyan/blue)
+      feature.color = cesiumInstance.Color.CYAN.withAlpha(0.8);
+
+      // Store reference to highlighted feature
+      highlightedFeatureRef.current = feature;
+    } catch (err) {
+      console.error("Error highlighting feature:", err);
+    }
+  };
 
   useEffect(() => {
     if (!cesiumViewer || !cesiumInstance || previewMode) {
@@ -121,6 +157,10 @@ const CesiumFeatureSelector: React.FC = () => {
           const properties = mergeMetadata(picked);
           const worldPos = scene.pickPosition?.(movement.position);
 
+          // Restore previous highlight and highlight new feature
+          restoreHighlight();
+          highlightFeature(picked);
+
           // Clear any selected scene object when selecting a Cesium feature
           deselectObject();
 
@@ -130,7 +170,8 @@ const CesiumFeatureSelector: React.FC = () => {
           });
           return;
         }
-        // Clicked empty or non-feature: clear selection
+        // Clicked empty or non-feature: clear selection and restore highlight
+        restoreHighlight();
         setSelectedCesiumFeature(null);
       } catch (err) {
         console.error("Error picking Cesium feature:", err);
@@ -143,23 +184,28 @@ const CesiumFeatureSelector: React.FC = () => {
       (movement: any) => {
         try {
           const pickedArray = scene.drillPick(movement.position) || [];
-          const features = pickedArray.filter(isFeatureLike).map((f: any) => ({
-            properties: mergeMetadata(f),
-          }));
-          if (features.length > 0) {
+          const featureLikes = pickedArray.filter(isFeatureLike);
+
+          if (featureLikes.length > 0) {
             const worldPos = scene.pickPosition?.(movement.position);
+            const firstFeature = featureLikes[0];
+
+            // Restore previous highlight and highlight new feature
+            restoreHighlight();
+            highlightFeature(firstFeature);
 
             // Clear any selected scene object when selecting a Cesium feature
             deselectObject();
 
             // For drill pick, show the first feature's properties (can be extended to show all)
             setSelectedCesiumFeature({
-              properties: features[0].properties,
+              properties: mergeMetadata(firstFeature),
               worldPosition: worldPos ?? null,
-              drillPickCount: features.length,
+              drillPickCount: featureLikes.length,
             });
             return;
           }
+          restoreHighlight();
           setSelectedCesiumFeature(null);
         } catch (err) {
           console.error("Drill pick error:", err);
@@ -173,6 +219,9 @@ const CesiumFeatureSelector: React.FC = () => {
     handlerRef.current = handler;
 
     return () => {
+      // Restore highlight on cleanup
+      restoreHighlight();
+
       if (handlerRef.current) {
         try {
           handlerRef.current.destroy();
@@ -189,6 +238,13 @@ const CesiumFeatureSelector: React.FC = () => {
     setSelectedCesiumFeature,
     deselectObject,
   ]);
+
+  // Watch for external deselection (e.g., Clear button) and restore highlight
+  useEffect(() => {
+    if (!selectedCesiumFeature) {
+      restoreHighlight();
+    }
+  }, [selectedCesiumFeature]);
 
   return null;
 };
