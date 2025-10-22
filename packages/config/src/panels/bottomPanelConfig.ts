@@ -32,16 +32,6 @@ export const createThreeJSBottomPanelConfig = (
         label: "Controls",
         settings: [
           {
-            id: "view-modes",
-            type: "custom",
-            label: "View Modes",
-            customComponent: "ViewModeControls",
-            customProps: {
-              viewMode,
-              setViewMode,
-            },
-          },
-          {
             id: "playback-controls",
             type: "custom",
             label: "Playback",
@@ -112,16 +102,6 @@ export const createCesiumBottomPanelConfig = (
         id: "controls",
         label: "Controls",
         settings: [
-          {
-            id: "view-modes",
-            type: "custom",
-            label: "View Modes",
-            customComponent: "CesiumViewModeControls",
-            customProps: {
-              viewMode,
-              setViewMode,
-            },
-          },
           {
             id: "playback-controls",
             type: "custom",
