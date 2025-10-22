@@ -57,6 +57,14 @@ const nextConfig = {
       config.externals.push('sharp');
     }
 
+    // Prevent webpack from parsing Cesium's pre-built chunk files
+    config.module.rules.push({
+      test: /chunk-[A-Z0-9]+\.js$/,
+      include: /node_modules/,
+      use: ['file-loader'],
+      type: 'javascript/auto',
+    });
+
     // Enhanced Cesium asset handling
     config.module.rules.push({
       test: /\.(png|gif|jpg|jpeg|svg|xml|json)$/,
