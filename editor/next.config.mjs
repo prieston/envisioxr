@@ -2,7 +2,6 @@ import process from 'process';
 import path from 'path';
 import withBundleAnalyzer from '@next/bundle-analyzer';
 import withPWA from '@ducanh2912/next-pwa';
-import CopyWebpackPlugin from 'copy-webpack-plugin';
 
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -57,25 +56,12 @@ const nextConfig = {
       config.externals.push('sharp');
     }
 
-    // Prevent webpack from parsing Cesium's pre-built chunk files
+    // Prevent webpack from parsing Cesium's pre-built chunk files from node_modules
     config.module.rules.push({
       test: /chunk-[A-Z0-9]+\.js$/,
       include: /node_modules/,
       use: ['file-loader'],
       type: 'javascript/auto',
-    });
-
-    // Exclude public directory from webpack module processing
-    // This prevents webpack from trying to parse Cesium worker files
-    config.module.rules.unshift({
-      test: /\.js$/,
-      include: [
-        path.resolve(process.cwd(), 'public'),
-      ],
-      type: 'asset/resource',
-      generator: {
-        emit: false, // Don't emit these files, they're already in public
-      },
     });
 
     // Enhanced Cesium asset handling
@@ -156,38 +142,8 @@ const nextConfig = {
       use: ['raw-loader', 'glslify-loader'],
     });
 
-    // Copy Cesium static assets during build (replaces manual copy script)
-    // Note: These files are copied as-is and should not be processed by webpack
-    config.plugins.push(
-      new CopyWebpackPlugin({
-        patterns: [
-          {
-            from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/Workers'),
-            to: path.resolve(process.cwd(), 'public/cesium/Workers'),
-            noErrorOnMissing: true,
-            force: false, // Don't overwrite existing files
-          },
-          {
-            from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/ThirdParty'),
-            to: path.resolve(process.cwd(), 'public/cesium/ThirdParty'),
-            noErrorOnMissing: true,
-            force: false,
-          },
-          {
-            from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/Assets'),
-            to: path.resolve(process.cwd(), 'public/cesium/Assets'),
-            noErrorOnMissing: true,
-            force: false,
-          },
-          {
-            from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/Widgets'),
-            to: path.resolve(process.cwd(), 'public/cesium/Widgets'),
-            noErrorOnMissing: true,
-            force: false,
-          },
-        ],
-      })
-    );
+    // Note: Cesium assets are pre-copied to public/cesium/ and committed to git
+    // No need to copy during build - prevents webpack from processing them
 
     // Enhanced webpack optimization for Cesium
     if (!isServer) {
@@ -222,22 +178,6 @@ const nextConfig = {
         runtimeChunk: {
           name: 'runtime',
         },
-        minimizer: config.optimization.minimizer ? [
-          ...config.optimization.minimizer.map(minimizer => {
-            // Skip minification for Cesium worker files
-            if (minimizer.constructor.name === 'TerserPlugin' || minimizer.constructor.name === 'SwcMinifyPlugin') {
-              const minimizerOptions = minimizer.options || {};
-              return {
-                ...minimizer,
-                options: {
-                  ...minimizerOptions,
-                  exclude: /[\\/](public[\\/])?cesium[\\/]Workers[\\/]/,
-                },
-              };
-            }
-            return minimizer;
-          }),
-        ] : undefined,
       };
     }
 
