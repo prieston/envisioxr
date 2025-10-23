@@ -96,13 +96,17 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
 
       {/* Glass panels overlay */}
       <LayoutContainer className="glass-layout">
-        {/* Main Content: Left Panel | Builder (Scene) | Right Panel */}
+        {/* Main Content: Left Panel (full height) | Center (Scene + Bottom) | Right Panel (full height) */}
         <MainContent>
           <LeftPanel />
           <CenterContainer>
             <SceneContainer>
               {/* This will be empty since canvas is now full viewport */}
             </SceneContainer>
+            {/* Bottom Panel - now inside center container */}
+            <BottomContainer>
+              <BottomPanel />
+            </BottomContainer>
           </CenterContainer>
           <RightPanel
             onSave={onSave}
@@ -115,11 +119,6 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
             setPendingModel={setPendingModel}
           />
         </MainContent>
-
-        {/* Bottom Panel */}
-        <BottomContainer>
-          <BottomPanel />
-        </BottomContainer>
       </LayoutContainer>
     </>
   );

@@ -115,7 +115,6 @@ export const GlowingSpan = styled(Box)<{ index: number }>(({ index }) => ({
 
 export const LayoutContainer = styled(Box)(() => ({
   display: "flex",
-  flexDirection: "column",
   height: "100vh",
   overflow: "hidden",
   position: "relative",
@@ -132,6 +131,7 @@ export const MainContent = styled(Box)(() => ({
   gap: "16px",
   position: "relative",
   pointerEvents: "none",
+  height: "100%",
 }));
 
 export const CenterContainer = styled(Box)(() => ({
