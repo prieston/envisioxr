@@ -25,6 +25,7 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
   const [pendingModel, setPendingModel] = useState<any>(null);
 
   const addModel = useSceneStore((state) => state.addModel);
+  const bottomPanelVisible = useSceneStore((state) => state.bottomPanelVisible);
 
   const handlePositionSelected = (position: [number, number, number]) => {
     setSelectedPosition(position);
@@ -103,10 +104,12 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
             <SceneContainer>
               {/* This will be empty since canvas is now full viewport */}
             </SceneContainer>
-            {/* Bottom Panel - now inside center container */}
-            <BottomContainer>
-              <BottomPanel />
-            </BottomContainer>
+            {/* Bottom Panel - now inside center container, conditionally rendered */}
+            {bottomPanelVisible && (
+              <BottomContainer>
+                <BottomPanel />
+              </BottomContainer>
+            )}
           </CenterContainer>
           <RightPanel
             onSave={onSave}

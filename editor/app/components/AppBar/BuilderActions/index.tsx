@@ -5,11 +5,13 @@ import {
   Save as SaveIcon,
   Publish as PublishIcon,
   Inventory as InventoryIcon,
+  Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { useSceneStore } from "@envisio/core";
 import { showToast } from "@envisio/core/utils";
 import { ActionButton, AssetManagerModal } from "@envisio/ui";
 import ReportGenerator from "../../Report/ReportGenerator";
+import ProjectSettingsModal from "../../Builder/ProjectSettingsModal";
 import { useAssetManager } from "./hooks/useAssetManager";
 import { useCesiumIon } from "./hooks/useCesiumIon";
 
@@ -33,6 +35,7 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
   setPendingModel,
 }) => {
   const [assetManagerOpen, setAssetManagerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { previewMode } = useSceneStore();
 
   // Custom hooks for managing assets and Cesium Ion
@@ -80,6 +83,19 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
       />
 
       <ReportGenerator disabled={previewMode} />
+
+      <ActionButton
+        icon={<SettingsIcon />}
+        label="Settings"
+        onClick={() => setSettingsOpen(true)}
+        disabled={previewMode}
+      />
+
+      {/* Project Settings Modal */}
+      <ProjectSettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
 
       {/* Asset Manager Modal */}
       <AssetManagerModal

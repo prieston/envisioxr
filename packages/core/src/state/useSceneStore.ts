@@ -130,6 +130,7 @@ interface SceneState {
   previewMode: boolean;
   previewIndex: number;
   transformMode: "translate" | "rotate" | "scale";
+  bottomPanelVisible: boolean;
   orbitControlsRef: any | null;
   scene: THREE.Scene | null;
   setGridEnabled: (enabled: boolean) => void;
@@ -151,6 +152,7 @@ interface SceneState {
   setCesiumCurrentTime: (time: string | null) => void;
   setPreviewMode: (value: boolean) => void;
   setTransformMode: (mode: "translate" | "rotate" | "scale") => void;
+  setBottomPanelVisible: (visible: boolean) => void;
   setObjects: (newObjects: Model[]) => void;
   addModel: (model: Partial<Model>) => void;
   selectObject: (id: string, ref: THREE.Object3D | null) => void;
@@ -269,6 +271,7 @@ const useSceneStore = create<SceneState>((set) => ({
   capturingPOV: false,
   previewMode: false,
   transformMode: "translate",
+  bottomPanelVisible: true,
   // Time simulation defaults
   cesiumLightingEnabled: false,
   cesiumShadowsEnabled: false,
@@ -302,6 +305,7 @@ const useSceneStore = create<SceneState>((set) => ({
   setCesiumCurrentTime: (time) => set({ cesiumCurrentTime: time }),
   setPreviewMode: (value) => set({ previewMode: value }),
   setTransformMode: (mode) => set({ transformMode: mode }),
+  setBottomPanelVisible: (visible) => set({ bottomPanelVisible: visible }),
   setObjects: (newObjects) => set({ objects: newObjects }),
   addModel: (model) =>
     set((state) => {
