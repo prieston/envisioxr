@@ -37,17 +37,9 @@ const LeftPanel: React.FC = () => {
       setBasemapType,
       { engine }
     );
-  }, [
-    engine,
-    gridEnabled,
-    setGridEnabled,
-    skyboxType,
-    setSkyboxType,
-    ambientLightIntensity,
-    setAmbientLightIntensity,
-    basemapType,
-    setBasemapType,
-  ]);
+    // Zustand setters are stable and don't need to be in dependency array
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engine, gridEnabled, skyboxType, ambientLightIntensity, basemapType]);
 
   return (
     <LeftPanelContainer
