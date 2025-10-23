@@ -123,13 +123,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     localObject?.type === "cesium-ion-tileset" ||
     localObject?.type === "cesiumIonAsset";
 
-  // Clear any selected Cesium feature on mount
-  useEffect(() => {
-    const setSelectedCesiumFeature =
-      useSceneStore.getState().setSelectedCesiumFeature;
-    setSelectedCesiumFeature(null);
-  }, []);
-
   useEffect(() => {
     if (selectedObject) {
       setLocalObject(selectedObject);
