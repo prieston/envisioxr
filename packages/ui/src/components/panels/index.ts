@@ -110,7 +110,6 @@ export const TabPanel: React.FC<BoxProps> = styled(Box)(
   ({ theme }: { theme: any }) => ({
     flex: 1,
     overflow: "auto",
-    paddingBottom: theme.spacing(2),
     paddingRight: theme.spacing(0.5),
     maxHeight: "calc(100vh - 200px)",
     "&::-webkit-scrollbar": {

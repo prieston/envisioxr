@@ -88,6 +88,7 @@ export const AddButton: React.FC<IconButtonProps> = styled(IconButton)(
     padding: theme.spacing(1, 1.5),
     width: "140px",
     minWidth: "140px",
+    minHeight: "52px",
     maxWidth: "140px",
     height: "100%",
     flexShrink: 0,

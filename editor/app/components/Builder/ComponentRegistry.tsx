@@ -3,6 +3,7 @@ import React from "react";
 import {
   ViewModeControls,
   PlaybackControls,
+  BottomPanelControls,
   BasemapSelector,
   ObservationPointsList,
 } from "@envisio/ui";
@@ -30,6 +31,7 @@ export type AnyComponent = React.ComponentType<any>; // intentionally permissive
 export const componentRegistry: Record<string, AnyComponent> = {
   ViewModeControls: ViewModeControls,
   PlaybackControls: PlaybackControls,
+  BottomPanelControls: BottomPanelControls,
   ObservationPointsList: ObservationPointsList,
   SceneObjectsList: SceneObjectsListWrapper,
   LocationSearchSection: ThreeJSLocationSearchSection,

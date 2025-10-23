@@ -32,11 +32,12 @@ export const createThreeJSBottomPanelConfig = (
         label: "Controls",
         settings: [
           {
-            id: "playback-controls",
+            id: "bottom-panel-controls",
             type: "custom",
-            label: "Playback",
-            customComponent: "PlaybackControls",
+            label: "Controls",
+            customComponent: "BottomPanelControls",
             customProps: {
+              // Playback props
               isPlaying,
               togglePlayback,
               next: nextObservation,
@@ -46,14 +47,7 @@ export const createThreeJSBottomPanelConfig = (
                 currentIndex >= 0 &&
                 currentIndex < observationPoints.length - 1,
               canPrev: observationPoints.length > 0 && currentIndex > 0,
-            },
-          },
-          {
-            id: "observation-points",
-            type: "custom",
-            label: "Observation Points",
-            customComponent: "ObservationPointsList",
-            customProps: {
+              // Observation points props
               observationPoints,
               selectedObservation,
               addObservationPoint,
@@ -103,11 +97,12 @@ export const createCesiumBottomPanelConfig = (
         label: "Controls",
         settings: [
           {
-            id: "playback-controls",
+            id: "bottom-panel-controls",
             type: "custom",
-            label: "Playback",
-            customComponent: "PlaybackControls",
+            label: "Controls",
+            customComponent: "BottomPanelControls",
             customProps: {
+              // Playback props
               isPlaying,
               togglePlayback,
               next: nextObservation,
@@ -117,14 +112,7 @@ export const createCesiumBottomPanelConfig = (
                 currentIndex >= 0 &&
                 currentIndex < observationPoints.length - 1,
               canPrev: observationPoints.length > 0 && currentIndex > 0,
-            },
-          },
-          {
-            id: "observation-points",
-            type: "custom",
-            label: "Observation Points",
-            customComponent: "ObservationPointsList",
-            customProps: {
+              // Observation points props
               observationPoints,
               selectedObservation,
               addObservationPoint,

@@ -4,6 +4,7 @@ export { default as ViewModeControls } from "./controls/ViewModeControls";
 export * as ViewModeControlsStyles from "./controls/ViewModeControls.styles";
 export { default as PlaybackControls } from "./controls/PlaybackControls";
 export * as PlaybackControlsStyles from "./controls/PlaybackControls.styles";
+export { BottomPanelControls } from "./controls/BottomPanelControls";
 export { default as TransformModeControls } from "./controls/TransformModeControls";
 export { default as ObservationPointsList } from "./lists/ObservationPointsList";
 export type { ObservationPointsListProps } from "./lists/ObservationPointsList";
