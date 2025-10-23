@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { showToast } from "@envisio/core/utils";
 import { useSceneStore } from "@envisio/core";
-import { dataURLtoBlob, uploadFileWithProgress } from "@envisio/ui";
+import { dataURLtoBlob } from "@envisio/ui";
 import { clientEnv } from "@/lib/env/client";
 import type { LibraryAsset } from "@envisio/ui";
 
@@ -51,38 +51,87 @@ export const useAssetManager = ({
     setUploadProgress(0);
 
     try {
-      // Upload the model file using the generic upload utility
-      const modelUpload = await uploadFileWithProgress(
-        data.file,
-        data.file.name,
-        data.file.type,
-        "/api/s3-upload",
-        { bucketName: clientEnv.NEXT_PUBLIC_DO_SPACES_BUCKET },
-        setUploadProgress
-      );
+      // Step 1: Get presigned URL for model file
+      const signedUrlResponse = await fetch("/api/models", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: data.file.name,
+          fileType: data.file.type,
+        }),
+      });
 
-      // Upload thumbnail if available
+      if (!signedUrlResponse.ok) {
+        throw new Error("Failed to get signed URL");
+      }
+
+      const { signedUrl, key } = await signedUrlResponse.json();
+
+      // Step 2: Upload model file directly to S3 using presigned URL
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener("progress", (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round(
+              (event.loaded / event.total) * 100
+            );
+            setUploadProgress(percentComplete);
+          }
+        });
+
+        xhr.addEventListener("load", () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
+        });
+
+        xhr.addEventListener("error", () => reject(new Error("Upload failed")));
+        xhr.open("PUT", signedUrl);
+        xhr.setRequestHeader("Content-Type", data.file.type);
+        xhr.send(data.file);
+      });
+
+      // Upload thumbnail if available (using presigned URL)
       let thumbnailUrl = null;
       if (data.screenshot) {
         const thumbnailBlob = dataURLtoBlob(data.screenshot);
         const thumbnailFileName = `${data.friendlyName}-thumbnail.png`;
-        const thumbnailUpload = await uploadFileWithProgress(
-          thumbnailBlob,
-          thumbnailFileName,
-          "image/png",
-          "/api/s3-upload",
-          { bucketName: clientEnv.NEXT_PUBLIC_DO_SPACES_BUCKET },
-          null
-        );
-        thumbnailUrl = thumbnailUpload.url;
+
+        // Get presigned URL for thumbnail
+        const thumbSignedUrlResponse = await fetch("/api/models", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: thumbnailFileName,
+            fileType: "image/png",
+          }),
+        });
+
+        if (thumbSignedUrlResponse.ok) {
+          const { signedUrl: thumbSignedUrl, key: thumbKey } =
+            await thumbSignedUrlResponse.json();
+
+          // Upload thumbnail directly to S3
+          await fetch(thumbSignedUrl, {
+            method: "PUT",
+            headers: { "Content-Type": "image/png" },
+            body: thumbnailBlob,
+          });
+
+          // Construct thumbnail URL
+          thumbnailUrl = `${clientEnv.NEXT_PUBLIC_DO_SPACES_ENDPOINT}/${clientEnv.NEXT_PUBLIC_DO_SPACES_BUCKET}/${thumbKey}`;
+        }
       }
 
-      // Save model metadata to database
+      // Step 3: Save model metadata to database
       const res = await fetch("/api/models", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          key: modelUpload.key,
+          key: key,
           originalFilename: data.file.name,
           name: data.friendlyName,
           fileType: data.file.type,
