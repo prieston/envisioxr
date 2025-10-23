@@ -105,7 +105,7 @@ const RightPanel: React.FC<RightPanelProps> = ({
       </Box>
 
       {/* Panel Content */}
-      <Box sx={{ flex: 1, overflow: "auto" }}>
+      <Box sx={{ flex: 1, overflow: "hidden" }}>
         <GenericPanel
           Container={({ children }) => <>{children}</>}
           config={config}
