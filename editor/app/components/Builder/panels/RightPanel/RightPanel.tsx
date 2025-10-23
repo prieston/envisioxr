@@ -73,7 +73,6 @@ const RightPanel: React.FC<RightPanelProps> = ({
       { engine }
     );
     // Zustand setters are stable and don't need to be in dependency array
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine, selectedObject, selectedObservation, viewMode, controlSettings]);
 
   return (

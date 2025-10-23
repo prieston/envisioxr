@@ -231,7 +231,6 @@ const CesiumFeatureSelector: React.FC = () => {
         handlerRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cesiumViewer, cesiumInstance, previewMode]);
 
   // Watch for external deselection (e.g., Clear button) and restore highlight
@@ -240,7 +239,6 @@ const CesiumFeatureSelector: React.FC = () => {
       restoreHighlight();
     }
     // restoreHighlight is memoized with useCallback and stable
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCesiumFeature]);
 
   return null;
