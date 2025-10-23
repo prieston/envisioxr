@@ -15,10 +15,16 @@ const BottomPanel: React.FC = () => {
   const isPlaying = useSceneStore((state) => state.isPlaying);
   const togglePlayback = useSceneStore((state) => state.togglePlayback);
   const observationPoints = useSceneStore((state) => state.observationPoints);
-  const selectedObservation = useSceneStore((state) => state.selectedObservation);
-  const addObservationPoint = useSceneStore((state) => state.addObservationPoint);
+  const selectedObservation = useSceneStore(
+    (state) => state.selectedObservation
+  );
+  const addObservationPoint = useSceneStore(
+    (state) => state.addObservationPoint
+  );
   const selectObservation = useSceneStore((state) => state.selectObservation);
-  const deleteObservationPoint = useSceneStore((state) => state.deleteObservationPoint);
+  const deleteObservationPoint = useSceneStore(
+    (state) => state.deleteObservationPoint
+  );
   const nextObservation = useSceneStore((state) => state.nextObservation);
   const prevObservation = useSceneStore((state) => state.prevObservation);
   const previewMode = useSceneStore((state) => state.previewMode);

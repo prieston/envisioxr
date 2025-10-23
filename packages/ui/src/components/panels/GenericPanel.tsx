@@ -26,7 +26,7 @@ interface GenericPanelProps {
 /**
  * Generic panel component that handles tabbed UI and setting rendering.
  * This is the base component for all builder panels (Left, Right, Bottom).
- * 
+ *
  * @param Container - Styled container component (e.g., LeftPanelContainer)
  * @param config - Panel configuration with tabs and settings
  * @param renderSetting - Function to render individual settings
@@ -109,4 +109,3 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
     </Container>
   );
 };
-
