@@ -40,3 +40,13 @@ next-env.d.ts
 
 *storybook.log
 storybook-static
+
+# Large files and assets
+*.glb
+*.mp3
+*.mp4
+*.wav
+*.mov
+*.avi
+**/Cesium-ion-SDK-*/
+**/cesium-ion-sdk/
