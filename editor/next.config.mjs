@@ -20,7 +20,33 @@ const nextConfig = {
   reactStrictMode: true,
   images: {},
   experimental: {
-    esmExternals: 'loose'
+    esmExternals: 'loose',
+    // Reduce serverless function size by excluding large packages
+    serverComponentsExternalPackages: [
+      'three',
+      'cesium',
+      '@cesium/engine',
+      '@cesium/widgets',
+      '@react-three/fiber',
+      '@react-three/drei',
+      '@react-three/postprocessing',
+      '@react-three/rapier',
+      '@react-three/xr',
+      '3d-tiles-renderer',
+      'three-stdlib'
+    ],
+    outputFileTracingExcludes: {
+      '*': [
+        'node_modules/@cesium/**',
+        'node_modules/cesium/**',
+        'node_modules/three/**',
+        'node_modules/@react-three/**',
+        'node_modules/three-stdlib/**',
+        'node_modules/@swc/core-linux-x64-gnu',
+        'node_modules/@swc/core-linux-x64-musl',
+        'node_modules/@esbuild/**',
+      ],
+    },
   },
   transpilePackages: [
     '@envisio/engine-three',
@@ -52,7 +78,23 @@ const nextConfig = {
       },
     };
 
-    if (!isServer) {
+    // Mark heavy 3D libraries as external on server to reduce function size
+    if (isServer) {
+      config.externals = [
+        ...(Array.isArray(config.externals) ? config.externals : [config.externals]),
+        'three',
+        'cesium',
+        '@cesium/engine',
+        '@cesium/widgets',
+        '@react-three/fiber',
+        '@react-three/drei',
+        '@react-three/postprocessing',
+        '@react-three/rapier',
+        '@react-three/xr',
+        '3d-tiles-renderer',
+        'three-stdlib'
+      ];
+    } else {
       config.externals.push('sharp');
     }
 
