@@ -61,20 +61,19 @@ const LeftPanel: React.FC = () => {
           borderBottom: "1px solid rgba(100, 116, 139, 0.2)",
           mb: 2,
           px: 2,
+          flexShrink: 0,
         }}
       >
         <LogoHeader />
       </Box>
 
-      {/* Panel Content */}
-      <Box sx={{ flex: 1, overflow: "hidden" }}>
-        <GenericPanel
-          Container={({ children }) => <>{children}</>}
-          config={config}
-          renderSetting={(setting) => <SettingRenderer setting={setting} />}
-          previewMode={previewMode}
-        />
-      </Box>
+      {/* Panel Content - Direct pass through, no wrapper */}
+      <GenericPanel
+        Container={({ children }) => <>{children}</>}
+        config={config}
+        renderSetting={(setting) => <SettingRenderer setting={setting} />}
+        previewMode={previewMode}
+      />
     </LeftPanelContainer>
   );
 };

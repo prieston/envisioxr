@@ -32,14 +32,24 @@ const RightPanel: React.FC<RightPanelProps> = ({
   const previewMode = useSceneStore((state) => state.previewMode);
   const { engine } = useWorldStore();
 
-  const selectedObservation = useSceneStore((state) => state.selectedObservation);
+  const selectedObservation = useSceneStore(
+    (state) => state.selectedObservation
+  );
   const viewMode = useSceneStore((state) => state.viewMode);
   const controlSettings = useSceneStore((state) => state.controlSettings);
-  const updateObjectProperty = useSceneStore((state) => state.updateObjectProperty);
-  const updateObservationPoint = useSceneStore((state) => state.updateObservationPoint);
-  const deleteObservationPoint = useSceneStore((state) => state.deleteObservationPoint);
+  const updateObjectProperty = useSceneStore(
+    (state) => state.updateObjectProperty
+  );
+  const updateObservationPoint = useSceneStore(
+    (state) => state.updateObservationPoint
+  );
+  const deleteObservationPoint = useSceneStore(
+    (state) => state.deleteObservationPoint
+  );
   const setCapturingPOV = useSceneStore((state) => state.setCapturingPOV);
-  const updateControlSettings = useSceneStore((state) => state.updateControlSettings);
+  const updateControlSettings = useSceneStore(
+    (state) => state.updateControlSettings
+  );
 
   // For selectedObject, exclude weatherData to prevent re-renders when IoT updates
   const selectedObject = useSceneStore((state) => {
@@ -88,6 +98,7 @@ const RightPanel: React.FC<RightPanelProps> = ({
           borderBottom: "1px solid rgba(100, 116, 139, 0.2)",
           mb: 2,
           px: 2,
+          flexShrink: 0,
         }}
       >
         {onPublish && (
@@ -104,15 +115,13 @@ const RightPanel: React.FC<RightPanelProps> = ({
         )}
       </Box>
 
-      {/* Panel Content */}
-      <Box sx={{ flex: 1, overflow: "hidden" }}>
-        <GenericPanel
-          Container={({ children }) => <>{children}</>}
-          config={config}
-          renderSetting={(setting) => <SettingRenderer setting={setting} />}
-          previewMode={previewMode}
-        />
-      </Box>
+      {/* Panel Content - Direct pass through, no wrapper */}
+      <GenericPanel
+        Container={({ children }) => <>{children}</>}
+        config={config}
+        renderSetting={(setting) => <SettingRenderer setting={setting} />}
+        previewMode={previewMode}
+      />
     </RightPanelContainer>
   );
 };
