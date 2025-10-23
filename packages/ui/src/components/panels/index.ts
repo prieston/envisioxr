@@ -3,6 +3,8 @@ import { Box } from "@mui/material";
 import type { BoxProps } from "@mui/material/Box";
 import type React from "react";
 
+export { GenericPanel } from "./GenericPanel";
+
 export interface PanelContainerProps {
   previewMode: boolean;
 }
