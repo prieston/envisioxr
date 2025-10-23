@@ -10,9 +10,6 @@ import { useSceneStore } from "@envisio/core";
 const PlaybackManager: React.FC = () => {
   const isPlaying = useSceneStore((state) => state.isPlaying);
   const observationPoints = useSceneStore((state) => state.observationPoints);
-  const previewIndex = useSceneStore((state) => state.previewIndex);
-  const setPreviewIndex = useSceneStore((state) => state.setPreviewIndex);
-  const setPreviewMode = useSceneStore((state) => state.setPreviewMode);
   const nextObservation = useSceneStore((state) => state.nextObservation);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);

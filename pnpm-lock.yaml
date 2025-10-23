@@ -138,9 +138,6 @@ importers:
       cesium:
         specifier: ^1.131.0
         version: 1.133.1
-      copy-webpack-plugin:
-        specifier: ^13.0.0
-        version: 13.0.1(webpack@5.101.3)
       css-loader:
         specifier: ^7.1.2
         version: 7.1.2(webpack@5.101.3)
@@ -331,6 +328,9 @@ importers:
         specifier: '>=0.170.0 <1'
         version: 0.170.0
     devDependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.884.0
+        version: 3.884.0
       '@types/cesium':
         specifier: ^1.70.4
         version: 1.70.4
@@ -4819,12 +4819,6 @@ packages:
   cookie@0.7.2:
     resolution: {integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==}
     engines: {node: '>= 0.6'}
-
-  copy-webpack-plugin@13.0.1:
-    resolution: {integrity: sha512-J+YV3WfhY6W/Xf9h+J1znYuqTye2xkBUIGyTPWuBAT27qajBa5mR4f8WBmfDY3YjRftT2kqZZiLi1qf0H+UOFw==}
-    engines: {node: '>= 18.12.0'}
-    peerDependencies:
-      webpack: ^5.1.0
 
   core-js-compat@3.45.1:
     resolution: {integrity: sha512-tqTt5T4PzsMIZ430XGviK4vzYSoeNJ6CXODi6c/voxOT6IZqBht5/EKaSNnYiEjjRYxjVz7DQIsOsY0XNi8PIA==}
@@ -15001,15 +14995,6 @@ snapshots:
   convert-source-map@2.0.0: {}
 
   cookie@0.7.2: {}
-
-  copy-webpack-plugin@13.0.1(webpack@5.101.3):
-    dependencies:
-      glob-parent: 6.0.2
-      normalize-path: 3.0.0
-      schema-utils: 4.3.2
-      serialize-javascript: 6.0.2
-      tinyglobby: 0.2.15
-      webpack: 5.101.3
 
   core-js-compat@3.45.1:
     dependencies:

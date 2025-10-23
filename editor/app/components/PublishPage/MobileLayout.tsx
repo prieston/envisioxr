@@ -21,6 +21,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import LogoHeader from "../AppBar/LogoHeader";
+import type { SceneProps } from "@envisio/engine-three";
 
 const PreviewScene = dynamic(() => import("../Builder/Scene/PreviewScene"), {
   ssr: false,
@@ -36,7 +37,7 @@ type Project = {
   id?: string | number;
   title: string;
   description?: string;
-  sceneData: Parameters<typeof PreviewScene>[0]["initialSceneData"];
+  sceneData: NonNullable<SceneProps["initialSceneData"]>;
 };
 
 interface MobileLayoutProps {

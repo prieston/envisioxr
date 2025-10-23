@@ -16,6 +16,7 @@ const SceneObjectsListWrapper: React.FC = () => {
   // For selectedObject, exclude weatherData to prevent re-renders
   const selectedObject = useSceneStore((state) => {
     if (!state.selectedObject) return null;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { weatherData, ...rest } = state.selectedObject;
     return rest;
   });

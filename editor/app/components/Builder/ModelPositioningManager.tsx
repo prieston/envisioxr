@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import ModelPositioningOverlay from "./ModelPositioningOverlay";
-import { getPositionAtScreenPoint } from "@envisio/engine-cesium";
 import * as THREE from "three";
 import { setupCesiumClickSelector } from "@envisio/engine-cesium";
 
