@@ -1,44 +1,55 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import ViewModeControls from "./ViewModeControls";
-import PlaybackControls from "./PlaybackControls";
-import ObservationPointsList from "./ObservationPointsList";
-import SceneObjectsList from "./SceneObjectsList";
-import LocationSearchSection from "./LocationSearchSection";
-import PropertiesPanel from "./PropertiesPanel";
-import AssetLibraryPanel from "./AssetLibraryPanel";
+import {
+  ViewModeControls,
+  PlaybackControls,
+  BasemapSelector,
+  ObservationPointsList,
+} from "@envisio/ui";
+import SceneObjectsListWrapper from "../Builder/lists/SceneObjectsListWrapper";
+import PropertiesPanel from "../Builder/properties/PropertiesPanel";
+import AssetLibraryPanel from "../Builder/assets/AssetLibraryPanel";
 import LogoHeader from "../AppBar/LogoHeader";
 import ReportGenerator from "../Report/ReportGenerator";
-import BasemapSelector from "../Environment/BasemapSelector";
-import ThreeJSLocationSearchSection from "./ThreeJSLocationSearchSection";
-import CesiumLocationSearchSection from "./CesiumLocationSearchSection";
-import CesiumBasemapSelector from "./CesiumBasemapSelector";
-import CesiumSkyboxSelector from "./CesiumSkyboxSelector";
-import CesiumViewModeControls from "./CesiumViewModeControlsNew";
-import CesiumCameraSettings from "./CesiumCameraSettings";
-import CesiumSimulationInstructions from "./CesiumSimulationInstructions";
+import BuilderActions from "../AppBar/BuilderActions";
+import { ThreeJSLocationSearchSection } from "@envisio/engine-three/components";
+import {
+  CesiumLocationSearchSection,
+  CesiumBasemapSelector,
+  CesiumDateTimeSelector,
+  CesiumIonAssetsManager,
+} from "@envisio/engine-cesium/components";
+import {
+  CesiumViewModeControls,
+  CesiumCameraSettings,
+  CesiumSimulationInstructions,
+} from "@envisio/engine-cesium/components";
 
-export const componentRegistry: Record<string, React.ComponentType<any>> = {
+export type AnyComponent = React.ComponentType<any>; // intentionally permissive
+
+export const componentRegistry: Record<string, AnyComponent> = {
   ViewModeControls: ViewModeControls,
   PlaybackControls: PlaybackControls,
   ObservationPointsList: ObservationPointsList,
-  SceneObjectsList: SceneObjectsList,
-  LocationSearchSection: LocationSearchSection,
+  SceneObjectsList: SceneObjectsListWrapper,
+  LocationSearchSection: ThreeJSLocationSearchSection,
   PropertiesPanel: PropertiesPanel,
   AssetLibraryPanel: AssetLibraryPanel,
   LogoHeader: LogoHeader,
   ReportGenerator: ReportGenerator,
+  BuilderActions: BuilderActions,
   BasemapSelector: BasemapSelector,
   ThreeJSLocationSearchSection: ThreeJSLocationSearchSection,
   CesiumLocationSearchSection: CesiumLocationSearchSection,
   CesiumBasemapSelector: CesiumBasemapSelector,
-  CesiumSkyboxSelector: CesiumSkyboxSelector,
+  CesiumDateTimeSelector: CesiumDateTimeSelector,
+  CesiumIonAssetsManager: CesiumIonAssetsManager,
   CesiumViewModeControls: CesiumViewModeControls,
   CesiumCameraSettings: CesiumCameraSettings,
   CesiumSimulationInstructions: CesiumSimulationInstructions,
 };
 
-export const getComponent = (
-  componentName: string
-): React.ComponentType<any> | null => {
-  return componentRegistry[componentName] || null;
+export const getComponent = (componentName: string): AnyComponent | null => {
+  const component = componentRegistry[componentName] || null;
+  return component;
 };

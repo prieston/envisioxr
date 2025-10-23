@@ -4,12 +4,14 @@ import React, { useState } from "react";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useRouter } from "next/navigation";
-import useProjects from "@/app/hooks/useProjects";
-import CreateProjectCard from "@/app/components/Dashboard/CreateProjectCard";
-import ProjectCard from "@/app/components/Dashboard/ProjectCard";
-import OptionsMenu from "@/app/components/Dashboard/OptionsMenu";
-import DeleteConfirmationDialog from "@/app/components/Dashboard/DeleteConfirmationDialog";
-import HelpPopup from "@/app/components/Dashboard/HelpPopup";
+import useProjects from "../../hooks/useProjects";
+import {
+  DashboardCreateProjectCard as CreateProjectCard,
+  DashboardProjectCard as ProjectCard,
+  DashboardOptionsMenu as OptionsMenu,
+  DashboardHelpPopup as HelpPopup,
+  DashboardDeleteConfirmationDialog as DeleteConfirmationDialog,
+} from "@envisio/ui";
 import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 
 // Styled components for animated background

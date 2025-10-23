@@ -90,19 +90,30 @@ enum Engine {
 }
 
 model Asset {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   userId           String
   projectId        String? // asset can optionally be linked to a project
+  assetType        AssetType @default(model) // Type of asset: model or cesiumIonAsset
   fileUrl          String // URL to the file in your cloud storage
   fileType         String // e.g., "glb", "3dm", "jpg", etc.
   originalFilename String
+  name             String? // User-defined friendly name for the asset
+  description      String? // User-defined description of the asset
   thumbnail        String? // URL for the captured thumbnail image
   metadata         Json? // Stores descriptive information about the model
-  createdAt        DateTime @default(now())
+  // Cesium Ion specific fields
+  cesiumAssetId    String? // Cesium Ion asset ID (only for cesiumIonAsset type)
+  cesiumApiKey     String? // Cesium Ion API key (only for cesiumIonAsset type)
+  createdAt        DateTime  @default(now())
 
   // Relations:
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+}
+
+enum AssetType {
+  model // Regular 3D model (GLB, GLTF)
+  cesiumIonAsset // Cesium Ion georeferenced asset
 }
 
 // Subscription model to track user subscriptions via Stripe

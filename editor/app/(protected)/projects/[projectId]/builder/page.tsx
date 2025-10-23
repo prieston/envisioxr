@@ -4,10 +4,9 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Box, CircularProgress } from "@mui/material";
 import AdminLayout from "../../../../../app/components/Builder/AdminLayout";
-import SceneCanvas from "../../../../../app/components/Builder/SceneCanvas";
-import useSceneStore from "../../../../../app/hooks/useSceneStore";
-import useWorldStore from "../../../../../app/hooks/useWorldStore";
-import { showToast } from "../../../../../app/utils/toastUtils";
+import SceneCanvas from "../../../../../app/components/Builder/Scene/SceneCanvas";
+import { useSceneStore, useWorldStore } from "@envisio/core";
+import { showToast } from "@envisio/ui";
 import { toast } from "react-toastify";
 
 // Function to sanitize scene data before saving
@@ -18,7 +17,10 @@ const sanitizeSceneData = (
   selectedLocation,
   showTiles,
   basemapType,
-  cesiumIonAssets
+  cesiumIonAssets,
+  cesiumLightingEnabled,
+  cesiumShadowsEnabled,
+  cesiumCurrentTime
 ) => {
   // Ensure we have valid arrays to work with
   const safeObjects = Array.isArray(objects) ? objects : [];
@@ -195,6 +197,9 @@ const sanitizeSceneData = (
     showTiles,
     basemapType: basemapType || "cesium",
     cesiumIonAssets: Array.isArray(cesiumIonAssets) ? cesiumIonAssets : [],
+    cesiumLightingEnabled: cesiumLightingEnabled || false,
+    cesiumShadowsEnabled: cesiumShadowsEnabled || false,
+    cesiumCurrentTime: cesiumCurrentTime || null,
   };
 };
 
@@ -236,6 +241,9 @@ export default function BuilderPage() {
             showTiles,
             basemapType,
             cesiumIonAssets,
+            cesiumLightingEnabled,
+            cesiumShadowsEnabled,
+            cesiumCurrentTime,
           } = data.project.sceneData;
 
           if (Array.isArray(objects)) {
@@ -259,6 +267,16 @@ export default function BuilderPage() {
           }
           if (Array.isArray(cesiumIonAssets)) {
             useSceneStore.setState({ cesiumIonAssets });
+          }
+          // Restore time simulation settings
+          if (cesiumLightingEnabled !== undefined) {
+            useSceneStore.setState({ cesiumLightingEnabled });
+          }
+          if (cesiumShadowsEnabled !== undefined) {
+            useSceneStore.setState({ cesiumShadowsEnabled });
+          }
+          if (cesiumCurrentTime !== undefined) {
+            useSceneStore.setState({ cesiumCurrentTime });
           }
         }
       } catch (error) {
@@ -290,7 +308,10 @@ export default function BuilderPage() {
         storeState.selectedLocation,
         storeState.showTiles,
         storeState.basemapType,
-        storeState.cesiumIonAssets
+        storeState.cesiumIonAssets,
+        storeState.cesiumLightingEnabled,
+        storeState.cesiumShadowsEnabled,
+        storeState.cesiumCurrentTime
       );
 
       const response = await fetch(`/api/projects/${projectId}`, {

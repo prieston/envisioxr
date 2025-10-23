@@ -5,8 +5,7 @@ import { useParams } from "next/navigation";
 import { CircularProgress, Typography } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import useSceneStore from "@/app/hooks/useSceneStore";
-import useWorldStore from "@/app/hooks/useWorldStore";
+import { useSceneStore, useWorldStore } from "@envisio/core";
 import MobileLayout from "@/app/components/PublishPage/MobileLayout";
 import DesktopLayout from "@/app/components/PublishPage/DesktopLayout";
 
@@ -31,17 +30,17 @@ const PublishedScenePage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  // Destructure necessary state and actions from the store.
-  const {
-    previewMode,
-    setPreviewMode,
-    setObservationPoints,
-    observationPoints,
-    previewIndex,
-    selectObservation,
-    nextObservation,
-    prevObservation,
-  } = useSceneStore();
+  // Destructure necessary state and actions from the store using selectors
+  const previewMode = useSceneStore((state) => state.previewMode);
+  const setPreviewMode = useSceneStore((state) => state.setPreviewMode);
+  const setObservationPoints = useSceneStore(
+    (state) => state.setObservationPoints
+  );
+  const observationPoints = useSceneStore((state) => state.observationPoints);
+  const previewIndex = useSceneStore((state) => state.previewIndex);
+  const selectObservation = useSceneStore((state) => state.selectObservation);
+  const nextObservation = useSceneStore((state) => state.nextObservation);
+  const prevObservation = useSceneStore((state) => state.prevObservation);
 
   // Enable preview mode and initialize observation points on mount.
   useEffect(() => {
@@ -85,6 +84,9 @@ const PublishedScenePage = () => {
             showTiles,
             basemapType,
             cesiumIonAssets,
+            cesiumLightingEnabled,
+            cesiumShadowsEnabled,
+            cesiumCurrentTime,
           } = data.project.sceneData;
 
           // Initialize objects (GLB models, etc.)
@@ -106,6 +108,16 @@ const PublishedScenePage = () => {
           }
           if (Array.isArray(cesiumIonAssets)) {
             useSceneStore.setState({ cesiumIonAssets });
+          }
+          // Restore time simulation settings
+          if (cesiumLightingEnabled !== undefined) {
+            useSceneStore.setState({ cesiumLightingEnabled });
+          }
+          if (cesiumShadowsEnabled !== undefined) {
+            useSceneStore.setState({ cesiumShadowsEnabled });
+          }
+          if (cesiumCurrentTime !== undefined) {
+            useSceneStore.setState({ cesiumCurrentTime });
           }
         }
       } catch (error) {

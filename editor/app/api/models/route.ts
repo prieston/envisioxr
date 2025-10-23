@@ -100,12 +100,71 @@ export async function POST(request: NextRequest) {
   }
   const userId = session.user.id;
   try {
-    // Expecting a JSON body with key, originalFilename, fileType, thumbnail, and metadata
+    // Expecting a JSON body with key, originalFilename, name, fileType, thumbnail, metadata
+    // OR for Cesium Ion assets: assetType, cesiumAssetId, cesiumApiKey, name
     const body = await request.json();
-    const { key, originalFilename, fileType, thumbnail, metadata } = body;
-    if (!key || !originalFilename || !fileType) {
-      return NextResponse.json({ error: "Missing file data" }, { status: 400 });
+    console.log("Creating asset with data:", body);
+
+    const {
+      key,
+      originalFilename,
+      name,
+      fileType,
+      thumbnail,
+      metadata,
+      assetType,
+      cesiumAssetId,
+      cesiumApiKey,
+      description,
+    } = body;
+
+    // Handle Cesium Ion Asset
+    if (assetType === "cesiumIonAsset") {
+      if (!cesiumAssetId) {
+        return NextResponse.json(
+          { error: "Missing cesiumAssetId for Cesium Ion asset" },
+          { status: 400 }
+        );
+      }
+      if (!name) {
+        return NextResponse.json(
+          { error: "Missing name for Cesium Ion asset" },
+          { status: 400 }
+        );
+      }
+
+      const asset = await prisma.asset.create({
+        data: {
+          userId,
+          assetType: "cesiumIonAsset",
+          fileUrl: `cesium://ion/${cesiumAssetId}`, // Placeholder URL
+          fileType: "cesium-ion-tileset",
+          originalFilename: name,
+          name,
+          description: description || null,
+          thumbnail: thumbnail || null,
+          cesiumAssetId,
+          cesiumApiKey: cesiumApiKey || null,
+          metadata: metadata || {},
+        },
+      });
+      return NextResponse.json({ asset });
     }
+
+    // Handle Regular Model Upload
+    if (!key) {
+      return NextResponse.json({ error: "Missing key" }, { status: 400 });
+    }
+    if (!originalFilename) {
+      return NextResponse.json(
+        { error: "Missing originalFilename" },
+        { status: 400 }
+      );
+    }
+    if (!fileType) {
+      return NextResponse.json({ error: "Missing fileType" }, { status: 400 });
+    }
+
     // Construct the public file URL from your DigitalOcean Spaces bucket
     const fileUrl = `${serverEnv.DO_SPACES_ENDPOINT}/${serverEnv.DO_SPACES_BUCKET}/${key}`;
 
@@ -127,8 +186,11 @@ export async function POST(request: NextRequest) {
     const asset = await prisma.asset.create({
       data: {
         userId,
+        assetType: "model",
         fileUrl,
         originalFilename,
+        name: name || originalFilename, // Use provided name or fallback to originalFilename
+        description: description || null,
         fileType,
         thumbnail: thumbnail || null,
         metadata: metadataObject,

@@ -1,6 +1,6 @@
 "use client";
-import PreviewScene from "@/app/components/PreviewScene";
-import useSceneStore from "@/app/hooks/useSceneStore";
+import PreviewScene from "@/app/components/Builder/Scene/PreviewScene";
+import { useSceneStore } from "@envisio/core";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -40,6 +40,9 @@ export default function Scene() {
             selectedLocation,
             basemapType,
             cesiumIonAssets,
+            cesiumLightingEnabled,
+            cesiumShadowsEnabled,
+            cesiumCurrentTime,
           } = data.project.sceneData;
 
           // Initialize objects (GLB models, etc.)
@@ -58,6 +61,16 @@ export default function Scene() {
           }
           if (Array.isArray(cesiumIonAssets)) {
             useSceneStore.setState({ cesiumIonAssets });
+          }
+          // Restore time simulation settings
+          if (cesiumLightingEnabled !== undefined) {
+            useSceneStore.setState({ cesiumLightingEnabled });
+          }
+          if (cesiumShadowsEnabled !== undefined) {
+            useSceneStore.setState({ cesiumShadowsEnabled });
+          }
+          if (cesiumCurrentTime !== undefined) {
+            useSceneStore.setState({ cesiumCurrentTime });
           }
         }
       } catch (error) {

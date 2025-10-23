@@ -1,48 +1,46 @@
-import Link from "next/link";
-import { Box } from "@mui/material";
+"use client";
+import React, { useMemo } from "react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useThemeMode } from "@/lib/ThemeModeProvider";
+import Link from "next/link";
+import { useThemeMode } from "@envisio/ui";
 
 export default function LogoHeader() {
-  const [logoPath, setLogoPath] = useState("/images/logo/logo-dark.svg");
-  const [isPSM, setIsPSM] = useState(false);
   const { mode } = useThemeMode();
 
-  useEffect(() => {
-    // Check if we're in the browser environment
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      if (hostname === "psm.envisioxr.com") {
-        setLogoPath("/images/logo/psm-logo-new.png");
-        setIsPSM(true);
-      } else {
-        setLogoPath("/images/logo/logo-light.svg");
-        setIsPSM(false);
-      }
+  const { src, alt, width, height } = useMemo(() => {
+    const host = typeof window !== "undefined" ? window.location.host : "";
+    const isPSM = /(^|\.)psm\.envisioxr\.com$/i.test(host);
+    if (isPSM) {
+      return {
+        src: "/images/logo/psm-logo-new.png",
+        alt: "PSM",
+        width: 140,
+        height: 28,
+      };
     }
-  }, []);
+    const isDark = mode === "dark";
+    return {
+      src: isDark
+        ? "/images/logo/logo-dark.svg"
+        : "/images/logo/logo-light.svg",
+      alt: "EnvisioXR",
+      width: 140,
+      height: 28,
+    };
+  }, [mode]);
+
+  if (!src) return <span data-mode={mode}>Envisio</span>;
 
   return (
-    <Link href="/dashboard" passHref legacyBehavior>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          cursor: "pointer", // Indicates clickable element
-        }}
-      >
-        <Image
-          src={logoPath}
-          alt="Logo"
-          width={isPSM ? 128 : 120}
-          height={isPSM ? 21 : 40}
-          style={{
-            filter: isPSM && mode === "dark" ? "brightness(2)" : undefined,
-          }}
-        />
-      </Box>
+    <Link href="/" aria-label="Go to Home">
+      <Image
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        priority
+        style={{ height: 28, width: "auto" }}
+      />
     </Link>
   );
 }

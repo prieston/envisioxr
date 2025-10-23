@@ -17,7 +17,19 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@prisma": ["../packages/prisma"]
+      "@prisma": ["../packages/prisma"],
+      "@envisio/core": ["../packages/core/src/index.ts"],
+      "@envisio/core/*": ["../packages/core/src/*"],
+      "@envisio/ui": ["../packages/ui/src/index.ts"],
+      "@envisio/ui/*": ["../packages/ui/src/*"],
+      "@envisio/config": ["../packages/config/src/index.ts"],
+      "@envisio/config/*": ["../packages/config/src/*"],
+      "@envisio/engine-three/*": ["../packages/engine-three/src/*"],
+      "@envisio/engine-cesium/*": ["../packages/engine-cesium/src/*"],
+      "@envisio/engine-three": ["../packages/engine-three/src/index.ts"],
+      "@envisio/engine-cesium": ["../packages/engine-cesium/src/index.ts"],
+      "@envisio/ion-sdk": ["../packages/ion-sdk/src/index.ts"],
+      "@envisio/ion-sdk/*": ["../packages/ion-sdk/src/*"]
     },
   },
   "include": [

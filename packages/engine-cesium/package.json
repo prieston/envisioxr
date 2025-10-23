@@ -1,0 +1,49 @@
+{
+  "name": "@envisio/engine-cesium",
+  "version": "0.0.1",
+  "private": true,
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./helpers": {
+      "import": "./dist/helpers/index.js",
+      "types": "./dist/helpers/index.d.ts"
+    },
+    "./components": {
+      "import": "./dist/components/index.js",
+      "types": "./dist/components/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "@cesium/engine": "^20.0.1",
+    "@envisio/core": "workspace:*",
+    "@envisio/ion-sdk": "workspace:*",
+    "@mui/icons-material": "^5.0.0",
+    "@mui/material": "^5.18.0",
+    "@react-three/drei": "^9.92.7",
+    "@react-three/fiber": "^8.15.11",
+    "cesium": "^1.133.0",
+    "next": "^14.0.0",
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/cesium": "^1.70.4",
+    "@types/node": "^20.11.30",
+    "@types/react": "^18.0.0",
+    "@types/three": "^0.170.0",
+    "@types/uuid": "^9.0.8",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.170.0 <1"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  }
+}

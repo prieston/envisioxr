@@ -1,7 +1,5 @@
 import React from "react";
 import {
-  Box,
-  Typography,
   Switch,
   FormControlLabel,
   Select,
@@ -10,35 +8,15 @@ import {
   Button,
   TextField,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import { PanelSetting } from "../../types/panelConfig";
+import {
+  SettingContainer,
+  CustomSettingContainer,
+  SettingLabel,
+  SettingDescription,
+} from "./SettingRenderer.styles";
+import { PanelSetting } from "@envisio/core/types";
 import { getComponent } from "./ComponentRegistry";
-
-const SettingContainer = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-  padding: theme.spacing(1.5),
-  "&:last-child": {
-    marginBottom: 0,
-  },
-}));
-
-const CustomSettingContainer = styled(Box)(() => ({
-  display: "flex",
-  alignItems: "center",
-}));
-
-const SettingLabel = styled(Typography)(({ theme }) => ({
-  fontSize: "0.9rem",
-  fontWeight: 500,
-  marginBottom: theme.spacing(0.5),
-  color: theme.palette.text.primary,
-}));
-
-const SettingDescription = styled(Typography)(({ theme }) => ({
-  fontSize: "0.8rem",
-  color: theme.palette.text.secondary,
-  marginBottom: theme.spacing(1),
-}));
+import { textFieldStyles, selectStyles, menuItemStyles } from "@envisio/ui";
 
 interface SettingRendererProps {
   setting: PanelSetting;
@@ -76,9 +54,18 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
                 checked={value ?? setting.defaultValue ?? false}
                 onChange={(e) => handleChange(e.target.checked)}
                 disabled={setting.disabled}
+                sx={{
+                  "& .MuiSwitch-switchBase.Mui-checked": {
+                    color: "#2563eb",
+                  },
+                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                    backgroundColor: "#2563eb",
+                  },
+                }}
               />
             }
             label=""
+            sx={{ margin: 0 }}
           />
         );
 
@@ -93,6 +80,24 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             marks={setting.marks}
             disabled={setting.disabled}
             valueLabelDisplay="auto"
+            sx={{
+              color: "#2563eb",
+              height: 4,
+              "& .MuiSlider-thumb": {
+                width: 16,
+                height: 16,
+                "&:hover, &.Mui-focusVisible": {
+                  boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+                },
+              },
+              "& .MuiSlider-track": {
+                border: "none",
+              },
+              "& .MuiSlider-rail": {
+                opacity: 0.3,
+                backgroundColor: "rgba(100, 116, 139, 0.3)",
+              },
+            }}
           />
         );
 
@@ -104,9 +109,14 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             fullWidth
             size="small"
             disabled={setting.disabled}
+            sx={selectStyles}
           >
             {setting.options?.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
+              <MenuItem
+                key={option.value}
+                value={option.value}
+                sx={menuItemStyles}
+              >
                 {option.label}
               </MenuItem>
             ))}
@@ -121,6 +131,19 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             disabled={setting.disabled}
             fullWidth
             size="small"
+            sx={{
+              borderRadius: "8px",
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.75rem", // 12px - button text
+              borderColor: "rgba(37, 99, 235, 0.3)",
+              color: "#2563eb",
+              padding: "6px 16px",
+              "&:hover": {
+                borderColor: "#2563eb",
+                backgroundColor: "rgba(37, 99, 235, 0.08)",
+              },
+            }}
           >
             {setting.label}
           </Button>
@@ -135,6 +158,7 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             size="small"
             disabled={setting.disabled}
             variant="outlined"
+            sx={textFieldStyles}
           />
         );
 
@@ -153,6 +177,7 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
               max: setting.max,
               step: setting.step,
             }}
+            sx={textFieldStyles}
           />
         );
 

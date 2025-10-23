@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import type { World, Engine } from '../types/world';
+import { create } from "zustand";
+import type { World, Engine } from "@envisio/config";
 
 interface WorldState {
   activeWorld: World | null;
@@ -13,9 +13,9 @@ interface WorldState {
 
 const useWorldStore = create<WorldState>((set) => ({
   activeWorld: null,
-  engine: 'three',
+  engine: "three",
   setActiveWorld: (world) =>
-    set({ activeWorld: world, engine: world?.engine ?? 'three' }),
+    set({ activeWorld: world, engine: world?.engine ?? "three" }),
 }));
 
 export default useWorldStore;

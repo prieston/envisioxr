@@ -2,53 +2,37 @@
 
 import React from "react";
 import { Button, FormControlLabel, Switch, Typography } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import {
+  DesktopContainer,
+  DesktopSidebar,
+  SidebarContent,
+  ButtonGroupContainer,
+  DesktopSceneContainer,
+  Separator,
+} from "./DesktopLayout.styles";
 import LogoHeader from "../AppBar/LogoHeader";
-import PreviewScene from "../PreviewScene";
+import PreviewScene from "../Builder/Scene/PreviewScene";
 
-const DesktopContainer = styled("div")({
-  display: "flex",
-  height: "100vh",
-});
+type Observation = {
+  id?: string | number;
+  title?: string;
+  description?: string;
+};
 
-const DesktopSidebar = styled("div")(({ theme }) => ({
-  width: 300,
-  backgroundColor: theme.palette.background.paper,
-  padding: theme.spacing(2),
-  borderRight: "1px solid rgba(0,0,0,0.1)",
-  display: "flex",
-  flexDirection: "column",
-}));
-
-const SidebarContent = styled("div")({
-  overflow: "auto",
-  height: "100%",
-  marginTop: 8,
-});
-
-const ButtonGroupContainer = styled("div")(({ theme }) => ({
-  display: "flex",
-  gap: theme.spacing(1),
-  marginBottom: theme.spacing(2),
-}));
-
-const DesktopSceneContainer = styled("div")({
-  flexGrow: 1,
-  position: "relative",
-});
-
-const Separator = styled("div")({
-  borderBottom: "1px solid rgba(159, 159, 159, 0.1)",
-  marginBottom: 16,
-});
+type Project = {
+  id?: string | number;
+  title: string;
+  description?: string;
+  sceneData: Parameters<typeof PreviewScene>[0]["initialSceneData"];
+};
 
 interface DesktopLayoutProps {
-  project: any;
-  currentObservation: any;
+  project: Project;
+  currentObservation: Observation | null;
   previewMode: boolean;
   setPreviewMode: (value: boolean) => void;
   previewIndex: number;
-  observationPoints: any[];
+  observationPoints: Observation[];
   nextObservation: () => void;
   prevObservation: () => void;
 }

@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "declaration": true,
+    "declarationMap": true,
+    "moduleResolution": "node",
+    "module": "esnext",
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "strict": false,
+    "noEmit": false
+  },
+  "include": ["src", "src/types/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/plugins/**/*",
+    "src/components/Scene/SceneTransformControls.tsx"
+  ]
+}

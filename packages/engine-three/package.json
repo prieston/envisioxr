@@ -1,0 +1,39 @@
+{
+  "name": "@envisio/engine-three",
+  "version": "0.0.1",
+  "private": true,
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./components": {
+      "import": "./dist/components/index.js",
+      "types": "./dist/components/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "3d-tiles-renderer": "^0.4.7",
+    "@envisio/core": "workspace:^",
+    "@react-spring/three": "^9.7.2",
+    "@react-three/drei": "^9.92.7",
+    "@react-three/fiber": "^8.15.11",
+    "@react-three/rapier": "^1",
+    "@react-three/xr": "^6"
+  },
+  "devDependencies": {
+    "@types/three": "^0.170.0",
+    "@types/uuid": "^9.0.8",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.170.0 <1"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  }
+}

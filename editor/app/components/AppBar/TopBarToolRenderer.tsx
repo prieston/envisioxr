@@ -1,7 +1,7 @@
 import React from "react";
 import { Typography } from "@mui/material";
-import { MinimalButtonActive } from "./StyledComponents";
-import { TopBarTool } from "../../types/topBarConfig";
+import { MinimalButton } from "./StyledComponents";
+import { TopBarTool } from "@envisio/core/types";
 import { getComponent } from "../Builder/ComponentRegistry";
 
 interface TopBarToolRendererProps {
@@ -34,14 +34,23 @@ const TopBarToolRenderer: React.FC<TopBarToolRendererProps> = ({ tool }) => {
     const IconComponent = tool.icon;
 
     return (
-      <MinimalButtonActive
+      <MinimalButton
         active={tool.active}
         onClick={tool.onClick}
         disabled={tool.disabled}
       >
         {IconComponent && <IconComponent />}
-        <Typography variant="caption">{tool.label}</Typography>
-      </MinimalButtonActive>
+        <Typography
+          sx={{
+            fontSize: "0.75rem",
+            fontWeight: 400, // Normal weight
+            letterSpacing: "0.01em",
+            lineHeight: 1,
+          }}
+        >
+          {tool.label}
+        </Typography>
+      </MinimalButton>
     );
   }
 

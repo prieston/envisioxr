@@ -1,11 +1,10 @@
 import React from "react";
-import { showToast } from "@/app/utils/toastUtils";
-import useSceneStore from "@/app/hooks/useSceneStore";
+import { showToast } from "@envisio/core/utils";
+import { useSceneStore } from "@envisio/core";
 import * as THREE from "three";
-import { localToGeographic } from "@/app/utils/coordinateUtils";
-import { MinimalButton } from "../AppBar/StyledComponents";
+import { localToGeographic } from "@envisio/core/utils";
 import { Description as DescriptionIcon } from "@mui/icons-material";
-import { Typography } from "@mui/material";
+import { ActionButton } from "@envisio/ui";
 
 interface ReportGeneratorProps {
   onClose?: () => void;
@@ -477,10 +476,12 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
   };
 
   return (
-    <MinimalButton onClick={generateReport} disabled={disabled}>
-      <DescriptionIcon />
-      <Typography variant="caption">Report</Typography>
-    </MinimalButton>
+    <ActionButton
+      icon={<DescriptionIcon />}
+      label="Report"
+      onClick={generateReport}
+      disabled={disabled}
+    />
   );
 };
 
