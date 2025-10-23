@@ -231,21 +231,17 @@ const CesiumFeatureSelector: React.FC = () => {
         handlerRef.current = null;
       }
     };
-  }, [
-    cesiumViewer,
-    cesiumInstance,
-    previewMode,
-    setSelectedCesiumFeature,
-    deselectObject,
-    restoreHighlight,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cesiumViewer, cesiumInstance, previewMode]);
 
   // Watch for external deselection (e.g., Clear button) and restore highlight
   useEffect(() => {
     if (!selectedCesiumFeature) {
       restoreHighlight();
     }
-  }, [selectedCesiumFeature, restoreHighlight]);
+    // restoreHighlight is memoized with useCallback and stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCesiumFeature]);
 
   return null;
 };
