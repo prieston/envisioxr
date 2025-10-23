@@ -86,8 +86,8 @@ const RightPanel: React.FC<RightPanelProps> = ({
   ]);
 
   return (
-    <RightPanelContainer 
-      previewMode={previewMode} 
+    <RightPanelContainer
+      previewMode={previewMode}
       className="glass-panel"
       sx={{ maxHeight: "none !important", height: "calc(100vh - 32px)" }}
     >

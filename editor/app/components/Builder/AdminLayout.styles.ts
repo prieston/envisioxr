@@ -115,7 +115,6 @@ export const GlowingSpan = styled(Box)<{ index: number }>(({ index }) => ({
 
 export const LayoutContainer = styled(Box)(() => ({
   display: "flex",
-  flexDirection: "row",
   height: "100vh",
   overflow: "hidden",
   position: "relative",
@@ -171,5 +170,3 @@ export const CanvasContainer = styled(Box)(() => ({
   zIndex: 1,
   pointerEvents: "auto",
 }));
-
-
