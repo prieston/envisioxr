@@ -56,10 +56,11 @@ const LeftPanel: React.FC = () => {
         sx={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-start",
           height: "64px",
           borderBottom: "1px solid rgba(100, 116, 139, 0.2)",
           mb: 2,
+          px: 2,
         }}
       >
         <LogoHeader />
