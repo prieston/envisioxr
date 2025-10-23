@@ -50,7 +50,11 @@ const LeftPanel: React.FC = () => {
   ]);
 
   return (
-    <LeftPanelContainer previewMode={previewMode} className="glass-panel">
+    <LeftPanelContainer 
+      previewMode={previewMode} 
+      className="glass-panel"
+      sx={{ maxHeight: "none !important", height: "calc(100vh - 32px)" }}
+    >
       {/* Logo Header */}
       <Box
         sx={{
