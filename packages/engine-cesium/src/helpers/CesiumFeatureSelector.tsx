@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useSceneStore } from "@envisio/core";
 
 /**
@@ -27,7 +27,7 @@ const CesiumFeatureSelector: React.FC = () => {
   const originalColorRef = useRef<any>(null);
 
   // Helper to restore previous feature's color
-  const restoreHighlight = () => {
+  const restoreHighlight = useCallback(() => {
     if (highlightedFeatureRef.current && originalColorRef.current) {
       try {
         highlightedFeatureRef.current.color = originalColorRef.current;
@@ -37,7 +37,7 @@ const CesiumFeatureSelector: React.FC = () => {
       highlightedFeatureRef.current = null;
       originalColorRef.current = null;
     }
-  };
+  }, []);
 
   // Helper to highlight a feature
   const highlightFeature = (feature: any) => {
@@ -237,6 +237,7 @@ const CesiumFeatureSelector: React.FC = () => {
     previewMode,
     setSelectedCesiumFeature,
     deselectObject,
+    restoreHighlight,
   ]);
 
   // Watch for external deselection (e.g., Clear button) and restore highlight
@@ -244,7 +245,7 @@ const CesiumFeatureSelector: React.FC = () => {
     if (!selectedCesiumFeature) {
       restoreHighlight();
     }
-  }, [selectedCesiumFeature]);
+  }, [selectedCesiumFeature, restoreHighlight]);
 
   return null;
 };
