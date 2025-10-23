@@ -65,6 +65,19 @@ const nextConfig = {
       type: 'javascript/auto',
     });
 
+    // Exclude public directory from webpack module processing
+    // This prevents webpack from trying to parse Cesium worker files
+    config.module.rules.unshift({
+      test: /\.js$/,
+      include: [
+        path.resolve(process.cwd(), 'public'),
+      ],
+      type: 'asset/resource',
+      generator: {
+        emit: false, // Don't emit these files, they're already in public
+      },
+    });
+
     // Enhanced Cesium asset handling
     config.module.rules.push({
       test: /\.(png|gif|jpg|jpeg|svg|xml|json)$/,
@@ -144,6 +157,7 @@ const nextConfig = {
     });
 
     // Copy Cesium static assets during build (replaces manual copy script)
+    // Note: These files are copied as-is and should not be processed by webpack
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
@@ -151,21 +165,25 @@ const nextConfig = {
             from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/Workers'),
             to: path.resolve(process.cwd(), 'public/cesium/Workers'),
             noErrorOnMissing: true,
+            force: false, // Don't overwrite existing files
           },
           {
             from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/ThirdParty'),
             to: path.resolve(process.cwd(), 'public/cesium/ThirdParty'),
             noErrorOnMissing: true,
+            force: false,
           },
           {
             from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/Assets'),
             to: path.resolve(process.cwd(), 'public/cesium/Assets'),
             noErrorOnMissing: true,
+            force: false,
           },
           {
             from: path.resolve(process.cwd(), 'node_modules/cesium/Build/Cesium/Widgets'),
             to: path.resolve(process.cwd(), 'public/cesium/Widgets'),
             noErrorOnMissing: true,
+            force: false,
           },
         ],
       })
@@ -204,6 +222,22 @@ const nextConfig = {
         runtimeChunk: {
           name: 'runtime',
         },
+        minimizer: config.optimization.minimizer ? [
+          ...config.optimization.minimizer.map(minimizer => {
+            // Skip minification for Cesium worker files
+            if (minimizer.constructor.name === 'TerserPlugin' || minimizer.constructor.name === 'SwcMinifyPlugin') {
+              const minimizerOptions = minimizer.options || {};
+              return {
+                ...minimizer,
+                options: {
+                  ...minimizerOptions,
+                  exclude: /[\\/](public[\\/])?cesium[\\/]Workers[\\/]/,
+                },
+              };
+            }
+            return minimizer;
+          }),
+        ] : undefined,
       };
     }
 
