@@ -1,12 +1,34 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { Box } from "@mui/material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import { getRightPanelConfig } from "@envisio/config/factory";
 import { RightPanelContainer, GenericPanel } from "@envisio/ui";
 import SettingRenderer from "../../SettingRenderer";
+import BuilderActions from "@/app/components/AppBar/BuilderActions";
 
-const RightPanel: React.FC = () => {
+interface RightPanelProps {
+  onSave?: () => Promise<void>;
+  onPublish?: () => void;
+  selectingPosition?: boolean;
+  setSelectingPosition?: (selecting: boolean) => void;
+  selectedPosition?: [number, number, number] | null;
+  setSelectedPosition?: (position: [number, number, number] | null) => void;
+  pendingModel?: any;
+  setPendingModel?: (model: any) => void;
+}
+
+const RightPanel: React.FC<RightPanelProps> = ({
+  onSave,
+  onPublish,
+  selectingPosition,
+  setSelectingPosition,
+  selectedPosition,
+  setSelectedPosition,
+  pendingModel,
+  setPendingModel,
+}) => {
   const previewMode = useSceneStore((state) => state.previewMode);
   const { engine } = useWorldStore();
 
@@ -54,12 +76,44 @@ const RightPanel: React.FC = () => {
   ]);
 
   return (
-    <GenericPanel
-      Container={RightPanelContainer}
-      config={config}
-      renderSetting={(setting) => <SettingRenderer setting={setting} />}
-      previewMode={previewMode}
-    />
+    <RightPanelContainer previewMode={previewMode} className="glass-panel">
+      {/* Builder Actions Header */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 1,
+          height: "64px",
+          borderBottom: "1px solid rgba(100, 116, 139, 0.2)",
+          mb: 2,
+          px: 2,
+        }}
+      >
+        {onPublish && (
+          <BuilderActions
+            onSave={onSave}
+            onPublish={onPublish}
+            selectingPosition={selectingPosition}
+            setSelectingPosition={setSelectingPosition}
+            selectedPosition={selectedPosition}
+            setSelectedPosition={setSelectedPosition}
+            pendingModel={pendingModel}
+            setPendingModel={setPendingModel}
+          />
+        )}
+      </Box>
+
+      {/* Panel Content */}
+      <Box sx={{ flex: 1, overflow: "auto" }}>
+        <GenericPanel
+          Container={({ children }) => <>{children}</>}
+          config={config}
+          renderSetting={(setting) => <SettingRenderer setting={setting} />}
+          previewMode={previewMode}
+        />
+      </Box>
+    </RightPanelContainer>
   );
 };
 

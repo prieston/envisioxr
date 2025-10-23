@@ -120,7 +120,6 @@ export const LayoutContainer = styled(Box)(() => ({
   overflow: "hidden",
   position: "relative",
   padding: "16px",
-  paddingTop: "96px",
   gap: "16px",
   zIndex: 1200,
   pointerEvents: "none",

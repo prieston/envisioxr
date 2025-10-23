@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { Box } from "@mui/material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import { getLeftPanelConfig } from "@envisio/config/factory";
 import { LeftPanelContainer, GenericPanel } from "@envisio/ui";
 import SettingRenderer from "../../SettingRenderer";
+import LogoHeader from "@/app/components/AppBar/LogoHeader";
 
 const LeftPanel: React.FC = () => {
   const previewMode = useSceneStore((state) => state.previewMode);
@@ -48,12 +50,31 @@ const LeftPanel: React.FC = () => {
   ]);
 
   return (
-    <GenericPanel
-      Container={LeftPanelContainer}
-      config={config}
-      renderSetting={(setting) => <SettingRenderer setting={setting} />}
-      previewMode={previewMode}
-    />
+    <LeftPanelContainer previewMode={previewMode} className="glass-panel">
+      {/* Logo Header */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "64px",
+          borderBottom: "1px solid rgba(100, 116, 139, 0.2)",
+          mb: 2,
+        }}
+      >
+        <LogoHeader />
+      </Box>
+
+      {/* Panel Content */}
+      <Box sx={{ flex: 1, overflow: "auto" }}>
+        <GenericPanel
+          Container={({ children }) => <>{children}</>}
+          config={config}
+          renderSetting={(setting) => <SettingRenderer setting={setting} />}
+          previewMode={previewMode}
+        />
+      </Box>
+    </LeftPanelContainer>
   );
 };
 

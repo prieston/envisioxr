@@ -12,7 +12,6 @@ import {
   BottomContainer,
   CanvasContainer,
 } from "./AdminLayout.styles";
-import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 import { BottomPanel, LeftPanel, RightPanel } from "./panels";
 import ModelPositioningManager from "./ModelPositioningManager";
 import { useSceneStore } from "@envisio/core";
@@ -97,19 +96,6 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
 
       {/* Glass panels overlay */}
       <LayoutContainer className="glass-layout">
-        {/* App Bar with the onSave and onPublish props */}
-        <AdminAppBar
-          mode="builder"
-          onSave={onSave}
-          onPublish={onPublish}
-          selectingPosition={selectingPosition}
-          setSelectingPosition={setSelectingPosition}
-          selectedPosition={selectedPosition}
-          setSelectedPosition={setSelectedPosition}
-          pendingModel={pendingModel}
-          setPendingModel={setPendingModel}
-        />
-
         {/* Main Content: Left Panel | Builder (Scene) | Right Panel */}
         <MainContent>
           <LeftPanel />
@@ -118,7 +104,16 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
               {/* This will be empty since canvas is now full viewport */}
             </SceneContainer>
           </CenterContainer>
-          <RightPanel />
+          <RightPanel
+            onSave={onSave}
+            onPublish={onPublish}
+            selectingPosition={selectingPosition}
+            setSelectingPosition={setSelectingPosition}
+            selectedPosition={selectedPosition}
+            setSelectedPosition={setSelectedPosition}
+            pendingModel={pendingModel}
+            setPendingModel={setPendingModel}
+          />
         </MainContent>
 
         {/* Bottom Panel */}
