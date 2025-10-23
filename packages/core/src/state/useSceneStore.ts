@@ -271,7 +271,7 @@ const useSceneStore = create<SceneState>((set) => ({
   capturingPOV: false,
   previewMode: false,
   transformMode: "translate",
-  bottomPanelVisible: true,
+  bottomPanelVisible: false,
   // Time simulation defaults
   cesiumLightingEnabled: false,
   cesiumShadowsEnabled: false,
