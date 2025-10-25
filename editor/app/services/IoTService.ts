@@ -21,6 +21,8 @@ interface IoTServiceConfig {
 class IoTService {
   private intervals: Map<string, NodeJS.Timeout> = new Map();
   private isInitialized = false;
+  private lastFetchTime: Map<string, number> = new Map();
+  private readonly MIN_POLL_INTERVAL = 2000; // Minimum 2 seconds between requests
 
   constructor() {
     this.initialize();
@@ -59,17 +61,26 @@ class IoTService {
       const objectId = obj.id;
       const iotProps = obj.iotProperties!;
 
-      // Clear existing interval if it exists
-      if (this.intervals.has(objectId)) {
-        clearInterval(this.intervals.get(objectId)!);
+      // Enforce minimum poll interval of 2 seconds
+      const pollInterval = Math.max(
+        this.MIN_POLL_INTERVAL,
+        iotProps.updateInterval
+      );
+
+      // Only recreate interval if it doesn't exist or the interval changed
+      const existingInterval = this.intervals.get(objectId);
+      if (!existingInterval) {
+        console.log(
+          `[IoTService] Starting IoT polling for ${objectId} every ${pollInterval}ms`
+        );
+
+        // Start new interval
+        const interval = setInterval(() => {
+          this.fetchWeatherDataForObject(obj);
+        }, pollInterval);
+
+        this.intervals.set(objectId, interval);
       }
-
-      // Start new interval
-      const interval = setInterval(() => {
-        this.fetchWeatherDataForObject(obj);
-      }, iotProps.updateInterval);
-
-      this.intervals.set(objectId, interval);
     });
 
     // Clean up intervals for objects that no longer have IoT enabled
@@ -77,10 +88,12 @@ class IoTService {
     const intervalKeys = Array.from(this.intervals.keys());
     for (const objectId of intervalKeys) {
       if (!iotObjectIds.has(objectId)) {
+        console.log(`[IoTService] Cleaning up IoT polling for ${objectId}`);
         const interval = this.intervals.get(objectId);
         if (interval) {
           clearInterval(interval);
           this.intervals.delete(objectId);
+          this.lastFetchTime.delete(objectId);
         }
       }
     }
@@ -88,6 +101,18 @@ class IoTService {
 
   private async fetchWeatherDataForObject(obj: any) {
     if (!obj.iotProperties?.enabled) return;
+
+    // Rate limiting: Check if we fetched too recently
+    const now = Date.now();
+    const lastFetch = this.lastFetchTime.get(obj.id) || 0;
+    const timeSinceLastFetch = now - lastFetch;
+
+    if (timeSinceLastFetch < this.MIN_POLL_INTERVAL) {
+      console.log(
+        `[IoTService] Skipping fetch for ${obj.id} - too soon (${timeSinceLastFetch}ms < ${this.MIN_POLL_INTERVAL}ms)`
+      );
+      return;
+    }
 
     let longitude = 0;
     let latitude = 0;
@@ -108,6 +133,9 @@ class IoTService {
     }
 
     const iotProps = obj.iotProperties;
+
+    // Update last fetch time BEFORE making the request to prevent race conditions
+    this.lastFetchTime.set(obj.id, now);
 
     try {
       if (iotProps.serviceType === "weather") {
@@ -219,18 +247,22 @@ class IoTService {
   // Method to stop IoT for a specific object
   public stopIoTForObject(objectId: string) {
     if (this.intervals.has(objectId)) {
+      console.log(`[IoTService] Stopping IoT polling for ${objectId}`);
       clearInterval(this.intervals.get(objectId)!);
       this.intervals.delete(objectId);
+      this.lastFetchTime.delete(objectId);
     }
   }
 
   // Method to stop all IoT services
   public stopAll() {
+    console.log("[IoTService] Stopping all IoT polling");
     const intervalValues = Array.from(this.intervals.values());
     for (const interval of intervalValues) {
       clearInterval(interval);
     }
     this.intervals.clear();
+    this.lastFetchTime.clear();
     this.isInitialized = false;
   }
 }

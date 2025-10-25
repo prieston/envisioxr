@@ -867,6 +867,48 @@ const CesiumIonSDKViewshedAnalysis: React.FC<
     observationProperties.visibilityRadius,
   ]);
 
+  // Listen for imperative preview updates (during slider drag)
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const handlePreview = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { objectId: previewObjectId, patch } = customEvent.detail || {};
+
+      // Only handle events for this object
+      if (previewObjectId !== _objectId) return;
+      if (!sensorRef.current && !sensorCompositeRef.current) return;
+
+      try {
+        // Apply preview updates imperatively without triggering React re-render
+        if (patch.fov !== undefined || patch.visibilityRadius !== undefined) {
+          updateIonFovRadius(sensorCompositeRef.current ?? sensorRef.current, {
+            fovDeg: patch.fov ?? observationProperties.fov,
+            radius:
+              patch.visibilityRadius ?? observationProperties.visibilityRadius,
+          });
+        }
+        cesiumViewer?.scene.requestRender();
+      } catch (err) {
+        console.warn(
+          "[CesiumIonSDKViewshedAnalysis] Preview update failed:",
+          err
+        );
+      }
+    };
+
+    window.addEventListener("cesium-observation-preview", handlePreview);
+    return () => {
+      window.removeEventListener("cesium-observation-preview", handlePreview);
+    };
+  }, [
+    isInitialized,
+    _objectId,
+    cesiumViewer,
+    observationProperties.fov,
+    observationProperties.visibilityRadius,
+  ]);
+
   // Update visibility flags (geometry and viewshed) without recreating
   useEffect(() => {
     if (!isInitialized || (!sensorRef.current && !sensorCompositeRef.current))

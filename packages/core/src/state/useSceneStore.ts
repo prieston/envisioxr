@@ -415,9 +415,23 @@ const useSceneStore = create<SceneState>((set) => ({
               }
               return { ...obj, observationProperties: observationProps };
             }
+            // Initialize iotProperties with defaults if it doesn't exist
+            if (parent === "iotProperties" && !obj.iotProperties) {
+              const iotProps = {
+                enabled: false,
+                serviceType: "weather",
+                apiEndpoint: "https://api.open-meteo.com/v1/forecast",
+                updateInterval: 2000,
+                showInScene: true,
+                displayFormat: "compact" as "compact" | "detailed" | "minimal",
+                autoRefresh: true,
+                [child]: value,
+              } as any;
+              return { ...obj, iotProperties: iotProps };
+            }
             return {
               ...obj,
-              [parent]: { ...obj[parent], [child]: value },
+              [parent]: { ...(obj[parent] || {}), [child]: value },
             } as any;
           }
           if (

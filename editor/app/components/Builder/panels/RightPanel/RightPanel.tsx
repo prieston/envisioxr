@@ -52,23 +52,12 @@ const RightPanel: React.FC<RightPanelProps> = ({
   );
 
   // For selectedObject, exclude weatherData to prevent re-renders when IoT updates
-  // Use custom equality to prevent re-renders on nested property changes
-  const selectedObject = useSceneStore(
-    (state) => {
-      if (!state.selectedObject) return null;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { weatherData, ...rest } = state.selectedObject;
-      return rest;
-    },
-    (oldVal, newVal) => {
-      // Custom equality: only trigger re-render if object identity changes
-      // This prevents re-renders when nested properties (like observationProperties.fov) change
-      if (oldVal === null && newVal === null) return true;
-      if (oldVal === null || newVal === null) return false;
-      // Only re-render if the object ID changes (i.e., different object selected)
-      return oldVal.id === newVal.id;
-    }
-  );
+  const selectedObject = useSceneStore((state) => {
+    if (!state.selectedObject) return null;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { weatherData, ...rest } = state.selectedObject;
+    return rest;
+  });
 
   // Memoize only on object ID change, not full object to prevent scroll resets
   const selectedObjectId = selectedObject?.id;

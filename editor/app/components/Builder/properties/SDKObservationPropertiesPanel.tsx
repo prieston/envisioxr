@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Box,
   Typography,
@@ -13,12 +13,50 @@ import {
 import { selectStyles, menuItemStyles } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
 
+/**
+ * Batches updates to once per animation frame
+ * Coalesces multiple rapid updates into a single call
+ */
+function useRafSchedule<T>(fn: (arg: T) => void) {
+  const pending = useRef(false);
+  const last = useRef<T | null>(null);
+
+  return useCallback(
+    (arg: T) => {
+      last.current = arg;
+      if (pending.current) return; // Already scheduled
+      pending.current = true;
+      requestAnimationFrame(() => {
+        pending.current = false;
+        if (last.current != null) fn(last.current);
+      });
+    },
+    [fn]
+  );
+}
+
 interface SDKObservationPropertiesPanelProps {
   selectedObject: any;
   onPropertyChange: (property: string, value: any) => void;
   onCalculateViewshed?: () => void;
   isCalculating?: boolean;
 }
+
+const defaultObservationProps = {
+  sensorType: "cone" as "cone" | "rectangle",
+  fov: 60,
+  fovH: 60,
+  fovV: 36,
+  visibilityRadius: 500,
+  showSensorGeometry: true,
+  showViewshed: false,
+  analysisQuality: "medium" as "low" | "medium" | "high",
+  sensorColor: "#00ff00",
+  viewshedColor: "#0080ff",
+  clearance: 2.0,
+  raysElevation: 8,
+  stepCount: 64,
+};
 
 const SDKObservationPropertiesPanel: React.FC<
   SDKObservationPropertiesPanelProps
@@ -28,31 +66,105 @@ const SDKObservationPropertiesPanel: React.FC<
   onCalculateViewshed: _onCalculateViewshed,
   isCalculating: _isCalculating,
 }) => {
-  // Read observation properties directly from store to get real-time updates
-  // without causing parent re-renders
-  const observationProps = useSceneStore(
-    (state) => {
-      const obj = state.objects.find((o) => o.id === selectedObject?.id);
-      return (
-        obj?.observationProperties || {
-          sensorType: "cone" as "cone" | "rectangle",
-          fov: 60,
-          visibilityRadius: 500,
-          showSensorGeometry: true,
-          showViewshed: false,
-          sensorColor: "#00ff00",
-          viewshedColor: "#0080ff",
-        }
-      );
+  // Read observation properties directly from store (no inline defaults!)
+  const observationProps = useSceneStore((state) => {
+    const obj = state.objects.find((o) => o.id === selectedObject?.id);
+    return obj?.observationProperties;
+  }, Object.is);
+
+  // Compute defaults at use-site with ??
+  const obs = observationProps ?? defaultObservationProps;
+
+  // Track if user is actively dragging to prevent effect from fighting
+  const isDragging = useRef(false);
+
+  // Local state for smooth dragging
+  const [local, setLocal] = useState({
+    sensorType: obs.sensorType,
+    fov: obs.fov,
+    fovH: obs.fovH ?? obs.fov,
+    fovV: obs.fovV ?? Math.round(obs.fov * 0.6),
+    visibilityRadius: obs.visibilityRadius,
+    showSensorGeometry: obs.showSensorGeometry,
+    showViewshed: obs.showViewshed,
+    clearance: obs.clearance ?? 2.0,
+    raysElevation: obs.raysElevation ?? 8,
+    stepCount: obs.stepCount ?? 64,
+    analysisQuality: obs.analysisQuality ?? "medium",
+  });
+
+  // Sync local state when store changes (but don't fight mid-drag)
+  useEffect(() => {
+    if (isDragging.current) return; // Don't fight the user's drag
+    setLocal({
+      sensorType: obs.sensorType,
+      fov: obs.fov,
+      fovH: obs.fovH ?? obs.fov,
+      fovV: obs.fovV ?? Math.round(obs.fov * 0.6),
+      visibilityRadius: obs.visibilityRadius,
+      showSensorGeometry: obs.showSensorGeometry,
+      showViewshed: obs.showViewshed,
+      clearance: obs.clearance ?? 2.0,
+      raysElevation: obs.raysElevation ?? 8,
+      stepCount: obs.stepCount ?? 64,
+      analysisQuality: obs.analysisQuality ?? "medium",
+    });
+  }, [
+    selectedObject?.id,
+    obs.sensorType,
+    obs.fov,
+    obs.fovH,
+    obs.fovV,
+    obs.visibilityRadius,
+    obs.showSensorGeometry,
+    obs.showViewshed,
+    obs.clearance,
+    obs.raysElevation,
+    obs.stepCount,
+    obs.analysisQuality,
+  ]);
+
+  // Drag helpers
+  const startDrag = useCallback(() => {
+    isDragging.current = true;
+  }, []);
+
+  const endDrag = useCallback(() => {
+    isDragging.current = false;
+  }, []);
+
+  const handlePropertyChange = useCallback(
+    (property: string, value: any) => {
+      onPropertyChange(`observationProperties.${property}`, value);
     },
-    (prev, next) => {
-      // Only re-render this component when observation properties actually change
-      return JSON.stringify(prev) === JSON.stringify(next);
-    }
+    [onPropertyChange]
   );
 
-  const handlePropertyChange = (property: string, value: any) =>
-    onPropertyChange(`observationProperties.${property}`, value);
+  // RAF-batched preview: coalesce rapid updates and call engine directly
+  const schedulePreview = useRafSchedule(
+    useCallback(
+      (patch: Partial<typeof obs>) => {
+        if (!selectedObject?.id) return;
+
+        // Get Cesium viewer from store
+        const viewer = useSceneStore.getState().cesiumViewer;
+        if (!viewer) return;
+
+        // Dispatch event for the Ion SDK component (cheap geometry update only)
+        const event = new CustomEvent("cesium-observation-preview", {
+          detail: {
+            objectId: selectedObject.id,
+            patch,
+          },
+        });
+        window.dispatchEvent(event);
+
+        // CRITICAL: Request a render frame (required if requestRenderMode = true)
+        viewer.scene?.requestRender?.();
+      },
+      [selectedObject?.id]
+    )
+  );
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -94,10 +206,18 @@ const SDKObservationPropertiesPanel: React.FC<
               Sensor Type
             </Typography>
             <Select
-              value={observationProps.sensorType}
-              onChange={(e) =>
-                handlePropertyChange("sensorType", e.target.value)
-              }
+              value={local.sensorType}
+              onChange={(e) => {
+                const sensorType = e.target.value as "cone" | "rectangle";
+                setLocal((s) => ({
+                  ...s,
+                  sensorType,
+                  // Initialize defaults for the new mode
+                  fovH: s.fovH ?? s.fov,
+                  fovV: s.fovV ?? Math.round(s.fov * 0.6),
+                }));
+                handlePropertyChange("sensorType", sensorType);
+              }}
               fullWidth
               size="small"
               sx={selectStyles}
@@ -112,7 +232,7 @@ const SDKObservationPropertiesPanel: React.FC<
           </Box>
 
           {/* Field of View (Cone) */}
-          {observationProps.sensorType === "cone" && (
+          {local.sensorType === "cone" && (
             <Box>
               <Typography
                 sx={{
@@ -122,15 +242,25 @@ const SDKObservationPropertiesPanel: React.FC<
                   mb: 0.5,
                 }}
               >
-                Field of View: {observationProps.fov}°
+                Field of View: {local.fov}°
               </Typography>
               <Slider
-                value={Math.min(180, observationProps.fov)}
+                value={Math.min(360, local.fov)}
                 min={10}
-                max={180}
-                onChange={(_, value) =>
-                  handlePropertyChange("fov", Math.min(180, Number(value)))
-                }
+                max={360}
+                onPointerDown={startDrag}
+                onChange={(_, value) => {
+                  const next = Math.min(360, Number(value));
+                  setLocal((s) => ({ ...s, fov: next })); // UI stays smooth
+                  schedulePreview({ fov: next }); // RAF-batched Cesium update
+                }}
+                onPointerUp={endDrag}
+                onPointerCancel={endDrag}
+                onChangeCommitted={(_, value) => {
+                  endDrag();
+                  const next = Math.min(360, Number(value));
+                  handlePropertyChange("fov", next); // Persist once
+                }}
                 valueLabelDisplay="auto"
                 sx={{
                   color: "#2563eb",
@@ -155,7 +285,7 @@ const SDKObservationPropertiesPanel: React.FC<
           )}
 
           {/* Horizontal/Vertical FOV (Rectangle) */}
-          {observationProps.sensorType === "rectangle" && (
+          {local.sensorType === "rectangle" && (
             <>
               <Box>
                 <Typography
@@ -166,19 +296,25 @@ const SDKObservationPropertiesPanel: React.FC<
                     mb: 0.5,
                   }}
                 >
-                  Horizontal FOV:{" "}
-                  {observationProps.fovH || observationProps.fov}°
+                  Horizontal FOV: {local.fovH}°
                 </Typography>
                 <Slider
-                  value={Math.min(
-                    180,
-                    observationProps.fovH || observationProps.fov
-                  )}
+                  value={Math.min(360, local.fovH)}
                   min={10}
-                  max={180}
-                  onChange={(_, value) =>
-                    handlePropertyChange("fovH", Math.min(180, Number(value)))
-                  }
+                  max={360}
+                  onPointerDown={startDrag}
+                  onChange={(_, value) => {
+                    const next = Math.min(360, Number(value));
+                    setLocal((s) => ({ ...s, fovH: next }));
+                    schedulePreview({ fovH: next });
+                  }}
+                  onPointerUp={endDrag}
+                  onPointerCancel={endDrag}
+                  onChangeCommitted={(_, value) => {
+                    endDrag();
+                    const next = Math.min(360, Number(value));
+                    handlePropertyChange("fovH", next);
+                  }}
                   valueLabelDisplay="auto"
                   sx={{
                     color: "#2563eb",
@@ -209,22 +345,25 @@ const SDKObservationPropertiesPanel: React.FC<
                     mb: 0.5,
                   }}
                 >
-                  Vertical FOV:{" "}
-                  {observationProps.fovV ||
-                    Math.round(observationProps.fov * 0.6)}
-                  °
+                  Vertical FOV: {local.fovV}°
                 </Typography>
                 <Slider
-                  value={Math.min(
-                    180,
-                    observationProps.fovV ||
-                      Math.round(observationProps.fov * 0.6)
-                  )}
+                  value={Math.min(180, local.fovV)}
                   min={10}
                   max={180}
-                  onChange={(_, value) =>
-                    handlePropertyChange("fovV", Math.min(180, Number(value)))
-                  }
+                  onPointerDown={startDrag}
+                  onChange={(_, value) => {
+                    const next = Math.min(180, Number(value));
+                    setLocal((s) => ({ ...s, fovV: next }));
+                    schedulePreview({ fovV: next });
+                  }}
+                  onPointerUp={endDrag}
+                  onPointerCancel={endDrag}
+                  onChangeCommitted={(_, value) => {
+                    endDrag();
+                    const next = Math.min(180, Number(value));
+                    handlePropertyChange("fovV", next);
+                  }}
                   valueLabelDisplay="auto"
                   sx={{
                     color: "#2563eb",
@@ -259,16 +398,26 @@ const SDKObservationPropertiesPanel: React.FC<
                 mb: 0.5,
               }}
             >
-              Visibility Radius: {observationProps.visibilityRadius}m
+              Visibility Radius: {local.visibilityRadius}m
             </Typography>
             <Slider
-              value={observationProps.visibilityRadius}
+              value={local.visibilityRadius}
               min={10}
               max={2500}
               step={10}
-              onChange={(_, value) =>
-                handlePropertyChange("visibilityRadius", value)
-              }
+              onPointerDown={startDrag}
+              onChange={(_, value) => {
+                const next = Number(value);
+                setLocal((s) => ({ ...s, visibilityRadius: next }));
+                schedulePreview({ visibilityRadius: next });
+              }}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onChangeCommitted={(_, value) => {
+                endDrag();
+                const next = Number(value);
+                handlePropertyChange("visibilityRadius", next);
+              }}
               valueLabelDisplay="auto"
               sx={{
                 color: "#2563eb",
@@ -329,10 +478,12 @@ const SDKObservationPropertiesPanel: React.FC<
             <FormControlLabel
               control={
                 <Switch
-                  checked={observationProps.showSensorGeometry}
-                  onChange={(e) =>
-                    handlePropertyChange("showSensorGeometry", e.target.checked)
-                  }
+                  checked={local.showSensorGeometry}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setLocal((s) => ({ ...s, showSensorGeometry: checked }));
+                    handlePropertyChange("showSensorGeometry", checked);
+                  }}
                   sx={{
                     "& .MuiSwitch-switchBase.Mui-checked": {
                       color: "#2563eb",
@@ -372,10 +523,12 @@ const SDKObservationPropertiesPanel: React.FC<
             <FormControlLabel
               control={
                 <Switch
-                  checked={observationProps.showViewshed}
-                  onChange={(e) =>
-                    handlePropertyChange("showViewshed", e.target.checked)
-                  }
+                  checked={local.showViewshed}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setLocal((s) => ({ ...s, showViewshed: checked }));
+                    handlePropertyChange("showViewshed", checked);
+                  }}
                   sx={{
                     "& .MuiSwitch-switchBase.Mui-checked": {
                       color: "#2563eb",

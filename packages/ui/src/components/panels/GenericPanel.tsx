@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useLayoutEffect } from "react";
 import { Tabs, Tab } from "@mui/material";
 import { TabPanel } from "./index";
 
@@ -39,6 +39,22 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
   previewMode = false,
 }) => {
   const [activeTab, setActiveTab] = useState(0);
+  const tabPanelRef = useRef<HTMLDivElement>(null);
+  const scrollPosRef = useRef(0);
+
+  // Capture scroll position before render
+  if (tabPanelRef.current) {
+    scrollPosRef.current = tabPanelRef.current.scrollTop;
+    console.log("[GenericPanel] Capturing scroll:", scrollPosRef.current);
+  }
+
+  // Restore scroll position after render
+  useLayoutEffect(() => {
+    if (tabPanelRef.current && scrollPosRef.current > 0) {
+      console.log("[GenericPanel] Restoring scroll:", scrollPosRef.current);
+      tabPanelRef.current.scrollTop = scrollPosRef.current;
+    }
+  });
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -99,7 +115,7 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
         </Tabs>
       )}
 
-      <TabPanel>
+      <TabPanel ref={tabPanelRef}>
         {currentTab?.settings.map((setting) => (
           <React.Fragment key={setting.id}>
             {renderSetting(setting)}
