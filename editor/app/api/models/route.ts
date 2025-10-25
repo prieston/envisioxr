@@ -83,7 +83,7 @@ export async function PATCH(request: NextRequest) {
     });
     // Generate a signed URL valid for 1 hour.
     const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
-    return NextResponse.json({ signedUrl, key });
+    return NextResponse.json({ signedUrl, key, acl: "public-read" });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },

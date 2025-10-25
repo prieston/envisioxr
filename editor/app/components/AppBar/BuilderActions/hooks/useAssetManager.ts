@@ -65,7 +65,7 @@ export const useAssetManager = ({
         throw new Error("Failed to get signed URL");
       }
 
-      const { signedUrl, key } = await signedUrlResponse.json();
+      const { signedUrl, key, acl } = await signedUrlResponse.json();
 
       // Step 2: Upload model file directly to S3 using presigned URL
       await new Promise<void>((resolve, reject) => {
@@ -91,6 +91,9 @@ export const useAssetManager = ({
         xhr.addEventListener("error", () => reject(new Error("Upload failed")));
         xhr.open("PUT", signedUrl);
         xhr.setRequestHeader("Content-Type", data.file.type);
+        if (acl) {
+          xhr.setRequestHeader("x-amz-acl", acl);
+        }
         xhr.send(data.file);
       });
 
@@ -111,13 +114,23 @@ export const useAssetManager = ({
         });
 
         if (thumbSignedUrlResponse.ok) {
-          const { signedUrl: thumbSignedUrl, key: thumbKey } =
-            await thumbSignedUrlResponse.json();
+          const {
+            signedUrl: thumbSignedUrl,
+            key: thumbKey,
+            acl: thumbAcl,
+          } = await thumbSignedUrlResponse.json();
 
           // Upload thumbnail directly to S3
+          const headers: Record<string, string> = {
+            "Content-Type": "image/png",
+          };
+          if (thumbAcl) {
+            headers["x-amz-acl"] = thumbAcl;
+          }
+
           await fetch(thumbSignedUrl, {
             method: "PUT",
-            headers: { "Content-Type": "image/png" },
+            headers,
             body: thumbnailBlob,
           });
 

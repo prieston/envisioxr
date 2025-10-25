@@ -112,22 +112,16 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 }) => {
   const { orbitControlsRef } = useSceneStore();
   const selectedCesiumFeature = useSceneStore((s) => s.selectedCesiumFeature);
-  const [localObject, setLocalObject] = useState<ModelObject | null>(
-    selectedObject
-  );
   const [repositioning, setRepositioning] = useState(false);
   const [showEmptyFields, setShowEmptyFields] = useState(false);
+
+  // Use selectedObject directly instead of local state to avoid sync issues
+  const localObject = selectedObject;
 
   // Check if this is a Cesium Ion asset (non-editable)
   const isCesiumIonAsset =
     localObject?.type === "cesium-ion-tileset" ||
     localObject?.type === "cesiumIonAsset";
-
-  useEffect(() => {
-    if (selectedObject) {
-      setLocalObject(selectedObject);
-    }
-  }, [selectedObject]);
 
   const geographicCoords = useMemo<GeographicCoords | null>(() => {
     if (!localObject?.position) return null;
@@ -159,42 +153,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     value: number | string | boolean
   ) => {
     if (selectedObject) {
-      setLocalObject((prev) => {
-        if (!prev) return prev;
-        if (property.includes(".")) {
-          const [parent, child] = property.split(".");
-          if (parent === "observationProperties") {
-            return {
-              ...prev,
-              observationProperties: {
-                ...prev.observationProperties,
-                [child]: value,
-              },
-            };
-          }
-          if (parent === "iotProperties") {
-            return {
-              ...prev,
-              iotProperties: {
-                ...prev.iotProperties,
-                [child]: value,
-              },
-            };
-          }
-          const index = parseInt(child);
-          if (!isNaN(index)) {
-            const prevArray = prev[parent as keyof typeof prev];
-            const array = Array.isArray(prevArray) ? [...prevArray] : [0, 0, 0];
-            array[index] = value as number;
-            return {
-              ...prev,
-              [parent]: array,
-            };
-          }
-        }
-        return { ...prev, [property]: value };
-      });
-
+      // Update store directly - nested properties are handled by updateObjectProperty
       if (property.startsWith("observationProperties.")) {
         const propName = property.split(".")[1];
         const updatedProperties = {

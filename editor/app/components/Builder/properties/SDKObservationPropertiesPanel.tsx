@@ -11,6 +11,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { selectStyles, menuItemStyles } from "@envisio/ui";
+import { useSceneStore } from "@envisio/core";
 
 interface SDKObservationPropertiesPanelProps {
   selectedObject: any;
@@ -27,15 +28,28 @@ const SDKObservationPropertiesPanel: React.FC<
   onCalculateViewshed: _onCalculateViewshed,
   isCalculating: _isCalculating,
 }) => {
-  const observationProps = selectedObject?.observationProperties || {
-    sensorType: "cone",
-    fov: 60,
-    visibilityRadius: 500,
-    showSensorGeometry: true,
-    showViewshed: false,
-    sensorColor: "#00ff00",
-    viewshedColor: "#0080ff",
-  };
+  // Read observation properties directly from store to get real-time updates
+  // without causing parent re-renders
+  const observationProps = useSceneStore(
+    (state) => {
+      const obj = state.objects.find((o) => o.id === selectedObject?.id);
+      return (
+        obj?.observationProperties || {
+          sensorType: "cone" as "cone" | "rectangle",
+          fov: 60,
+          visibilityRadius: 500,
+          showSensorGeometry: true,
+          showViewshed: false,
+          sensorColor: "#00ff00",
+          viewshedColor: "#0080ff",
+        }
+      );
+    },
+    (prev, next) => {
+      // Only re-render this component when observation properties actually change
+      return JSON.stringify(prev) === JSON.stringify(next);
+    }
+  );
 
   const handlePropertyChange = (property: string, value: any) =>
     onPropertyChange(`observationProperties.${property}`, value);

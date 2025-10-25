@@ -52,12 +52,26 @@ const RightPanel: React.FC<RightPanelProps> = ({
   );
 
   // For selectedObject, exclude weatherData to prevent re-renders when IoT updates
-  const selectedObject = useSceneStore((state) => {
-    if (!state.selectedObject) return null;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { weatherData, ...rest } = state.selectedObject;
-    return rest;
-  });
+  // Use custom equality to prevent re-renders on nested property changes
+  const selectedObject = useSceneStore(
+    (state) => {
+      if (!state.selectedObject) return null;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { weatherData, ...rest } = state.selectedObject;
+      return rest;
+    },
+    (oldVal, newVal) => {
+      // Custom equality: only trigger re-render if object identity changes
+      // This prevents re-renders when nested properties (like observationProperties.fov) change
+      if (oldVal === null && newVal === null) return true;
+      if (oldVal === null || newVal === null) return false;
+      // Only re-render if the object ID changes (i.e., different object selected)
+      return oldVal.id === newVal.id;
+    }
+  );
+
+  // Memoize only on object ID change, not full object to prevent scroll resets
+  const selectedObjectId = selectedObject?.id;
 
   const config = useMemo(() => {
     return getRightPanelConfig(
@@ -72,8 +86,15 @@ const RightPanel: React.FC<RightPanelProps> = ({
       updateControlSettings,
       { engine }
     );
-    // Zustand setters are stable and don't need to be in dependency array
-  }, [engine, selectedObject, selectedObservation, viewMode, controlSettings]);
+    // Only depend on object ID, not the full object to prevent unnecessary re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    engine,
+    selectedObjectId,
+    selectedObservation,
+    viewMode,
+    controlSettings,
+  ]);
 
   return (
     <RightPanelContainer
