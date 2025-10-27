@@ -33,7 +33,8 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   const lastShapeSigRef = useRef<string>("");
   const mountedRef = useRef(true);
   const isTransitioningRef = useRef(false);
-  const isCreatingRef = useRef(false);  // Prevent concurrent creation
+  const isCreatingRef = useRef(false); // Prevent concurrent creation
+  const creatingShapeSigRef = useRef<string>(""); // Track which shape sig we're creating
 
   const refs: SensorRefs = {
     sensorRef,
@@ -72,31 +73,37 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       );
       return;
     }
-    
+
+    // Compute shape sig FIRST to check if we should even start
+    const shapeSig = computeShapeSignature(observationProperties);
+    console.log("[CREATE SENSOR] Computed shape sig:", shapeSig, "last was:", lastShapeSigRef.current);
+
+    // GUARD: Check if shape sig really changed
+    if (lastShapeSigRef.current === shapeSig) {
+      console.log("[CREATE SENSOR] Early return: shape sig unchanged");
+      return;
+    }
+
+    // GUARD: Check if we're already creating THIS exact shape sig
+    if (creatingShapeSigRef.current === shapeSig) {
+      console.log("[CREATE SENSOR] Early return: already creating shape sig:", shapeSig);
+      return;
+    }
+
     // GUARD: Check if already transitioning OR creating
     if (isTransitioningRef.current || isCreatingRef.current) {
       console.log("[CREATE SENSOR] Early return: already transitioning or creating");
       return;
     }
 
-    console.log("[CREATE SENSOR] Starting...");
-    
-    // GUARD: Set both flags IMMEDIATELY
+    console.log("[CREATE SENSOR] Starting... shape sig:", shapeSig);
+
+    // GUARD: Set flags IMMEDIATELY
     isCreatingRef.current = true;
     isTransitioningRef.current = true;
+    creatingShapeSigRef.current = shapeSig; // Track which sig we're creating
 
     try {
-      const shapeSig = computeShapeSignature(observationProperties);
-      console.log("[CREATE SENSOR] Computed shape sig:", shapeSig, "last was:", lastShapeSigRef.current);
-
-      // GUARD: Check if shape sig really changed
-      if (lastShapeSigRef.current === shapeSig) {
-        console.log("[CREATE SENSOR] Early return: shape sig unchanged");
-        isCreatingRef.current = false;  // Reset before return
-        isTransitioningRef.current = false;  // Reset before return
-        return;
-      }
-
       // GUARD: Update shape sig IMMEDIATELY to prevent double creation
       console.log(
         "[CREATE SENSOR] Shape sig changed:",
@@ -141,6 +148,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     } finally {
       isCreatingRef.current = false;
       isTransitioningRef.current = false;
+      creatingShapeSigRef.current = "";  // Clear the creating sig
       console.log("[CREATE SENSOR] Done, flags=false");
     }
     // Note: position/rotation intentionally excluded - shape signature guards recreation
