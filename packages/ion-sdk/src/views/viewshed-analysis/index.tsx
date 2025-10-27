@@ -141,18 +141,13 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
     // GUARD: Check if shape sig really changed
     if (lastShapeSigRef.current === shapeSig) {
-      DEBUG &&
-        console.log("[CREATE SENSOR] Early return: shape sig unchanged");
+      DEBUG && console.log("[CREATE SENSOR] Early return: shape sig unchanged");
       return;
     }
 
     // Try to claim the lock for this shape sig
     creatingShapeSigRef.current = shapeSig;
-    DEBUG &&
-      console.log(
-        "[CREATE SENSOR] Claimed lock for sig:",
-        shapeSig
-      );
+    DEBUG && console.log("[CREATE SENSOR] Claimed lock for sig:", shapeSig);
 
     // GUARD: Check if already transitioning OR creating
     if (isTransitioningRef.current || isCreatingRef.current) {
@@ -164,11 +159,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       return;
     }
 
-    DEBUG &&
-      console.log(
-        "[CREATE SENSOR] Starting... shape sig:",
-        shapeSig
-      );
+    DEBUG && console.log("[CREATE SENSOR] Starting... shape sig:", shapeSig);
 
     // Update shape sig FIRST to prevent race condition with concurrent calls
     const oldSig = lastShapeSigRef.current;
@@ -186,13 +177,21 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     isTransitioningRef.current = true;
 
     try {
+      const beforeCount = cesiumViewer?.scene?.primitives?.length ?? 0;
+      
       // Clean up old sensor
       if (sensorRef.current) {
         DEBUG &&
-          console.log("[CREATE SENSOR] Removing old sensor:", sensorRef.current);
+          console.log(
+            "[CREATE SENSOR] Removing old sensor:",
+            sensorRef.current
+          );
         removeSensor(sensorRef.current, cesiumViewer);
       }
       sensorRef.current = null;
+
+      const afterCleanup = cesiumViewer?.scene?.primitives?.length ?? 0;
+      console.log(`🔨 [CREATE] Before: ${beforeCount} primitives, After cleanup: ${afterCleanup}`);
 
       DEBUG && console.log("[CREATE SENSOR] Creating new sensor...");
       const { sensor } = createSensor({
@@ -204,8 +203,12 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
       sensorRef.current = sensor;
 
+      const afterCreate = cesiumViewer?.scene?.primitives?.length ?? 0;
+      console.log(`✅ [CREATE] Created sensor, primitives: ${afterCleanup} → ${afterCreate} (added ${afterCreate - afterCleanup})`);
+
       DEBUG && console.log("[CREATE SENSOR] Created sensor:", sensor);
-      DEBUG && console.log("[CREATE SENSOR] Sensor ref now:", sensorRef.current);
+      DEBUG &&
+        console.log("[CREATE SENSOR] Sensor ref now:", sensorRef.current);
     } catch (err) {
       console.error("[CREATE SENSOR] Error creating Ion SDK sensor:", err);
       toast.error(`Failed to create sensor: ${(err as any)?.message}`, {
@@ -305,7 +308,8 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
         );
       }
     } catch (err) {
-      DEBUG && console.warn("[STYLE EFFECT] Failed to update visibility flags:", err);
+      DEBUG &&
+        console.warn("[STYLE EFFECT] Failed to update visibility flags:", err);
     }
   }, [
     isInitialized,

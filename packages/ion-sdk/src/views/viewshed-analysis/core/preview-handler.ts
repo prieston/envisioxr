@@ -112,6 +112,8 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
         visibilityRadius: patch.visibilityRadius ?? properties.visibilityRadius,
       };
 
+      console.log(`🔄 [PREVIEW] Updating FOV=${nextProperties.fov}° radius=${nextProperties.visibilityRadius}m (primitives: ${primitiveCount})`);
+
       // Update in place for single sensor mode
       updateFovRadius(sensorRef.current, {
         fovDeg: nextProperties.fov,
@@ -120,19 +122,16 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       });
 
       const primitiveCountAfter = viewer?.scene?.primitives?.length;
+      if (primitiveCountAfter !== primitiveCount) {
+        console.warn(
+          `⚠️ [PREVIEW] Primitive count changed! ${primitiveCount} → ${primitiveCountAfter} (added ${primitiveCountAfter - primitiveCount})`
+        );
+      }
       DEBUG &&
         console.log(
           "[PREVIEW] Primitives after FOV update:",
           primitiveCountAfter
         );
-      if (DEBUG && primitiveCountAfter !== primitiveCount) {
-        console.warn(
-          "[PREVIEW] ⚠️ WARNING: Primitive count changed! before=",
-          primitiveCount,
-          "after=",
-          primitiveCountAfter
-        );
-      }
 
       // Apply styling after a frame
       requestAnimationFrame(() => {
