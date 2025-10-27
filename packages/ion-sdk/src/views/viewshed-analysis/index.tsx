@@ -254,12 +254,12 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
       // Count primitives after creation
       const afterCount = cesiumViewer?.scene?.primitives?.length;
-      
+
       // CRITICAL: Always log primitive count after creation
       console.warn(
         `🟢 [SENSOR CREATED #${instanceIdRef.current}] objectId=${objectId} primitives: ${beforeCount} → ${afterCount} (added ${afterCount - beforeCount})`
       );
-      
+
       DEBUG &&
         console.log(
           `[CREATE SENSOR #${instanceIdRef.current}] Created sensor:`,

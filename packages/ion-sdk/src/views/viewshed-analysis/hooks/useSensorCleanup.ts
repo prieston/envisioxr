@@ -8,30 +8,45 @@ export function useSensorCleanup(
   lastShapeSigRef: React.MutableRefObject<string>
 ) {
   useEffect(() => {
+    // Capture current ref values in a way that's NOT stale
+    const sensorRef = refs.sensorRef;
+    const sensorCompositeRef = refs.sensorCompositeRef;
+    const viewshedRef = refs.viewshedRef;
+    
     return () => {
+      console.warn("🔥 [CLEANUP] Running sensor cleanup", {
+        hasSensor: !!sensorRef.current,
+        hasComposite: !!sensorCompositeRef.current,
+        hasViewshed: !!viewshedRef.current,
+      });
+      
       // Clean up composite sensor
-      if (refs.sensorCompositeRef.current?.parts) {
-        refs.sensorCompositeRef.current.parts.forEach((p: any) => {
+      if (sensorCompositeRef.current?.parts) {
+        console.warn(`🔥 [CLEANUP] Removing ${sensorCompositeRef.current.parts.length} composite parts`);
+        sensorCompositeRef.current.parts.forEach((p: any) => {
           safeRemovePrimitive(cesiumViewer, p);
         });
-        refs.sensorCompositeRef.current.parts.length = 0;
+        sensorCompositeRef.current.parts.length = 0;
       }
-      refs.sensorCompositeRef.current = null;
+      sensorCompositeRef.current = null;
 
       // Clean up single sensor
-      if (refs.sensorRef.current) {
-        safeRemovePrimitive(cesiumViewer, refs.sensorRef.current);
+      if (sensorRef.current) {
+        console.warn("🔥 [CLEANUP] Removing single sensor");
+        safeRemovePrimitive(cesiumViewer, sensorRef.current);
       }
-      refs.sensorRef.current = null;
+      sensorRef.current = null;
 
       // Clean up viewshed
-      if (refs.viewshedRef.current) {
-        cesiumViewer?.entities?.remove(refs.viewshedRef.current);
+      if (viewshedRef.current) {
+        console.warn("🔥 [CLEANUP] Removing viewshed");
+        cesiumViewer?.entities?.remove(viewshedRef.current);
       }
-      refs.viewshedRef.current = null;
+      viewshedRef.current = null;
 
       lastShapeSigRef.current = "";
+      console.warn("🔥 [CLEANUP] Cleanup complete");
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run cleanup on unmount
+    // Include refs in dependencies so cleanup is recreated when refs change
+  }, [refs, cesiumViewer, lastShapeSigRef]);
 }
