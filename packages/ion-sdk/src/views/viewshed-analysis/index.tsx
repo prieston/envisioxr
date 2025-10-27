@@ -92,35 +92,56 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       return;
     }
 
-    // Compute shape sig FIRST to check if we should even start
+    // Compute shape sig FIRST
     const shapeSig = computeShapeSignature(observationProperties);
     console.log(
       "[CREATE SENSOR] Computed shape sig:",
       shapeSig,
-      "last was:",
-      lastShapeSigRef.current
+      "creatingShapeSig=",
+      creatingShapeSigRef.current,
+      "isCreating=",
+      isCreatingRef.current,
+      "hasSensor=",
+      !!sensorRef.current
     );
 
+    // CRITICAL: In React Strict Mode, both calls see the same initial state.
+    // The first call to claim the lock wins. The second should see it and bail.
+    
+    // Check if someone else is already creating this exact sig
+    if (creatingShapeSigRef.current === shapeSig) {
+      console.log("[CREATE SENSOR] Early return: already creating exact sig:", shapeSig);
+      return;
+    }
+    
+    // Check if we already have a sensor (another Strict Mode call may have just created it)
+    if (sensorRef.current && lastShapeSigRef.current === shapeSig) {
+      console.log("[CREATE SENSOR] Early return: sensor already exists with correct sig");
+      return;
+    }
+    
+    // If someone is creating a different sig, wait or bail
+    if (creatingShapeSigRef.current !== "") {
+      console.log("[CREATE SENSOR] Early return: creating different sig:", creatingShapeSigRef.current);
+      return;
+    }
+    
     // GUARD: Check if shape sig really changed
     if (lastShapeSigRef.current === shapeSig) {
       console.log("[CREATE SENSOR] Early return: shape sig unchanged");
       return;
     }
-
-    // GUARD: Check if we're already creating THIS exact shape sig
-    if (creatingShapeSigRef.current === shapeSig) {
-      console.log(
-        "[CREATE SENSOR] Early return: already creating shape sig:",
-        shapeSig
-      );
-      return;
-    }
+    
+    // Try to claim the lock for this shape sig
+    creatingShapeSigRef.current = shapeSig;
+    console.log("[CREATE SENSOR] Claimed lock for sig:", shapeSig);
 
     // GUARD: Check if already transitioning OR creating
     if (isTransitioningRef.current || isCreatingRef.current) {
       console.log(
         "[CREATE SENSOR] Early return: already transitioning or creating"
       );
+      creatingShapeSigRef.current = ""; // Release lock
       return;
     }
 
@@ -139,10 +160,8 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     // GUARD: Set flags IMMEDIATELY
     isCreatingRef.current = true;
     isTransitioningRef.current = true;
-    creatingShapeSigRef.current = shapeSig; // Track which sig we're creating
 
     try {
-
       // Count primitives before cleanup
       const beforeCount = cesiumViewer?.scene?.primitives?.length;
       console.log("[CREATE SENSOR] Primitives before cleanup:", beforeCount);
