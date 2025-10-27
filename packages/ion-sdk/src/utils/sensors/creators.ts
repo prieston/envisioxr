@@ -61,7 +61,9 @@ export function createConicSensor(opts: ConicSensorOptions): IonSensor {
   const sensor = new (IonSensors as any).ConicSensor({
     modelMatrix: opts.modelMatrix,
     radius: Math.max(MIN_RADIUS, opts.radius),
-    outerHalfAngle: Cesium.Math.toRadians(Math.min(179.9, Math.max(1, opts.fovDeg)) / 2),
+    outerHalfAngle: Cesium.Math.toRadians(
+      Math.min(179.9, Math.max(1, opts.fovDeg)) / 2
+    ),
     // materials
     lateralSurfaceMaterial: mat,
     domeSurfaceMaterial: mat,
