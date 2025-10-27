@@ -1,7 +1,7 @@
 import * as Cesium from "cesium";
 import type { ObservationProperties } from "../types";
 import {
-  updateFovRadiusSmart,
+  updateFovRadius,
   updateFlags,
   updateColors,
 } from "../../../utils/sensors";
@@ -14,17 +14,14 @@ interface UpdateSensorParams {
 }
 
 export function updateSensorFovRadius(params: UpdateSensorParams) {
-  const { handle, properties, viewer, modelMatrix } = params;
+  const { handle, properties, viewer } = params;
 
   if (!handle) return null;
 
-  const updated = updateFovRadiusSmart(handle, {
+  const updated = updateFovRadius(handle, {
     fovDeg: properties.fov,
     radius: properties.visibilityRadius,
     viewer,
-    modelMatrix,
-    color: Cesium.Color.fromCssColorString(properties.sensorColor || "#00ff00"),
-    include3DModels: properties.include3DModels,
   });
 
   return updated;

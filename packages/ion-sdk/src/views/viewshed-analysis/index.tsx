@@ -83,7 +83,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       removeSensor(sensorRef.current, cesiumViewer);
       sensorRef.current = null;
 
-      const { sensor, composite } = createSensor({
+      const { sensor } = createSensor({
         viewer: cesiumViewer,
         position,
         rotation,
@@ -91,7 +91,6 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       });
 
       sensorRef.current = sensor;
-      sensorCompositeRef.current = composite;
     } catch (err) {
       console.error("Error creating Ion SDK sensor:", err);
       toast.error(`Failed to create sensor: ${(err as any)?.message}`, {

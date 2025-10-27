@@ -1,7 +1,7 @@
 import * as Cesium from "cesium";
 import type { ObservationProperties } from "../types";
 import {
-  createConicSensorOrComposite,
+  createConicSensor,
   createRectangularSensor,
   updateColors,
   updateFlags,
@@ -59,7 +59,6 @@ export function createSensor(params: CreateSensorParams) {
   ).withAlpha(1.0);
 
   let sensor: any = null;
-  let composite: any = null;
 
   if (properties.sensorType === "rectangle") {
     sensor = createRectangularSensor({
@@ -72,7 +71,7 @@ export function createSensor(params: CreateSensorParams) {
       include3DModels: properties.include3DModels,
     });
   } else {
-    const result = createConicSensorOrComposite({
+    sensor = createConicSensor({
       viewer,
       modelMatrix,
       fovDeg: properties.fov ?? 60,
@@ -80,40 +79,27 @@ export function createSensor(params: CreateSensorParams) {
       sensorColor,
       include3DModels: properties.include3DModels,
     });
-    sensor = result.sensor ?? result.composite?.parts[0] ?? null;
-    composite = result.composite;
   }
 
   if (!sensor) {
     throw new Error("Failed to create sensor");
   }
 
-  const target = composite ?? sensor;
-
-  updateColors(target, {
+  updateColors(sensor, {
     volume: sensorColor.withAlpha(0.25),
     visible: sensorColor.withAlpha(0.35),
     occluded: Cesium.Color.fromBytes(255, 0, 0, 110),
   });
 
-  updateFlags(target, {
+  updateFlags(sensor, {
     show: !!properties.showSensorGeometry || !!properties.showViewshed,
     showGeometry: !!properties.showSensorGeometry,
     showViewshed: !!properties.showViewshed,
   });
 
-  const volumeMat = Cesium.Material.fromType("Color", {
-    color: sensorColor.withAlpha(0.25),
-  });
-  sensor.lateralSurfaceMaterial = volumeMat;
-  sensor.domeSurfaceMaterial = volumeMat;
-  sensor.showEnvironmentOcclusion = false;
-  sensor.showEnvironmentIntersection = false;
-  sensor.showIntersection = false;
-
   viewer.scene.requestRender();
 
-  return { sensor, composite };
+  return { sensor };
 }
 
 export function computeShapeSignature(

@@ -249,12 +249,12 @@ const SDKObservationPropertiesPanel: React.FC<
                 Field of View: {local.fov}°
               </Typography>
               <Slider
-                value={Math.min(360, local.fov)}
+                value={Math.min(180, local.fov)}
                 min={10}
-                max={360}
+                max={180}
                 onPointerDown={startDrag}
                 onChange={(_, value) => {
-                  const next = Math.min(360, Number(value));
+                  const next = Math.min(180, Number(value));
                   __dbgTick++;
                   console.log(
                     `%c[UI] tick=${__dbgTick} fov=${next}`,
@@ -267,7 +267,7 @@ const SDKObservationPropertiesPanel: React.FC<
                 onPointerCancel={endDrag}
                 onChangeCommitted={(_, value) => {
                   endDrag();
-                  const next = Math.min(360, Number(value));
+                  const next = Math.min(180, Number(value));
                   console.log(
                     `%c[UI-commit] tick=${__dbgTick} fov=${next}`,
                     "color:#0ea5e9"

@@ -4,8 +4,7 @@
 
 import * as Cesium from "cesium";
 import * as IonSensors from "../../vendor/cesium-ion-sdk/ion-sdk-sensors";
-import { IonSensor, SensorComposite } from "./types";
-import { buildCompositeConicSensor } from "./composite";
+import { IonSensor } from "./types";
 import { requestRender, sanitizeFov } from "./helpers";
 import {
   DEBUG,
@@ -19,7 +18,7 @@ import {
 export interface ConicSensorOptions {
   viewer: any;
   modelMatrix: Cesium.Matrix4;
-  fovDeg: number; // 0..360 full
+  fovDeg: number; // 0..180 full
   radius: number;
   sensorColor: Cesium.Color;
   include3DModels?: boolean;
@@ -36,14 +35,9 @@ export interface RectangularSensorOptions {
 }
 
 /**
- * Create a conic sensor or composite (multi-cone) sensor
- * based on the FOV angle
+ * Create a conic sensor (single cone up to 180°)
  */
-export function createConicSensorOrComposite(opts: ConicSensorOptions): {
-  sensor?: IonSensor;
-  composite?: SensorComposite;
-} {
-  const desiredFullFovDeg = Math.max(0, Math.min(360, opts.fovDeg));
+export function createConicSensor(opts: ConicSensorOptions): IonSensor {
   const volume = opts.sensorColor.withAlpha(DEFAULT_VOLUME_ALPHA);
   const visible = opts.sensorColor.withAlpha(DEFAULT_VISIBLE_ALPHA);
   const occluded = Cesium.Color.fromBytes(
@@ -53,36 +47,10 @@ export function createConicSensorOrComposite(opts: ConicSensorOptions): {
     DEFAULT_OCCLUDED_COLOR_BYTES.a
   );
 
-  DEBUG &&
-    console.log(`[createConicSensorOrComposite] FOV: ${desiredFullFovDeg}°`);
+  DEBUG && console.log(`[createConicSensor] FOV: ${opts.fovDeg}°`);
 
-  // If FOV > 180°, use composite (multiple cones)
-  if (desiredFullFovDeg > 180) {
-    DEBUG && console.log(`[createConicSensorOrComposite] Creating COMPOSITE`);
-    const composite = buildCompositeConicSensor({
-      viewer: opts.viewer,
-      poseMatrix: opts.modelMatrix,
-      fullDeg: desiredFullFovDeg,
-      radius: Math.max(MIN_RADIUS, opts.radius),
-      volumeColor: volume,
-      visibleColor: visible,
-      occludedColor: occluded,
-      show: true,
-      showViewshed: true,
-      showGeometry: false,
-    });
-    (composite as any).__mode = "composite"; // Mark mode at creation
-    requestRender(opts.viewer);
-    return { composite };
-  }
-
-  DEBUG && console.log(`[createConicSensorOrComposite] Creating SINGLE cone`);
-
-  // Single cone for FOV <= 180°; clamp to 179.9°
-  const clampedFull = Math.max(
-    1,
-    Math.min(MAX_CONE_FOV_DEG, desiredFullFovDeg)
-  );
+  // Clamp to 179.9° max
+  const clampedFull = Math.max(1, Math.min(MAX_CONE_FOV_DEG, opts.fovDeg));
   const halfRad = Cesium.Math.toRadians(clampedFull / 2);
   const mat = Cesium.Material.fromType("Color", { color: volume });
   const sensor = new (IonSensors as any).ConicSensor({
@@ -91,7 +59,7 @@ export function createConicSensorOrComposite(opts: ConicSensorOptions): {
     outerHalfAngle: halfRad,
     lateralSurfaceMaterial: mat,
     domeSurfaceMaterial: mat,
-    showLateralSurfaces: false, // Aligned with initial flags
+    showLateralSurfaces: false,
     showDomeSurfaces: false,
     showViewshed: true,
     showEllipsoidSurfaces: false,
@@ -102,10 +70,9 @@ export function createConicSensorOrComposite(opts: ConicSensorOptions): {
   } as any);
   sensor.viewshedVisibleColor = visible;
   sensor.viewshedOccludedColor = occluded;
-  (sensor as any).__mode = "single"; // Mark mode at creation
   opts.viewer.scene.primitives.add(sensor);
   requestRender(opts.viewer);
-  return { sensor };
+  return sensor;
 }
 
 /**
