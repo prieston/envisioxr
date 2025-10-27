@@ -31,6 +31,8 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   const cesiumViewer = providedViewer || (window as any).cesiumViewer;
   const isInitialized = useIonSDKInitialization(cesiumViewer);
 
+  console.log(`🔵 [RENDER] objectId=${objectId}, isInitialized=${isInitialized}, hasViewer=${!!cesiumViewer}`);
+
   const sensorRef = useRef<any>(null);
   const viewshedRef = useRef<any>(null);
   const lastShapeSigRef = useRef<string>("");
@@ -64,7 +66,9 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   };
 
   useEffect(() => {
+    console.log(`🟢 [MOUNT] Component mounted for objectId=${objectId}`);
     return () => {
+      console.log(`🔴 [UNMOUNT] Component unmounting for objectId=${objectId}`);
       mountedRef.current = false;
     };
   }, [objectId]);
@@ -178,7 +182,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
     try {
       const beforeCount = cesiumViewer?.scene?.primitives?.length ?? 0;
-      
+
       // Clean up old sensor
       if (sensorRef.current) {
         DEBUG &&
@@ -191,7 +195,9 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       sensorRef.current = null;
 
       const afterCleanup = cesiumViewer?.scene?.primitives?.length ?? 0;
-      console.log(`🔨 [CREATE] Before: ${beforeCount} primitives, After cleanup: ${afterCleanup}`);
+      console.log(
+        `🔨 [CREATE] Before: ${beforeCount} primitives, After cleanup: ${afterCleanup}`
+      );
 
       DEBUG && console.log("[CREATE SENSOR] Creating new sensor...");
       const { sensor } = createSensor({
@@ -204,7 +210,9 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       sensorRef.current = sensor;
 
       const afterCreate = cesiumViewer?.scene?.primitives?.length ?? 0;
-      console.log(`✅ [CREATE] Created sensor, primitives: ${afterCleanup} → ${afterCreate} (added ${afterCreate - afterCleanup})`);
+      console.log(
+        `✅ [CREATE] Created sensor, primitives: ${afterCleanup} → ${afterCreate} (added ${afterCreate - afterCleanup})`
+      );
 
       DEBUG && console.log("[CREATE SENSOR] Created sensor:", sensor);
       DEBUG &&

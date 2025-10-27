@@ -112,7 +112,9 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
         visibilityRadius: patch.visibilityRadius ?? properties.visibilityRadius,
       };
 
-      console.log(`🔄 [PREVIEW] Updating FOV=${nextProperties.fov}° radius=${nextProperties.visibilityRadius}m (primitives: ${primitiveCount})`);
+      console.log(
+        `🔄 [PREVIEW] Updating FOV=${nextProperties.fov}° radius=${nextProperties.visibilityRadius}m (primitives: ${primitiveCount})`
+      );
 
       // Update in place for single sensor mode
       updateFovRadius(sensorRef.current, {
