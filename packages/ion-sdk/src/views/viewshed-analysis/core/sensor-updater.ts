@@ -35,9 +35,14 @@ export function applySensorFlags(
   if (!handle) return;
 
   try {
+    // If showSensorGeometry is true, make sure surfaces are visible
+    if (properties.showSensorGeometry) {
+      handle.showLateralSurfaces = true;
+      handle.showDomeSurfaces = true;
+    }
+    
     updateFlags(handle, {
       show: !!properties.showSensorGeometry || !!properties.showViewshed,
-      showGeometry: !!properties.showSensorGeometry,
       showViewshed: !!properties.showViewshed,
     });
     viewer?.scene?.requestRender();

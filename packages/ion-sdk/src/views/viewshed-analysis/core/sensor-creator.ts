@@ -91,9 +91,9 @@ export function createSensor(params: CreateSensorParams) {
     occluded: Cesium.Color.fromBytes(255, 0, 0, 110),
   });
 
+  // Update flags - only set geometry visibility, don't override the surfaces we already set to true
   updateFlags(sensor, {
     show: !!properties.showSensorGeometry || !!properties.showViewshed,
-    showGeometry: !!properties.showSensorGeometry,
     showViewshed: !!properties.showViewshed,
   });
 

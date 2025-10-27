@@ -37,6 +37,12 @@ export function updateFlags(
     target.showLateralSurfaces = opts.showGeometry;
     target.showDomeSurfaces = opts.showGeometry;
   }
+  // If show is false, hide the sensor entirely
+  if (opts.show === false) {
+    target.showLateralSurfaces = false;
+    target.showDomeSurfaces = false;
+    target.showViewshed = false;
+  }
   requestRender(viewer);
 }
 
