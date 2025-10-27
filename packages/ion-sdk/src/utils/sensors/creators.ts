@@ -61,9 +61,11 @@ export function createConicSensor(opts: ConicSensorOptions): IonSensor {
   const sensor = new (IonSensors as any).ConicSensor({
     modelMatrix: opts.modelMatrix,
     radius: Math.max(MIN_RADIUS, opts.radius),
-    outerHalfAngle: halfRad,
+    outerHalfAngle: Cesium.Math.toRadians(Math.min(179.9, Math.max(1, opts.fovDeg)) / 2),
+    // materials
     lateralSurfaceMaterial: mat,
     domeSurfaceMaterial: mat,
+    // draw flags
     showLateralSurfaces: true,
     showDomeSurfaces: true,
     showViewshed: true,
@@ -73,6 +75,10 @@ export function createConicSensor(opts: ConicSensorOptions): IonSensor {
     environmentConstraint: true,
     include3DModels: opts.include3DModels !== false,
   } as any);
+
+  // some Ion SDK builds actually read these color props at render time:
+  (sensor as any).lateralSurfaceColor = volume;
+  (sensor as any).domeSurfaceColor = volume;
 
   // set viewshed colors AFTER construction
   (sensor as any).viewshedVisibleColor = visible;

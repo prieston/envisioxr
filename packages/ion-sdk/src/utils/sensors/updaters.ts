@@ -31,17 +31,27 @@ export function updateFlags(
   },
   viewer?: any
 ): void {
-  if (opts.show !== undefined) target.show = opts.show;
+  if (opts.show !== undefined) {
+    target.show = opts.show;
+    if (opts.show === true) {
+      // restore geometry if caller didn't specify showGeometry
+      if (opts.showGeometry === undefined) {
+        target.showLateralSurfaces = true;
+        target.showDomeSurfaces = true;
+      }
+      if (opts.showViewshed === undefined) {
+        target.showViewshed = true;
+      }
+    } else {
+      target.showLateralSurfaces = false;
+      target.showDomeSurfaces = false;
+      target.showViewshed = false;
+    }
+  }
   if (opts.showViewshed !== undefined) target.showViewshed = opts.showViewshed;
   if (opts.showGeometry !== undefined) {
     target.showLateralSurfaces = opts.showGeometry;
     target.showDomeSurfaces = opts.showGeometry;
-  }
-  // If show is false, hide the sensor entirely
-  if (opts.show === false) {
-    target.showLateralSurfaces = false;
-    target.showDomeSurfaces = false;
-    target.showViewshed = false;
   }
   requestRender(viewer);
 }
@@ -62,6 +72,9 @@ export function updateColors(
     const mat = Cesium.Material.fromType("Color", { color: colors.volume });
     target.lateralSurfaceMaterial = mat;
     target.domeSurfaceMaterial = mat;
+    // some Ion SDK builds actually read these color props at render time:
+    (target as any).lateralSurfaceColor = colors.volume;
+    (target as any).domeSurfaceColor = colors.volume;
   }
   if (colors.visible) target.viewshedVisibleColor = colors.visible;
   if (colors.occluded) target.viewshedOccludedColor = colors.occluded;
