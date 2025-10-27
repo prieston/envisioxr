@@ -125,7 +125,7 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
           "[PREVIEW] Primitives after FOV update:",
           primitiveCountAfter
         );
-      if (primitiveCountAfter !== primitiveCount) {
+      if (DEBUG && primitiveCountAfter !== primitiveCount) {
         console.warn(
           "[PREVIEW] ⚠️ WARNING: Primitive count changed! before=",
           primitiveCount,
@@ -170,20 +170,20 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
               "->",
               afterCount
             );
-          if (afterCount !== beforeCount) {
+          if (DEBUG && afterCount !== beforeCount) {
             console.warn(
               "[PREVIEW] ⚠️ WARNING: Primitive count changed during styling!"
             );
           }
         } catch (err) {
-          console.warn("[Preview] Failed to update style:", err);
+          DEBUG && console.warn("[Preview] Failed to update style:", err);
         } finally {
           isTransitioningRef.current = false;
           DEBUG && console.log("[PREVIEW] Done, transitioning=false");
         }
       });
     } catch (err) {
-      console.error("[PREVIEW ERROR]", err);
+      DEBUG && console.error("[PREVIEW ERROR]", err);
       isTransitioningRef.current = false;
     }
   };
