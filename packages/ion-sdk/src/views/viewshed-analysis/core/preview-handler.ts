@@ -1,6 +1,6 @@
 import * as Cesium from "cesium";
 import type { ObservationProperties } from "../types";
-import { updateSensorFovRadius, applySensorStyle } from "./sensor-updater";
+import { updateFovRadius, updateFlags, updateColors } from "../../../utils/sensors";
 
 declare global {
   interface Window {
@@ -46,12 +46,9 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
 
     if (!sensorRef.current) return;
 
+    // Clean up dead handles immediately
     let handle = sensorRef.current;
-    if (
-      handle &&
-      typeof (handle as any).isDestroyed === "function" &&
-      (handle as any).isDestroyed()
-    ) {
+    if (handle && typeof handle.isDestroyed === "function" && handle.isDestroyed()) {
       sensorRef.current = null;
       handle = null;
     }
@@ -63,41 +60,55 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
     if (throttleTimeout) return;
 
     try {
-      if (patch.fov !== undefined || patch.visibilityRadius !== undefined) {
-        isTransitioningRef.current = true;
+      const needsUpdate = patch.fov !== undefined || patch.visibilityRadius !== undefined;
+      if (!needsUpdate) return;
 
-        // Set throttle timeout
-        throttleTimeout = setTimeout(() => {
-          throttleTimeout = null;
-        }, THROTTLE_MS);
+      isTransitioningRef.current = true;
+      
+      // Set throttle timeout
+      throttleTimeout = setTimeout(() => {
+        throttleTimeout = null;
+      }, THROTTLE_MS);
 
-        const modelMatrix = sensorRef.current?.modelMatrix ?? Cesium.Matrix4.IDENTITY;
+      const nextProperties: ObservationProperties = {
+        ...properties,
+        fov: patch.fov ?? properties.fov,
+        visibilityRadius: patch.visibilityRadius ?? properties.visibilityRadius,
+      };
 
-        console.log("[PREVIEW] Updating sensor with fov:", patch.fov);
-        
-        updateSensorFovRadius({
-          handle: sensorRef.current,
-          properties: {
-            ...properties,
-            fov: patch.fov ?? properties.fov,
-            visibilityRadius: patch.visibilityRadius ?? properties.visibilityRadius,
-          },
-          viewer,
-          modelMatrix,
-        });
+      // Update in place for single sensor mode
+      updateFovRadius(sensorRef.current, {
+        fovDeg: nextProperties.fov,
+        radius: nextProperties.visibilityRadius,
+        viewer,
+      });
 
-        requestAnimationFrame(() => {
-          try {
-            if (sensorRef.current) {
-              applySensorStyle(sensorRef.current, properties, viewer);
+      // Apply styling after a frame
+      requestAnimationFrame(() => {
+        try {
+          if (sensorRef.current && sensorRef.current.show !== undefined) {
+            // Update flags
+            updateFlags(sensorRef.current, {
+              show: !!nextProperties.showSensorGeometry || !!nextProperties.showViewshed,
+              showViewshed: !!nextProperties.showViewshed,
+            });
+
+            // Update colors if changed
+            if (nextProperties.sensorColor) {
+              const color = Cesium.Color.fromCssColorString(nextProperties.sensorColor);
+              updateColors(sensorRef.current, {
+                volume: color.withAlpha(0.25),
+                visible: color.withAlpha(0.35),
+                occluded: Cesium.Color.fromBytes(255, 0, 0, 110),
+              });
             }
-          } catch (err) {
-            console.warn("Failed to update preview style:", err);
-          } finally {
-            isTransitioningRef.current = false;
           }
-        });
-      }
+        } catch (err) {
+          console.warn("[Preview] Failed to update style:", err);
+        } finally {
+          isTransitioningRef.current = false;
+        }
+      });
     } catch (err) {
       console.error("[PREVIEW ERROR]", err);
       isTransitioningRef.current = false;

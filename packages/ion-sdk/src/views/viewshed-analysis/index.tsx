@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useCallback } from "react";
 import { toast } from "react-toastify";
 import * as Cesium from "cesium";
+import { updateFlags, updateColors } from "../../utils/sensors";
 import type { ViewshedAnalysisProps, SensorRefs } from "./types";
 import {
   useIonSDKInitialization,
@@ -12,12 +13,10 @@ import {
 import {
   createSensor,
   computeShapeSignature,
-  updateSensorFovRadius,
-  applySensorStyle,
   createPreviewHandler,
   initializePreviewGlobals,
 } from "./core";
-import { removeComposite, removeSensor } from "./utils";
+import { removeSensor } from "./utils";
 
 const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   position,
@@ -30,7 +29,6 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   const isInitialized = useIonSDKInitialization(cesiumViewer);
 
   const sensorRef = useRef<any>(null);
-  const sensorCompositeRef = useRef<any>(null);
   const viewshedRef = useRef<any>(null);
   const lastShapeSigRef = useRef<string>("");
   const mountedRef = useRef(true);
@@ -38,7 +36,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
   const refs: SensorRefs = {
     sensorRef,
-    sensorCompositeRef,
+    sensorCompositeRef: { current: null }, // Deprecated, kept for compatibility
     viewshedRef,
   };
 
@@ -77,9 +75,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       }
       lastShapeSigRef.current = shapeSig;
 
-      removeComposite(sensorCompositeRef.current, cesiumViewer);
-      sensorCompositeRef.current = null;
-
+      // Clean up old sensor
       removeSensor(sensorRef.current, cesiumViewer);
       sensorRef.current = null;
 
@@ -143,20 +139,28 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       window.removeEventListener("cesium-observation-preview", handlePreview);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isInitialized,
-    objectId,
-    cesiumViewer,
-    // NOTE: fov and visibilityRadius are NOT in deps
-    // because the handler reads them from the closure
-  ]);
+  }, [isInitialized, objectId, cesiumViewer]);
 
   useEffect(() => {
     if (!isInitialized) return;
     if (!sensorRef.current) return;
 
     try {
-      applySensorStyle(sensorRef.current, observationProperties, cesiumViewer);
+      // Update flags
+      updateFlags(sensorRef.current, {
+        show: !!observationProperties.showSensorGeometry || !!observationProperties.showViewshed,
+        showViewshed: !!observationProperties.showViewshed,
+      });
+
+      // Update colors if changed
+      if (observationProperties.sensorColor) {
+        const color = Cesium.Color.fromCssColorString(observationProperties.sensorColor);
+        updateColors(sensorRef.current, {
+          volume: color.withAlpha(0.25),
+          visible: color.withAlpha(0.35),
+          occluded: Cesium.Color.fromBytes(255, 0, 0, 110),
+        });
+      }
     } catch (err) {
       console.warn("Failed to update visibility flags:", err);
     }
@@ -166,6 +170,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     observationProperties.showSensorGeometry,
     observationProperties.showViewshed,
     observationProperties.sensorType,
+    observationProperties.sensorColor,
   ]);
 
   return null;
