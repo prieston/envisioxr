@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
 import * as Cesium from "cesium";
 import { updateFlags, updateColors } from "../../utils/sensors";
@@ -35,6 +35,17 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   const isTransitioningRef = useRef(false);
   const isCreatingRef = useRef(false); // Prevent concurrent creation
   const creatingShapeSigRef = useRef<string>(""); // Track which shape sig we're creating
+
+  // Compute shape sig once at top level
+  const currentShapeSig = useMemo(() => computeShapeSignature(observationProperties), [
+    observationProperties.sensorType,
+    observationProperties.include3DModels,
+    observationProperties.sensorType === "rectangle" ? observationProperties.fovH : undefined,
+    observationProperties.sensorType === "rectangle" ? observationProperties.fovV : undefined,
+    observationProperties.alignWithModelFront,
+    observationProperties.manualFrontDirection,
+    observationProperties.modelFrontAxis,
+  ]);
 
   const refs: SensorRefs = {
     sensorRef,
@@ -76,7 +87,12 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
     // Compute shape sig FIRST to check if we should even start
     const shapeSig = computeShapeSignature(observationProperties);
-    console.log("[CREATE SENSOR] Computed shape sig:", shapeSig, "last was:", lastShapeSigRef.current);
+    console.log(
+      "[CREATE SENSOR] Computed shape sig:",
+      shapeSig,
+      "last was:",
+      lastShapeSigRef.current
+    );
 
     // GUARD: Check if shape sig really changed
     if (lastShapeSigRef.current === shapeSig) {
@@ -86,13 +102,18 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
     // GUARD: Check if we're already creating THIS exact shape sig
     if (creatingShapeSigRef.current === shapeSig) {
-      console.log("[CREATE SENSOR] Early return: already creating shape sig:", shapeSig);
+      console.log(
+        "[CREATE SENSOR] Early return: already creating shape sig:",
+        shapeSig
+      );
       return;
     }
 
     // GUARD: Check if already transitioning OR creating
     if (isTransitioningRef.current || isCreatingRef.current) {
-      console.log("[CREATE SENSOR] Early return: already transitioning or creating");
+      console.log(
+        "[CREATE SENSOR] Early return: already transitioning or creating"
+      );
       return;
     }
 
@@ -148,25 +169,13 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     } finally {
       isCreatingRef.current = false;
       isTransitioningRef.current = false;
-      creatingShapeSigRef.current = "";  // Clear the creating sig
+      creatingShapeSigRef.current = ""; // Clear the creating sig
       console.log("[CREATE SENSOR] Done, flags=false");
     }
-    // Note: position/rotation intentionally excluded - shape signature guards recreation
-    // and these arrays cause unnecessary callback recreation on every render
   }, [
     isInitialized,
     cesiumViewer,
-    observationProperties.sensorType,
-    observationProperties.include3DModels,
-    observationProperties.sensorType === "rectangle"
-      ? observationProperties.fovH
-      : undefined,
-    observationProperties.sensorType === "rectangle"
-      ? observationProperties.fovV
-      : undefined,
-    observationProperties.alignWithModelFront,
-    observationProperties.manualFrontDirection,
-    observationProperties.modelFrontAxis,
+    currentShapeSig,
   ]);
 
   useEffect(() => {
