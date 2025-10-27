@@ -48,8 +48,10 @@ export function createConicSensor(opts: ConicSensorOptions): IonSensor {
   );
 
   DEBUG && console.log(`[createConicSensor] FOV: ${opts.fovDeg}°`);
-  DEBUG && console.log(`[createConicSensor] sensorColor:`, opts.sensorColor.toBytes());
-  DEBUG && console.log(`[createConicSensor] volume alpha:`, DEFAULT_VOLUME_ALPHA);
+  DEBUG &&
+    console.log(`[createConicSensor] sensorColor:`, opts.sensorColor.toBytes());
+  DEBUG &&
+    console.log(`[createConicSensor] volume alpha:`, DEFAULT_VOLUME_ALPHA);
   DEBUG && console.log(`[createConicSensor] volume color:`, volume.toBytes());
 
   // Clamp to 179.9° max
@@ -70,9 +72,12 @@ export function createConicSensor(opts: ConicSensorOptions): IonSensor {
     showThroughEllipsoid: false,
     environmentConstraint: true,
     include3DModels: opts.include3DModels !== false,
-    viewshedVisibleColor: visible,
-    viewshedOccludedColor: occluded,
   } as any);
+
+  // set viewshed colors AFTER construction
+  (sensor as any).viewshedVisibleColor = visible;
+  (sensor as any).viewshedOccludedColor = occluded;
+
   opts.viewer.scene.primitives.add(sensor);
   requestRender(opts.viewer);
   return sensor;
