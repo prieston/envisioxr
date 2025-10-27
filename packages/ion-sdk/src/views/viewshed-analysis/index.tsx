@@ -37,15 +37,22 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   const creatingShapeSigRef = useRef<string>(""); // Track which shape sig we're creating
 
   // Compute shape sig once at top level
-  const currentShapeSig = useMemo(() => computeShapeSignature(observationProperties), [
-    observationProperties.sensorType,
-    observationProperties.include3DModels,
-    observationProperties.sensorType === "rectangle" ? observationProperties.fovH : undefined,
-    observationProperties.sensorType === "rectangle" ? observationProperties.fovV : undefined,
-    observationProperties.alignWithModelFront,
-    observationProperties.manualFrontDirection,
-    observationProperties.modelFrontAxis,
-  ]);
+  const currentShapeSig = useMemo(
+    () => computeShapeSignature(observationProperties),
+    [
+      observationProperties.sensorType,
+      observationProperties.include3DModels,
+      observationProperties.sensorType === "rectangle"
+        ? observationProperties.fovH
+        : undefined,
+      observationProperties.sensorType === "rectangle"
+        ? observationProperties.fovV
+        : undefined,
+      observationProperties.alignWithModelFront,
+      observationProperties.manualFrontDirection,
+      observationProperties.modelFrontAxis,
+    ]
+  );
 
   const refs: SensorRefs = {
     sensorRef,
@@ -119,20 +126,22 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
     console.log("[CREATE SENSOR] Starting... shape sig:", shapeSig);
 
+    // CRITICAL: Update shape sig FIRST to prevent race condition with concurrent calls
+    const oldSig = lastShapeSigRef.current;
+    lastShapeSigRef.current = shapeSig;
+    console.log(
+      "[CREATE SENSOR] Updated lastShapeSigRef:",
+      oldSig,
+      "->",
+      shapeSig
+    );
+
     // GUARD: Set flags IMMEDIATELY
     isCreatingRef.current = true;
     isTransitioningRef.current = true;
     creatingShapeSigRef.current = shapeSig; // Track which sig we're creating
 
     try {
-      // GUARD: Update shape sig IMMEDIATELY to prevent double creation
-      console.log(
-        "[CREATE SENSOR] Shape sig changed:",
-        lastShapeSigRef.current,
-        "->",
-        shapeSig
-      );
-      lastShapeSigRef.current = shapeSig;
 
       // Count primitives before cleanup
       const beforeCount = cesiumViewer?.scene?.primitives?.length;
@@ -172,11 +181,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       creatingShapeSigRef.current = ""; // Clear the creating sig
       console.log("[CREATE SENSOR] Done, flags=false");
     }
-  }, [
-    isInitialized,
-    cesiumViewer,
-    currentShapeSig,
-  ]);
+  }, [isInitialized, cesiumViewer, currentShapeSig]);
 
   useEffect(() => {
     if (!isInitialized) return;
