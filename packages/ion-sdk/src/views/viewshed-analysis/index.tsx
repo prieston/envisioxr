@@ -143,12 +143,13 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     return () => {
       window.removeEventListener("cesium-observation-preview", handlePreview);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isInitialized,
     objectId,
     cesiumViewer,
-    observationProperties.fov,
-    observationProperties.visibilityRadius,
+    // NOTE: fov and visibilityRadius are NOT in deps
+    // because the handler reads them from the closure
   ]);
 
   useEffect(() => {

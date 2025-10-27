@@ -79,6 +79,8 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
           sensorCompositeRef.current?.parts?.[0]?.modelMatrix ??
           Cesium.Matrix4.IDENTITY;
 
+        console.log("[PREVIEW] Updating sensor with fov:", patch.fov);
+        
         const updated = updateSensorFovRadius({
           handle: sensorCompositeRef.current ?? sensorRef.current,
           properties: {
@@ -91,15 +93,13 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
           modelMatrix,
         });
 
-        if (!updated) return;
-
-        if ((updated as any).parts) {
-          sensorCompositeRef.current = updated as any;
-          sensorRef.current = null;
-        } else {
-          sensorRef.current = updated as any;
-          sensorCompositeRef.current = null;
+        if (!updated) {
+          console.warn("[PREVIEW] updateSensorFovRadius returned null");
+          return;
         }
+
+        // Don't reassign refs - we're updating the same sensor in place
+        console.log("[PREVIEW] Sensor updated successfully");
 
         requestAnimationFrame(() => {
           try {

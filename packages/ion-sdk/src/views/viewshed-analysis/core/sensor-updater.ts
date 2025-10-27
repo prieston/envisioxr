@@ -16,8 +16,13 @@ interface UpdateSensorParams {
 export function updateSensorFovRadius(params: UpdateSensorParams) {
   const { handle, properties, viewer } = params;
 
-  if (!handle) return null;
+  if (!handle) {
+    console.warn("[updateSensorFovRadius] No handle provided");
+    return null;
+  }
 
+  console.log("[updateSensorFovRadius] Updating existing sensor, fov:", properties.fov);
+  
   const updated = updateFovRadius(handle, {
     fovDeg: properties.fov,
     radius: properties.visibilityRadius,
