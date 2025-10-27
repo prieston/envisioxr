@@ -1,6 +1,5 @@
 export * from "./utils/sensors";
 export { default as ViewshedAnalysis } from "./views/ViewshedAnalysis";
-export { default as CesiumIonSDKViewshedAnalysis } from "./views/CesiumIonSDKViewshedAnalysis";
 export { default as TransformEditor } from "./vendor/cesium-ion-sdk/ion-sdk-measurements/Source/TransformEditor/TransformEditor.js";
 export * from "./lib/init";
 // Re-export vendored Cesium Ion SDK modules for unified public API
