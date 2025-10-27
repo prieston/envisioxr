@@ -133,7 +133,6 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     const handlePreview = createPreviewHandler({
       objectId,
       sensorRef,
-      sensorCompositeRef,
       isTransitioningRef,
       properties: observationProperties,
       viewer: cesiumViewer,
@@ -154,14 +153,10 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
   useEffect(() => {
     if (!isInitialized) return;
-    if (!sensorRef.current && !sensorCompositeRef.current) return;
+    if (!sensorRef.current) return;
 
     try {
-      applySensorStyle(
-        sensorCompositeRef.current ?? sensorRef.current,
-        observationProperties,
-        cesiumViewer
-      );
+      applySensorStyle(sensorRef.current, observationProperties, cesiumViewer);
     } catch (err) {
       console.warn("Failed to update visibility flags:", err);
     }

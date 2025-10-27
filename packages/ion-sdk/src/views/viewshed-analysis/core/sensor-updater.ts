@@ -21,8 +21,11 @@ export function updateSensorFovRadius(params: UpdateSensorParams) {
     return null;
   }
 
-  console.log("[updateSensorFovRadius] Updating existing sensor, fov:", properties.fov);
-  
+  console.log(
+    "[updateSensorFovRadius] Updating existing sensor, fov:",
+    properties.fov
+  );
+
   const updated = updateFovRadius(handle, {
     fovDeg: properties.fov,
     radius: properties.visibilityRadius,

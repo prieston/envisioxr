@@ -11,7 +11,6 @@ declare global {
 interface PreviewHandlerConfig {
   objectId: string;
   sensorRef: React.MutableRefObject<any>;
-  sensorCompositeRef: React.MutableRefObject<any>;
   isTransitioningRef: React.MutableRefObject<boolean>;
   properties: ObservationProperties;
   viewer: any;
@@ -21,7 +20,6 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
   const {
     objectId,
     sensorRef,
-    sensorCompositeRef,
     isTransitioningRef,
     properties,
     viewer,
@@ -46,15 +44,14 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       window.__obsPreviewLastTick[objectId] = tick;
     }
 
-    if (!sensorRef.current && !sensorCompositeRef.current) return;
+    if (!sensorRef.current) return;
 
-    let handle = sensorCompositeRef.current ?? sensorRef.current;
+    let handle = sensorRef.current;
     if (
       handle &&
       typeof (handle as any).isDestroyed === "function" &&
       (handle as any).isDestroyed()
     ) {
-      sensorCompositeRef.current = null;
       sensorRef.current = null;
       handle = null;
     }
@@ -74,39 +71,25 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
           throttleTimeout = null;
         }, THROTTLE_MS);
 
-        const modelMatrix =
-          sensorRef.current?.modelMatrix ??
-          sensorCompositeRef.current?.parts?.[0]?.modelMatrix ??
-          Cesium.Matrix4.IDENTITY;
+        const modelMatrix = sensorRef.current?.modelMatrix ?? Cesium.Matrix4.IDENTITY;
 
         console.log("[PREVIEW] Updating sensor with fov:", patch.fov);
         
-        const updated = updateSensorFovRadius({
-          handle: sensorCompositeRef.current ?? sensorRef.current,
+        updateSensorFovRadius({
+          handle: sensorRef.current,
           properties: {
             ...properties,
             fov: patch.fov ?? properties.fov,
-            visibilityRadius:
-              patch.visibilityRadius ?? properties.visibilityRadius,
+            visibilityRadius: patch.visibilityRadius ?? properties.visibilityRadius,
           },
           viewer,
           modelMatrix,
         });
 
-        if (!updated) {
-          console.warn("[PREVIEW] updateSensorFovRadius returned null");
-          return;
-        }
-
-        // Don't reassign refs - we're updating the same sensor in place
-        console.log("[PREVIEW] Sensor updated successfully");
-
         requestAnimationFrame(() => {
           try {
-            const currentHandle =
-              sensorCompositeRef.current ?? sensorRef.current;
-            if (currentHandle) {
-              applySensorStyle(currentHandle, properties, viewer);
+            if (sensorRef.current) {
+              applySensorStyle(sensorRef.current, properties, viewer);
             }
           } catch (err) {
             console.warn("Failed to update preview style:", err);
