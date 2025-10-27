@@ -40,7 +40,7 @@ export function applySensorFlags(
       handle.showLateralSurfaces = true;
       handle.showDomeSurfaces = true;
     }
-    
+
     updateFlags(handle, {
       show: !!properties.showSensorGeometry || !!properties.showViewshed,
       showViewshed: !!properties.showViewshed,
