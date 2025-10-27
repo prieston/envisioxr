@@ -18,10 +18,10 @@ const CesiumObjectTransformEditor = dynamic(
     })),
   { ssr: false }
 );
-const CesiumIonSDKViewshedAnalysis = dynamic(
+const ViewshedAnalysis = dynamic(
   () =>
     import("@envisio/ion-sdk").then((m) => ({
-      default: m.CesiumIonSDKViewshedAnalysis,
+      default: m.ViewshedAnalysis,
     })),
   { ssr: false }
 );
@@ -69,7 +69,7 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
                       obj?.isObservationModel && obj?.observationProperties
                   )
                   .map((obj: any) => (
-                    <CesiumIonSDKViewshedAnalysis
+                    <ViewshedAnalysis
                       key={`ion-viewshed-${obj.id}`}
                       position={
                         (obj.position || [0, 0, 0]) as [number, number, number]

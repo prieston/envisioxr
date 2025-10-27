@@ -17,11 +17,8 @@ import {
   CesiumFeatureSelector,
 } from "./helpers";
 import dynamic from "next/dynamic";
-const CesiumIonSDKViewshedAnalysis = dynamic<any>(
-  () =>
-    import("@envisio/ion-sdk").then(
-      (m) => m.CesiumIonSDKViewshedAnalysis as any
-    ),
+const ViewshedAnalysis = dynamic<any>(
+  () => import("@envisio/ion-sdk").then((m) => m.ViewshedAnalysis as any),
   { ssr: false }
 );
 // Removed engine-owned transform editor; editor app renders it directly if needed
@@ -925,7 +922,7 @@ export default function CesiumViewer() {
               } as const;
 
               return (
-                <CesiumIonSDKViewshedAnalysis
+                <ViewshedAnalysis
                   key={`ion-viewshed-${obj.id}`}
                   position={[longitude, latitude, height]}
                   rotation={rotation}

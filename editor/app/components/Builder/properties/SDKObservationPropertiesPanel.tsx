@@ -17,6 +17,9 @@ import { useSceneStore } from "@envisio/core";
  * Batches updates to once per animation frame
  * Coalesces multiple rapid updates into a single call
  */
+// Debug tick counter
+let __dbgTick = 0;
+
 function useRafSchedule<T>(fn: (arg: T) => void) {
   const pending = useRef(false);
   const last = useRef<T | null>(null);
@@ -155,6 +158,7 @@ const SDKObservationPropertiesPanel: React.FC<
           detail: {
             objectId: selectedObject.id,
             patch,
+            tick: __dbgTick,
           },
         });
         window.dispatchEvent(event);
@@ -251,6 +255,11 @@ const SDKObservationPropertiesPanel: React.FC<
                 onPointerDown={startDrag}
                 onChange={(_, value) => {
                   const next = Math.min(360, Number(value));
+                  __dbgTick++;
+                  console.log(
+                    `%c[UI] tick=${__dbgTick} fov=${next}`,
+                    "color:#2563eb"
+                  );
                   setLocal((s) => ({ ...s, fov: next })); // UI stays smooth
                   schedulePreview({ fov: next }); // RAF-batched Cesium update
                 }}
@@ -259,6 +268,10 @@ const SDKObservationPropertiesPanel: React.FC<
                 onChangeCommitted={(_, value) => {
                   endDrag();
                   const next = Math.min(360, Number(value));
+                  console.log(
+                    `%c[UI-commit] tick=${__dbgTick} fov=${next}`,
+                    "color:#0ea5e9"
+                  );
                   handlePropertyChange("fov", next); // Persist once
                 }}
                 valueLabelDisplay="auto"
