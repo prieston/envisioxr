@@ -62,23 +62,41 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   );
 
   const createIonSDKSensor = useCallback(() => {
-    if (!isInitialized || !cesiumViewer) return;
-    if (isTransitioningRef.current) return;
+    if (!isInitialized || !cesiumViewer) {
+      console.log("[CREATE SENSOR] Early return: initialized=", isInitialized, "viewer=", !!cesiumViewer);
+      return;
+    }
+    if (isTransitioningRef.current) {
+      console.log("[CREATE SENSOR] Early return: transitioning");
+      return;
+    }
 
+    console.log("[CREATE SENSOR] Starting...");
     isTransitioningRef.current = true;
 
     try {
       const shapeSig = computeShapeSignature(observationProperties);
 
       if (lastShapeSigRef.current === shapeSig) {
+        console.log("[CREATE SENSOR] Early return: shape sig unchanged");
         return;
       }
+      
+      console.log("[CREATE SENSOR] Shape sig changed:", lastShapeSigRef.current, "->", shapeSig);
       lastShapeSigRef.current = shapeSig;
 
+      // Count primitives before cleanup
+      const beforeCount = cesiumViewer?.scene?.primitives?.length;
+      console.log("[CREATE SENSOR] Primitives before cleanup:", beforeCount);
+
       // Clean up old sensor
-      removeSensor(sensorRef.current, cesiumViewer);
+      if (sensorRef.current) {
+        console.log("[CREATE SENSOR] Removing old sensor:", sensorRef.current);
+        removeSensor(sensorRef.current, cesiumViewer);
+      }
       sensorRef.current = null;
 
+      console.log("[CREATE SENSOR] Creating new sensor...");
       const { sensor } = createSensor({
         viewer: cesiumViewer,
         position,
@@ -87,14 +105,21 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       });
 
       sensorRef.current = sensor;
+      
+      // Count primitives after creation
+      const afterCount = cesiumViewer?.scene?.primitives?.length;
+      console.log("[CREATE SENSOR] Created sensor:", sensor);
+      console.log("[CREATE SENSOR] Primitives after creation:", afterCount);
+      console.log("[CREATE SENSOR] Sensor ref now:", sensorRef.current);
     } catch (err) {
-      console.error("Error creating Ion SDK sensor:", err);
+      console.error("[CREATE SENSOR] Error creating Ion SDK sensor:", err);
       toast.error(`Failed to create sensor: ${(err as any)?.message}`, {
         position: "top-right",
         autoClose: 5000,
       });
     } finally {
       isTransitioningRef.current = false;
+      console.log("[CREATE SENSOR] Done, transitioning=false");
     }
     // Note: position/rotation intentionally excluded - shape signature guards recreation
     // and these arrays cause unnecessary callback recreation on every render
@@ -142,27 +167,52 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   }, [isInitialized, objectId, cesiumViewer]);
 
   useEffect(() => {
-    if (!isInitialized) return;
-    if (!sensorRef.current) return;
+    if (!isInitialized) {
+      console.log("[STYLE EFFECT] Early return: not initialized");
+      return;
+    }
+    if (!sensorRef.current) {
+      console.log("[STYLE EFFECT] Early return: no sensor ref");
+      return;
+    }
+
+    console.log("[STYLE EFFECT] Running for showSensorGeometry=", observationProperties.showSensorGeometry, 
+                "showViewshed=", observationProperties.showViewshed);
 
     try {
+      // Count primitives before update
+      const beforeCount = cesiumViewer?.scene?.primitives?.length;
+      console.log("[STYLE EFFECT] Primitives before update:", beforeCount);
+
       // Update flags
       updateFlags(sensorRef.current, {
-        show: !!observationProperties.showSensorGeometry || !!observationProperties.showViewshed,
+        show:
+          !!observationProperties.showSensorGeometry ||
+          !!observationProperties.showViewshed,
         showViewshed: !!observationProperties.showViewshed,
       });
 
       // Update colors if changed
       if (observationProperties.sensorColor) {
-        const color = Cesium.Color.fromCssColorString(observationProperties.sensorColor);
+        const color = Cesium.Color.fromCssColorString(
+          observationProperties.sensorColor
+        );
         updateColors(sensorRef.current, {
           volume: color.withAlpha(0.25),
           visible: color.withAlpha(0.35),
           occluded: Cesium.Color.fromBytes(255, 0, 0, 110),
         });
       }
+
+      // Count primitives after update
+      const afterCount = cesiumViewer?.scene?.primitives?.length;
+      console.log("[STYLE EFFECT] Primitives after update:", afterCount);
+      
+      if (afterCount !== beforeCount) {
+        console.warn("[STYLE EFFECT] ⚠️ WARNING: Primitive count changed! before=", beforeCount, "after=", afterCount);
+      }
     } catch (err) {
-      console.warn("Failed to update visibility flags:", err);
+      console.warn("[STYLE EFFECT] Failed to update visibility flags:", err);
     }
   }, [
     isInitialized,
