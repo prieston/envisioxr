@@ -123,68 +123,8 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     createIonSDKSensor();
   }, [isInitialized, createIonSDKSensor]);
 
-  useEffect(() => {
-    if (!isInitialized) return;
-    if (!sensorRef.current && !sensorCompositeRef.current) return;
-    if (!cesiumViewer) return;
-
-    try {
-      // Check if sensor/composite is destroyed before updating
-      const handle = sensorCompositeRef.current ?? sensorRef.current;
-      if (typeof handle?.isDestroyed === "function" && handle.isDestroyed()) {
-        console.warn("[ViewshedAnalysis] Sensor destroyed, skipping update");
-        return;
-      }
-      if (sensorCompositeRef.current?.parts) {
-        const allDestroyed = sensorCompositeRef.current.parts.every(
-          (p: any) => typeof p?.isDestroyed === "function" && p.isDestroyed()
-        );
-        if (allDestroyed) {
-          console.warn(
-            "[ViewshedAnalysis] Composite parts destroyed, skipping update"
-          );
-          return;
-        }
-      }
-
-      const modelMatrix =
-        sensorRef.current?.modelMatrix ??
-        sensorCompositeRef.current?.parts?.[0]?.modelMatrix ??
-        Cesium.Matrix4.IDENTITY;
-
-      const updated = updateSensorFovRadius({
-        handle: sensorCompositeRef.current ?? sensorRef.current,
-        properties: observationProperties,
-        viewer: cesiumViewer,
-        modelMatrix,
-      });
-
-      if (!updated) return;
-
-      if ((updated as any).parts) {
-        sensorCompositeRef.current = updated as any;
-        sensorRef.current = null;
-      } else {
-        sensorRef.current = updated as any;
-        sensorCompositeRef.current = null;
-      }
-
-      applySensorStyle(
-        sensorCompositeRef.current ?? sensorRef.current,
-        observationProperties,
-        cesiumViewer
-      );
-    } catch (err) {
-      console.error("[ViewshedAnalysis] FOV/Radius update failed:", err);
-    }
-  }, [
-    isInitialized,
-    cesiumViewer,
-    observationProperties.fov,
-    observationProperties.visibilityRadius,
-    observationProperties.sensorColor,
-    observationProperties.include3DModels,
-  ]);
+  // NOTE: FOV and radius updates are handled by the preview handler above
+  // This effect should NOT run on fov/visibilityRadius changes to avoid duplicate handling
 
   useEffect(() => {
     if (!isInitialized) return;
