@@ -43,9 +43,17 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   const isCreatingRef = useRef(false); // Prevent concurrent creation
   const creatingShapeSigRef = useRef<string>(""); // Track which shape sig we're creating
 
-  DEBUG && console.log(
-    `[VIEWSHED #${instanceIdRef.current}] Render for objectId=${objectId}`
-  );
+  // CRITICAL: Always log component renders
+  if (instanceIdRef.current <= 2) {
+    console.warn(
+      `🔵 [VIEWSHED #${instanceIdRef.current}] RENDER objectId=${objectId}`
+    );
+  }
+
+  DEBUG &&
+    console.log(
+      `[VIEWSHED #${instanceIdRef.current}] Render for objectId=${objectId}`
+    );
 
   // Compute shape sig once at top level
   const currentShapeSig = useMemo(
@@ -72,10 +80,18 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   };
 
   useEffect(() => {
+    // CRITICAL: Log component mount
+    console.warn(
+      `🟣 [VIEWSHED #${instanceIdRef.current}] MOUNTED objectId=${objectId}`
+    );
     return () => {
       mountedRef.current = false;
+      // CRITICAL: Log component unmount
+      console.warn(
+        `⚫ [VIEWSHED #${instanceIdRef.current}] UNMOUNTED objectId=${objectId}`
+      );
     };
-  }, []);
+  }, [objectId, instanceIdRef]);
 
   useSensorCleanup(refs, cesiumViewer, lastShapeSigRef);
 
@@ -94,95 +110,105 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
   const createIonSDKSensor = useCallback(() => {
     if (!isInitialized || !cesiumViewer) {
-      DEBUG && console.log(
-        "[CREATE SENSOR] Early return: initialized=",
-        isInitialized,
-        "viewer=",
-        !!cesiumViewer
-      );
+      DEBUG &&
+        console.log(
+          "[CREATE SENSOR] Early return: initialized=",
+          isInitialized,
+          "viewer=",
+          !!cesiumViewer
+        );
       return;
     }
 
     // Use the memoized shape sig from top level
     const shapeSig = currentShapeSig;
-    DEBUG && console.log(
-      `[CREATE SENSOR #${instanceIdRef.current}] Using memoized shape sig:`,
-      shapeSig,
-      "creatingShapeSig=",
-      creatingShapeSigRef.current,
-      "isCreating=",
-      isCreatingRef.current,
-      "hasSensor=",
-      !!sensorRef.current
-    );
+    DEBUG &&
+      console.log(
+        `[CREATE SENSOR #${instanceIdRef.current}] Using memoized shape sig:`,
+        shapeSig,
+        "creatingShapeSig=",
+        creatingShapeSigRef.current,
+        "isCreating=",
+        isCreatingRef.current,
+        "hasSensor=",
+        !!sensorRef.current
+      );
 
     // CRITICAL: In React Strict Mode, both calls see the same initial state.
     // The first call to claim the lock wins. The second should see it and bail.
 
     // Check if someone else is already creating this exact sig
     if (creatingShapeSigRef.current === shapeSig) {
-      DEBUG && console.log(
-        `[CREATE SENSOR #${instanceIdRef.current}] Early return: already creating exact sig:`,
-        shapeSig
-      );
+      DEBUG &&
+        console.log(
+          `[CREATE SENSOR #${instanceIdRef.current}] Early return: already creating exact sig:`,
+          shapeSig
+        );
       return;
     }
 
     // Check if we already have a sensor (another Strict Mode call may have just created it)
     if (sensorRef.current && lastShapeSigRef.current === shapeSig) {
-      DEBUG && console.log(
-        `[CREATE SENSOR #${instanceIdRef.current}] Early return: sensor already exists with correct sig`
-      );
+      DEBUG &&
+        console.log(
+          `[CREATE SENSOR #${instanceIdRef.current}] Early return: sensor already exists with correct sig`
+        );
       return;
     }
 
     // If someone is creating a different sig, wait or bail
     if (creatingShapeSigRef.current !== "") {
-      DEBUG && console.log(
-        `[CREATE SENSOR #${instanceIdRef.current}] Early return: creating different sig:`,
-        creatingShapeSigRef.current
-      );
+      DEBUG &&
+        console.log(
+          `[CREATE SENSOR #${instanceIdRef.current}] Early return: creating different sig:`,
+          creatingShapeSigRef.current
+        );
       return;
     }
 
     // GUARD: Check if shape sig really changed
     if (lastShapeSigRef.current === shapeSig) {
-      DEBUG && console.log(
-        `[CREATE SENSOR #${instanceIdRef.current}] Early return: shape sig unchanged`
-      );
+      DEBUG &&
+        console.log(
+          `[CREATE SENSOR #${instanceIdRef.current}] Early return: shape sig unchanged`
+        );
       return;
     }
 
     // Try to claim the lock for this shape sig
     creatingShapeSigRef.current = shapeSig;
-    DEBUG && console.log(
-      `[CREATE SENSOR #${instanceIdRef.current}] Claimed lock for sig:`,
-      shapeSig
-    );
+    DEBUG &&
+      console.log(
+        `[CREATE SENSOR #${instanceIdRef.current}] Claimed lock for sig:`,
+        shapeSig
+      );
 
     // GUARD: Check if already transitioning OR creating
     if (isTransitioningRef.current || isCreatingRef.current) {
-      DEBUG && console.log(
-        `[CREATE SENSOR #${instanceIdRef.current}] Early return: already transitioning or creating`
-      );
+      DEBUG &&
+        console.log(
+          `[CREATE SENSOR #${instanceIdRef.current}] Early return: already transitioning or creating`
+        );
       creatingShapeSigRef.current = ""; // Release lock
       return;
     }
 
-    DEBUG && console.log(
-      `[CREATE SENSOR #${instanceIdRef.current}] Starting... shape sig:`,
-      shapeSig
-    );
+    DEBUG &&
+      console.log(
+        `[CREATE SENSOR #${instanceIdRef.current}] Starting... shape sig:`,
+        shapeSig
+      );
 
     // CRITICAL: Update shape sig FIRST to prevent race condition with concurrent calls
     const oldSig = lastShapeSigRef.current;
     lastShapeSigRef.current = shapeSig;
-    DEBUG && console.log(
-      `[CREATE SENSOR #${instanceIdRef.current}] Updated lastShapeSigRef:`,
-      oldSig,
-      "->",
-      shapeSig
-    );
+    DEBUG &&
+      console.log(
+        `[CREATE SENSOR #${instanceIdRef.current}] Updated lastShapeSigRef:`,
+        oldSig,
+        "->",
+        shapeSig
+      );
 
     // GUARD: Set flags IMMEDIATELY
     isCreatingRef.current = true;
@@ -191,24 +217,32 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     try {
       // Count primitives before cleanup
       const beforeCount = cesiumViewer?.scene?.primitives?.length;
-      DEBUG && console.log(
-        `[CREATE SENSOR #${instanceIdRef.current}] Primitives before cleanup:`,
-        beforeCount
-      );
+      DEBUG &&
+        console.log(
+          `[CREATE SENSOR #${instanceIdRef.current}] Primitives before cleanup:`,
+          beforeCount
+        );
 
       // Clean up old sensor
       if (sensorRef.current) {
-        DEBUG && console.log(
-          `[CREATE SENSOR #${instanceIdRef.current}] Removing old sensor:`,
-          sensorRef.current
-        );
+        DEBUG &&
+          console.log(
+            `[CREATE SENSOR #${instanceIdRef.current}] Removing old sensor:`,
+            sensorRef.current
+          );
         removeSensor(sensorRef.current, cesiumViewer);
       }
       sensorRef.current = null;
 
-      DEBUG && console.log(
-        `[CREATE SENSOR #${instanceIdRef.current}] Creating new sensor...`
+      // CRITICAL: Always log sensor creation
+      console.warn(
+        `🔴 [SENSOR CREATE #${instanceIdRef.current}] objectId=${objectId} primitives: ${beforeCount} → creating...`
       );
+
+      DEBUG &&
+        console.log(
+          `[CREATE SENSOR #${instanceIdRef.current}] Creating new sensor...`
+        );
       const { sensor } = createSensor({
         viewer: cesiumViewer,
         position,
@@ -220,18 +254,27 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
       // Count primitives after creation
       const afterCount = cesiumViewer?.scene?.primitives?.length;
-      DEBUG && console.log(
-        `[CREATE SENSOR #${instanceIdRef.current}] Created sensor:`,
-        sensor
+      
+      // CRITICAL: Always log primitive count after creation
+      console.warn(
+        `🟢 [SENSOR CREATED #${instanceIdRef.current}] objectId=${objectId} primitives: ${beforeCount} → ${afterCount} (added ${afterCount - beforeCount})`
       );
-      DEBUG && console.log(
-        `[CREATE SENSOR #${instanceIdRef.current}] Primitives after creation:`,
-        afterCount
-      );
-      DEBUG && console.log(
-        `[CREATE SENSOR #${instanceIdRef.current}] Sensor ref now:`,
-        sensorRef.current
-      );
+      
+      DEBUG &&
+        console.log(
+          `[CREATE SENSOR #${instanceIdRef.current}] Created sensor:`,
+          sensor
+        );
+      DEBUG &&
+        console.log(
+          `[CREATE SENSOR #${instanceIdRef.current}] Primitives after creation:`,
+          afterCount
+        );
+      DEBUG &&
+        console.log(
+          `[CREATE SENSOR #${instanceIdRef.current}] Sensor ref now:`,
+          sensorRef.current
+        );
     } catch (err) {
       console.error(
         `[CREATE SENSOR #${instanceIdRef.current}] Error creating Ion SDK sensor:`,
@@ -245,9 +288,10 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       isCreatingRef.current = false;
       isTransitioningRef.current = false;
       creatingShapeSigRef.current = ""; // Clear the creating sig
-      DEBUG && console.log(
-        `[CREATE SENSOR #${instanceIdRef.current}] Done, flags=false`
-      );
+      DEBUG &&
+        console.log(
+          `[CREATE SENSOR #${instanceIdRef.current}] Done, flags=false`
+        );
     }
   }, [isInitialized, cesiumViewer, currentShapeSig]);
 
@@ -288,17 +332,19 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       return;
     }
 
-    DEBUG && console.log(
-      "[STYLE EFFECT] Running for showSensorGeometry=",
-      observationProperties.showSensorGeometry,
-      "showViewshed=",
-      observationProperties.showViewshed
-    );
+    DEBUG &&
+      console.log(
+        "[STYLE EFFECT] Running for showSensorGeometry=",
+        observationProperties.showSensorGeometry,
+        "showViewshed=",
+        observationProperties.showViewshed
+      );
 
     try {
       // Count primitives before update
       const beforeCount = cesiumViewer?.scene?.primitives?.length;
-      DEBUG && console.log("[STYLE EFFECT] Primitives before update:", beforeCount);
+      DEBUG &&
+        console.log("[STYLE EFFECT] Primitives before update:", beforeCount);
 
       // Update flags
       updateFlags(sensorRef.current, {
@@ -322,7 +368,8 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
       // Count primitives after update
       const afterCount = cesiumViewer?.scene?.primitives?.length;
-      DEBUG && console.log("[STYLE EFFECT] Primitives after update:", afterCount);
+      DEBUG &&
+        console.log("[STYLE EFFECT] Primitives after update:", afterCount);
 
       if (afterCount !== beforeCount) {
         console.warn(

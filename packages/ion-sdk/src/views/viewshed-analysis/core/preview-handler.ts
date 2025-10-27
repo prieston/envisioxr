@@ -45,7 +45,8 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       window.__obsPreviewLastTick[objectId] = tick;
     }
 
-    DEBUG && console.log("[PREVIEW] Received event tick=", tick, "patch=", patch);
+    DEBUG &&
+      console.log("[PREVIEW] Received event tick=", tick, "patch=", patch);
 
     if (!sensorRef.current) {
       DEBUG && console.log("[PREVIEW] Early return: no sensor ref");
@@ -87,14 +88,16 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
         return;
       }
 
-      DEBUG && console.log(
-        "[PREVIEW] Updating sensor in-place with fov=",
-        patch.fov,
-        "radius=",
-        patch.visibilityRadius
-      );
+      DEBUG &&
+        console.log(
+          "[PREVIEW] Updating sensor in-place with fov=",
+          patch.fov,
+          "radius=",
+          patch.visibilityRadius
+        );
       const primitiveCount = viewer?.scene?.primitives?.length;
-      DEBUG && console.log("[PREVIEW] Primitives before update:", primitiveCount);
+      DEBUG &&
+        console.log("[PREVIEW] Primitives before update:", primitiveCount);
 
       isTransitioningRef.current = true;
 
@@ -117,10 +120,11 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       });
 
       const primitiveCountAfter = viewer?.scene?.primitives?.length;
-      DEBUG && console.log(
-        "[PREVIEW] Primitives after FOV update:",
-        primitiveCountAfter
-      );
+      DEBUG &&
+        console.log(
+          "[PREVIEW] Primitives after FOV update:",
+          primitiveCountAfter
+        );
       if (primitiveCountAfter !== primitiveCount) {
         console.warn(
           "[PREVIEW] ⚠️ WARNING: Primitive count changed! before=",
@@ -159,12 +163,13 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
           }
 
           const afterCount = viewer?.scene?.primitives?.length;
-          DEBUG && console.log(
-            "[PREVIEW] Primitives after styling:",
-            beforeCount,
-            "->",
-            afterCount
-          );
+          DEBUG &&
+            console.log(
+              "[PREVIEW] Primitives after styling:",
+              beforeCount,
+              "->",
+              afterCount
+            );
           if (afterCount !== beforeCount) {
             console.warn(
               "[PREVIEW] ⚠️ WARNING: Primitive count changed during styling!"
