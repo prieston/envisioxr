@@ -6,6 +6,8 @@ import {
   updateColors,
 } from "../../../utils/sensors";
 
+const DEBUG = false;
+
 declare global {
   interface Window {
     __obsPreviewLastTick?: Record<string, number>;
@@ -43,10 +45,10 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       window.__obsPreviewLastTick[objectId] = tick;
     }
 
-    console.log("[PREVIEW] Received event tick=", tick, "patch=", patch);
+    DEBUG && console.log("[PREVIEW] Received event tick=", tick, "patch=", patch);
 
     if (!sensorRef.current) {
-      console.log("[PREVIEW] Early return: no sensor ref");
+      DEBUG && console.log("[PREVIEW] Early return: no sensor ref");
       return;
     }
 
@@ -57,23 +59,23 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       typeof handle.isDestroyed === "function" &&
       handle.isDestroyed()
     ) {
-      console.log("[PREVIEW] Sensor was destroyed, clearing ref");
+      DEBUG && console.log("[PREVIEW] Sensor was destroyed, clearing ref");
       sensorRef.current = null;
       handle = null;
     }
 
     if (!handle) {
-      console.log("[PREVIEW] Early return: no valid handle");
+      DEBUG && console.log("[PREVIEW] Early return: no valid handle");
       return;
     }
     if (isTransitioningRef.current) {
-      console.log("[PREVIEW] Early return: transitioning");
+      DEBUG && console.log("[PREVIEW] Early return: transitioning");
       return;
     }
 
     // Throttle: only process if no pending update
     if (throttleTimeout) {
-      console.log("[PREVIEW] Early return: throttled");
+      DEBUG && console.log("[PREVIEW] Early return: throttled");
       return;
     }
 
@@ -81,18 +83,18 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       const needsUpdate =
         patch.fov !== undefined || patch.visibilityRadius !== undefined;
       if (!needsUpdate) {
-        console.log("[PREVIEW] No FOV/radius update needed");
+        DEBUG && console.log("[PREVIEW] No FOV/radius update needed");
         return;
       }
 
-      console.log(
+      DEBUG && console.log(
         "[PREVIEW] Updating sensor in-place with fov=",
         patch.fov,
         "radius=",
         patch.visibilityRadius
       );
       const primitiveCount = viewer?.scene?.primitives?.length;
-      console.log("[PREVIEW] Primitives before update:", primitiveCount);
+      DEBUG && console.log("[PREVIEW] Primitives before update:", primitiveCount);
 
       isTransitioningRef.current = true;
 
@@ -115,7 +117,7 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       });
 
       const primitiveCountAfter = viewer?.scene?.primitives?.length;
-      console.log(
+      DEBUG && console.log(
         "[PREVIEW] Primitives after FOV update:",
         primitiveCountAfter
       );
@@ -131,7 +133,7 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       // Apply styling after a frame
       requestAnimationFrame(() => {
         try {
-          console.log("[PREVIEW] Requesting styling update in rAF");
+          DEBUG && console.log("[PREVIEW] Requesting styling update in rAF");
           const beforeCount = viewer?.scene?.primitives?.length;
 
           if (sensorRef.current && sensorRef.current.show !== undefined) {
@@ -157,7 +159,7 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
           }
 
           const afterCount = viewer?.scene?.primitives?.length;
-          console.log(
+          DEBUG && console.log(
             "[PREVIEW] Primitives after styling:",
             beforeCount,
             "->",
@@ -172,7 +174,7 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
           console.warn("[Preview] Failed to update style:", err);
         } finally {
           isTransitioningRef.current = false;
-          console.log("[PREVIEW] Done, transitioning=false");
+          DEBUG && console.log("[PREVIEW] Done, transitioning=false");
         }
       });
     } catch (err) {

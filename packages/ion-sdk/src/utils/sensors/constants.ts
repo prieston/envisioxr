@@ -3,7 +3,7 @@
  */
 
 // Debug flag to gate console logs
-export const DEBUG = true; // TEMP: Turn ON to debug
+export const DEBUG = false; // Set to true for verbose logging
 
 // Maximum FOV per cone (Cesium limitation)
 export const MAX_CONE_FOV_DEG = 179.9;

@@ -27,7 +27,6 @@ async function getSessionFromAuthApp(baseUrl) {
     }
     return session;
   } catch (error) {
-    console.error("Error fetching session:", error.message);
     return null;
   }
 }

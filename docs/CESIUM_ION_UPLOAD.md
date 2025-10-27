@@ -101,8 +101,6 @@ const result = await handleUploadToIon({
   latitude: 37.7749,
   height: 0,
 });
-
-console.log(`Asset uploaded with ID: ${result.assetId}`);
 ```
 
 ## API Reference
