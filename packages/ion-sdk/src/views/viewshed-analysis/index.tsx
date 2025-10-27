@@ -33,6 +33,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   const lastShapeSigRef = useRef<string>("");
   const mountedRef = useRef(true);
   const isTransitioningRef = useRef(false);
+  const isCreatingRef = useRef(false);  // Prevent concurrent creation
 
   const refs: SensorRefs = {
     sensorRef,
@@ -63,26 +64,46 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
   const createIonSDKSensor = useCallback(() => {
     if (!isInitialized || !cesiumViewer) {
-      console.log("[CREATE SENSOR] Early return: initialized=", isInitialized, "viewer=", !!cesiumViewer);
+      console.log(
+        "[CREATE SENSOR] Early return: initialized=",
+        isInitialized,
+        "viewer=",
+        !!cesiumViewer
+      );
       return;
     }
-    if (isTransitioningRef.current) {
-      console.log("[CREATE SENSOR] Early return: transitioning");
+    
+    // GUARD: Check if already transitioning OR creating
+    if (isTransitioningRef.current || isCreatingRef.current) {
+      console.log("[CREATE SENSOR] Early return: already transitioning or creating");
       return;
     }
 
     console.log("[CREATE SENSOR] Starting...");
+    
+    // GUARD: Set both flags IMMEDIATELY
+    isCreatingRef.current = true;
     isTransitioningRef.current = true;
 
     try {
       const shapeSig = computeShapeSignature(observationProperties);
+      console.log("[CREATE SENSOR] Computed shape sig:", shapeSig, "last was:", lastShapeSigRef.current);
 
+      // GUARD: Check if shape sig really changed
       if (lastShapeSigRef.current === shapeSig) {
         console.log("[CREATE SENSOR] Early return: shape sig unchanged");
+        isCreatingRef.current = false;  // Reset before return
+        isTransitioningRef.current = false;  // Reset before return
         return;
       }
-      
-      console.log("[CREATE SENSOR] Shape sig changed:", lastShapeSigRef.current, "->", shapeSig);
+
+      // GUARD: Update shape sig IMMEDIATELY to prevent double creation
+      console.log(
+        "[CREATE SENSOR] Shape sig changed:",
+        lastShapeSigRef.current,
+        "->",
+        shapeSig
+      );
       lastShapeSigRef.current = shapeSig;
 
       // Count primitives before cleanup
@@ -105,7 +126,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       });
 
       sensorRef.current = sensor;
-      
+
       // Count primitives after creation
       const afterCount = cesiumViewer?.scene?.primitives?.length;
       console.log("[CREATE SENSOR] Created sensor:", sensor);
@@ -118,8 +139,9 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
         autoClose: 5000,
       });
     } finally {
+      isCreatingRef.current = false;
       isTransitioningRef.current = false;
-      console.log("[CREATE SENSOR] Done, transitioning=false");
+      console.log("[CREATE SENSOR] Done, flags=false");
     }
     // Note: position/rotation intentionally excluded - shape signature guards recreation
     // and these arrays cause unnecessary callback recreation on every render
@@ -176,8 +198,12 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       return;
     }
 
-    console.log("[STYLE EFFECT] Running for showSensorGeometry=", observationProperties.showSensorGeometry, 
-                "showViewshed=", observationProperties.showViewshed);
+    console.log(
+      "[STYLE EFFECT] Running for showSensorGeometry=",
+      observationProperties.showSensorGeometry,
+      "showViewshed=",
+      observationProperties.showViewshed
+    );
 
     try {
       // Count primitives before update
@@ -207,9 +233,14 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       // Count primitives after update
       const afterCount = cesiumViewer?.scene?.primitives?.length;
       console.log("[STYLE EFFECT] Primitives after update:", afterCount);
-      
+
       if (afterCount !== beforeCount) {
-        console.warn("[STYLE EFFECT] ⚠️ WARNING: Primitive count changed! before=", beforeCount, "after=", afterCount);
+        console.warn(
+          "[STYLE EFFECT] ⚠️ WARNING: Primitive count changed! before=",
+          beforeCount,
+          "after=",
+          afterCount
+        );
       }
     } catch (err) {
       console.warn("[STYLE EFFECT] Failed to update visibility flags:", err);

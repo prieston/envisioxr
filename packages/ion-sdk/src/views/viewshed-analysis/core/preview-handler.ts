@@ -85,7 +85,12 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
         return;
       }
 
-      console.log("[PREVIEW] Updating sensor in-place with fov=", patch.fov, "radius=", patch.visibilityRadius);
+      console.log(
+        "[PREVIEW] Updating sensor in-place with fov=",
+        patch.fov,
+        "radius=",
+        patch.visibilityRadius
+      );
       const primitiveCount = viewer?.scene?.primitives?.length;
       console.log("[PREVIEW] Primitives before update:", primitiveCount);
 
@@ -110,9 +115,17 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       });
 
       const primitiveCountAfter = viewer?.scene?.primitives?.length;
-      console.log("[PREVIEW] Primitives after FOV update:", primitiveCountAfter);
+      console.log(
+        "[PREVIEW] Primitives after FOV update:",
+        primitiveCountAfter
+      );
       if (primitiveCountAfter !== primitiveCount) {
-        console.warn("[PREVIEW] ⚠️ WARNING: Primitive count changed! before=", primitiveCount, "after=", primitiveCountAfter);
+        console.warn(
+          "[PREVIEW] ⚠️ WARNING: Primitive count changed! before=",
+          primitiveCount,
+          "after=",
+          primitiveCountAfter
+        );
       }
 
       // Apply styling after a frame
@@ -120,7 +133,7 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
         try {
           console.log("[PREVIEW] Requesting styling update in rAF");
           const beforeCount = viewer?.scene?.primitives?.length;
-          
+
           if (sensorRef.current && sensorRef.current.show !== undefined) {
             // Update flags
             updateFlags(sensorRef.current, {
@@ -142,11 +155,18 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
               });
             }
           }
-          
+
           const afterCount = viewer?.scene?.primitives?.length;
-          console.log("[PREVIEW] Primitives after styling:", beforeCount, "->", afterCount);
+          console.log(
+            "[PREVIEW] Primitives after styling:",
+            beforeCount,
+            "->",
+            afterCount
+          );
           if (afterCount !== beforeCount) {
-            console.warn("[PREVIEW] ⚠️ WARNING: Primitive count changed during styling!");
+            console.warn(
+              "[PREVIEW] ⚠️ WARNING: Primitive count changed during styling!"
+            );
           }
         } catch (err) {
           console.warn("[Preview] Failed to update style:", err);
