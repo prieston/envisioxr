@@ -31,6 +31,8 @@ const ION_TYPES = new Set<string>(["cesium-ion-tileset", "cesiumIonAsset"]);
 export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
   ({ updateObjectProperty }) => {
     const selectedObject = useSceneStore((s) => s.selectedObject);
+    const transformMode = useSceneStore((s) => s.transformMode);
+    const setTransformMode = useSceneStore((s) => s.setTransformMode);
     const orbitControlsRef = useSceneStore((s) => s.orbitControlsRef);
     const isCalculatingVisibility = useSceneStore(
       (s) => s.isCalculatingVisibility
@@ -144,6 +146,9 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
           onFlyToObject={handleFlyToObject}
           onReposition={isCesiumIonAsset ? undefined : handleReposition}
           repositioning={repositioning}
+          showGizmoControls={!isCesiumIonAsset}
+          transformMode={transformMode}
+          onTransformModeChange={setTransformMode}
         />
 
         {repositioning && !isCesiumIonAsset && (
