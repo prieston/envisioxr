@@ -48,10 +48,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = memo(
     // Priority 2: Selected Object (3D Models)
     if (selectedObject) {
       return (
-        <ObjectPropertiesView
-          selectedObject={selectedObject}
-          updateObjectProperty={updateObjectProperty}
-        />
+        <ObjectPropertiesView updateObjectProperty={updateObjectProperty} />
       );
     }
 
