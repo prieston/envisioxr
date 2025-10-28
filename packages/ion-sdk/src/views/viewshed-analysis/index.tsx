@@ -260,93 +260,42 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   // NOTE: FOV and radius updates are handled by the preview handler above
   // This effect should NOT run on fov/visibilityRadius changes to avoid duplicate handling
 
+  // Use ref to avoid recreating handler on every observationProperties change
+  const observationPropertiesRef = useRef(observationProperties);
+  useEffect(() => {
+    observationPropertiesRef.current = observationProperties;
+  }, [observationProperties]);
+
   useEffect(() => {
     if (!isInitialized) return;
+    console.log(
+      `🎧 [LISTENER] Registering preview handler for objectId=${objectId}`
+    );
     initializePreviewGlobals();
 
     const handlePreview = createPreviewHandler({
       objectId,
       sensorRef,
       isTransitioningRef,
-      properties: observationProperties,
+      propertiesRef: observationPropertiesRef,
       viewer: cesiumViewer,
     });
 
     window.addEventListener("cesium-observation-preview", handlePreview);
     return () => {
+      console.log(
+        `🔇 [LISTENER] Removing preview handler for objectId=${objectId}`
+      );
       window.removeEventListener("cesium-observation-preview", handlePreview);
     };
-  }, [isInitialized, objectId, cesiumViewer, observationProperties]);
+  }, [isInitialized, objectId, cesiumViewer]);
 
-  useEffect(() => {
-    if (!isInitialized) {
-      DEBUG && console.log("[STYLE EFFECT] Early return: not initialized");
-      return;
-    }
-    if (!sensorRef.current) {
-      DEBUG && console.log("[STYLE EFFECT] Early return: no sensor ref");
-      return;
-    }
-
-    DEBUG &&
-      console.log(
-        "[STYLE EFFECT] Running for showSensorGeometry=",
-        observationProperties.showSensorGeometry,
-        "showViewshed=",
-        observationProperties.showViewshed
-      );
-
-    try {
-      // Count primitives before update
-      const beforeCount = cesiumViewer?.scene?.primitives?.length;
-      DEBUG &&
-        console.log("[STYLE EFFECT] Primitives before update:", beforeCount);
-
-      // Update flags
-      updateFlags(sensorRef.current, {
-        show:
-          !!observationProperties.showSensorGeometry ||
-          !!observationProperties.showViewshed,
-        showViewshed: !!observationProperties.showViewshed,
-      });
-
-      // Update colors if changed
-      if (observationProperties.sensorColor) {
-        const color = Cesium.Color.fromCssColorString(
-          observationProperties.sensorColor
-        );
-        updateColors(sensorRef.current, {
-          volume: color.withAlpha(0.25),
-          visible: color.withAlpha(0.35),
-          occluded: Cesium.Color.fromBytes(255, 0, 0, 110),
-        });
-      }
-
-      // Count primitives after update
-      const afterCount = cesiumViewer?.scene?.primitives?.length;
-      DEBUG &&
-        console.log("[STYLE EFFECT] Primitives after update:", afterCount);
-
-      if (DEBUG && afterCount !== beforeCount) {
-        console.warn(
-          "[STYLE EFFECT] ⚠️ WARNING: Primitive count changed! before=",
-          beforeCount,
-          "after=",
-          afterCount
-        );
-      }
-    } catch (err) {
-      DEBUG &&
-        console.warn("[STYLE EFFECT] Failed to update visibility flags:", err);
-    }
-  }, [
-    isInitialized,
-    cesiumViewer,
-    observationProperties.showSensorGeometry,
-    observationProperties.showViewshed,
-    observationProperties.sensorType,
-    observationProperties.sensorColor,
-  ]);
+  // NOTE: All property updates are now handled via the UI's schedulePreview + handlePropertyChange
+  // The preview handler receives events from the UI panel and applies them.
+  // We don't need a store sync effect here because:
+  // 1. During drag: UI dispatches preview events via schedulePreview (live updates)
+  // 2. On commit: UI calls handlePropertyChange which updates store
+  // 3. The store update doesn't need to dispatch back to preview - it's already applied live
 
   return null;
 };

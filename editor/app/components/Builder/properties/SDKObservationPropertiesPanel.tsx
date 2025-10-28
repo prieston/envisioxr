@@ -158,9 +158,13 @@ const SDKObservationPropertiesPanel: React.FC<
           detail: {
             objectId: selectedObject.id,
             patch,
-            tick: __dbgTick,
+            tick: Date.now(), // Use timestamp to ensure uniqueness
           },
         });
+        console.log(
+          `📡 [UI] Dispatching preview event for objectId=${selectedObject.id}, patch=`,
+          patch
+        );
         window.dispatchEvent(event);
 
         // CRITICAL: Request a render frame (required if requestRenderMode = true)
