@@ -45,13 +45,11 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
   // Capture scroll position before render
   if (tabPanelRef.current) {
     scrollPosRef.current = tabPanelRef.current.scrollTop;
-    console.log("[GenericPanel] Capturing scroll:", scrollPosRef.current);
   }
 
   // Restore scroll position after render
   useLayoutEffect(() => {
     if (tabPanelRef.current && scrollPosRef.current > 0) {
-      console.log("[GenericPanel] Restoring scroll:", scrollPosRef.current);
       tabPanelRef.current.scrollTop = scrollPosRef.current;
     }
   });

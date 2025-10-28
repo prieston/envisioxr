@@ -31,11 +31,6 @@ const ObservationModelSection: React.FC<ObservationModelSectionProps> = memo(
       return obj?.isObservationModel || false;
     });
 
-    console.log("[ObservationModelSection] Re-render", {
-      objectId: object.id,
-      isObservationModel,
-    });
-
     const handleToggle = useCallback(
       (checked: boolean) => {
         updateObjectProperty(object.id, "isObservationModel", checked);
