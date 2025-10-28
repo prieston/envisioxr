@@ -90,15 +90,7 @@ export const usePropertyChange = ({
           )
             ? [...(currentObject[parent as keyof ModelObject] as number[])]
             : [0, 0, 0];
-          console.log(
-            `[usePropertyChange] ${parent}[${index}] current: ${currentArray[index]}, new: ${value}`
-          );
           currentArray[index] = value as number;
-          console.log(
-            `[usePropertyChange] Calling updateObjectProperty(${selectedObject.id}, "${parent}", ${JSON.stringify(
-              currentArray
-            )})`
-          );
           updateObjectProperty(selectedObject.id, parent, currentArray);
           return;
         }
