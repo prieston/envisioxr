@@ -70,10 +70,6 @@ class IoTService {
       // Only recreate interval if it doesn't exist or the interval changed
       const existingInterval = this.intervals.get(objectId);
       if (!existingInterval) {
-        console.log(
-          `[IoTService] Starting IoT polling for ${objectId} every ${pollInterval}ms`
-        );
-
         // Start new interval
         const interval = setInterval(() => {
           this.fetchWeatherDataForObject(obj);
@@ -108,9 +104,6 @@ class IoTService {
     const timeSinceLastFetch = now - lastFetch;
 
     if (timeSinceLastFetch < this.MIN_POLL_INTERVAL) {
-      console.log(
-        `[IoTService] Skipping fetch for ${obj.id} - too soon (${timeSinceLastFetch}ms < ${this.MIN_POLL_INTERVAL}ms)`
-      );
       return;
     }
 
@@ -159,9 +152,6 @@ class IoTService {
       const weatherApiEndpoint = "https://api.open-meteo.com/v1/forecast";
 
       const url = `${weatherApiEndpoint}?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,weather_code`;
-
-      // Log the URL being used for debugging
-      console.log(`Fetching weather data from: ${url}`);
 
       const response = await fetch(url);
 

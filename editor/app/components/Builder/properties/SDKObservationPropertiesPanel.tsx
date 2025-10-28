@@ -65,6 +65,7 @@ const SDKObservationPropertiesPanel: React.FC<
   onCalculateViewshed: _onCalculateViewshed,
   isCalculating: _isCalculating,
 }) => {
+  // Note: Zustand deprecation warning can be fixed by updating @envisio/core store definition
   const observationProps = useSceneStore((state) => {
     const obj = state.objects.find((o) => o.id === selectedObject?.id);
     return obj?.observationProperties;
