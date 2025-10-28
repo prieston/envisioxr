@@ -29,10 +29,6 @@ export const ScrollContainer: React.FC<ScrollContainerProps> = ({
   // Capture scroll position BEFORE re-render (during render phase)
   if (ref.current) {
     lastScrollTopRef.current = ref.current.scrollTop;
-    console.log(
-      "[ScrollContainer] Re-render - capturing scroll:",
-      lastScrollTopRef.current
-    );
   }
 
   // Restore scroll position AFTER re-render (layout phase)
@@ -43,7 +39,6 @@ export const ScrollContainer: React.FC<ScrollContainerProps> = ({
         : lastScrollTopRef.current;
 
     if (ref.current && Number.isFinite(saved) && saved > 0) {
-      console.log("[ScrollContainer] Restoring scroll position:", saved);
       ref.current.scrollTop = saved;
     }
   }); // No deps - runs on EVERY render

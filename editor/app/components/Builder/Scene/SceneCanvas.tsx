@@ -33,8 +33,7 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
 }) => {
   const engine = useWorldStore((s) => s.engine);
   const selectedObject = useSceneStore((s) => s.selectedObject);
-  const objects = useSceneStore((s) => s.objects);
-  const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
+
   return (
     <>
       {/* Playback Manager - handles automatic observation cycling */}

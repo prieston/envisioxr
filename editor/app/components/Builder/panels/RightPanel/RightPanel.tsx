@@ -76,7 +76,6 @@ const RightPanel: React.FC<RightPanelProps> = ({
       { engine }
     );
     // Only depend on object ID, not the full object to prevent unnecessary re-renders
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     engine,
     selectedObjectId,

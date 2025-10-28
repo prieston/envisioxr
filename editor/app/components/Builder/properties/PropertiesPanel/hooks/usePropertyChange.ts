@@ -80,10 +80,14 @@ export const usePropertyChange = ({
         const [parent, child] = property.split(".");
         const index = parseInt(child);
         if (!isNaN(index)) {
+          // Get fresh state from store
+          const currentObject = useSceneStore
+            .getState()
+            .objects.find((obj) => obj.id === selectedObject.id);
           const currentArray = Array.isArray(
-            selectedObject[parent as keyof ModelObject]
+            currentObject?.[parent as keyof ModelObject]
           )
-            ? [...(selectedObject[parent as keyof ModelObject] as number[])]
+            ? [...(currentObject[parent as keyof ModelObject] as number[])]
             : [0, 0, 0];
           currentArray[index] = value as number;
           updateObjectProperty(selectedObject.id, parent, currentArray);
