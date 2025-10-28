@@ -15,11 +15,7 @@ import { useSceneStore } from "@envisio/core";
 
 /**
  * Batches updates to once per animation frame
- * Coalesces multiple rapid updates into a single call
  */
-// Debug tick counter
-let __dbgTick = 0;
-
 function useRafSchedule<T>(fn: (arg: T) => void) {
   const pending = useRef(false);
   const last = useRef<T | null>(null);
@@ -27,7 +23,7 @@ function useRafSchedule<T>(fn: (arg: T) => void) {
   return useCallback(
     (arg: T) => {
       last.current = arg;
-      if (pending.current) return; // Already scheduled
+      if (pending.current) return;
       pending.current = true;
       requestAnimationFrame(() => {
         pending.current = false;
@@ -69,16 +65,12 @@ const SDKObservationPropertiesPanel: React.FC<
   onCalculateViewshed: _onCalculateViewshed,
   isCalculating: _isCalculating,
 }) => {
-  // Read observation properties directly from store (no inline defaults!)
   const observationProps = useSceneStore((state) => {
     const obj = state.objects.find((o) => o.id === selectedObject?.id);
     return obj?.observationProperties;
   }, Object.is);
 
-  // Compute defaults at use-site with ??
   const obs = observationProps ?? defaultObservationProps;
-
-  // Track if user is actively dragging to prevent effect from fighting
   const isDragging = useRef(false);
 
   // Local state for smooth dragging
@@ -96,9 +88,9 @@ const SDKObservationPropertiesPanel: React.FC<
     analysisQuality: obs.analysisQuality ?? "medium",
   });
 
-  // Sync local state when store changes (but don't fight mid-drag)
+  // Sync local state when store changes
   useEffect(() => {
-    if (isDragging.current) return; // Don't fight the user's drag
+    if (isDragging.current) return;
     setLocal({
       sensorType: obs.sensorType,
       fov: obs.fov,
@@ -143,27 +135,23 @@ const SDKObservationPropertiesPanel: React.FC<
     [onPropertyChange]
   );
 
-  // RAF-batched preview: coalesce rapid updates and call engine directly
+  // RAF-batched preview for live updates
   const schedulePreview = useRafSchedule(
     useCallback(
       (patch: Partial<typeof obs>) => {
         if (!selectedObject?.id) return;
 
-        // Get Cesium viewer from store
         const viewer = useSceneStore.getState().cesiumViewer;
         if (!viewer) return;
 
-        // Dispatch event for the Ion SDK component (cheap geometry update only)
         const event = new CustomEvent("cesium-observation-preview", {
           detail: {
             objectId: selectedObject.id,
             patch,
-            tick: Date.now(), // Use timestamp to ensure uniqueness
+            tick: Date.now(),
           },
         });
         window.dispatchEvent(event);
-
-        // CRITICAL: Request a render frame (required if requestRenderMode = true)
         viewer.scene?.requestRender?.();
       },
       [selectedObject?.id]
@@ -255,24 +243,15 @@ const SDKObservationPropertiesPanel: React.FC<
                 onPointerDown={startDrag}
                 onChange={(_, value) => {
                   const next = Math.min(180, Number(value));
-                  __dbgTick++;
-                  console.log(
-                    `%c[UI] tick=${__dbgTick} fov=${next}`,
-                    "color:#2563eb"
-                  );
-                  setLocal((s) => ({ ...s, fov: next })); // UI stays smooth
-                  schedulePreview({ fov: next }); // RAF-batched Cesium update
+                  setLocal((s) => ({ ...s, fov: next }));
+                  schedulePreview({ fov: next });
                 }}
                 onPointerUp={endDrag}
                 onPointerCancel={endDrag}
                 onChangeCommitted={(_, value) => {
                   endDrag();
                   const next = Math.min(180, Number(value));
-                  console.log(
-                    `%c[UI-commit] tick=${__dbgTick} fov=${next}`,
-                    "color:#0ea5e9"
-                  );
-                  handlePropertyChange("fov", next); // Persist once
+                  handlePropertyChange("fov", next);
                 }}
                 valueLabelDisplay="auto"
                 sx={{

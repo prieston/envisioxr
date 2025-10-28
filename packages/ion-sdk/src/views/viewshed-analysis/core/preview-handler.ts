@@ -7,8 +7,6 @@ import {
   updateColors,
 } from "../../../utils/sensors";
 
-const DEBUG = false;
-
 declare global {
   interface Window {
     __obsPreviewLastTick?: Record<string, number>;
@@ -24,45 +22,25 @@ interface PreviewHandlerConfig {
 }
 
 export function createPreviewHandler(config: PreviewHandlerConfig) {
-  const { objectId, sensorRef, isTransitioningRef, propertiesRef, viewer } =
-    config;
+  const { objectId, sensorRef, propertiesRef, viewer } = config;
 
   // RAF-based throttle: queue latest update and process on next frame
   let rafId: number | null = null;
   let pendingPatch: any = null;
 
   const processUpdate = () => {
-    DEBUG &&
-      console.log("[PREVIEW] 🔄 Processing RAF, pendingPatch=", pendingPatch);
     rafId = null;
-    if (!pendingPatch) {
-      DEBUG && console.log("[PREVIEW] ⚠️ No pendingPatch to process!");
-      return;
-    }
+    if (!pendingPatch) return;
 
     const patch = pendingPatch;
     pendingPatch = null;
-    DEBUG && console.log("[PREVIEW] ✅ Processing patch=", patch);
 
-    if (!sensorRef.current) {
-      DEBUG && console.log("[PREVIEW] Process: no sensor ref");
-      return;
-    }
-
-    // Clean up dead handles immediately
     const handle = sensorRef.current;
-    if (
-      handle &&
-      typeof handle.isDestroyed === "function" &&
-      handle.isDestroyed()
-    ) {
-      DEBUG && console.log("[PREVIEW] Process: sensor destroyed, clearing ref");
-      sensorRef.current = null;
-      return;
-    }
+    if (!handle) return;
 
-    if (!handle) {
-      DEBUG && console.log("[PREVIEW] Process: no valid handle");
+    // Skip destroyed sensors
+    if (typeof handle.isDestroyed === "function" && handle.isDestroyed()) {
+      sensorRef.current = null;
       return;
     }
 
@@ -76,16 +54,9 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
         patch.showViewshed !== undefined ||
         patch.sensorColor !== undefined ||
         patch.viewshedColor !== undefined;
-      if (!needsUpdate) {
-        DEBUG && console.log("[PREVIEW] Process: no update needed");
-        return;
-      }
 
-      const primitiveCount = viewer?.scene?.primitives?.length;
-      DEBUG &&
-        console.log("[PREVIEW] Process: primitives before=", primitiveCount);
+      if (!needsUpdate) return;
 
-      // Use latest properties from ref
       const properties = propertiesRef.current;
       const nextProperties: ObservationProperties = {
         ...properties,
@@ -103,28 +74,21 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
             : properties.showViewshed,
       };
 
-      DEBUG &&
-        console.log(
-          `🔄 [PREVIEW] FOV=${nextProperties.fov}° radius=${nextProperties.visibilityRadius}m showGeometry=${nextProperties.showSensorGeometry} showViewshed=${nextProperties.showViewshed}`
-        );
-
-      // Update flags immediately for instant feedback
+      // Update visibility flags
       if (
         patch.showSensorGeometry !== undefined ||
         patch.showViewshed !== undefined
       ) {
-        if (handle && handle.show !== undefined) {
-          updateFlags(handle, {
-            show:
-              !!nextProperties.showSensorGeometry ||
-              !!nextProperties.showViewshed,
-            showViewshed: !!nextProperties.showViewshed,
-            showGeometry: !!nextProperties.showSensorGeometry,
-          });
-        }
+        updateFlags(handle, {
+          show:
+            !!nextProperties.showSensorGeometry ||
+            !!nextProperties.showViewshed,
+          showViewshed: !!nextProperties.showViewshed,
+          showGeometry: !!nextProperties.showSensorGeometry,
+        });
       }
 
-      // Update FOV/radius
+      // Update FOV and radius
       if (nextProperties.sensorType === "rectangle") {
         updateRectangularFovRadius(handle, {
           fovHdeg:
@@ -153,28 +117,19 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
         });
       }
 
-      // Update colors if changed
-      if (patch.sensorColor || patch.viewshedColor) {
-        if (nextProperties.sensorColor) {
-          const color = Cesium.Color.fromCssColorString(
-            nextProperties.sensorColor
-          );
-          updateColors(handle, {
-            volume: color.withAlpha(0.25),
-            visible: color.withAlpha(0.35),
-            occluded: Cesium.Color.fromBytes(255, 0, 0, 110),
-          });
-        }
-      }
-
-      const primitiveCountAfter = viewer?.scene?.primitives?.length;
-      if (primitiveCountAfter !== primitiveCount) {
-        console.warn(
-          `⚠️ [PREVIEW] Primitives changed! ${primitiveCount} → ${primitiveCountAfter}`
+      // Update colors
+      if (patch.sensorColor && nextProperties.sensorColor) {
+        const color = Cesium.Color.fromCssColorString(
+          nextProperties.sensorColor
         );
+        updateColors(handle, {
+          volume: color.withAlpha(0.25),
+          visible: color.withAlpha(0.35),
+          occluded: Cesium.Color.fromBytes(255, 0, 0, 110),
+        });
       }
     } catch (err) {
-      console.error("[PREVIEW ERROR]", err);
+      console.error("[ViewshedAnalysis] Preview update failed:", err);
     }
   };
 
@@ -187,22 +142,15 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
 
     if (previewObjectId !== objectId) return;
 
+    // Deduplicate events with same tick
     const last = window.__obsPreviewLastTick?.[objectId];
     if (tick != null && last === tick) return;
     if (window.__obsPreviewLastTick) {
       window.__obsPreviewLastTick[objectId] = tick;
     }
 
-    console.log("[PREVIEW] 📥 Received tick=", tick, "patch=", patch);
-
-    // Replace (not merge) pending patch to always use latest values
+    // Queue update and schedule RAF if not already scheduled
     pendingPatch = { ...patch };
-    console.log(
-      "[PREVIEW] 📦 Queued pendingPatch=",
-      pendingPatch,
-      "rafId=",
-      rafId
-    );
 
     if (rafId === null) {
       rafId = requestAnimationFrame(processUpdate);

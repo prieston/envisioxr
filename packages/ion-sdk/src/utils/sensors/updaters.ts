@@ -34,17 +34,14 @@ export function updateFlags(
   if (opts.show !== undefined) {
     target.show = opts.show;
     if (opts.show === true) {
-      // Only restore geometry if caller didn't specify showGeometry
       if (opts.showGeometry === undefined) {
         target.showLateralSurfaces = true;
         target.showDomeSurfaces = true;
       }
-      // Only restore viewshed if caller didn't specify showViewshed
       if (opts.showViewshed === undefined) {
         target.showViewshed = true;
       }
     } else {
-      // Only hide everything if show=false and no specific overrides
       if (opts.showViewshed === undefined) {
         target.showViewshed = false;
       }
@@ -78,7 +75,6 @@ export function updateColors(
     const mat = Cesium.Material.fromType("Color", { color: colors.volume });
     target.lateralSurfaceMaterial = mat;
     target.domeSurfaceMaterial = mat;
-    // some Ion SDK builds actually read these color props at render time:
     (target as any).lateralSurfaceColor = colors.volume;
     (target as any).domeSurfaceColor = colors.volume;
   }
@@ -100,28 +96,18 @@ export function updateFovRadius(
 ): IonSensor | null {
   if (!handle) return null;
 
-  // Update radius
+  // Update radius with geometry rebuild nudge
   if (opts.radius != null) {
-    const oldRadius = handle.radius;
     handle.radius = Math.max(MIN_RADIUS, opts.radius);
-    // Force geometry rebuild by briefly changing outerHalfAngle if FOV isn't being updated
-    // This ensures radius changes are visible immediately
+    // Force geometry rebuild when radius changes without FOV change
     if (opts.fovDeg == null && handle.outerHalfAngle != null) {
       const currentAngle = handle.outerHalfAngle;
-      // Make a noticeable change and restore to force Cesium to update
       handle.outerHalfAngle = currentAngle * 1.0001;
       handle.outerHalfAngle = currentAngle;
-      console.log(
-        `[updateFovRadius] Changed radius from ${oldRadius} to ${handle.radius}, nudged angle to ${currentAngle}`
-      );
-    } else {
-      console.log(
-        `[updateFovRadius] Changed radius from ${oldRadius} to ${handle.radius}`
-      );
     }
   }
 
-  // Update FOV (clamp to 179.9° max)
+  // Update FOV
   if (opts.fovDeg != null) {
     const clamped = Math.min(MAX_CONE_FOV_DEG, Math.max(1, opts.fovDeg));
     handle.outerHalfAngle = Cesium.Math.toRadians(clamped / 2);
@@ -132,24 +118,23 @@ export function updateFovRadius(
 }
 
 /**
- * Update rectangular sensor angles (xHalfAngle/yHalfAngle) and radius
+ * Update rectangular sensor FOV and radius
  */
 export function updateRectangularFovRadius(
   handle: IonSensor | null | undefined,
   opts: {
-    fovHdeg?: number; // full horizontal degrees (0..360 folded)
-    fovVdeg?: number; // full vertical degrees (0..180)
+    fovHdeg?: number;
+    fovVdeg?: number;
     radius?: number;
     viewer: any;
   }
 ): IonSensor | null {
   if (!handle) return null;
 
+  // Update radius with geometry rebuild nudge
   if (opts.radius != null) {
-    const oldRadius = handle.radius;
     handle.radius = Math.max(MIN_RADIUS, opts.radius);
-    // Force geometry rebuild by briefly changing xHalfAngle if FOV isn't being updated
-    // This ensures radius changes are visible immediately
+    // Force geometry rebuild when radius changes without FOV change
     if (
       opts.fovHdeg == null &&
       opts.fovVdeg == null &&
@@ -158,28 +143,19 @@ export function updateRectangularFovRadius(
       const currentAngle = (handle as any).xHalfAngle;
       (handle as any).xHalfAngle = currentAngle * 1.0001;
       (handle as any).xHalfAngle = currentAngle;
-      console.log(
-        `[updateRectangularFovRadius] Changed radius from ${oldRadius} to ${handle.radius}, nudged angle to ${currentAngle}`
-      );
-    } else {
-      console.log(
-        `[updateRectangularFovRadius] Changed radius from ${oldRadius} to ${handle.radius}`
-      );
     }
   }
 
+  // Update horizontal FOV
   if (opts.fovHdeg != null) {
     const clampedH = Math.min(MAX_CONE_FOV_DEG, Math.max(1, opts.fovHdeg));
-    const xHalf = Cesium.Math.toRadians(clampedH / 2);
-    // RectangularSensor uses xHalfAngle
-    (handle as any).xHalfAngle = xHalf;
+    (handle as any).xHalfAngle = Cesium.Math.toRadians(clampedH / 2);
   }
 
+  // Update vertical FOV
   if (opts.fovVdeg != null) {
     const clampedV = Math.min(MAX_CONE_FOV_DEG, Math.max(1, opts.fovVdeg));
-    const yHalf = Cesium.Math.toRadians(clampedV / 2);
-    // RectangularSensor uses yHalfAngle
-    (handle as any).yHalfAngle = yHalf;
+    (handle as any).yHalfAngle = Cesium.Math.toRadians(clampedV / 2);
   }
 
   requestRender(opts.viewer);
