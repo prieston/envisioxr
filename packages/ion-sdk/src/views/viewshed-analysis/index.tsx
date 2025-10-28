@@ -31,7 +31,9 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   const cesiumViewer = providedViewer || (window as any).cesiumViewer;
   const isInitialized = useIonSDKInitialization(cesiumViewer);
 
-  console.log(`🔵 [RENDER] objectId=${objectId}, isInitialized=${isInitialized}, hasViewer=${!!cesiumViewer}`);
+  console.log(
+    `🔵 [RENDER] objectId=${objectId}, isInitialized=${isInitialized}, hasViewer=${!!cesiumViewer}`
+  );
 
   const sensorRef = useRef<any>(null);
   const viewshedRef = useRef<any>(null);
@@ -185,18 +187,23 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
       // Clean up old sensor
       if (sensorRef.current) {
+        console.log(`🧹 [CLEANUP ATTEMPT] Trying to remove sensor from ref, primitives: ${beforeCount}`);
         DEBUG &&
           console.log(
             "[CREATE SENSOR] Removing old sensor:",
             sensorRef.current
           );
         removeSensor(sensorRef.current, cesiumViewer);
+        const afterRemove = cesiumViewer?.scene?.primitives?.length ?? 0;
+        console.log(`🧹 [CLEANUP RESULT] After removeSensor(), primitives: ${beforeCount} → ${afterRemove}`);
+      } else {
+        console.log(`✨ [NO CLEANUP] sensorRef.current is null, primitives: ${beforeCount}`);
       }
       sensorRef.current = null;
 
       const afterCleanup = cesiumViewer?.scene?.primitives?.length ?? 0;
       console.log(
-        `🔨 [CREATE] Before: ${beforeCount} primitives, After cleanup: ${afterCleanup}`
+        `🔨 [CREATE] Starting creation, primitives: ${afterCleanup}`
       );
 
       DEBUG && console.log("[CREATE SENSOR] Creating new sensor...");
