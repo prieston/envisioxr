@@ -154,7 +154,7 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
 
       // Update in place for single sensor mode
       if (nextProperties.sensorType === "rectangle") {
-        updateRectangularFovRadius(sensorRef.current, {
+        const updatePayload = {
           fovHdeg:
             patch.fovH !== undefined
               ? (nextProperties.fovH ?? nextProperties.fov)
@@ -169,16 +169,23 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
               ? nextProperties.visibilityRadius
               : undefined,
           viewer,
-        });
+        };
+        console.log(
+          "[PREVIEW] Calling updateRectangularFovRadius with:",
+          updatePayload
+        );
+        updateRectangularFovRadius(sensorRef.current, updatePayload);
       } else {
-        updateFovRadius(sensorRef.current, {
+        const updatePayload = {
           fovDeg: patch.fov !== undefined ? nextProperties.fov : undefined,
           radius:
             patch.visibilityRadius !== undefined
               ? nextProperties.visibilityRadius
               : undefined,
           viewer,
-        });
+        };
+        console.log("[PREVIEW] Calling updateFovRadius with:", updatePayload);
+        updateFovRadius(sensorRef.current, updatePayload);
       }
 
       const primitiveCountAfter = viewer?.scene?.primitives?.length;
