@@ -46,7 +46,8 @@ export function useIonSDKInitialization(cesiumViewer: any) {
     };
 
     initializeIonSDK();
-  }, [cesiumViewer, isInitialized]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cesiumViewer]); // Removed isInitialized from deps - it's only used as a guard
 
   return isInitialized;
 }

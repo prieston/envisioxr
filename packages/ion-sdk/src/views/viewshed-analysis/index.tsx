@@ -187,7 +187,9 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 
       // Clean up old sensor
       if (sensorRef.current) {
-        console.log(`🧹 [CLEANUP ATTEMPT] Trying to remove sensor from ref, primitives: ${beforeCount}`);
+        console.log(
+          `🧹 [CLEANUP ATTEMPT] Trying to remove sensor from ref, primitives: ${beforeCount}`
+        );
         DEBUG &&
           console.log(
             "[CREATE SENSOR] Removing old sensor:",
@@ -195,16 +197,18 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
           );
         removeSensor(sensorRef.current, cesiumViewer);
         const afterRemove = cesiumViewer?.scene?.primitives?.length ?? 0;
-        console.log(`🧹 [CLEANUP RESULT] After removeSensor(), primitives: ${beforeCount} → ${afterRemove}`);
+        console.log(
+          `🧹 [CLEANUP RESULT] After removeSensor(), primitives: ${beforeCount} → ${afterRemove}`
+        );
       } else {
-        console.log(`✨ [NO CLEANUP] sensorRef.current is null, primitives: ${beforeCount}`);
+        console.log(
+          `✨ [NO CLEANUP] sensorRef.current is null, primitives: ${beforeCount}`
+        );
       }
       sensorRef.current = null;
 
       const afterCleanup = cesiumViewer?.scene?.primitives?.length ?? 0;
-      console.log(
-        `🔨 [CREATE] Starting creation, primitives: ${afterCleanup}`
-      );
+      console.log(`🔨 [CREATE] Starting creation, primitives: ${afterCleanup}`);
 
       DEBUG && console.log("[CREATE SENSOR] Creating new sensor...");
       const { sensor } = createSensor({
