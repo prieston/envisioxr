@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography, Button, TextField } from "@mui/material";
 import { LocationOn } from "@mui/icons-material";
 import { SettingContainer, SettingLabel } from "../SettingRenderer.styles";
 import { googleMapsLinkForLatLon, textFieldStyles } from "@envisio/ui";
 import { ModelObject, GeographicCoords } from "./types";
+import { useSceneStore } from "@envisio/core";
 
 interface TransformLocationSectionProps {
   object: ModelObject;
@@ -26,184 +27,273 @@ const InputLabel = (props: { children: React.ReactNode }) => (
   </Typography>
 );
 
-const TransformLocationSection: React.FC<TransformLocationSectionProps> = ({
-  object,
-  geographicCoords,
-  onPropertyChange,
-  updateObjectProperty,
-}) => {
-  return (
-    <SettingContainer>
-      <SettingLabel>Transform & Location</SettingLabel>
+const TransformLocationSection: React.FC<TransformLocationSectionProps> =
+  React.memo(
+    ({ object, geographicCoords, onPropertyChange, updateObjectProperty }) => {
+      const liveObject =
+        useSceneStore((s) => s.objects.find((o) => o.id === object.id)) ||
+        object;
 
-      {/* View on Google Maps - shown first if coordinates available */}
-      {geographicCoords && (
-        <Button
-          variant="outlined"
-          startIcon={<LocationOn />}
-          href={googleMapsLinkForLatLon(
-            geographicCoords.latitude,
-            geographicCoords.longitude
+      // String-based local state while editing
+      const [editing, setEditing] = useState<string | null>(null);
+      const [localStr, setLocalStr] = useState<Record<string, string>>({});
+
+      return (
+        <SettingContainer>
+          <SettingLabel>Transform & Location</SettingLabel>
+
+          {/* View on Google Maps */}
+          {geographicCoords && (
+            <Button
+              variant="outlined"
+              startIcon={<LocationOn />}
+              href={googleMapsLinkForLatLon(
+                geographicCoords.latitude,
+                geographicCoords.longitude
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              fullWidth
+              sx={{
+                borderRadius: "8px",
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                borderColor: "rgba(37, 99, 235, 0.3)",
+                color: "#2563eb",
+                padding: "6px 16px",
+                mb: 2,
+                "&:hover": {
+                  borderColor: "#2563eb",
+                  backgroundColor: "rgba(37, 99, 235, 0.08)",
+                },
+              }}
+            >
+              View on Google Maps
+            </Button>
           )}
-          target="_blank"
-          rel="noopener noreferrer"
-          fullWidth
-          sx={{
-            borderRadius: "8px",
-            textTransform: "none",
-            fontWeight: 500,
-            fontSize: "0.75rem",
-            borderColor: "rgba(37, 99, 235, 0.3)",
-            color: "#2563eb",
-            padding: "6px 16px",
-            mb: 2,
-            "&:hover": {
-              borderColor: "#2563eb",
-              backgroundColor: "rgba(37, 99, 235, 0.08)",
-            },
-          }}
-        >
-          View on Google Maps
-        </Button>
-      )}
 
-      {/* Geographic Coordinates - Editable */}
-      <Box sx={{ mb: 2 }}>
-        <Box display="flex" gap={1}>
-          <Box sx={{ flex: 1 }}>
-            <InputLabel>Longitude</InputLabel>
-            <TextField
-              type="number"
-              value={object.position?.[0] || 0}
-              onChange={(e) => {
-                const value = Number(e.target.value);
-                const clampedValue = Math.max(-180, Math.min(180, value));
-                onPropertyChange("position.0", clampedValue);
-              }}
-              size="small"
-              inputProps={{
-                step: 0.000001,
-                min: -180,
-                max: 180,
-              }}
-              fullWidth
-              sx={textFieldStyles}
-            />
+          {/* Geographic Coordinates */}
+          <Box sx={{ mb: 2 }}>
+            <Box display="flex" gap={1}>
+              <Box sx={{ flex: 1 }}>
+                <InputLabel>Longitude</InputLabel>
+                <TextField
+                  type="number"
+                  value={
+                    editing === "lon"
+                      ? localStr.lon
+                      : (liveObject.position?.[0] ?? 0)
+                  }
+                  onFocus={(e) => {
+                    setEditing("lon");
+                    setLocalStr((prev) => ({ ...prev, lon: e.target.value }));
+                  }}
+                  onChange={(e) => {
+                    setLocalStr((prev) => ({ ...prev, lon: e.target.value }));
+                  }}
+                  onBlur={() => {
+                    const val = Number(localStr.lon);
+                    if (!isNaN(val)) {
+                      onPropertyChange("position.0", val);
+                    }
+                    setEditing(null);
+                  }}
+                  size="small"
+                  inputProps={{ step: 0.000001 }}
+                  fullWidth
+                  sx={textFieldStyles}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <InputLabel>Latitude</InputLabel>
+                <TextField
+                  type="number"
+                  value={
+                    editing === "lat"
+                      ? localStr.lat
+                      : (liveObject.position?.[1] ?? 0)
+                  }
+                  onFocus={(e) => {
+                    setEditing("lat");
+                    setLocalStr((prev) => ({ ...prev, lat: e.target.value }));
+                  }}
+                  onChange={(e) => {
+                    setLocalStr((prev) => ({ ...prev, lat: e.target.value }));
+                  }}
+                  onBlur={() => {
+                    const val = Number(localStr.lat);
+                    if (!isNaN(val)) {
+                      onPropertyChange("position.1", val);
+                    }
+                    setEditing(null);
+                  }}
+                  size="small"
+                  inputProps={{ step: 0.000001 }}
+                  fullWidth
+                  sx={textFieldStyles}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <InputLabel>Altitude (m)</InputLabel>
+                <TextField
+                  type="number"
+                  value={
+                    editing === "alt"
+                      ? localStr.alt
+                      : (liveObject.position?.[2] ?? 0)
+                  }
+                  onFocus={(e) => {
+                    setEditing("alt");
+                    setLocalStr((prev) => ({ ...prev, alt: e.target.value }));
+                  }}
+                  onChange={(e) => {
+                    setLocalStr((prev) => ({ ...prev, alt: e.target.value }));
+                  }}
+                  onBlur={() => {
+                    const val = Number(localStr.alt);
+                    if (!isNaN(val)) {
+                      onPropertyChange("position.2", val);
+                    }
+                    setEditing(null);
+                  }}
+                  size="small"
+                  inputProps={{ step: 0.1 }}
+                  fullWidth
+                  sx={textFieldStyles}
+                />
+              </Box>
+            </Box>
           </Box>
-          <Box sx={{ flex: 1 }}>
-            <InputLabel>Latitude</InputLabel>
-            <TextField
-              type="number"
-              value={object.position?.[1] || 0}
-              onChange={(e) => {
-                const value = Number(e.target.value);
-                const clampedValue = Math.max(-90, Math.min(90, value));
-                onPropertyChange("position.1", clampedValue);
-              }}
-              size="small"
-              inputProps={{
-                step: 0.000001,
-                min: -90,
-                max: 90,
-              }}
-              fullWidth
-              sx={textFieldStyles}
-            />
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <InputLabel>Altitude (m)</InputLabel>
-            <TextField
-              type="number"
-              value={object.position?.[2] || 0}
-              onChange={(e) => {
-                const value = Number(e.target.value);
-                const clampedValue = Math.max(-1000, Math.min(100000, value));
-                onPropertyChange("position.2", clampedValue);
-              }}
-              size="small"
-              inputProps={{
-                step: 0.1,
-                min: -1000,
-                max: 100000,
-              }}
-              fullWidth
-              sx={textFieldStyles}
-            />
-          </Box>
-        </Box>
-      </Box>
 
-      {/* Rotation - Editable */}
-      <Box sx={{ mb: 2 }}>
-        <Box display="flex" gap={1}>
-          <Box sx={{ flex: 1 }}>
-            <InputLabel>X Rotation</InputLabel>
+          {/* Rotation */}
+          <Box sx={{ mb: 2 }}>
+            <Box display="flex" gap={1}>
+              <Box sx={{ flex: 1 }}>
+                <InputLabel>X Rotation</InputLabel>
+                <TextField
+                  type="number"
+                  value={
+                    editing === "rotX"
+                      ? localStr.rotX
+                      : (liveObject.rotation?.[0] ?? 0)
+                  }
+                  onFocus={(e) => {
+                    setEditing("rotX");
+                    setLocalStr((prev) => ({ ...prev, rotX: e.target.value }));
+                  }}
+                  onChange={(e) => {
+                    setLocalStr((prev) => ({ ...prev, rotX: e.target.value }));
+                  }}
+                  onBlur={() => {
+                    const val = Number(localStr.rotX);
+                    if (!isNaN(val)) {
+                      onPropertyChange("rotation.0", val);
+                    }
+                    setEditing(null);
+                  }}
+                  size="small"
+                  inputProps={{ step: 0.01 }}
+                  fullWidth
+                  sx={textFieldStyles}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <InputLabel>Y Rotation</InputLabel>
+                <TextField
+                  type="number"
+                  value={
+                    editing === "rotY"
+                      ? localStr.rotY
+                      : (liveObject.rotation?.[1] ?? 0)
+                  }
+                  onFocus={(e) => {
+                    setEditing("rotY");
+                    setLocalStr((prev) => ({ ...prev, rotY: e.target.value }));
+                  }}
+                  onChange={(e) => {
+                    setLocalStr((prev) => ({ ...prev, rotY: e.target.value }));
+                  }}
+                  onBlur={() => {
+                    const val = Number(localStr.rotY);
+                    if (!isNaN(val)) {
+                      onPropertyChange("rotation.1", val);
+                    }
+                    setEditing(null);
+                  }}
+                  size="small"
+                  inputProps={{ step: 0.01 }}
+                  fullWidth
+                  sx={textFieldStyles}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <InputLabel>Z Rotation</InputLabel>
+                <TextField
+                  type="number"
+                  value={
+                    editing === "rotZ"
+                      ? localStr.rotZ
+                      : (liveObject.rotation?.[2] ?? 0)
+                  }
+                  onFocus={(e) => {
+                    setEditing("rotZ");
+                    setLocalStr((prev) => ({ ...prev, rotZ: e.target.value }));
+                  }}
+                  onChange={(e) => {
+                    setLocalStr((prev) => ({ ...prev, rotZ: e.target.value }));
+                  }}
+                  onBlur={() => {
+                    const val = Number(localStr.rotZ);
+                    if (!isNaN(val)) {
+                      onPropertyChange("rotation.2", val);
+                    }
+                    setEditing(null);
+                  }}
+                  size="small"
+                  inputProps={{ step: 0.01 }}
+                  fullWidth
+                  sx={textFieldStyles}
+                />
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Scale */}
+          <Box>
+            <InputLabel>Scale (Uniform)</InputLabel>
             <TextField
-              size="small"
               type="number"
-              value={object.rotation?.[0] || 0}
-              onChange={(e) =>
-                onPropertyChange("rotation.0", Number(e.target.value))
+              value={
+                editing === "scale"
+                  ? localStr.scale
+                  : (liveObject.scale?.[0] ?? 1)
               }
+              onFocus={(e) => {
+                setEditing("scale");
+                setLocalStr((prev) => ({ ...prev, scale: e.target.value }));
+              }}
+              onChange={(e) => {
+                setLocalStr((prev) => ({ ...prev, scale: e.target.value }));
+              }}
+              onBlur={() => {
+                const val = Number(localStr.scale);
+                if (!isNaN(val)) {
+                  updateObjectProperty(object.id, "scale", [val, val, val]);
+                }
+                setEditing(null);
+              }}
+              size="small"
               inputProps={{ step: 0.01 }}
               fullWidth
               sx={textFieldStyles}
             />
           </Box>
-          <Box sx={{ flex: 1 }}>
-            <InputLabel>Y Rotation</InputLabel>
-            <TextField
-              size="small"
-              type="number"
-              value={object.rotation?.[1] || 0}
-              onChange={(e) =>
-                onPropertyChange("rotation.1", Number(e.target.value))
-              }
-              inputProps={{ step: 0.01 }}
-              fullWidth
-              sx={textFieldStyles}
-            />
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <InputLabel>Z Rotation</InputLabel>
-            <TextField
-              size="small"
-              type="number"
-              value={object.rotation?.[2] || 0}
-              onChange={(e) =>
-                onPropertyChange("rotation.2", Number(e.target.value))
-              }
-              inputProps={{ step: 0.01 }}
-              fullWidth
-              sx={textFieldStyles}
-            />
-          </Box>
-        </Box>
-      </Box>
-
-      {/* Scale - Editable (Uniform) */}
-      <Box>
-        <InputLabel>Scale (Uniform)</InputLabel>
-        <TextField
-          size="small"
-          type="number"
-          value={object.scale?.[0] || 1}
-          onChange={(e) => {
-            const value = Number(e.target.value);
-            const uniformScale = [value, value, value];
-            updateObjectProperty(object.id, "scale", uniformScale);
-          }}
-          inputProps={{
-            step: 0.01,
-            min: 0.01,
-            max: 100,
-          }}
-          fullWidth
-          sx={textFieldStyles}
-        />
-      </Box>
-    </SettingContainer>
+        </SettingContainer>
+      );
+    }
   );
-};
+
+TransformLocationSection.displayName = "TransformLocationSection";
 
 export default TransformLocationSection;

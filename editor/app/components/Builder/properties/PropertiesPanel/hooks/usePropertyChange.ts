@@ -11,11 +11,12 @@ interface UsePropertyChangeProps {
  * Custom hook to handle property changes with nested property support
  */
 export const usePropertyChange = ({
-  selectedObject,
   updateObjectProperty,
-}: UsePropertyChangeProps) => {
+}: Omit<UsePropertyChangeProps, "selectedObject">) => {
   const handlePropertyChange = useCallback(
     (property: string, value: number | string | boolean) => {
+      // Get the selected object fresh from the store to ensure it's not stale
+      const selectedObject = useSceneStore.getState().selectedObject;
       if (!selectedObject) return;
 
       // Handle nested observation properties - ALWAYS read from store to get fresh state
@@ -89,7 +90,15 @@ export const usePropertyChange = ({
           )
             ? [...(currentObject[parent as keyof ModelObject] as number[])]
             : [0, 0, 0];
+          console.log(
+            `[usePropertyChange] ${parent}[${index}] current: ${currentArray[index]}, new: ${value}`
+          );
           currentArray[index] = value as number;
+          console.log(
+            `[usePropertyChange] Calling updateObjectProperty(${selectedObject.id}, "${parent}", ${JSON.stringify(
+              currentArray
+            )})`
+          );
           updateObjectProperty(selectedObject.id, parent, currentArray);
           return;
         }
@@ -98,7 +107,7 @@ export const usePropertyChange = ({
       // Handle simple properties
       updateObjectProperty(selectedObject.id, property, value);
     },
-    [selectedObject, updateObjectProperty]
+    [updateObjectProperty]
   );
 
   return { handlePropertyChange };

@@ -14,7 +14,6 @@ import { usePropertyChange } from "../hooks/usePropertyChange";
 import { useGeographicCoords } from "../hooks/useGeographicCoords";
 
 interface ObjectPropertiesViewProps {
-  selectedObject: ModelObject;
   updateObjectProperty: (id: string, property: string, value: unknown) => void;
 }
 
@@ -30,7 +29,8 @@ const ION_TYPES = new Set<string>(["cesium-ion-tileset", "cesiumIonAsset"]);
  * Optimized with React.memo to prevent unnecessary re-renders
  */
 export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
-  ({ selectedObject, updateObjectProperty }) => {
+  ({ updateObjectProperty }) => {
+    const selectedObject = useSceneStore((s) => s.selectedObject);
     const orbitControlsRef = useSceneStore((s) => s.orbitControlsRef);
     const isCalculatingVisibility = useSceneStore(
       (s) => s.isCalculatingVisibility
@@ -46,7 +46,6 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
     const [repositioning, setRepositioning] = useState(false);
 
     const { handlePropertyChange } = usePropertyChange({
-      selectedObject,
       updateObjectProperty,
     });
 
