@@ -112,7 +112,7 @@ export const useCesiumIon = () => {
         throw new Error(`Failed to save: ${response.status}`);
       }
 
-      const data = await response.json();
+      await response.json();
 
       // Refresh the library to show the new asset
       if (onRefresh) {
@@ -267,7 +267,7 @@ export const useCesiumIon = () => {
       showToast(`Successfully uploaded to Cesium Ion! Asset ID: ${inferredId}`);
 
       // Poll for tiling status and save to library when complete
-      pollAssetStatus(inferredId, accessToken, (status, percent) => {
+      pollAssetStatus(inferredId, accessToken, (_status, _percent) => {
         // Tiling progress update
       })
         .then((assetInfo) => {
