@@ -55,7 +55,12 @@ const CesiumObjectTransformEditor: React.FC<
   );
 
   const updateStoreFromCartesian = useCallback(
-    (id: string, pos: Cartesian3, hpr: HeadingPitchRoll) => {
+    (
+      id: string,
+      pos: Cartesian3,
+      hpr: HeadingPitchRoll,
+      scale?: [number, number, number]
+    ) => {
       const carto = Cartographic.fromCartesian(pos);
       useSceneStore
         .getState()
@@ -71,6 +76,9 @@ const CesiumObjectTransformEditor: React.FC<
           hpr.pitch,
           hpr.roll,
         ]);
+      if (scale) {
+        useSceneStore.getState().updateObjectProperty(id, "scale", scale);
+      }
     },
     []
   );
@@ -123,15 +131,22 @@ const CesiumObjectTransformEditor: React.FC<
       applyTRStoEntity(modelEntity, nextPos, nextHPR);
 
       // scale (uniform)
+      let scaleToStore: [number, number, number] | undefined;
       if (trs?.scale && modelEntity.model) {
         const [sx = 1, sy = 1, sz = 1] = trs.scale;
         const uniform = Math.max(sx, sy, sz);
         const mg = modelEntity.model as any;
         // ModelGraphics expects a Property; accept number too if your typings differ
         (mg as any).scale = new ConstantProperty(uniform);
+        scaleToStore = [uniform, uniform, uniform];
       }
 
-      updateStoreFromCartesian(selectedObject.id, nextPos, nextHPR);
+      updateStoreFromCartesian(
+        selectedObject.id,
+        nextPos,
+        nextHPR,
+        scaleToStore
+      );
       cesiumViewer.scene.requestRender();
     },
     [

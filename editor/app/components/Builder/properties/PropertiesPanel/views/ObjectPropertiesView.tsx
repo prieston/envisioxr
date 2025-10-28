@@ -3,7 +3,6 @@ import { Alert, Button, Collapse } from "@mui/material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import { flyToCesiumPosition } from "@envisio/engine-cesium";
 import { flyToThreeObject } from "@envisio/engine-three/components";
-import { ModelObject } from "../../types";
 import { ScrollContainer } from "../components/ScrollContainer";
 import ObjectActionsSection from "../../ObjectActionsSection";
 import ModelInformationSection from "../../ModelInformationSection";

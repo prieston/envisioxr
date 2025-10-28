@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Box, Typography, Button, TextField } from "@mui/material";
 import { LocationOn } from "@mui/icons-material";
 import { SettingContainer, SettingLabel } from "../SettingRenderer.styles";

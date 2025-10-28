@@ -864,11 +864,6 @@ export class TransformEditor {
       new Cesium.Cartesian3(k, k, k)
     );
 
-    // eslint-disable-next-line no-console
-    console.log(
-      `[TransformEditor] Emitting change: position=${pos}, rotation=${rot}, scale=${k}`
-    );
-
     this.opts.onChange({
       position: pos,
       rotation: rot,

@@ -113,7 +113,6 @@ export const useCesiumIon = () => {
       }
 
       const data = await response.json();
-      console.log("✅ Ion asset saved to library:", data);
 
       // Refresh the library to show the new asset
       if (onRefresh) {
@@ -244,7 +243,6 @@ export const useCesiumIon = () => {
         );
       }
 
-      console.log("📋 Asset ID:", inferredId);
       setIonUploadProgress(20);
 
       // Step 2: Upload file to S3
@@ -266,18 +264,11 @@ export const useCesiumIon = () => {
 
       setIonUploadProgress(100);
 
-      console.log("✅ Cesium Ion Upload Complete!");
-      console.log("Asset ID:", inferredId);
-      console.log(
-        `View your asset at: https://ion.cesium.com/assets/${inferredId}`
-      );
-
       showToast(`Successfully uploaded to Cesium Ion! Asset ID: ${inferredId}`);
 
       // Poll for tiling status and save to library when complete
-      console.log("🔄 Starting to poll for tiling status...");
       pollAssetStatus(inferredId, accessToken, (status, percent) => {
-        console.log(`🔄 Tiling: ${status} (${percent}%)`);
+        // Tiling progress update
       })
         .then((assetInfo) => {
           return saveCesiumIonAssetToLibrary(

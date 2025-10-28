@@ -103,7 +103,6 @@ export async function POST(request: NextRequest) {
     // Expecting a JSON body with key, originalFilename, name, fileType, thumbnail, metadata
     // OR for Cesium Ion assets: assetType, cesiumAssetId, cesiumApiKey, name
     const body = await request.json();
-    console.log("Creating asset with data:", body);
 
     const {
       key,

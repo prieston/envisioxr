@@ -70,16 +70,11 @@ export const useCesiumIonUpload = () => {
         const status = assetInfo.status;
         const percentComplete = assetInfo.percentComplete || 0;
 
-        console.log(
-          `🔄 Tiling status: ${status} (${percentComplete}% complete)`
-        );
-
         if (onProgress) {
           onProgress(status, percentComplete);
         }
 
         if (status === "COMPLETE") {
-          console.log("✅ Tiling complete!");
           return assetInfo;
         }
 

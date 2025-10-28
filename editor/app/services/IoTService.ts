@@ -84,7 +84,6 @@ class IoTService {
     const intervalKeys = Array.from(this.intervals.keys());
     for (const objectId of intervalKeys) {
       if (!iotObjectIds.has(objectId)) {
-        console.log(`[IoTService] Cleaning up IoT polling for ${objectId}`);
         const interval = this.intervals.get(objectId);
         if (interval) {
           clearInterval(interval);
@@ -121,7 +120,6 @@ class IoTService {
       }
     } catch (e) {
       // Position might be a getter that throws or not be an array
-      console.warn("Could not access position for IoT object:", obj.id);
       return;
     }
 
@@ -136,7 +134,7 @@ class IoTService {
       }
       // Add support for other service types here
     } catch (error) {
-      console.error(`Error fetching IoT data for object ${obj.id}:`, error);
+      // Error fetching IoT data
     }
   }
 
@@ -203,14 +201,7 @@ class IoTService {
       // Update the store with the new weather data
       useSceneStore.getState().updateWeatherData(objectId, weatherInfo);
     } catch (error) {
-      console.error("Error fetching weather data:", error);
-
-      // If the primary endpoint fails, try a fallback approach
-      if (error instanceof Error && error.message.includes("HTTP error")) {
-        console.log(
-          "Primary weather API failed, this might be a temporary issue"
-        );
-      }
+      // Error fetching weather data
     }
   }
 
@@ -237,7 +228,6 @@ class IoTService {
   // Method to stop IoT for a specific object
   public stopIoTForObject(objectId: string) {
     if (this.intervals.has(objectId)) {
-      console.log(`[IoTService] Stopping IoT polling for ${objectId}`);
       clearInterval(this.intervals.get(objectId)!);
       this.intervals.delete(objectId);
       this.lastFetchTime.delete(objectId);
@@ -246,7 +236,6 @@ class IoTService {
 
   // Method to stop all IoT services
   public stopAll() {
-    console.log("[IoTService] Stopping all IoT polling");
     const intervalValues = Array.from(this.intervals.values());
     for (const interval of intervalValues) {
       clearInterval(interval);

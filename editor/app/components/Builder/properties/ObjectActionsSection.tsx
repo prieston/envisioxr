@@ -1,11 +1,10 @@
 import React from "react";
-import { Box, Button, ButtonGroup, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import {
   FlightTakeoff,
   LocationOn,
   OpenWith,
   RotateRight,
-  AspectRatio,
 } from "@mui/icons-material";
 import { SettingContainer, SettingLabel } from "../SettingRenderer.styles";
 
@@ -143,31 +142,6 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
               }}
             >
               Rotate
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => onTransformModeChange("scale")}
-              startIcon={<AspectRatio />}
-              sx={{
-                flex: 1,
-                borderRadius: "8px",
-                textTransform: "none",
-                fontWeight: 500,
-                fontSize: "0.75rem",
-                borderColor: "rgba(37, 99, 235, 0.3)",
-                color: "#2563eb",
-                padding: "6px 16px",
-                "&:hover": {
-                  borderColor: "#2563eb",
-                  backgroundColor: "rgba(37, 99, 235, 0.08)",
-                },
-                ...(transformMode === "scale" && {
-                  backgroundColor: "rgba(37, 99, 235, 0.2)",
-                  borderColor: "#2563eb",
-                }),
-              }}
-            >
-              Scale
             </Button>
           </Box>
         </Box>

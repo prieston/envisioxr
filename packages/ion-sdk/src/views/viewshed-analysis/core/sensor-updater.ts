@@ -17,14 +17,8 @@ export function updateSensorFovRadius(params: UpdateSensorParams) {
   const { handle, properties, viewer } = params;
 
   if (!handle) {
-    console.warn("[updateSensorFovRadius] No handle provided");
     return null;
   }
-
-  console.log(
-    "[updateSensorFovRadius] Updating existing sensor, fov:",
-    properties.fov
-  );
 
   const updated = updateFovRadius(handle, {
     fovDeg: properties.fov,
@@ -55,7 +49,7 @@ export function applySensorFlags(
     });
     viewer?.scene?.requestRender();
   } catch (err) {
-    console.warn("Failed to update flags:", err);
+    // Failed to update flags
   }
 }
 
@@ -75,7 +69,7 @@ export function applySensorColors(
     });
     viewer?.scene?.requestRender();
   } catch (err) {
-    console.warn("Failed to update colors:", err);
+    // Failed to update colors
   }
 }
 
