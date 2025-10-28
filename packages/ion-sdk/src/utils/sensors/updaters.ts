@@ -34,18 +34,24 @@ export function updateFlags(
   if (opts.show !== undefined) {
     target.show = opts.show;
     if (opts.show === true) {
-      // restore geometry if caller didn't specify showGeometry
+      // Only restore geometry if caller didn't specify showGeometry
       if (opts.showGeometry === undefined) {
         target.showLateralSurfaces = true;
         target.showDomeSurfaces = true;
       }
+      // Only restore viewshed if caller didn't specify showViewshed
       if (opts.showViewshed === undefined) {
         target.showViewshed = true;
       }
     } else {
-      target.showLateralSurfaces = false;
-      target.showDomeSurfaces = false;
-      target.showViewshed = false;
+      // Only hide everything if show=false and no specific overrides
+      if (opts.showViewshed === undefined) {
+        target.showViewshed = false;
+      }
+      if (opts.showGeometry === undefined) {
+        target.showLateralSurfaces = false;
+        target.showDomeSurfaces = false;
+      }
     }
   }
   if (opts.showViewshed !== undefined) target.showViewshed = opts.showViewshed;
@@ -96,7 +102,23 @@ export function updateFovRadius(
 
   // Update radius
   if (opts.radius != null) {
+    const oldRadius = handle.radius;
     handle.radius = Math.max(MIN_RADIUS, opts.radius);
+    // Force geometry rebuild by briefly changing outerHalfAngle if FOV isn't being updated
+    // This ensures radius changes are visible immediately
+    if (opts.fovDeg == null && handle.outerHalfAngle != null) {
+      const currentAngle = handle.outerHalfAngle;
+      // Make a noticeable change and restore to force Cesium to update
+      handle.outerHalfAngle = currentAngle * 1.0001;
+      handle.outerHalfAngle = currentAngle;
+      console.log(
+        `[updateFovRadius] Changed radius from ${oldRadius} to ${handle.radius}, nudged angle to ${currentAngle}`
+      );
+    } else {
+      console.log(
+        `[updateFovRadius] Changed radius from ${oldRadius} to ${handle.radius}`
+      );
+    }
   }
 
   // Update FOV (clamp to 179.9° max)
@@ -124,7 +146,26 @@ export function updateRectangularFovRadius(
   if (!handle) return null;
 
   if (opts.radius != null) {
+    const oldRadius = handle.radius;
     handle.radius = Math.max(MIN_RADIUS, opts.radius);
+    // Force geometry rebuild by briefly changing xHalfAngle if FOV isn't being updated
+    // This ensures radius changes are visible immediately
+    if (
+      opts.fovHdeg == null &&
+      opts.fovVdeg == null &&
+      (handle as any).xHalfAngle != null
+    ) {
+      const currentAngle = (handle as any).xHalfAngle;
+      (handle as any).xHalfAngle = currentAngle * 1.0001;
+      (handle as any).xHalfAngle = currentAngle;
+      console.log(
+        `[updateRectangularFovRadius] Changed radius from ${oldRadius} to ${handle.radius}, nudged angle to ${currentAngle}`
+      );
+    } else {
+      console.log(
+        `[updateRectangularFovRadius] Changed radius from ${oldRadius} to ${handle.radius}`
+      );
+    }
   }
 
   if (opts.fovHdeg != null) {

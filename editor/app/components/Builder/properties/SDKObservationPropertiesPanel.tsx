@@ -495,6 +495,7 @@ const SDKObservationPropertiesPanel: React.FC<
                   onChange={(e) => {
                     const checked = e.target.checked;
                     setLocal((s) => ({ ...s, showSensorGeometry: checked }));
+                    schedulePreview({ showSensorGeometry: checked });
                     handlePropertyChange("showSensorGeometry", checked);
                   }}
                   sx={{
@@ -540,6 +541,7 @@ const SDKObservationPropertiesPanel: React.FC<
                   onChange={(e) => {
                     const checked = e.target.checked;
                     setLocal((s) => ({ ...s, showViewshed: checked }));
+                    schedulePreview({ showViewshed: checked });
                     handlePropertyChange("showViewshed", checked);
                   }}
                   sx={{

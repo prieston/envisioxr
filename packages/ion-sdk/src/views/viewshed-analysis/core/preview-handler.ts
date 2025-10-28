@@ -86,9 +86,11 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
         patch.fov !== undefined ||
         patch.fovH !== undefined ||
         patch.fovV !== undefined ||
-        patch.visibilityRadius !== undefined;
+        patch.visibilityRadius !== undefined ||
+        patch.showSensorGeometry !== undefined ||
+        patch.showViewshed !== undefined;
       if (!needsUpdate) {
-        DEBUG && console.log("[PREVIEW] No FOV/radius update needed");
+        DEBUG && console.log("[PREVIEW] No update needed");
         return;
       }
 
@@ -97,7 +99,11 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
           "[PREVIEW] Updating sensor in-place with fov=",
           patch.fov,
           "radius=",
-          patch.visibilityRadius
+          patch.visibilityRadius,
+          "showSensorGeometry=",
+          patch.showSensorGeometry,
+          "showViewshed=",
+          patch.showViewshed
         );
       const primitiveCount = viewer?.scene?.primitives?.length;
       DEBUG &&
@@ -116,25 +122,61 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
         fovH: patch.fovH ?? properties.fovH,
         fovV: patch.fovV ?? properties.fovV,
         visibilityRadius: patch.visibilityRadius ?? properties.visibilityRadius,
+        showSensorGeometry:
+          patch.showSensorGeometry !== undefined
+            ? patch.showSensorGeometry
+            : properties.showSensorGeometry,
+        showViewshed:
+          patch.showViewshed !== undefined
+            ? patch.showViewshed
+            : properties.showViewshed,
       };
 
       console.log(
-        `🔄 [PREVIEW] Updating FOV=${nextProperties.fov}° radius=${nextProperties.visibilityRadius}m (primitives: ${primitiveCount})`
+        `🔄 [PREVIEW] Updating FOV=${nextProperties.fov}° radius=${nextProperties.visibilityRadius}m showSensorGeometry=${nextProperties.showSensorGeometry} showViewshed=${nextProperties.showViewshed} (primitives: ${primitiveCount})`
       );
+
+      // Update flags immediately for instant feedback
+      if (
+        patch.showSensorGeometry !== undefined ||
+        patch.showViewshed !== undefined
+      ) {
+        if (sensorRef.current && sensorRef.current.show !== undefined) {
+          updateFlags(sensorRef.current, {
+            show:
+              !!nextProperties.showSensorGeometry ||
+              !!nextProperties.showViewshed,
+            showViewshed: !!nextProperties.showViewshed,
+            showGeometry: !!nextProperties.showSensorGeometry,
+          });
+        }
+      }
 
       // Update in place for single sensor mode
       if (nextProperties.sensorType === "rectangle") {
         updateRectangularFovRadius(sensorRef.current, {
-          fovHdeg: nextProperties.fovH ?? nextProperties.fov,
+          fovHdeg:
+            patch.fovH !== undefined
+              ? (nextProperties.fovH ?? nextProperties.fov)
+              : undefined,
           fovVdeg:
-            nextProperties.fovV ?? Math.round((nextProperties.fov ?? 60) * 0.6),
-          radius: nextProperties.visibilityRadius,
+            patch.fovV !== undefined
+              ? (nextProperties.fovV ??
+                Math.round((nextProperties.fov ?? 60) * 0.6))
+              : undefined,
+          radius:
+            patch.visibilityRadius !== undefined
+              ? nextProperties.visibilityRadius
+              : undefined,
           viewer,
         });
       } else {
         updateFovRadius(sensorRef.current, {
-          fovDeg: nextProperties.fov,
-          radius: nextProperties.visibilityRadius,
+          fovDeg: patch.fov !== undefined ? nextProperties.fov : undefined,
+          radius:
+            patch.visibilityRadius !== undefined
+              ? nextProperties.visibilityRadius
+              : undefined,
           viewer,
         });
       }
