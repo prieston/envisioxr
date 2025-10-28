@@ -61,11 +61,15 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     ]
   );
 
-  const refs: SensorRefs = {
-    sensorRef,
-    sensorCompositeRef: { current: null }, // Deprecated, kept for compatibility
-    viewshedRef,
-  };
+  // Memoize refs object to prevent useSensorCleanup from re-running
+  const refs: SensorRefs = useMemo(
+    () => ({
+      sensorRef,
+      sensorCompositeRef: { current: null }, // Deprecated, kept for compatibility
+      viewshedRef,
+    }),
+    []
+  );
 
   useEffect(() => {
     console.log(`🟢 [MOUNT] Component mounted for objectId=${objectId}`);
@@ -182,6 +186,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     isCreatingRef.current = true;
     isTransitioningRef.current = true;
 
+    let created = false;
     try {
       const beforeCount = cesiumViewer?.scene?.primitives?.length ?? 0;
 
@@ -219,6 +224,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       });
 
       sensorRef.current = sensor;
+      created = true;
 
       const afterCreate = cesiumViewer?.scene?.primitives?.length ?? 0;
       console.log(
@@ -235,6 +241,10 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
         autoClose: 5000,
       });
     } finally {
+      // If creation failed, restore previous shape signature so future attempts are not blocked
+      if (!created) {
+        lastShapeSigRef.current = oldSig;
+      }
       isCreatingRef.current = false;
       isTransitioningRef.current = false;
       creatingShapeSigRef.current = ""; // Clear the creating sig
@@ -266,8 +276,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     return () => {
       window.removeEventListener("cesium-observation-preview", handlePreview);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInitialized, objectId, cesiumViewer]);
+  }, [isInitialized, objectId, cesiumViewer, observationProperties]);
 
   useEffect(() => {
     if (!isInitialized) {

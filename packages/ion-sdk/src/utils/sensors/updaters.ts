@@ -108,3 +108,39 @@ export function updateFovRadius(
   requestRender(opts.viewer);
   return handle;
 }
+
+/**
+ * Update rectangular sensor angles (xHalfAngle/yHalfAngle) and radius
+ */
+export function updateRectangularFovRadius(
+  handle: IonSensor | null | undefined,
+  opts: {
+    fovHdeg?: number; // full horizontal degrees (0..360 folded)
+    fovVdeg?: number; // full vertical degrees (0..180)
+    radius?: number;
+    viewer: any;
+  }
+): IonSensor | null {
+  if (!handle) return null;
+
+  if (opts.radius != null) {
+    handle.radius = Math.max(MIN_RADIUS, opts.radius);
+  }
+
+  if (opts.fovHdeg != null) {
+    const clampedH = Math.min(MAX_CONE_FOV_DEG, Math.max(1, opts.fovHdeg));
+    const xHalf = Cesium.Math.toRadians(clampedH / 2);
+    // RectangularSensor uses xHalfAngle
+    (handle as any).xHalfAngle = xHalf;
+  }
+
+  if (opts.fovVdeg != null) {
+    const clampedV = Math.min(MAX_CONE_FOV_DEG, Math.max(1, opts.fovVdeg));
+    const yHalf = Cesium.Math.toRadians(clampedV / 2);
+    // RectangularSensor uses yHalfAngle
+    (handle as any).yHalfAngle = yHalf;
+  }
+
+  requestRender(opts.viewer);
+  return handle;
+}

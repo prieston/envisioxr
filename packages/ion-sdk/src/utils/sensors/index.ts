@@ -38,6 +38,7 @@ export {
   updateFlags,
   updateColors,
   updateFovRadius,
+  updateRectangularFovRadius,
 } from "./updaters";
 
 // ===== DESTROYER EXPORTS =====

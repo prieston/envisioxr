@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useWorldStore, useSceneStore } from "@envisio/core";
 // IoT service is an editor concern; stub locally for engine usage
 const iotService = {
@@ -475,6 +475,15 @@ export default function CesiumViewer() {
   // Get objects from scene store
   const objects = useSceneStore((state) => state.objects);
 
+  // Memoize the filtered list of observation objects to prevent re-renders
+  const observationObjects = useMemo(
+    () =>
+      objects.filter(
+        (obj) => obj.isObservationModel && obj.observationProperties
+      ),
+    [objects]
+  );
+
   // Render entities whenever world data or scene objects change
   useEffect(() => {
     const viewer = viewerRef.current;
@@ -878,61 +887,49 @@ export default function CesiumViewer() {
           <CesiumCameraSpringController />
           <CesiumPreviewModeController />
           {/* Render professional Ion SDK viewshed analysis for observation models */}
-          {(() => {
-            const observationObjects = objects.filter(
-              (obj) => obj.isObservationModel && obj.observationProperties
+          {observationObjects.map((obj) => {
+            const position = Array.isArray(obj.position)
+              ? obj.position
+              : [0, 0, 0];
+            const [longitude, latitude, height] = position;
+            const rotation = Array.isArray(obj.rotation)
+              ? obj.rotation
+              : [0, 0, 0];
+
+            const observationProps = {
+              sensorType: obj.observationProperties?.sensorType || "cone",
+              fov: obj.observationProperties?.fov || 60,
+              fovH: obj.observationProperties?.fovH,
+              fovV: obj.observationProperties?.fovV,
+              visibilityRadius:
+                obj.observationProperties?.visibilityRadius || 500,
+              showSensorGeometry:
+                obj.observationProperties?.showSensorGeometry ?? true,
+              showViewshed: obj.observationProperties?.showViewshed ?? false,
+              sensorColor: obj.observationProperties?.sensorColor || "#00ff00",
+              viewshedColor:
+                obj.observationProperties?.viewshedColor || "#0080ff",
+              analysisQuality:
+                obj.observationProperties?.analysisQuality || "medium",
+              include3DModels: obj.observationProperties?.include3DModels,
+              alignWithModelFront:
+                obj.observationProperties?.alignWithModelFront,
+              modelFrontAxis: obj.observationProperties?.modelFrontAxis,
+              sensorForwardAxis: obj.observationProperties?.sensorForwardAxis,
+              tiltDeg: obj.observationProperties?.tiltDeg,
+            } as const;
+
+            return (
+              <ViewshedAnalysis
+                key={`ion-viewshed-${obj.id}`}
+                position={[longitude, latitude, height]}
+                rotation={rotation}
+                observationProperties={observationProps as any}
+                objectId={obj.id}
+                cesiumViewer={cesiumViewer}
+              />
             );
-
-            // Only render viewshed components if there are observation objects
-            if (observationObjects.length === 0) {
-              return null;
-            }
-
-            return observationObjects.map((obj) => {
-              const position = Array.isArray(obj.position)
-                ? obj.position
-                : [0, 0, 0];
-              const [longitude, latitude, height] = position;
-              const rotation = Array.isArray(obj.rotation)
-                ? obj.rotation
-                : [0, 0, 0];
-
-              const observationProps = {
-                sensorType: obj.observationProperties?.sensorType || "cone",
-                fov: obj.observationProperties?.fov || 60,
-                fovH: obj.observationProperties?.fovH,
-                fovV: obj.observationProperties?.fovV,
-                visibilityRadius:
-                  obj.observationProperties?.visibilityRadius || 500,
-                showSensorGeometry:
-                  obj.observationProperties?.showSensorGeometry ?? true,
-                showViewshed: obj.observationProperties?.showViewshed ?? false,
-                sensorColor:
-                  obj.observationProperties?.sensorColor || "#00ff00",
-                viewshedColor:
-                  obj.observationProperties?.viewshedColor || "#0080ff",
-                analysisQuality:
-                  obj.observationProperties?.analysisQuality || "medium",
-                include3DModels: obj.observationProperties?.include3DModels,
-                alignWithModelFront:
-                  obj.observationProperties?.alignWithModelFront,
-                modelFrontAxis: obj.observationProperties?.modelFrontAxis,
-                sensorForwardAxis: obj.observationProperties?.sensorForwardAxis,
-                tiltDeg: obj.observationProperties?.tiltDeg,
-              } as const;
-
-              return (
-                <ViewshedAnalysis
-                  key={`ion-viewshed-${obj.id}`}
-                  position={[longitude, latitude, height]}
-                  rotation={rotation}
-                  observationProperties={observationProps as any}
-                  objectId={obj.id}
-                  cesiumViewer={cesiumViewer}
-                />
-              );
-            });
-          })()}
+          })}
 
           {/* IoT Weather Display for objects with IoT properties */}
           {objects

@@ -443,6 +443,7 @@ const useSceneStore = create<SceneState>((set) => ({
               ...obj,
               [property]: value,
               observationProperties: {
+                // Default properties from the original code
                 sensorType: "cone" as "cone" | "rectangle",
                 fov: 60,
                 visibilityRadius: 500,
@@ -457,6 +458,8 @@ const useSceneStore = create<SceneState>((set) => ({
                 raysAzimuth: 120,
                 raysElevation: 8,
                 stepCount: 64,
+                // Merge with any existing properties
+                ...(obj.observationProperties || {}),
               },
             } as any;
           }

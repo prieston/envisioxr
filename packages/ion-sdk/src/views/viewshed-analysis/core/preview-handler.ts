@@ -2,6 +2,7 @@ import * as Cesium from "cesium";
 import type { ObservationProperties } from "../types";
 import {
   updateFovRadius,
+  updateRectangularFovRadius,
   updateFlags,
   updateColors,
 } from "../../../utils/sensors";
@@ -82,7 +83,10 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
 
     try {
       const needsUpdate =
-        patch.fov !== undefined || patch.visibilityRadius !== undefined;
+        patch.fov !== undefined ||
+        patch.fovH !== undefined ||
+        patch.fovV !== undefined ||
+        patch.visibilityRadius !== undefined;
       if (!needsUpdate) {
         DEBUG && console.log("[PREVIEW] No FOV/radius update needed");
         return;
@@ -109,6 +113,8 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       const nextProperties: ObservationProperties = {
         ...properties,
         fov: patch.fov ?? properties.fov,
+        fovH: patch.fovH ?? properties.fovH,
+        fovV: patch.fovV ?? properties.fovV,
         visibilityRadius: patch.visibilityRadius ?? properties.visibilityRadius,
       };
 
@@ -117,11 +123,21 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       );
 
       // Update in place for single sensor mode
-      updateFovRadius(sensorRef.current, {
-        fovDeg: nextProperties.fov,
-        radius: nextProperties.visibilityRadius,
-        viewer,
-      });
+      if (nextProperties.sensorType === "rectangle") {
+        updateRectangularFovRadius(sensorRef.current, {
+          fovHdeg: nextProperties.fovH ?? nextProperties.fov,
+          fovVdeg:
+            nextProperties.fovV ?? Math.round((nextProperties.fov ?? 60) * 0.6),
+          radius: nextProperties.visibilityRadius,
+          viewer,
+        });
+      } else {
+        updateFovRadius(sensorRef.current, {
+          fovDeg: nextProperties.fov,
+          radius: nextProperties.visibilityRadius,
+          viewer,
+        });
+      }
 
       const primitiveCountAfter = viewer?.scene?.primitives?.length;
       if (primitiveCountAfter !== primitiveCount) {

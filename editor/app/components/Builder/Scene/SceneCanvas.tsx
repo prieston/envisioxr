@@ -18,13 +18,7 @@ const CesiumObjectTransformEditor = dynamic(
     })),
   { ssr: false }
 );
-const ViewshedAnalysis = dynamic(
-  () =>
-    import("@envisio/ion-sdk").then((m) => ({
-      default: m.ViewshedAnalysis,
-    })),
-  { ssr: false }
-);
+// ViewshedAnalysis is rendered within the Cesium engine viewer; do not render here to avoid duplication
 
 interface SceneCanvasProps {
   initialSceneData: any;
@@ -62,27 +56,7 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
             {selectedObject && (
               <CesiumObjectTransformEditor selectedObject={selectedObject} />
             )}
-            {Array.isArray(objects)
-              ? objects
-                  .filter(
-                    (obj: any) =>
-                      obj?.isObservationModel && obj?.observationProperties
-                  )
-                  .map((obj: any) => (
-                    <ViewshedAnalysis
-                      key={`ion-viewshed-${obj.id}`}
-                      position={
-                        (obj.position || [0, 0, 0]) as [number, number, number]
-                      }
-                      rotation={
-                        (obj.rotation || [0, 0, 0]) as [number, number, number]
-                      }
-                      observationProperties={obj.observationProperties as any}
-                      objectId={obj.id}
-                      cesiumViewer={cesiumViewer}
-                    />
-                  ))
-              : null}
+            {/* ViewshedAnalysis is handled by CesiumViewer to ensure single source of render */}
           </>
         ) : (
           <Scene
