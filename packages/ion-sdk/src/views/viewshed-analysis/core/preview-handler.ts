@@ -7,7 +7,7 @@ import {
   updateColors,
 } from "../../../utils/sensors";
 
-const DEBUG = true;
+const DEBUG = false;
 
 declare global {
   interface Window {
@@ -32,16 +32,17 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
   let pendingPatch: any = null;
 
   const processUpdate = () => {
-    console.log("[PREVIEW] 🔄 Processing RAF, pendingPatch=", pendingPatch);
+    DEBUG &&
+      console.log("[PREVIEW] 🔄 Processing RAF, pendingPatch=", pendingPatch);
     rafId = null;
     if (!pendingPatch) {
-      console.log("[PREVIEW] ⚠️ No pendingPatch to process!");
+      DEBUG && console.log("[PREVIEW] ⚠️ No pendingPatch to process!");
       return;
     }
 
     const patch = pendingPatch;
     pendingPatch = null;
-    console.log("[PREVIEW] ✅ Processing patch=", patch);
+    DEBUG && console.log("[PREVIEW] ✅ Processing patch=", patch);
 
     if (!sensorRef.current) {
       DEBUG && console.log("[PREVIEW] Process: no sensor ref");
@@ -102,9 +103,10 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
             : properties.showViewshed,
       };
 
-      console.log(
-        `🔄 [PREVIEW] FOV=${nextProperties.fov}° radius=${nextProperties.visibilityRadius}m showGeometry=${nextProperties.showSensorGeometry} showViewshed=${nextProperties.showViewshed}`
-      );
+      DEBUG &&
+        console.log(
+          `🔄 [PREVIEW] FOV=${nextProperties.fov}° radius=${nextProperties.visibilityRadius}m showGeometry=${nextProperties.showSensorGeometry} showViewshed=${nextProperties.showViewshed}`
+        );
 
       // Update flags immediately for instant feedback
       if (
