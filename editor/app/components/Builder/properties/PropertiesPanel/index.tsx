@@ -15,6 +15,9 @@ interface PropertiesPanelProps {
     update: Partial<ObservationPoint>
   ) => void;
   setCapturingPOV: (val: boolean) => void;
+  repositioning?: boolean;
+  onStartRepositioning?: (objectId: string) => void;
+  onCancelRepositioning?: () => void;
 }
 
 /**
@@ -35,6 +38,9 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = memo(
     updateObjectProperty,
     updateObservationPoint,
     setCapturingPOV,
+    repositioning,
+    onStartRepositioning,
+    onCancelRepositioning,
   }) => {
     const selectedCesiumFeature = useSceneStore((s) => s.selectedCesiumFeature);
 
@@ -48,7 +54,12 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = memo(
     // Priority 2: Selected Object (3D Models)
     if (selectedObject) {
       return (
-        <ObjectPropertiesView updateObjectProperty={updateObjectProperty} />
+        <ObjectPropertiesView
+          updateObjectProperty={updateObjectProperty}
+          repositioning={repositioning}
+          onStartRepositioning={onStartRepositioning}
+          onCancelRepositioning={onCancelRepositioning}
+        />
       );
     }
 

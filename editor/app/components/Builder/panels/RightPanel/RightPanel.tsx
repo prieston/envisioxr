@@ -17,6 +17,9 @@ interface RightPanelProps {
   setSelectedPosition?: (position: [number, number, number] | null) => void;
   pendingModel?: any;
   setPendingModel?: (model: any) => void;
+  repositioning?: boolean;
+  onStartRepositioning?: (objectId: string) => void;
+  onCancelRepositioning?: () => void;
 }
 
 const RightPanel: React.FC<RightPanelProps> = ({
@@ -28,6 +31,9 @@ const RightPanel: React.FC<RightPanelProps> = ({
   setSelectedPosition,
   pendingModel,
   setPendingModel,
+  repositioning,
+  onStartRepositioning,
+  onCancelRepositioning,
 }) => {
   const previewMode = useSceneStore((state) => state.previewMode);
   const { engine } = useWorldStore();
@@ -73,7 +79,12 @@ const RightPanel: React.FC<RightPanelProps> = ({
       deleteObservationPoint,
       setCapturingPOV,
       updateControlSettings,
-      { engine }
+      {
+        engine,
+        repositioning,
+        onStartRepositioning,
+        onCancelRepositioning,
+      }
     );
     // Only depend on object ID, not the full object to prevent unnecessary re-renders
   }, [
@@ -82,6 +93,9 @@ const RightPanel: React.FC<RightPanelProps> = ({
     selectedObservation,
     viewMode,
     controlSettings,
+    repositioning,
+    onStartRepositioning,
+    onCancelRepositioning,
   ]);
 
   return (

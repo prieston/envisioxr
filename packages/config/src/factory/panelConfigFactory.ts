@@ -152,6 +152,8 @@ export const getRightPanelConfig = (
   worldStoreState?: any
 ): PanelConfiguration => {
   const engine = getEngine(worldStoreState);
+  const { repositioning, onStartRepositioning, onCancelRepositioning } =
+    worldStoreState || {};
 
   switch (engine) {
     case "three":
@@ -164,7 +166,10 @@ export const getRightPanelConfig = (
         updateObservationPoint,
         deleteObservationPoint,
         setCapturingPOV,
-        updateControlSettings
+        updateControlSettings,
+        repositioning,
+        onStartRepositioning,
+        onCancelRepositioning
       );
     case "cesium":
       return createCesiumRightPanelConfig(
@@ -176,7 +181,10 @@ export const getRightPanelConfig = (
         updateObservationPoint,
         deleteObservationPoint,
         setCapturingPOV,
-        updateControlSettings
+        updateControlSettings,
+        repositioning,
+        onStartRepositioning,
+        onCancelRepositioning
       );
     default:
       return createThreeJSRightPanelConfig(
@@ -188,7 +196,10 @@ export const getRightPanelConfig = (
         updateObservationPoint,
         deleteObservationPoint,
         setCapturingPOV,
-        updateControlSettings
+        updateControlSettings,
+        repositioning,
+        onStartRepositioning,
+        onCancelRepositioning
       ); // Default to ThreeJS
   }
 };

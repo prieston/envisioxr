@@ -9,6 +9,7 @@ interface ModelPositioningOverlayProps {
   selectedPosition: [number, number, number] | null;
   onConfirm: () => void;
   onCancel: () => void;
+  isRepositioning?: boolean;
 }
 
 const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
@@ -16,6 +17,7 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
   selectedPosition,
   onConfirm,
   onCancel,
+  isRepositioning = false,
 }) => {
   return (
     <Box
@@ -61,7 +63,9 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
               color: "rgba(51, 65, 85, 0.95)",
             }}
           >
-            Position Model: {modelName}
+            {isRepositioning
+              ? `Reposition: ${modelName}`
+              : `Position Model: ${modelName}`}
           </Typography>
         </Box>
 
@@ -75,8 +79,9 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
               lineHeight: 1.5,
             }}
           >
-            Click anywhere on the scene to select the placement position for
-            your model.
+            {isRepositioning
+              ? "Click anywhere on the scene to select the new position for this object."
+              : "Click anywhere on the scene to select the placement position for your model."}
           </Typography>
         ) : (
           <Box sx={{ mb: 2 }}>
@@ -135,7 +140,9 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
                 fontStyle: "italic",
               }}
             >
-              Click elsewhere to change position, or confirm to place the model.
+              {isRepositioning
+                ? "Click elsewhere to change position, or confirm to reposition the object."
+                : "Click elsewhere to change position, or confirm to place the model."}
             </Typography>
           </Box>
         )}

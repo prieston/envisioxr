@@ -18,6 +18,7 @@ interface ModelPositioningManagerProps {
   selectingPosition: boolean;
   selectedPosition: [number, number, number] | null;
   pendingModel: PendingModel | null;
+  repositioningObjectId?: string | null;
   onPositionSelected: (position: [number, number, number]) => void;
   onConfirm: () => void;
   onCancel: () => void;
@@ -27,6 +28,7 @@ const ModelPositioningManager: React.FC<ModelPositioningManagerProps> = ({
   selectingPosition,
   selectedPosition,
   pendingModel,
+  repositioningObjectId,
   onPositionSelected,
   onConfirm,
   onCancel,
@@ -190,14 +192,30 @@ const ModelPositioningManager: React.FC<ModelPositioningManagerProps> = ({
     onPositionSelected,
   ]);
 
-  if (!selectingPosition || !pendingModel) return null;
+  // Show overlay when either placing a new model or repositioning an existing one
+  const isActive = selectingPosition && (pendingModel || repositioningObjectId);
+  if (!isActive) return null;
+
+  // Get display name: either from pending model or repositioning object
+  let displayName = "";
+  if (pendingModel) {
+    displayName = pendingModel.name;
+  } else if (repositioningObjectId) {
+    // Get the object name from the scene store
+    const repositioningObject = useSceneStore
+      .getState()
+      .objects.find((obj) => obj.id === repositioningObjectId);
+    displayName = repositioningObject?.name || "Object";
+  }
+  const isRepositioning = !!repositioningObjectId;
 
   return (
     <ModelPositioningOverlay
-      modelName={pendingModel.name}
+      modelName={displayName}
       selectedPosition={selectedPosition}
       onConfirm={onConfirm}
       onCancel={onCancel}
+      isRepositioning={isRepositioning}
     />
   );
 };

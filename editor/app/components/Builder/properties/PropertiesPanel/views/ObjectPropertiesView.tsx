@@ -14,6 +14,9 @@ import { useGeographicCoords } from "../hooks/useGeographicCoords";
 
 interface ObjectPropertiesViewProps {
   updateObjectProperty: (id: string, property: string, value: unknown) => void;
+  repositioning?: boolean;
+  onStartRepositioning?: (objectId: string) => void;
+  onCancelRepositioning?: () => void;
 }
 
 // Coordinate tuple type: [longitude, latitude, altitude]
@@ -28,7 +31,12 @@ const ION_TYPES = new Set<string>(["cesium-ion-tileset", "cesiumIonAsset"]);
  * Optimized with React.memo to prevent unnecessary re-renders
  */
 export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
-  ({ updateObjectProperty }) => {
+  ({
+    updateObjectProperty,
+    repositioning = false,
+    onStartRepositioning,
+    onCancelRepositioning,
+  }) => {
     const selectedObject = useSceneStore((s) => s.selectedObject);
     const transformMode = useSceneStore((s) => s.transformMode);
     const setTransformMode = useSceneStore((s) => s.setTransformMode);
@@ -43,8 +51,6 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
       (s) => s.startVisibilityCalculation
     );
     const engine = useWorldStore((s) => s.engine);
-
-    const [repositioning, setRepositioning] = useState(false);
 
     const { handlePropertyChange } = usePropertyChange({
       updateObjectProperty,
@@ -120,11 +126,11 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
       orbitControlsRef,
     ]);
 
-    const handleReposition = useCallback(() => setRepositioning(true), []);
-    const handleCancelReposition = useCallback(
-      () => setRepositioning(false),
-      []
-    );
+    const handleReposition = useCallback(() => {
+      if (onStartRepositioning && selectedObject?.id) {
+        onStartRepositioning(selectedObject.id);
+      }
+    }, [onStartRepositioning, selectedObject?.id]);
 
     const handleCalculateViewshed = useCallback(() => {
       startVisibilityCalculation(selectedObject.id);
@@ -150,14 +156,14 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
           onTransformModeChange={setTransformMode}
         />
 
-        {repositioning && !isCesiumIonAsset && (
+        {repositioning && !isCesiumIonAsset && onCancelRepositioning && (
           <Alert
             severity="info"
             action={
               <Button
                 color="inherit"
                 size="small"
-                onClick={handleCancelReposition}
+                onClick={onCancelRepositioning}
               >
                 Cancel
               </Button>

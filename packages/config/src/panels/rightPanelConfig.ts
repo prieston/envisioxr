@@ -10,7 +10,10 @@ export const createThreeJSRightPanelConfig = (
   updateObservationPoint: (id: number, update: any) => void,
   deleteObservationPoint: (id: number) => void,
   setCapturingPOV: (val: boolean) => void,
-  updateControlSettings: (update: any) => void
+  updateControlSettings: (update: any) => void,
+  repositioning?: boolean,
+  onStartRepositioning?: (objectId: string) => void,
+  onCancelRepositioning?: () => void
 ): PanelConfiguration => {
   return {
     id: "right-panel",
@@ -36,6 +39,9 @@ export const createThreeJSRightPanelConfig = (
               deleteObservationPoint,
               setCapturingPOV,
               updateControlSettings,
+              repositioning,
+              onStartRepositioning,
+              onCancelRepositioning,
             },
           },
         ],
@@ -53,7 +59,10 @@ export const createCesiumRightPanelConfig = (
   updateObservationPoint: (id: number, update: any) => void,
   deleteObservationPoint: (id: number) => void,
   setCapturingPOV: (val: boolean) => void,
-  updateControlSettings: (update: any) => void
+  updateControlSettings: (update: any) => void,
+  repositioning?: boolean,
+  onStartRepositioning?: (objectId: string) => void,
+  onCancelRepositioning?: () => void
 ): PanelConfiguration => {
   return {
     id: "right-panel",
@@ -79,6 +88,9 @@ export const createCesiumRightPanelConfig = (
               deleteObservationPoint,
               setCapturingPOV,
               updateControlSettings,
+              repositioning,
+              onStartRepositioning,
+              onCancelRepositioning,
             },
           },
         ],

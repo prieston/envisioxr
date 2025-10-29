@@ -24,7 +24,16 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
   >(null);
   const [pendingModel, setPendingModel] = useState<any>(null);
 
+  // Repositioning state for existing objects
+  const [repositioning, setRepositioning] = useState(false);
+  const [repositioningObjectId, setRepositioningObjectId] = useState<
+    string | null
+  >(null);
+
   const addModel = useSceneStore((state) => state.addModel);
+  const updateObjectProperty = useSceneStore(
+    (state) => state.updateObjectProperty
+  );
   const bottomPanelVisible = useSceneStore((state) => state.bottomPanelVisible);
 
   const handlePositionSelected = (position: [number, number, number]) => {
@@ -56,6 +65,32 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
     // TODO: Reopen asset modal - need to pass callback from AdminAppBar
   };
 
+  // Repositioning handlers
+  const handleStartRepositioning = (objectId: string) => {
+    setRepositioningObjectId(objectId);
+    setRepositioning(true);
+    setSelectedPosition(null);
+  };
+
+  const handleConfirmRepositioning = () => {
+    if (repositioningObjectId && selectedPosition) {
+      updateObjectProperty(repositioningObjectId, "position", selectedPosition);
+      showToast("Object repositioned successfully");
+
+      // Reset state
+      setRepositioningObjectId(null);
+      setRepositioning(false);
+      setSelectedPosition(null);
+    }
+  };
+
+  const handleCancelRepositioning = () => {
+    setRepositioningObjectId(null);
+    setRepositioning(false);
+    setSelectedPosition(null);
+    showToast("Repositioning cancelled");
+  };
+
   return (
     <>
       {/* Animated background */}
@@ -85,14 +120,21 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
       {/* Full viewport canvas background */}
       <CanvasContainer>{children}</CanvasContainer>
 
-      {/* Model Positioning Overlay */}
+      {/* Model Positioning Overlay - handles both new models and repositioning */}
       <ModelPositioningManager
-        selectingPosition={selectingPosition}
+        selectingPosition={selectingPosition || repositioning}
         selectedPosition={selectedPosition}
         pendingModel={pendingModel}
+        repositioningObjectId={repositioningObjectId}
         onPositionSelected={handlePositionSelected}
-        onConfirm={handleConfirmPlacement}
-        onCancel={handleCancelPlacement}
+        onConfirm={
+          selectingPosition
+            ? handleConfirmPlacement
+            : handleConfirmRepositioning
+        }
+        onCancel={
+          selectingPosition ? handleCancelPlacement : handleCancelRepositioning
+        }
       />
 
       {/* Glass panels overlay */}
@@ -120,6 +162,9 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
             setSelectedPosition={setSelectedPosition}
             pendingModel={pendingModel}
             setPendingModel={setPendingModel}
+            repositioning={repositioning}
+            onStartRepositioning={handleStartRepositioning}
+            onCancelRepositioning={handleCancelRepositioning}
           />
         </MainContent>
       </LayoutContainer>
