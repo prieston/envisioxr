@@ -20,8 +20,8 @@ export default function LogoHeader() {
     return {
       src: isDark
         ? "/images/logo/logo-dark.svg"
-        : "/images/logo/logo-light.svg",
-      alt: "EnvisioXR",
+        : "/images/logo/klorad-logo.svg",
+      alt: "Klorad Studio",
     };
   }, [mode]);
 
@@ -32,8 +32,8 @@ export default function LogoHeader() {
       <Image
         src={src}
         alt={alt}
-        width={140}
-        height={28}
+        width={99}
+        height={40}
         priority
       />
     </Link>

@@ -98,7 +98,7 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
           // Fallback to simple flyTo if no target
           flyToCesiumPosition(cesiumViewer, lon, lat, alt);
         }
-      } else if (engine === "threejs") {
+      } else if (engine === "three") {
         // For Three.js, enable preview mode to animate to the observation point
         // This will trigger the CameraSpringController to handle the animation
         const setPreviewMode = useSceneStore.getState().setPreviewMode;
