@@ -471,6 +471,8 @@ const SDKObservationPropertiesPanel: React.FC<
             <FormControlLabel
               control={
                 <Switch
+                  id={`observation-show-sensor-geometry-${selectedObject.id}`}
+                  name="observation-show-sensor-geometry"
                   checked={local.showSensorGeometry}
                   onChange={(e) => {
                     const checked = e.target.checked;
@@ -517,6 +519,8 @@ const SDKObservationPropertiesPanel: React.FC<
             <FormControlLabel
               control={
                 <Switch
+                  id={`observation-show-viewshed-${selectedObject.id}`}
+                  name="observation-show-viewshed"
                   checked={local.showViewshed}
                   onChange={(e) => {
                     const checked = e.target.checked;

@@ -291,10 +291,18 @@ const useSceneStore = create<SceneState>((set) => ({
       const newIsPlaying = !state.isPlaying;
       // When starting playback, enable preview mode
       // When stopping, disable preview mode
-      return {
+      // If starting playback and no observation is selected, select the first one
+      const updates: Partial<SceneState> = {
         isPlaying: newIsPlaying,
         previewMode: newIsPlaying,
       };
+
+      if (newIsPlaying && !state.selectedObservation && state.observationPoints.length > 0) {
+        updates.selectedObservation = state.observationPoints[0];
+        updates.previewIndex = 0;
+      }
+
+      return updates;
     }),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
   setPreviewIndex: (index) => set({ previewIndex: index }),

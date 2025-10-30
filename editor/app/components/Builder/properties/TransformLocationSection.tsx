@@ -79,6 +79,8 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> =
               <Box sx={{ flex: 1 }}>
                 <InputLabel>Longitude</InputLabel>
                 <TextField
+                  id={`object-longitude-${object.id}`}
+                  name="object-longitude"
                   type="number"
                   value={
                     editing === "lon"
@@ -108,6 +110,8 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> =
               <Box sx={{ flex: 1 }}>
                 <InputLabel>Latitude</InputLabel>
                 <TextField
+                  id={`object-latitude-${object.id}`}
+                  name="object-latitude"
                   type="number"
                   value={
                     editing === "lat"
@@ -137,6 +141,8 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> =
               <Box sx={{ flex: 1 }}>
                 <InputLabel>Altitude (m)</InputLabel>
                 <TextField
+                  id={`object-altitude-${object.id}`}
+                  name="object-altitude"
                   type="number"
                   value={
                     editing === "alt"
@@ -172,6 +178,8 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> =
               <Box sx={{ flex: 1 }}>
                 <InputLabel>X Rotation</InputLabel>
                 <TextField
+                  id={`object-rotation-x-${object.id}`}
+                  name="object-rotation-x"
                   type="number"
                   value={
                     editing === "rotX"
@@ -201,6 +209,8 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> =
               <Box sx={{ flex: 1 }}>
                 <InputLabel>Y Rotation</InputLabel>
                 <TextField
+                  id={`object-rotation-y-${object.id}`}
+                  name="object-rotation-y"
                   type="number"
                   value={
                     editing === "rotY"
@@ -230,6 +240,8 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> =
               <Box sx={{ flex: 1 }}>
                 <InputLabel>Z Rotation</InputLabel>
                 <TextField
+                  id={`object-rotation-z-${object.id}`}
+                  name="object-rotation-z"
                   type="number"
                   value={
                     editing === "rotZ"
@@ -263,6 +275,8 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> =
           <Box>
             <InputLabel>Scale (Uniform)</InputLabel>
             <TextField
+              id={`object-scale-${object.id}`}
+              name="object-scale"
               type="number"
               value={
                 editing === "scale"

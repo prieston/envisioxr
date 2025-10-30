@@ -164,6 +164,8 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
           <FormControlLabel
             control={
               <Switch
+                id={`iot-enabled-${selectedObject.id}`}
+                name="iot-enabled"
                 checked={iotProps.enabled}
                 onChange={(e) =>
                   handlePropertyChange("enabled", e.target.checked)
@@ -265,6 +267,8 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                 Update Interval (ms)
               </Typography>
               <TextField
+                id={`iot-update-interval-${selectedObject.id}`}
+                name="iot-update-interval"
                 fullWidth
                 type="number"
                 value={iotProps.updateInterval}
@@ -287,6 +291,8 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
               <FormControlLabel
                 control={
                   <Switch
+                    id={`iot-auto-refresh-${selectedObject.id}`}
+                    name="iot-auto-refresh"
                     checked={iotProps.autoRefresh}
                     onChange={(e) =>
                       handlePropertyChange("autoRefresh", e.target.checked)
@@ -347,6 +353,8 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                   <FormControlLabel
                     control={
                       <Switch
+                        id={`iot-show-in-scene-${selectedObject.id}`}
+                        name="iot-show-in-scene"
                         checked={iotProps.showInScene}
                         onChange={(e) =>
                           handlePropertyChange("showInScene", e.target.checked)

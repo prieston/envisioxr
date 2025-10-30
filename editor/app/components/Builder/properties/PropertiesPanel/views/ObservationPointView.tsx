@@ -55,12 +55,63 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
       }
 
       if (engine === "cesium" && cesiumViewer) {
-        // Position is LatLonAlt: [lat, lon, alt]
-        // flyToCesiumPosition expects: (viewer, lon, lat, height)
+        const Cesium = (window as any).Cesium;
+        if (!Cesium) {
+          console.warn("Cesium not available");
+          return;
+        }
+
+        // Position and target are both LatLonAlt: [lat, lon, alt]
         const [lat, lon, alt] = selectedObservation.position;
-        flyToCesiumPosition(cesiumViewer, lon, lat, alt);
+        const position = Cesium.Cartesian3.fromDegrees(lon, lat, alt);
+
+        // If there's a valid target, use it to orient the camera
+        if (hasVec3(selectedObservation.target)) {
+          const [targetLat, targetLon, targetAlt] = selectedObservation.target;
+          const target = Cesium.Cartesian3.fromDegrees(targetLon, targetLat, targetAlt);
+
+          // Calculate the direction from position to target
+          const direction = Cesium.Cartesian3.subtract(
+            target,
+            position,
+            new Cesium.Cartesian3()
+          );
+          Cesium.Cartesian3.normalize(direction, direction);
+
+          // Calculate the up vector
+          const up = cesiumViewer.scene.globe.ellipsoid.geodeticSurfaceNormal(
+            position,
+            new Cesium.Cartesian3()
+          );
+
+          // Use flyTo with proper orientation
+          cesiumViewer.camera.flyTo({
+            destination: position,
+            orientation: {
+              direction: direction,
+              up: up,
+            },
+            duration: 1.5,
+            easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
+          });
+        } else {
+          // Fallback to simple flyTo if no target
+          flyToCesiumPosition(cesiumViewer, lon, lat, alt);
+        }
+      } else if (engine === "threejs") {
+        // For Three.js, enable preview mode to animate to the observation point
+        // This will trigger the CameraSpringController to handle the animation
+        const setPreviewMode = useSceneStore.getState().setPreviewMode;
+        const setPreviewIndex = useSceneStore.getState().setPreviewIndex;
+        const observationPoints = useSceneStore.getState().observationPoints;
+
+        const index = observationPoints.findIndex(p => p.id === selectedObservation.id);
+        if (index >= 0) {
+          setPreviewIndex(index);
+          setPreviewMode(true);
+        }
       }
-    }, [engine, cesiumViewer, selectedObservation.position]);
+    }, [engine, cesiumViewer, selectedObservation.position, selectedObservation.target, selectedObservation.id]);
 
     const handleCapturePosition = useCallback(
       () => setCapturingPOV(true),
@@ -131,6 +182,8 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
           <Box sx={{ mb: 2 }}>
             <InputLabel>Title</InputLabel>
             <TextField
+              id={`observation-title-${selectedObservation.id}`}
+              name="observation-title"
               fullWidth
               size="small"
               placeholder="Enter title"
@@ -144,6 +197,8 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
           <Box sx={{ mb: 2 }}>
             <InputLabel>Description</InputLabel>
             <TextField
+              id={`observation-description-${selectedObservation.id}`}
+              name="observation-description"
               fullWidth
               size="small"
               placeholder="Enter description"

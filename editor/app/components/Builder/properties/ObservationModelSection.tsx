@@ -54,6 +54,8 @@ const ObservationModelSection: React.FC<ObservationModelSectionProps> = memo(
           <FormControlLabel
             control={
               <Switch
+                id={`observation-model-enabled-${object.id}`}
+                name="observation-model-enabled"
                 checked={isObservationModel}
                 onChange={(e) => {
                   const checked = e.target.checked;
