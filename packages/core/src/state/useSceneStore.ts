@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import { create } from "zustand";
+import { createWithEqualityFn as create } from "zustand/traditional";
 import * as THREE from "three";
 import { v4 as uuidv4 } from "uuid";
 

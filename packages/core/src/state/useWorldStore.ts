@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { createWithEqualityFn as create } from "zustand/traditional";
 import type { World, Engine } from "@envisio/core/types";
 
 interface WorldState {

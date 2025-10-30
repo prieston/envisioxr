@@ -7,15 +7,13 @@ import { useThemeMode } from "@envisio/ui";
 export default function LogoHeader() {
   const { mode } = useThemeMode();
 
-  const { src, alt, width, height } = useMemo(() => {
+  const { src, alt } = useMemo(() => {
     const host = typeof window !== "undefined" ? window.location.host : "";
     const isPSM = /(^|\.)psm\.envisioxr\.com$/i.test(host);
     if (isPSM) {
       return {
         src: "/images/logo/psm-logo-new.png",
         alt: "PSM",
-        width: 140,
-        height: 28,
       };
     }
     const isDark = mode === "dark";
@@ -24,8 +22,6 @@ export default function LogoHeader() {
         ? "/images/logo/logo-dark.svg"
         : "/images/logo/logo-light.svg",
       alt: "EnvisioXR",
-      width: 140,
-      height: 28,
     };
   }, [mode]);
 
@@ -36,10 +32,9 @@ export default function LogoHeader() {
       <Image
         src={src}
         alt={alt}
-        width={width}
-        height={height}
+        width={140}
+        height={28}
         priority
-        style={{ height: 28, width: "auto" }}
       />
     </Link>
   );
