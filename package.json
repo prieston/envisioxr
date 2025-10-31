@@ -3,16 +3,16 @@
   "private": true,
   "version": "1.0.0",
   "workspaces": [
-    "website",
-    "editor",
+    "apps/website",
+    "apps/editor",
     "packages/*"
   ],
   "scripts": {
     "dev": "concurrently \"pnpm dev:website\" \"pnpm dev:editor\"",
-    "dev:website": "cd website && pnpm dev",
-    "dev:editor": "cd editor && pnpm dev",
-    "build:website": "cd website && pnpm build",
-    "build:editor": "cd editor && pnpm build",
+    "dev:website": "cd apps/website && pnpm dev",
+    "dev:editor": "cd apps/editor && pnpm dev",
+    "build:website": "cd apps/website && pnpm build",
+    "build:editor": "cd apps/editor && pnpm build",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prisma:generate": "pnpm --filter @envisioxr/prisma prisma generate",
