@@ -1,5 +1,4 @@
 packages:
-  - "apps/website"
-  - "apps/editor"
+  - "apps/*"
   - "packages/*"
-  - "packages/ion-sdk"
+  - "!apps/website-deprecated"

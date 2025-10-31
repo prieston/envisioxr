@@ -8,16 +8,14 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"pnpm dev:website\" \"pnpm dev:editor\"",
-    "dev:website": "cd apps/website && pnpm dev",
+    "dev": "pnpm dev:editor",
+    "build": "pnpm -r build --if-present",
     "dev:editor": "cd apps/editor && pnpm dev",
-    "build:website": "cd apps/website && pnpm build",
     "build:editor": "cd apps/editor && pnpm build",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prisma:generate": "pnpm --filter @envisioxr/prisma prisma generate",
     "prisma:migrate:deploy": "pnpm --filter @envisioxr/prisma prisma migrate deploy",
-    "vercel:build:website": "pnpm prisma:generate && pnpm prisma:migrate:deploy && pnpm build:website",
     "vercel:build:editor": "pnpm prisma:generate && pnpm prisma:migrate:deploy && pnpm build:editor"
   },
   "engines": {
