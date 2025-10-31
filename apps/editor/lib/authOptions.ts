@@ -19,13 +19,11 @@ export const authOptions: NextAuthOptions = {
       name: "next-auth.session-token",
       options: {
         domain:
-          process.env.NODE_ENV === "production"
-            ? ".envisioxr.com" // ✅ Works for `envisioxr.com`, `www.envisioxr.com`, and `app.envisioxr.com`
-            : "localhost", // ✅ Works for `localhost:3000` and `localhost:3001`
+          process.env.NODE_ENV === "production" ? ".klorad.com" : "localhost",
         path: "/",
-        secure: process.env.NODE_ENV === "production", // ✅ Secure in production
+        secure: process.env.NODE_ENV === "production",
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // ✅ "none" for cross-domain, "lax" for localhost
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       },
     },
   },
@@ -58,7 +56,15 @@ export const authOptions: NextAuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      return url.startsWith(baseUrl) ? url : baseUrl;
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+
+      return baseUrl;
     },
   },
 };

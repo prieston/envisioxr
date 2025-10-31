@@ -10,7 +10,16 @@
     "moduleResolution": "node",
     "types": ["node"],
     "noImplicitAny": false,
-    "noEmit": false
+    "noEmit": false,
+    "baseUrl": ".",
+    "paths": {
+      "@envisio/core": ["../core/dist/index"],
+      "@envisio/core/*": ["../core/dist/*"],
+      "@envisio/ui": ["../ui/dist/index"],
+      "@envisio/ui/*": ["../ui/dist/*"],
+      "@envisio/config": ["../config/dist/index"],
+      "@envisio/config/*": ["../config/dist/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

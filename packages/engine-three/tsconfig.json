@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
     "moduleResolution": "node",
@@ -10,14 +10,22 @@
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "baseUrl": ".",
+    "paths": {
+      "@envisio/core": ["../core/dist/index"],
+      "@envisio/core/*": ["../core/dist/*"],
+      "@envisio/ui": ["../ui/dist/index"],
+      "@envisio/ui/*": ["../ui/dist/*"],
+      "@envisio/config": ["../config/dist/index"],
+      "@envisio/config/*": ["../config/dist/*"],
+      "@envisio/engine-cesium": ["../engine-cesium/dist/index"],
+      "@envisio/engine-cesium/*": ["../engine-cesium/dist/*"]
+    },
     "strict": false,
     "noEmit": false
   },
   "include": ["src", "src/types/**/*"],
   "exclude": [
     "node_modules",
-    "dist",
-    "src/plugins/**/*",
-    "src/components/Scene/SceneTransformControls.tsx"
+    "dist"
   ]
 }

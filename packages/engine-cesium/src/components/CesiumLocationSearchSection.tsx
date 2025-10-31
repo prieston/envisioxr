@@ -41,6 +41,7 @@ const CesiumLocationSearchSection: React.FC<
   return (
     <SettingContainer>
       <SettingLabel>Location Search</SettingLabel>
+      {/* @ts-ignore - MUI type complexity */}
       <Box>
         <LocationSearch onAssetSelect={handleAssetSelect} />
       </Box>
