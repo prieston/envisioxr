@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import { ThemeModeProvider } from "@klorad/ui";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
+import { SessionProviderWrapper } from "@/app/components/SessionProviderWrapper";
 
 export const dynamic = "force-dynamic";
 
@@ -45,8 +46,10 @@ export default async function ProtectedLayout({
         />
       </head>
       <body>
-        <ThemeModeProvider>{children}</ThemeModeProvider>
-        <ToastContainer position="bottom-right" autoClose={3000} />
+        <SessionProviderWrapper session={session}>
+          <ThemeModeProvider>{children}</ThemeModeProvider>
+          <ToastContainer position="bottom-right" autoClose={3000} />
+        </SessionProviderWrapper>
       </body>
     </html>
   );

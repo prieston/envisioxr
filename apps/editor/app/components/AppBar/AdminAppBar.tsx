@@ -14,6 +14,7 @@ import {
 } from "./StyledComponents.tsx";
 import { PublishDialog } from "@envisio/ui";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import UserAccountMenu from "./UserAccountMenu";
 
 interface AdminAppBarProps {
   mode?: string;
@@ -146,6 +147,7 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
               {rightSection?.tools.map((tool) => (
                 <TopBarToolRenderer key={tool.id} tool={tool} />
               ))}
+              <UserAccountMenu />
             </RightSection>
           </ToolbarContainer>
         </AppBarContainer>
@@ -193,6 +195,8 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
             >
               <HelpOutlineIcon />
             </IconButton>
+
+            <UserAccountMenu />
           </RightSection>
         </ToolbarContainer>
       </AppBarContainer>
