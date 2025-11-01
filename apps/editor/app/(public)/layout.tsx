@@ -5,7 +5,7 @@ import { ToastContainer } from "react-toastify";
 export const metadata = {
   title: "EnvisioXR | Public Preview",
   description: "Preview published worlds.",
-  icons: { icon: "/icons/favicon.ico" },
+  icons: { icon: "/klorad-favicon.png" },
 };
 
 export default function PublicLayout({ children }) {

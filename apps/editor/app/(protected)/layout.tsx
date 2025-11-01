@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Klorad | App",
   description: "Control and publish immersive experiences with Klorad.",
-  icons: { icon: "/icons/favicon.ico" },
+  icons: { icon: "/klorad-favicon.png" },
 };
 
 export default async function ProtectedLayout({
