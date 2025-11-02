@@ -20,8 +20,8 @@ export const LeftPanelContainer: React.FC<PanelContainerProps & BoxProps> =
       marginRight: "8px",
       backgroundColor:
         theme.palette.mode === "dark"
-          ? alpha("#14171A", 0.94)
-          : "var(--glass-bg, rgba(255, 255, 255, 0.85))",
+          ? alpha("#14171A", 0.92)
+          : "var(--glass-bg, rgba(255, 255, 255, 0.92))",
       backdropFilter: "blur(24px) saturate(140%)",
       WebkitBackdropFilter: "blur(24px) saturate(140%)",
       color:
@@ -71,8 +71,8 @@ export const RightPanelContainer: React.FC<PanelContainerProps & BoxProps> =
       marginLeft: "8px",
       backgroundColor:
         theme.palette.mode === "dark"
-          ? alpha("#14171A", 0.94)
-          : "var(--glass-bg, rgba(255, 255, 255, 0.85))",
+          ? alpha("#14171A", 0.92)
+          : "var(--glass-bg, rgba(255, 255, 255, 0.92))",
       backdropFilter: "blur(24px) saturate(140%)",
       WebkitBackdropFilter: "blur(24px) saturate(140%)",
       color:
@@ -111,7 +111,6 @@ export const TabPanel: React.FC<BoxProps> = styled(Box)(
     flex: 1,
     overflow: "auto",
     paddingRight: theme.spacing(0.5),
-    maxHeight: "calc(100vh - 200px)",
     backgroundColor:
       theme.palette.mode === "dark" ? "#14171A" : "rgba(248, 250, 252, 0.6)",
     "&::-webkit-scrollbar": {
@@ -162,8 +161,8 @@ export const BottomPanelContainer: React.FC<
     marginTop: _theme.spacing(1),
     backgroundColor:
       _theme.palette.mode === "dark"
-        ? alpha("#14171A", 0.94)
-        : "var(--glass-bg, rgba(255, 255, 255, 0.85))",
+        ? alpha("#14171A", 0.92)
+        : "var(--glass-bg, rgba(255, 255, 255, 0.92))",
     backdropFilter: "blur(24px) saturate(140%)",
     WebkitBackdropFilter: "blur(24px) saturate(140%)",
     padding: _theme.spacing(3),

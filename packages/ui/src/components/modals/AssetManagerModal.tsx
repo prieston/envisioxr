@@ -7,12 +7,16 @@ import {
   DialogContent,
   Tabs,
   Tab,
-  Box,
   IconButton,
   Typography,
-  alpha,
 } from "@mui/material";
 import { Close, CloudUpload, Folder, Public } from "@mui/icons-material";
+import {
+  modalPaperStyles,
+  modalTitleStyles,
+  modalTitleTextStyles,
+  modalCloseButtonStyles,
+} from "../../styles/modalStyles";
 import {
   MyLibraryTab,
   UploadModelTab,
@@ -95,53 +99,13 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
       maxWidth="lg"
       fullWidth
       PaperProps={{
-        sx: (theme) => ({
-          borderRadius: "4px",
-          backgroundColor: theme.palette.background.paper,
-          boxShadow:
-            theme.palette.mode === "dark"
-              ? "0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)"
-              : "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          minHeight: "600px",
-          maxHeight: "80vh",
-        }),
+        sx: modalPaperStyles,
       }}
     >
       {/* Header */}
-      <DialogTitle
-        sx={(theme) => ({
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-          padding: "24px",
-          backgroundColor: theme.palette.background.paper,
-        })}
-      >
-        <Typography
-          sx={(theme) => ({
-            fontSize: "1.25rem",
-            fontWeight: 600,
-            color: theme.palette.text.primary,
-          })}
-        >
-          Asset Manager
-        </Typography>
-        <IconButton
-          onClick={onClose}
-          size="small"
-          sx={(theme) => ({
-            color: "rgba(100, 116, 139, 0.8)",
-            "&:hover": {
-              color: theme.palette.primary.main,
-              backgroundColor:
-                theme.palette.mode === "dark"
-                  ? "rgba(107, 156, 216, 0.12)"
-                  : "rgba(107, 156, 216, 0.08)",
-            },
-          })}
-        >
+      <DialogTitle sx={modalTitleStyles}>
+        <Typography sx={modalTitleTextStyles}>Asset Manager</Typography>
+        <IconButton onClick={onClose} size="small" sx={modalCloseButtonStyles}>
           <Close />
         </IconButton>
       </DialogTitle>
@@ -204,75 +168,41 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
         sx={(theme) => ({
           padding: "24px",
           backgroundColor: theme.palette.background.default,
-          overflow: "auto",
+          overflow: "hidden",
           height: "500px",
           minHeight: "500px",
           maxHeight: "500px",
-          "&::-webkit-scrollbar": {
-            width: "8px",
-          },
-          "&::-webkit-scrollbar-track": {
-            background:
-              theme.palette.mode === "dark"
-                ? alpha(theme.palette.primary.main, 0.08)
-                : "rgba(95, 136, 199, 0.05)",
-            borderRadius: "4px",
-            margin: "4px 0",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            background:
-              theme.palette.mode === "dark"
-                ? alpha(theme.palette.primary.main, 0.24)
-                : "rgba(95, 136, 199, 0.2)",
-            borderRadius: "4px",
-            border: "2px solid transparent",
-            backgroundClip: "padding-box",
-            transition: "background 0.2s ease",
-            "&:hover": {
-              background:
-                theme.palette.mode === "dark"
-                  ? alpha(theme.palette.primary.main, 0.38)
-                  : "rgba(95, 136, 199, 0.35)",
-              backgroundClip: "padding-box",
-            },
-          },
+          display: "flex",
+          flexDirection: "column",
         })}
       >
-        <Box
-          sx={{
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {/* My Library Tab */}
-          {activeTab === 0 && (
-            <MyLibraryTab
-              assets={userAssets}
-              onAssetSelect={handleModelSelectWrapper}
-              onAssetDelete={onAssetDelete}
-              onAssetUpdate={onAssetUpdate}
-            />
-          )}
+        {/* My Library Tab */}
+        {activeTab === 0 && (
+          <MyLibraryTab
+            assets={userAssets}
+            onAssetSelect={handleModelSelectWrapper}
+            onAssetDelete={onAssetDelete}
+            onAssetUpdate={onAssetUpdate}
+          />
+        )}
 
-          {/* Upload Model Tab */}
-          {activeTab === 1 && onCustomModelUpload && (
-            <UploadModelTab
-              onUpload={onCustomModelUpload}
-              uploading={customModelUploading}
-              uploadProgress={customModelUploadProgress}
-            />
-          )}
+        {/* Upload Model Tab */}
+        {activeTab === 1 && onCustomModelUpload && (
+          <UploadModelTab
+            onUpload={onCustomModelUpload}
+            uploading={customModelUploading}
+            uploadProgress={customModelUploadProgress}
+          />
+        )}
 
-          {/* Upload to Ion Tab */}
-          {activeTab === 2 && onCesiumIonUpload && (
-            <UploadToIonTab
-              onUpload={onCesiumIonUpload}
-              uploading={ionUploading}
-              uploadProgress={ionUploadProgress}
-            />
-          )}
-        </Box>
+        {/* Upload to Ion Tab */}
+        {activeTab === 2 && onCesiumIonUpload && (
+          <UploadToIonTab
+            onUpload={onCesiumIonUpload}
+            uploading={ionUploading}
+            uploadProgress={ionUploadProgress}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

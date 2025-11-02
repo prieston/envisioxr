@@ -9,6 +9,7 @@ import {
   LinearProgress,
   IconButton,
   Paper,
+  alpha,
 } from "@mui/material";
 import { CloudUpload, Close, CameraAlt } from "@mui/icons-material";
 import { useDropzone } from "react-dropzone";
@@ -166,7 +167,42 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    <Box sx={(theme) => ({
+      display: "flex",
+      flexDirection: "column",
+      gap: 2,
+      height: "100%",
+      overflowY: "auto",
+      paddingRight: 1,
+      "&::-webkit-scrollbar": {
+        width: "8px",
+      },
+      "&::-webkit-scrollbar-track": {
+        background:
+          theme.palette.mode === "dark"
+            ? alpha(theme.palette.primary.main, 0.08)
+            : "rgba(95, 136, 199, 0.05)",
+        borderRadius: "4px",
+        margin: "4px 0",
+      },
+      "&::-webkit-scrollbar-thumb": {
+        background:
+          theme.palette.mode === "dark"
+            ? alpha(theme.palette.primary.main, 0.24)
+            : "rgba(95, 136, 199, 0.2)",
+        borderRadius: "4px",
+        border: "2px solid transparent",
+        backgroundClip: "padding-box",
+        transition: "background 0.2s ease",
+        "&:hover": {
+          background:
+            theme.palette.mode === "dark"
+              ? alpha(theme.palette.primary.main, 0.38)
+              : "rgba(95, 136, 199, 0.35)",
+          backgroundClip: "padding-box",
+        },
+      },
+    })}>
       {/* File Info */}
       <Paper
         sx={(theme) => ({

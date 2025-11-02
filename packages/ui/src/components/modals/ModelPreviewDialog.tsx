@@ -14,6 +14,12 @@ import {
 import { Close, CameraAlt } from "@mui/icons-material";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
+import {
+  modalPaperStyles,
+  modalTitleStyles,
+  modalTitleTextStyles,
+  modalCloseButtonStyles,
+} from "../../styles/modalStyles";
 
 interface ModelPreviewDialogProps {
   open: boolean;
@@ -62,49 +68,14 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
       onClose={onClose}
       maxWidth="md"
       PaperProps={{
-        sx: (theme) => ({
-          borderRadius: "4px",
-          backgroundColor: theme.palette.background.paper,
-          boxShadow:
-            theme.palette.mode === "dark"
-              ? "0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)"
-              : "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-        }),
+        sx: modalPaperStyles,
       }}
     >
-      <DialogTitle
-        sx={(theme) => ({
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-          padding: "24px",
-          backgroundColor: theme.palette.background.paper,
-        })}
-      >
-        <Typography
-          sx={(theme) => ({
-            fontSize: "1.125rem",
-            fontWeight: 600,
-            color: theme.palette.text.primary,
-          })}
-        >
+      <DialogTitle sx={modalTitleStyles}>
+        <Typography sx={modalTitleTextStyles}>
           Retake Photo - {modelName}
         </Typography>
-        <IconButton
-          onClick={onClose}
-          size="small"
-          sx={(theme) => ({
-            color: theme.palette.text.secondary,
-            "&:hover": {
-              backgroundColor:
-                theme.palette.mode === "dark"
-                  ? "rgba(100, 116, 139, 0.12)"
-                  : "rgba(100, 116, 139, 0.08)",
-            },
-          })}
-        >
+        <IconButton onClick={onClose} size="small" sx={modalCloseButtonStyles}>
           <Close />
         </IconButton>
       </DialogTitle>

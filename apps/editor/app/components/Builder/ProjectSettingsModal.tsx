@@ -5,16 +5,21 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
   Switch,
   FormControlLabel,
   Typography,
   Box,
-  Divider,
+  IconButton,
 } from "@mui/material";
+import { Close } from "@mui/icons-material";
 import { alpha } from "@mui/material/styles";
 import { useSceneStore } from "@envisio/core";
+import {
+  modalPaperStyles,
+  modalTitleStyles,
+  modalTitleTextStyles,
+  modalCloseButtonStyles,
+} from "@envisio/ui";
 
 interface ProjectSettingsModalProps {
   open: boolean;
@@ -37,34 +42,23 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
       maxWidth="sm"
       fullWidth
       PaperProps={{
-        sx: (theme) => ({
-          borderRadius: "16px",
-          backgroundColor:
-            theme.palette.mode === "dark"
-              ? alpha("#0E0F10", 0.92)
-              : "var(--glass-bg, rgba(255, 255, 255, 0.95))",
-          backdropFilter: "blur(24px)",
-          border:
-            theme.palette.mode === "dark"
-              ? "1px solid rgba(255, 255, 255, 0.08)"
-              : undefined,
-        }),
+        sx: modalPaperStyles,
       }}
     >
-      <DialogTitle
-        sx={(theme) => ({
-          fontSize: "1.25rem",
-          fontWeight: 600,
-          pb: 1,
-          color: theme.palette.text.primary,
-        })}
-      >
-        Project Settings
+      <DialogTitle sx={modalTitleStyles}>
+        <Typography sx={modalTitleTextStyles}>Project Settings</Typography>
+        <IconButton onClick={onClose} size="small" sx={modalCloseButtonStyles}>
+          <Close />
+        </IconButton>
       </DialogTitle>
 
-      <Divider sx={{ mb: 2, borderColor: (theme) => theme.palette.divider }} />
-
-      <DialogContent>
+      <DialogContent
+        sx={(theme) => ({
+          padding: "24px !important",
+          paddingTop: "24px !important",
+          backgroundColor: theme.palette.background.default,
+        })}
+      >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {/* UI Settings Section */}
           <Box>
@@ -131,31 +125,8 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           {/* Future settings can be added here */}
         </Box>
       </DialogContent>
-
-      <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button
-          onClick={onClose}
-          variant="contained"
-          sx={(theme) => ({
-            backgroundColor: theme.palette.primary.main,
-            "&:hover": {
-              backgroundColor:
-                theme.palette.mode === "dark"
-                  ? alpha(theme.palette.primary.main, 0.85)
-                  : "#1d4ed8",
-            },
-            textTransform: "none",
-            borderRadius: 4,
-            px: 3,
-            color: theme.palette.getContrastText(theme.palette.primary.main),
-          })}
-        >
-          Done
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
 
 export default ProjectSettingsModal;
-

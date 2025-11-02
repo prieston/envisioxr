@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useLayoutEffect } from "react";
-import { Tabs, Tab } from "@mui/material";
+import { Tabs, Tab, Box } from "@mui/material";
 import { TabPanel } from "./index";
 
 // Generic panel configuration types (avoiding cross-package type imports)
@@ -60,8 +60,8 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
 
   const currentTab = config.tabs[activeTab];
 
-  return (
-    <Container previewMode={previewMode} className="glass-panel">
+  const content = (
+    <>
       {config.tabs.length > 1 && (
         <Tabs
           value={activeTab}
@@ -124,6 +124,14 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
           </React.Fragment>
         ))}
       </TabPanel>
+    </>
+  );
+
+  return (
+    <Container previewMode={previewMode} className="glass-panel">
+      <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
+        {content}
+      </Box>
     </Container>
   );
 };
