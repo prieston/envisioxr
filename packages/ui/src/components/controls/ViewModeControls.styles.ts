@@ -30,7 +30,7 @@ export const ViewModeButton: React.FC<ButtonProps> = styled(Button)(
     minWidth: 40,
     height: 40,
     padding: theme.spacing(0.5),
-    borderRadius: "8px", // Design system: 8px for clickable items
+    borderRadius: 4, // Design system: 8px for clickable items
     backgroundColor: "transparent",
     color: "rgba(51, 65, 85, 0.7)", // Design system color
     border: "none",

@@ -40,7 +40,7 @@ export const SwitchContainer = styled(Box)(({ theme }) => {
     return {
         backgroundColor: surfaceBg,
         border: surfaceBorder,
-        borderRadius: "8px",
+        borderRadius: "4px",
         padding: "8.5px 14px",
         marginBottom: theme.spacing(1),
         display: "flex",
@@ -56,7 +56,7 @@ export const SwitchLabel = styled(Typography)(({ theme }) => ({
 export const LockToNowContainer = styled(Box)(({ locked, theme }) => ({
     backgroundColor: locked ? alpha("#10b981", theme.palette.mode === "dark" ? 0.18 : 0.12) : theme.palette.mode === "dark" ? "#14171A" : "rgba(255, 255, 255, 0.92)",
     border: locked ? `1px solid ${alpha("#10b981", 0.45)}` : theme.palette.mode === "dark" ? "1px solid rgba(255, 255, 255, 0.05)" : "1px solid rgba(226, 232, 240, 0.8)",
-    borderRadius: "8px",
+    borderRadius: "4px",
     padding: "8.5px 14px",
     marginBottom: theme.spacing(1.5),
     display: "flex",
@@ -78,13 +78,9 @@ export const LockToNowDescription = styled(Typography)(({ theme }) => ({
 export const CurrentTimeBox = styled(Box)(({ locked, theme }) => ({
     marginBottom: theme.spacing(1.5),
     padding: theme.spacing(1.5),
-    backgroundColor: locked
-        ? "rgba(16, 185, 129, 0.08)"
-        : "rgba(95, 136, 199, 0.08)",
-    borderRadius: "8px",
-    border: locked
-        ? "1px solid rgba(16, 185, 129, 0.2)"
-        : "1px solid rgba(95, 136, 199, 0.2)",
+    backgroundColor: locked ? "rgba(16, 185, 129, 0.08)" : alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.12 : 0.08),
+    borderRadius: "4px",
+    border: locked ? "1px solid rgba(16, 185, 129, 0.2)" : `1px solid ${alpha(theme.palette.primary.main, 0.28)}`,
 }));
 export const CurrentTimeTitle = styled(Typography)(({ theme }) => ({
     fontSize: "0.688rem", // 11px - tiny labels
@@ -120,7 +116,7 @@ export const InputSectionTitle = styled(Typography)(({ theme }) => ({
 export const JoystickContainer = styled(Box)(({ theme }) => ({
     backgroundColor: theme.palette.mode === "dark" ? "#14171A" : "rgba(255, 255, 255, 0.92)",
     border: theme.palette.mode === "dark" ? "1px solid rgba(255, 255, 255, 0.05)" : "1px solid rgba(226, 232, 240, 0.8)",
-    borderRadius: "8px",
+    borderRadius: "4px",
     padding: "14px",
     marginBottom: theme.spacing(1.5),
 }));
@@ -139,32 +135,22 @@ export const JoystickStatus = styled(Typography)(({ theme }) => ({
     marginBottom: theme.spacing(1),
     textAlign: "center",
 }));
-export const JoystickSlider = styled(Slider)(({ joystickValue }) => ({
-    color: joystickValue === 0
-        ? "#64748b"
-        : joystickValue > 0
-            ? "var(--color-primary-600, #4B6FAF)"
-            : "#ef4444",
+export const JoystickSlider = styled(Slider)(({ joystickValue, theme }) => ({
+    borderRadius: void 0,
+    color: joystickValue === 0 ? theme.palette.mode === "dark" ? "rgba(148, 163, 184, 0.7)" : "#64748b" : joystickValue > 0 ? theme.palette.primary.dark : "#ef4444",
     height: 6,
     "& .MuiSlider-thumb": {
         width: 20,
         height: 20,
         transition: "all 0.15s ease",
-        backgroundColor: joystickValue === 0
-            ? "#94a3b8"
-            : joystickValue > 0
-                ? "var(--color-primary-600, #4B6FAF)"
-                : "#ef4444",
+        backgroundColor: joystickValue === 0 ? "#94a3b8" : joystickValue > 0 ? "var(--color-primary-600, #4B6FAF)" : "#ef4444",
         "&:hover, &.Mui-focusVisible": {
             boxShadow: `0 0 0 8px ${joystickValue > 0 ? "rgba(95, 136, 199, 0.16)" : "rgba(239, 68, 68, 0.16)"}`,
         },
     },
     "& .MuiSlider-track": {
         border: "none",
-        backgroundColor:
-          joystickValue > 0
-            ? "var(--color-primary-600, #4B6FAF)"
-            : "#ef4444",
+        backgroundColor: joystickValue > 0 ? "var(--color-primary-600, #4B6FAF)" : "#ef4444",
     },
     "& .MuiSlider-rail": {
         opacity: 0.3,
@@ -175,16 +161,18 @@ export const JoystickSlider = styled(Slider)(({ joystickValue }) => ({
         height: 8,
         width: 2,
     },
-    "& .MuiSlider-markLabel": {
-        fontSize: "0.7rem",
-        color: "rgba(100, 116, 139, 0.85)",
-        fontWeight: 600,
+    "& .MuiSlider-valueLabel": {
+        backgroundColor: "rgba(51, 65, 85, 0.9)",
+        borderRadius: "4px",
+        fontSize: "0.75rem",
+        fontWeight: 500,
+        padding: "4px 8px",
     },
 }));
 export const textFieldStyles = {
     "& .MuiOutlinedInput-root": {
         minHeight: "38px",
-        borderRadius: "8px",
+        borderRadius: "4px",
         backgroundColor: "#14171A",
         fontSize: "0.75rem", // 12px - input text
         "& input": {
@@ -204,7 +192,7 @@ export const textFieldStyles = {
 };
 export const selectStyles = {
     minHeight: "38px",
-    borderRadius: "8px",
+    borderRadius: "4px",
     backgroundColor: "#14171A",
     fontSize: "0.75rem", // 12px - dropdown text
     "& .MuiSelect-select": {

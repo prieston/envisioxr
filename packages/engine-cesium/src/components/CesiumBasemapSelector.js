@@ -122,7 +122,7 @@ const CesiumBasemapSelector = ({ onBasemapChange, currentBasemap = "none", disab
         return null;
     }
     return (_jsxs(SettingContainer, { children: [_jsx(SettingLabel, { children: "Basemap" }), _jsx(FormControl, { fullWidth: true, size: "small", children: _jsxs(Select, { value: selectedBasemap, onChange: (e) => handleBasemapChange(e.target.value), disabled: disabled, sx: {
-                        borderRadius: "8px",
+                        borderRadius: "4px",
                         backgroundColor: "#14171A",
                         fontSize: "0.875rem",
                         "& .MuiOutlinedInput-notchedOutline": {

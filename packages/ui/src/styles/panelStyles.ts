@@ -4,28 +4,19 @@ import type { BoxProps, TypographyProps } from "@mui/material";
 
 export const SettingContainer: React.FC<BoxProps> = styled(Box)(
   ({ theme }) => ({
-    marginBottom: theme.spacing(2.5),
     padding: theme.spacing(3),
     backgroundColor:
       theme.palette.mode === "dark" ? "#14171A" : "rgba(248, 250, 252, 0.6)",
-    borderRadius: 4,
-    border:
+    borderBottom:
       theme.palette.mode === "dark"
         ? "1px solid rgba(255, 255, 255, 0.05)"
         : "1px solid rgba(226, 232, 240, 0.8)",
-    "&:last-child": {
-      marginBottom: 0,
-    },
   })
 );
 
 export const CustomSettingContainer: React.FC<BoxProps> = styled(Box)(
   ({ theme }) => ({
-    marginBottom: theme.spacing(2),
     width: "100%",
-    "&:last-child": {
-      marginBottom: 0,
-    },
   })
 );
 

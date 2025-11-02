@@ -171,7 +171,7 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
           onChange={(e) => handleBasemapChange(e.target.value as any)}
           disabled={disabled}
           sx={{
-            borderRadius: "8px",
+            borderRadius: 4,
             backgroundColor: "#14171A",
             fontSize: "0.875rem",
             "& .MuiOutlinedInput-notchedOutline": {

@@ -136,7 +136,7 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             fullWidth
             size="small"
             sx={(theme) => ({
-              borderRadius: "8px",
+              borderRadius: 4,
               textTransform: "none",
               fontWeight: 500,
               fontSize: "0.75rem",

@@ -19,7 +19,7 @@ const ModelMetadata: React.FC<ModelMetadataProps> = ({ assetId }) => {
       <Box
         sx={{
           backgroundColor: "rgba(248, 250, 252, 0.4)",
-          borderRadius: "8px",
+          borderRadius: 4,
           border: "1px dashed rgba(226, 232, 240, 0.6)",
           padding: "16px",
           textAlign: "center",
@@ -76,7 +76,7 @@ const ModelMetadata: React.FC<ModelMetadataProps> = ({ assetId }) => {
     <Box
       sx={{
         backgroundColor: "rgba(248, 250, 252, 0.4)",
-        borderRadius: "8px",
+        borderRadius: 4,
         border: "1px solid rgba(226, 232, 240, 0.6)",
         padding: "14px",
       }}

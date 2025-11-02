@@ -55,7 +55,7 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> =
               rel="noopener noreferrer"
               fullWidth
               sx={{
-                borderRadius: "8px",
+                borderRadius: "4px",
                 textTransform: "none",
                 fontWeight: 500,
                 fontSize: "0.75rem",

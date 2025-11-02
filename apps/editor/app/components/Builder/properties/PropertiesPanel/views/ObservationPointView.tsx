@@ -131,7 +131,7 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
               startIcon={<FlightTakeoff />}
               sx={{
                 flex: 1,
-                borderRadius: "8px",
+                borderRadius: 4,
                 textTransform: "none",
                 fontWeight: 500,
                 fontSize: "0.75rem",
@@ -157,7 +157,7 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
               startIcon={<Camera />}
               sx={{
                 flex: 1,
-                borderRadius: "8px",
+                borderRadius: 4,
                 textTransform: "none",
                 fontWeight: 500,
                 fontSize: "0.75rem",

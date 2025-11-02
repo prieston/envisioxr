@@ -11,7 +11,7 @@ export const StyledList: React.FC<ListProps> = styled(List)(
 export const ObjectListItem: React.FC<ListItemProps & { selected: boolean }> =
   styled(ListItem)<{ selected: boolean }>(({ theme, selected }) => ({
     cursor: "pointer",
-    borderRadius: "8px",
+    borderRadius: 4,
     marginBottom: theme.spacing(1),
     padding: theme.spacing(1.5, 2),
     backgroundColor: selected
@@ -71,7 +71,7 @@ export const StyledIconButton: React.FC<IconButtonProps> = styled(IconButton)(
       theme.palette.mode === "dark"
         ? theme.palette.text.secondary
         : "rgba(100, 116, 139, 0.85)",
-    borderRadius: "8px",
+    borderRadius: 4,
     transition: "color 0.15s ease, background-color 0.15s ease",
     "&:hover": {
       backgroundColor: alpha(theme.palette.primary.main, 0.12),

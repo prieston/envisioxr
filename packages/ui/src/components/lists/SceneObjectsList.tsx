@@ -96,7 +96,7 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = ({
         onClose={handleMenuClose}
         sx={{
           "& .MuiPaper-root": {
-            borderRadius: "8px",
+            borderRadius: 4,
             border: "1px solid rgba(255, 255, 255, 0.08)",
             boxShadow:
               "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
@@ -147,7 +147,7 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = ({
             onClick={() => setDeleteDialogOpen(false)}
             sx={{
               minHeight: "38px",
-              borderRadius: "8px",
+              borderRadius: 4,
               textTransform: "none",
               fontWeight: 500,
               fontSize: "0.875rem",
@@ -168,7 +168,7 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = ({
             onClick={confirmDelete}
             sx={{
               minHeight: "38px",
-              borderRadius: "8px",
+              borderRadius: 4,
               textTransform: "none",
               fontWeight: 600,
               fontSize: "0.875rem",

@@ -79,7 +79,7 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
               flexDirection: "row",
               gap: "6px",
               justifyContent: "center",
-              borderRadius: "8px",
+            borderRadius: "4px",
               margin: "0 2px",
               transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
               textTransform: "none",

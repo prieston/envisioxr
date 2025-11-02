@@ -35,7 +35,7 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
           startIcon={<FlightTakeoff />}
           sx={{
             flex: 1,
-            borderRadius: "8px",
+            borderRadius: "4px",
             textTransform: "none",
             fontWeight: 500,
             fontSize: "0.75rem",
@@ -57,7 +57,7 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
             startIcon={<LocationOn />}
             sx={{
               flex: 1,
-              borderRadius: "8px",
+              borderRadius: "4px",
               textTransform: "none",
               fontWeight: 500,
               fontSize: "0.75rem",
@@ -99,7 +99,7 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
               startIcon={<OpenWith />}
               sx={{
                 flex: 1,
-                borderRadius: "8px",
+                borderRadius: "4px",
                 textTransform: "none",
                 fontWeight: 500,
                 fontSize: "0.75rem",
@@ -124,7 +124,7 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
               startIcon={<RotateRight />}
               sx={{
                 flex: 1,
-                borderRadius: "8px",
+                borderRadius: "4px",
                 textTransform: "none",
                 fontWeight: 500,
                 fontSize: "0.75rem",

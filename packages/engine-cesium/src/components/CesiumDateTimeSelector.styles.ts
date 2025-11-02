@@ -45,7 +45,7 @@ export const SwitchContainer = styled(Box)(({ theme }) => ({
     theme.palette.mode === "dark"
       ? "1px solid rgba(255, 255, 255, 0.05)"
       : "1px solid rgba(226, 232, 240, 0.8)",
-  borderRadius: "8px",
+  borderRadius: 4,
   padding: "8.5px 14px",
   marginBottom: theme.spacing(1),
   display: "flex",
@@ -74,7 +74,7 @@ export const LockToNowContainer = styled(Box)<{ locked: boolean }>(
       : theme.palette.mode === "dark"
         ? "1px solid rgba(255, 255, 255, 0.05)"
         : "1px solid rgba(226, 232, 240, 0.8)",
-    borderRadius: "8px",
+    borderRadius: 4,
     padding: "8.5px 14px", // Standard input padding
     marginBottom: theme.spacing(1.5),
     display: "flex",
@@ -116,7 +116,7 @@ export const CurrentTimeBox = styled(Box)<{ locked: boolean }>(
           theme.palette.primary.main,
           theme.palette.mode === "dark" ? 0.12 : 0.08
         ),
-    borderRadius: "8px",
+    borderRadius: 4,
     border: locked
       ? "1px solid rgba(16, 185, 129, 0.2)"
       : `1px solid ${alpha(theme.palette.primary.main, 0.28)}`,
@@ -168,7 +168,7 @@ export const JoystickContainer = styled(Box)(({ theme }) => ({
     theme.palette.mode === "dark"
       ? "1px solid rgba(255, 255, 255, 0.05)"
       : "1px solid rgba(226, 232, 240, 0.8)",
-  borderRadius: "8px",
+  borderRadius: 4,
   padding: "14px", // Slightly more padding for the joystick container (has slider inside)
   marginBottom: theme.spacing(1.5),
 }));
@@ -246,7 +246,7 @@ export const JoystickSlider = styled(Slider)<{ joystickValue: number }>(
 export const textFieldStyles = {
   "& .MuiOutlinedInput-root": {
     minHeight: "38px",
-    borderRadius: "8px",
+    borderRadius: 4,
     backgroundColor: "#14171A",
     fontSize: "0.75rem", // 12px - input text
     "& input": {
@@ -267,7 +267,7 @@ export const textFieldStyles = {
 
 export const selectStyles = {
   minHeight: "38px",
-  borderRadius: "8px",
+  borderRadius: 4,
   backgroundColor: "#14171A",
   fontSize: "0.75rem", // 12px - dropdown text
   "& .MuiSelect-select": {

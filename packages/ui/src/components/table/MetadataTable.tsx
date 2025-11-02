@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Delete, Add } from "@mui/icons-material";
+import { textFieldStyles } from "../../styles/inputStyles";
 
 export interface MetadataRow {
   label: string;
@@ -79,53 +80,56 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
   return (
     <TableContainer
       component={Paper}
-      sx={{
+      sx={(theme) => ({
         boxShadow: "none",
         backgroundColor: "transparent",
         border: "1px solid rgba(255, 255, 255, 0.08)",
-        borderRadius: "8px",
+        borderRadius: "4px",
         overflow: "hidden",
-      }}
+      })}
     >
       <Table size="small">
         <TableHead>
           <TableRow
-            sx={{
-              backgroundColor: "rgba(248, 250, 252, 0.8)",
-            }}
+            sx={(theme) => ({
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(248, 250, 252, 0.05)"
+                  : "rgba(248, 250, 252, 0.8)",
+            })}
           >
             <TableCell
-              sx={{
+              sx={(theme) => ({
                 fontWeight: 600,
                 fontSize: "0.75rem",
-                color: "rgba(51, 65, 85, 0.95)",
+                color: theme.palette.text.primary,
                 borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
                 padding: "12px 16px",
-              }}
+              })}
             >
               Property
             </TableCell>
             <TableCell
-              sx={{
+              sx={(theme) => ({
                 fontWeight: 600,
                 fontSize: "0.75rem",
-                color: "rgba(51, 65, 85, 0.95)",
+                color: theme.palette.text.primary,
                 borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
                 padding: "12px 16px",
-              }}
+              })}
             >
               Value
             </TableCell>
             {editable && (
               <TableCell
-                sx={{
+                sx={(theme) => ({
                   fontWeight: 600,
                   fontSize: "0.75rem",
-                  color: "rgba(51, 65, 85, 0.95)",
+                  color: theme.palette.text.primary,
                   borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
                   padding: "12px 16px",
                   width: "60px",
-                }}
+                })}
               >
                 Actions
               </TableCell>
@@ -136,20 +140,23 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
           {localData.map((row, index) => (
             <TableRow
               key={index}
-              sx={{
+              sx={(theme) => ({
                 "&:last-child td": { borderBottom: 0 },
                 "&:hover": {
-                  backgroundColor: "rgba(248, 250, 252, 0.5)",
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? "rgba(248, 250, 252, 0.03)"
+                      : "rgba(248, 250, 252, 0.5)",
                 },
-              }}
+              })}
             >
               <TableCell
-                sx={{
+                sx={(theme) => ({
                   fontSize: "0.813rem",
-                  color: "rgba(100, 116, 139, 0.9)",
-                  borderBottom: "1px solid rgba(226, 232, 240, 0.5)",
+                  color: theme.palette.text.secondary,
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
                   padding: "10px 16px",
-                }}
+                })}
               >
                 {editable ? (
                   <TextField
@@ -160,25 +167,20 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                     size="small"
                     fullWidth
                     placeholder="Property name"
-                    sx={{
-                      "& .MuiInputBase-input": {
-                        fontSize: "0.813rem",
-                        padding: "6px 8px",
-                      },
-                    }}
+                    sx={textFieldStyles}
                   />
                 ) : (
                   row.label
                 )}
               </TableCell>
               <TableCell
-                sx={{
+                sx={(theme) => ({
                   fontSize: "0.813rem",
-                  color: "rgba(51, 65, 85, 0.95)",
+                  color: theme.palette.text.primary,
                   fontWeight: 500,
-                  borderBottom: "1px solid rgba(226, 232, 240, 0.5)",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
                   padding: "10px 16px",
-                }}
+                })}
               >
                 {editable ? (
                   <TextField
@@ -189,12 +191,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                     size="small"
                     fullWidth
                     placeholder="Value"
-                    sx={{
-                      "& .MuiInputBase-input": {
-                        fontSize: "0.813rem",
-                        padding: "6px 8px",
-                      },
-                    }}
+                    sx={textFieldStyles}
                   />
                 ) : (
                   row.value
@@ -203,7 +200,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
               {editable && (
                 <TableCell
                   sx={{
-                    borderBottom: "1px solid rgba(226, 232, 240, 0.5)",
+                    borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
                     padding: "10px 16px",
                   }}
                 >
@@ -227,23 +224,29 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
       </Table>
       {editable && (
         <Box
-          sx={{
+          sx={(theme) => ({
             padding: "12px 16px",
             borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-            backgroundColor: "rgba(248, 250, 252, 0.5)",
-          }}
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "rgba(248, 250, 252, 0.03)"
+                : "rgba(248, 250, 252, 0.5)",
+          })}
         >
           <IconButton
             size="small"
             onClick={handleAdd}
-            sx={{
-              color: "var(--color-primary, #6B9CD8)",
+            sx={(theme) => ({
+              color: theme.palette.primary.main,
               fontSize: "0.813rem",
               gap: 0.5,
               "&:hover": {
-                backgroundColor: "rgba(95, 136, 199, 0.1)",
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(95, 136, 199, 0.12)"
+                    : "rgba(95, 136, 199, 0.1)",
               },
-            }}
+            })}
           >
             <Add fontSize="small" />
             <Typography

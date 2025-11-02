@@ -17,13 +17,14 @@ import { alpha } from "@mui/material/styles";
 export const textFieldStyles: SxProps<Theme> = (theme) => ({
   "& .MuiOutlinedInput-root": {
     minHeight: "38px",
-    borderRadius: theme.shape.borderRadius,
+    borderRadius: "4px",
     backgroundColor:
       theme.palette.mode === "dark"
         ? "#14171A"
         : theme.palette.common.white,
     fontSize: "0.75rem",
     fontWeight: 400,
+    boxShadow: "none",
     "& input": {
       padding: "8.5px 14px",
     },
@@ -35,6 +36,7 @@ export const textFieldStyles: SxProps<Theme> = (theme) => ({
         theme.palette.mode === "dark"
           ? "rgba(255, 255, 255, 0.08)"
           : "rgba(255, 255, 255, 0.08)",
+      borderRadius: "4px",
     },
     "&:hover fieldset": {
       borderColor:
@@ -44,7 +46,6 @@ export const textFieldStyles: SxProps<Theme> = (theme) => ({
     },
     "&.Mui-focused fieldset": {
       borderColor: theme.palette.primary.main,
-      borderWidth: "2px",
     },
   },
   "& .MuiInputLabel-root": {
@@ -65,13 +66,14 @@ export const textFieldStyles: SxProps<Theme> = (theme) => ({
  */
 export const selectStyles: SxProps<Theme> = (theme) => ({
   minHeight: "38px",
-  borderRadius: theme.shape.borderRadius,
+  borderRadius: "4px",
   backgroundColor:
     theme.palette.mode === "dark"
       ? "#14171A"
       : theme.palette.common.white,
   fontSize: "0.75rem",
   fontWeight: 400,
+  boxShadow: "none",
   "& .MuiSelect-select": {
     padding: "8.5px 14px",
   },
@@ -80,6 +82,7 @@ export const selectStyles: SxProps<Theme> = (theme) => ({
       theme.palette.mode === "dark"
         ? "rgba(255, 255, 255, 0.08)"
         : "rgba(255, 255, 255, 0.08)",
+    borderRadius: "4px",
   },
   "&:hover .MuiOutlinedInput-notchedOutline": {
     borderColor:
@@ -89,7 +92,6 @@ export const selectStyles: SxProps<Theme> = (theme) => ({
   },
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
     borderColor: theme.palette.primary.main,
-    borderWidth: "2px",
   },
 });
 
@@ -122,7 +124,7 @@ export const menuItemStyles: SxProps<Theme> = (theme) => ({
  */
 export const inputStyles: SxProps<Theme> = (theme) => ({
   minHeight: "38px",
-  borderRadius: theme.shape.borderRadius,
+  borderRadius: "4px",
   backgroundColor:
     theme.palette.mode === "dark"
       ? "#14171A"
@@ -136,6 +138,7 @@ export const inputStyles: SxProps<Theme> = (theme) => ({
   padding: "8.5px 14px",
   transition: "border-color 0.15s ease",
   color: theme.palette.text.primary,
+  boxShadow: "none",
   "&:hover": {
     borderColor:
       theme.palette.mode === "dark"
@@ -144,8 +147,6 @@ export const inputStyles: SxProps<Theme> = (theme) => ({
   },
   "&.Mui-focused": {
     borderColor: theme.palette.primary.main,
-    borderWidth: "2px",
-    padding: "7.5px 13px",
   },
   "&::before, &::after": {
     display: "none",

@@ -15,6 +15,7 @@ import { CloudUpload, Close, CameraAlt } from "@mui/icons-material";
 import { useDropzone } from "react-dropzone";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
+import { textFieldStyles } from "../../../styles/inputStyles";
 
 interface ModelProps {
   url: string;
@@ -136,24 +137,24 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
     return (
       <Box
         {...getRootProps()}
-        sx={{
+        sx={(theme) => ({
           border: "2px dashed",
           borderColor: isDragActive
-            ? "var(--color-primary, #6B9CD8)"
+            ? theme.palette.primary.main
             : "rgba(255, 255, 255, 0.08)",
-          borderRadius: "12px",
+          borderRadius: "4px",
           padding: "60px 24px",
           textAlign: "center",
           cursor: "pointer",
           backgroundColor: isDragActive
             ? "rgba(95, 136, 199, 0.08)"
-            : "rgba(248, 250, 252, 0.6)",
+            : theme.palette.background.default,
           transition: "all 0.2s ease",
           "&:hover": {
-            borderColor: "var(--color-primary, #6B9CD8)",
+            borderColor: theme.palette.primary.main,
             backgroundColor: "rgba(95, 136, 199, 0.05)",
           },
-        }}
+        })}
       >
         <input {...getInputProps()} />
         <CloudUpload
@@ -202,15 +203,15 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {/* File Info */}
       <Paper
-        sx={{
+        sx={(theme) => ({
           p: 2,
-          borderRadius: "12px",
+          borderRadius: "4px",
           border: "1px solid rgba(255, 255, 255, 0.08)",
-          backgroundColor: "rgba(248, 250, 252, 0.6)",
+          backgroundColor: theme.palette.background.paper,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-        }}
+        })}
       >
         <Box>
           <Typography
@@ -250,12 +251,12 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
       {/* Model Preview */}
       {previewUrl && (
         <Paper
-          sx={{
+          sx={(theme) => ({
             p: 2,
-            borderRadius: "12px",
+            borderRadius: "4px",
             border: "1px solid rgba(255, 255, 255, 0.08)",
-            backgroundColor: "rgba(248, 250, 252, 0.6)",
-          }}
+            backgroundColor: theme.palette.background.paper,
+          })}
         >
           <Box
             sx={{
@@ -279,18 +280,18 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
               startIcon={<CameraAlt />}
               onClick={captureScreenshot}
               disabled={uploading}
-              sx={{
-                borderRadius: "8px",
+              sx={(theme) => ({
+                borderRadius: "4px",
                 textTransform: "none",
                 fontWeight: 500,
                 fontSize: "0.75rem",
-                color: "var(--color-primary, #6B9CD8)",
+                color: theme.palette.primary.main,
                 borderColor: "rgba(95, 136, 199, 0.3)",
                 "&:hover": {
-                  borderColor: "var(--color-primary, #6B9CD8)",
+                  borderColor: theme.palette.primary.main,
                   backgroundColor: "rgba(95, 136, 199, 0.08)",
                 },
-              }}
+              })}
               variant="outlined"
             >
               Capture Screenshot
@@ -298,14 +299,14 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
           </Box>
 
           <Box
-            sx={{
+            sx={(theme) => ({
               width: "100%",
               height: "300px",
-              borderRadius: "8px",
+              borderRadius: "4px",
               overflow: "hidden",
-              backgroundColor: "#f8fafc",
+              backgroundColor: theme.palette.background.default,
               border: "1px solid rgba(255, 255, 255, 0.08)",
-            }}
+            })}
           >
             <Canvas
               ref={canvasRef}
@@ -342,7 +343,7 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
                   height: "auto",
                   maxHeight: "200px",
                   objectFit: "contain",
-                  borderRadius: "8px",
+                  borderRadius: "4px",
                   border: "1px solid rgba(255, 255, 255, 0.08)",
                 }}
               />
@@ -358,11 +359,7 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
         value={friendlyName}
         onChange={(e) => setFriendlyName(e.target.value)}
         disabled={uploading}
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            borderRadius: "8px",
-          },
-        }}
+        sx={textFieldStyles}
       />
 
       {/* Metadata Fields */}
@@ -386,36 +383,32 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
               mb: 1,
             }}
           >
-            <TextField
-              size="small"
-              placeholder="Label"
-              value={field.label}
-              onChange={(e) =>
-                handleMetadataChange(index, "label", e.target.value)
-              }
-              disabled={uploading}
-              sx={{
-                flex: 1,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                },
-              }}
-            />
-            <TextField
-              size="small"
-              placeholder="Value"
-              value={field.value}
-              onChange={(e) =>
-                handleMetadataChange(index, "value", e.target.value)
-              }
-              disabled={uploading}
-              sx={{
-                flex: 2,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                },
-              }}
-            />
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                size="small"
+                placeholder="Label"
+                value={field.label}
+                onChange={(e) =>
+                  handleMetadataChange(index, "label", e.target.value)
+                }
+                disabled={uploading}
+                fullWidth
+                sx={textFieldStyles}
+              />
+            </Box>
+            <Box sx={{ flex: 2 }}>
+              <TextField
+                size="small"
+                placeholder="Value"
+                value={field.value}
+                onChange={(e) =>
+                  handleMetadataChange(index, "value", e.target.value)
+                }
+                disabled={uploading}
+                fullWidth
+                sx={textFieldStyles}
+              />
+            </Box>
             {metadata.length > 1 && (
               <IconButton
                 onClick={() => handleRemoveMetadata(index)}
@@ -438,11 +431,11 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
           size="small"
           onClick={handleAddMetadata}
           disabled={uploading}
-          sx={{
+          sx={(theme) => ({
             textTransform: "none",
             fontSize: "0.75rem",
-            color: "var(--color-primary, #6B9CD8)",
-          }}
+            color: theme.palette.primary.main,
+          })}
         >
           + Add Metadata Field
         </Button>
@@ -482,16 +475,16 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
         <Button
           onClick={handleCancel}
           disabled={uploading}
-          sx={{
-            borderRadius: "8px",
+          sx={(theme) => ({
+            borderRadius: "4px",
             textTransform: "none",
             fontWeight: 500,
             fontSize: "0.875rem",
-            color: "rgba(100, 116, 139, 0.85)",
+            color: theme.palette.text.secondary,
             "&:hover": {
               backgroundColor: "rgba(100, 116, 139, 0.08)",
             },
-          }}
+          })}
         >
           Cancel
         </Button>
@@ -499,16 +492,17 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
           variant="contained"
           onClick={handleUpload}
           disabled={!friendlyName || uploading}
-          sx={{
-            borderRadius: "8px",
+          sx={(theme) => ({
+            borderRadius: "4px",
             textTransform: "none",
             fontWeight: 600,
             fontSize: "0.875rem",
-            backgroundColor: "var(--color-primary-600, #4B6FAF)",
+            backgroundColor: theme.palette.primary.main,
+            boxShadow: "none",
             "&:hover": {
-              backgroundColor: "#1d4ed8",
+              backgroundColor: theme.palette.primary.dark,
             },
-          }}
+          })}
         >
           Upload Model
         </Button>

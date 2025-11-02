@@ -133,7 +133,7 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
             padding: "8px 12px",
             fontSize: "0.813rem", // 13px
             fontWeight: 500,
-            borderRadius: "8px",
+            borderRadius: "4px",
             margin: "0 2px",
             transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
             textTransform: "none",
@@ -236,7 +236,7 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                   key={index}
                   sx={{
                     width: "100%",
-                    borderRadius: "8px", // Design system
+                    borderRadius: 4, // Design system
                     border: "1px solid rgba(255, 255, 255, 0.08)",
                     backgroundColor: "rgba(248, 250, 252, 0.6)",
                     transition:
@@ -393,7 +393,7 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                   border: "2px dashed rgba(100, 116, 139, 0.3)",
                   textAlign: "center",
                   cursor: "pointer",
-                  borderRadius: "8px", // Design system
+                  borderRadius: 4, // Design system
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",

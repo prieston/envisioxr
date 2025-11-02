@@ -29,6 +29,7 @@ import {
   Settings,
 } from "@mui/icons-material";
 import { useDropzone } from "react-dropzone";
+import { textFieldStyles, selectStyles } from "../../../styles/inputStyles";
 
 export interface UploadToIonTabProps {
   onUpload: (data: {
@@ -192,12 +193,12 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           Successfully uploaded to Cesium Ion!
         </Typography>
         <Paper
-          sx={{
+          sx={(theme) => ({
             p: 2,
-            borderRadius: "12px",
+            borderRadius: "4px",
             border: "1px solid rgba(255, 255, 255, 0.08)",
-            backgroundColor: "rgba(248, 250, 252, 0.6)",
-          }}
+            backgroundColor: theme.palette.background.paper,
+          })}
         >
           <Typography
             sx={{
@@ -227,7 +228,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           variant="outlined"
           onClick={handleCancel}
           sx={{
-            borderRadius: "8px",
+            borderRadius: "4px",
             textTransform: "none",
             fontWeight: 500,
             fontSize: "0.875rem",
@@ -255,22 +256,22 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         </Alert>
         <Box
           {...getRootProps()}
-          sx={{
+          sx={(theme) => ({
             border: "2px dashed",
             borderColor: isDragActive ? accent : "rgba(255, 255, 255, 0.08)",
-            borderRadius: "12px",
+            borderRadius: "4px",
             padding: "60px 24px",
             textAlign: "center",
             cursor: "pointer",
             backgroundColor: isDragActive
               ? accentSubtle
-              : "rgba(248, 250, 252, 0.6)",
+              : theme.palette.background.default,
             transition: "all 0.2s ease",
             "&:hover": {
               borderColor: accent,
               backgroundColor: accentSubtle,
             },
-          }}
+          })}
         >
           <input {...getInputProps()} />
           <CloudUpload
@@ -318,15 +319,15 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {/* File Info */}
       <Paper
-        sx={{
+        sx={(theme) => ({
           p: 2,
-          borderRadius: "12px",
+          borderRadius: "4px",
           border: "1px solid rgba(255, 255, 255, 0.08)",
-          backgroundColor: "rgba(248, 250, 252, 0.6)",
+          backgroundColor: theme.palette.background.paper,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-        }}
+        })}
       >
         <Box>
           <Typography
@@ -371,11 +372,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         onChange={(e) => setName(e.target.value)}
         disabled={uploading}
         required
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            borderRadius: "8px",
-          },
-        }}
+        sx={textFieldStyles}
       />
 
       <TextField
@@ -386,11 +383,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         disabled={uploading}
         multiline
         rows={3}
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            borderRadius: "8px",
-          },
-        }}
+        sx={textFieldStyles}
       />
 
       <TextField
@@ -403,11 +396,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         type="password"
         placeholder="Enter your Cesium Ion access token"
         helperText="Get your token from https://ion.cesium.com/tokens (requires assets:write scope)"
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            borderRadius: "8px",
-          },
-        }}
+        sx={textFieldStyles}
       />
 
       <FormControl fullWidth>
@@ -417,9 +406,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           onChange={(e) => setSourceType(e.target.value)}
           disabled={uploading}
           label="What kind of data is this?"
-          sx={{
-            borderRadius: "8px",
-          }}
+          sx={selectStyles}
         >
           <MenuItem value="3DTILES_ARCHIVE">
             3D Tiles (existing tileset.json)
@@ -449,11 +436,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           onChange={(e) => setTilesetJson(e.target.value)}
           disabled={uploading}
           helperText="Relative path to the tileset.json inside the archive"
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "8px",
-            },
-          }}
+          sx={textFieldStyles}
         />
       )}
 
@@ -466,7 +449,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         <Accordion
           defaultExpanded
           sx={{
-            borderRadius: "8px !important",
+            borderRadius: "4px !important",
             "&:before": { display: "none" },
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
@@ -474,7 +457,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           <AccordionSummary
             expandIcon={<ExpandMore />}
             sx={{
-              borderRadius: "8px",
+              borderRadius: "4px",
               "& .MuiAccordionSummary-content": {
                 alignItems: "center",
                 gap: 1,
@@ -564,7 +547,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
                   onChange={(e) => setGeometricCompression(e.target.value)}
                   disabled={uploading}
                   label="Geometric Compression"
-                  sx={{ borderRadius: "8px" }}
+                  sx={selectStyles}
                 >
                   <MenuItem value="Draco">Draco</MenuItem>
                   <MenuItem value="Meshopt">Meshopt</MenuItem>
@@ -584,11 +567,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
                 disabled={uploading}
                 placeholder="e.g., 4326"
                 helperText="Coordinate reference system code"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
-                  },
-                }}
+                sx={textFieldStyles}
               />
             )}
 
@@ -662,11 +641,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           onChange={(e) => setLongitude(e.target.value)}
           disabled={uploading}
           inputProps={{ step: "0.000001", min: -180, max: 180 }}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "8px",
-            },
-          }}
+          sx={textFieldStyles}
         />
         <TextField
           size="small"
@@ -676,11 +651,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           onChange={(e) => setLatitude(e.target.value)}
           disabled={uploading}
           inputProps={{ step: "0.000001", min: -90, max: 90 }}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "8px",
-            },
-          }}
+          sx={textFieldStyles}
         />
         <TextField
           size="small"
@@ -690,11 +661,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           onChange={(e) => setHeight(e.target.value)}
           disabled={uploading}
           inputProps={{ step: "0.1" }}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "8px",
-            },
-          }}
+          sx={textFieldStyles}
         />
       </Box>
 
@@ -733,7 +700,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           onClick={handleCancel}
           disabled={uploading}
           sx={{
-            borderRadius: "8px",
+            borderRadius: "4px",
             textTransform: "none",
             fontWeight: 500,
             fontSize: "0.875rem",
@@ -751,7 +718,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           disabled={!name || !accessToken || uploading}
           startIcon={<Public />}
           sx={{
-            borderRadius: "8px",
+            borderRadius: "4px",
             textTransform: "none",
             fontWeight: 600,
             fontSize: "0.875rem",

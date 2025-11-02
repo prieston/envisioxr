@@ -57,7 +57,7 @@ export const ObservationListItem: React.FC<
   ListItemProps & { selected: boolean }
 > = styled(ListItem)<{ selected: boolean }>(({ theme, selected }) => ({
   cursor: "pointer",
-  borderRadius: "8px", // Design system: 8px for clickable items
+  borderRadius: 4, // Design system: 8px for clickable items
   padding: theme.spacing(1, 1.5),
   width: "140px", // Fixed width for horizontal cards
   minWidth: "140px",
@@ -105,7 +105,7 @@ export const ObservationListItem: React.FC<
 // Add button for horizontal layout
 export const AddButton: React.FC<IconButtonProps> = styled(IconButton)(
   ({ theme }) => ({
-    borderRadius: "8px",
+    borderRadius: 4,
     padding: theme.spacing(1, 1.5),
     width: "140px",
     minWidth: "140px",

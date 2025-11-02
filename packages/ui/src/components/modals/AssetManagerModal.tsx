@@ -10,6 +10,7 @@ import {
   Box,
   IconButton,
   Typography,
+  alpha,
 } from "@mui/material";
 import { Close, CloudUpload, Folder, Public } from "@mui/icons-material";
 import {
@@ -94,33 +95,36 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
       maxWidth="lg"
       fullWidth
       PaperProps={{
-        sx: {
-          borderRadius: "16px",
+        sx: (theme) => ({
+          borderRadius: "4px",
+          backgroundColor: theme.palette.background.paper,
           boxShadow:
-            "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+            theme.palette.mode === "dark"
+              ? "0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)"
+              : "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
           minHeight: "600px",
           maxHeight: "80vh",
-        },
+        }),
       }}
     >
       {/* Header */}
       <DialogTitle
-        sx={{
+        sx={(theme) => ({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-          padding: "20px 24px",
-          backgroundColor: "rgba(248, 250, 252, 0.6)",
-        }}
+          padding: "24px",
+          backgroundColor: theme.palette.background.paper,
+        })}
       >
         <Typography
-          sx={{
+          sx={(theme) => ({
             fontSize: "1.25rem",
             fontWeight: 600,
-            color: "rgba(51, 65, 85, 0.95)",
-          }}
+            color: theme.palette.text.primary,
+          })}
         >
           Asset Manager
         </Typography>
@@ -131,9 +135,10 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
             color: "rgba(100, 116, 139, 0.8)",
             "&:hover": {
               color: theme.palette.primary.main,
-              backgroundColor: theme.palette.mode === "dark"
-                ? "rgba(107, 156, 216, 0.12)"
-                : "rgba(107, 156, 216, 0.08)",
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(107, 156, 216, 0.12)"
+                  : "rgba(107, 156, 216, 0.08)",
             },
           })}
         >
@@ -147,13 +152,12 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
         onChange={handleTabChange}
         variant="fullWidth"
         sx={(theme) => ({
-          mb: 2,
           minHeight: "48px",
+          paddingX: "24px",
           paddingY: "4px",
-          backgroundColor: "rgba(20, 23, 26, 0.88)",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+          backgroundColor: theme.palette.background.default,
           "& .MuiTab-root": {
-            color: "rgba(100, 116, 139, 0.8)",
+            color: theme.palette.text.secondary,
             minHeight: "40px",
             padding: "8px 12px",
             fontSize: "0.813rem",
@@ -161,21 +165,23 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
             flexDirection: "row",
             gap: "6px",
             justifyContent: "center",
-            borderRadius: "8px",
+            borderRadius: "4px",
             margin: "4px 2px",
             transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
             textTransform: "none",
             "&:hover": {
-              backgroundColor: theme.palette.mode === "dark"
-                ? "rgba(107, 156, 216, 0.12)"
-                : "rgba(107, 156, 216, 0.08)",
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(107, 156, 216, 0.12)"
+                  : "rgba(107, 156, 216, 0.08)",
               color: theme.palette.primary.main,
             },
             "&.Mui-selected": {
               color: theme.palette.primary.main,
-              backgroundColor: theme.palette.mode === "dark"
-                ? "rgba(95, 136, 199, 0.16)"
-                : "rgba(107, 156, 216, 0.15)",
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(95, 136, 199, 0.16)"
+                  : "rgba(107, 156, 216, 0.15)",
               fontWeight: 600,
             },
             "& .MuiSvgIcon-root": {
@@ -195,14 +201,42 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
 
       {/* Content */}
       <DialogContent
-        sx={{
+        sx={(theme) => ({
           padding: "24px",
-          backgroundColor: "rgba(255, 255, 255, 0.5)",
+          backgroundColor: theme.palette.background.default,
           overflow: "auto",
           height: "500px",
           minHeight: "500px",
           maxHeight: "500px",
-        }}
+          "&::-webkit-scrollbar": {
+            width: "8px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background:
+              theme.palette.mode === "dark"
+                ? alpha(theme.palette.primary.main, 0.08)
+                : "rgba(95, 136, 199, 0.05)",
+            borderRadius: "4px",
+            margin: "4px 0",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background:
+              theme.palette.mode === "dark"
+                ? alpha(theme.palette.primary.main, 0.24)
+                : "rgba(95, 136, 199, 0.2)",
+            borderRadius: "4px",
+            border: "2px solid transparent",
+            backgroundClip: "padding-box",
+            transition: "background 0.2s ease",
+            "&:hover": {
+              background:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.primary.main, 0.38)
+                  : "rgba(95, 136, 199, 0.35)",
+              backgroundClip: "padding-box",
+            },
+          },
+        })}
       >
         <Box
           sx={{

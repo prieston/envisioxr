@@ -139,7 +139,7 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
               theme.palette.mode === "dark"
                 ? theme.palette.background.paper
                 : theme.palette.common.white,
-            borderRadius: 4,
+            borderRadius: "4px",
             border:
               theme.palette.mode === "dark"
                 ? "1px solid rgba(255, 255, 255, 0.08)"
@@ -288,7 +288,7 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                   theme.palette.mode === "dark"
                     ? theme.palette.background.paper
                     : theme.palette.common.white,
-                borderRadius: 4,
+                borderRadius: "4px",
                 border:
                   theme.palette.mode === "dark"
                     ? "1px solid rgba(255, 255, 255, 0.08)"
@@ -356,7 +356,7 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                       theme.palette.mode === "dark"
                         ? "#14171A"
                         : "rgba(255, 255, 255, 0.92)",
-                    borderRadius: 4,
+                    borderRadius: "4px",
                     border:
                       theme.palette.mode === "dark"
                         ? "1px solid rgba(255, 255, 255, 0.05)"
@@ -478,7 +478,7 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                 disabled={loading || !geographicCoords}
                 fullWidth
                 sx={{
-                  borderRadius: "8px",
+                  borderRadius: "4px",
                   textTransform: "none",
                   fontWeight: 500,
                   fontSize: "0.75rem",
@@ -515,7 +515,7 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                       theme.palette.mode === "dark"
                         ? "#14171A"
                         : "rgba(255, 255, 255, 0.92)",
-                    borderRadius: 4,
+                    borderRadius: "4px",
                     border:
                       theme.palette.mode === "dark"
                         ? "1px solid rgba(255, 255, 255, 0.05)"

@@ -47,13 +47,13 @@ const ObservationModelSection: React.FC<ObservationModelSectionProps> = memo(
           sx={(theme) => ({
             backgroundColor:
               theme.palette.mode === "dark"
-                ? theme.palette.background.paper
-                : theme.palette.common.white,
-            borderRadius: "8px",
+                ? "#14171A"
+                : "rgba(255, 255, 255, 0.92)",
+            borderRadius: "4px",
             border:
               theme.palette.mode === "dark"
-                ? "1px solid rgba(255, 255, 255, 0.08)"
-                : "1px solid rgba(255, 255, 255, 0.08)",
+                ? "1px solid rgba(255, 255, 255, 0.05)"
+                : "1px solid rgba(226, 232, 240, 0.8)",
             mb: isObservationModel ? 2 : 0,
           })}
         >

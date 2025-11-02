@@ -122,7 +122,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
             size="small"
             sx={{
               color: "rgba(100, 116, 139, 0.85)",
-              borderRadius: "8px",
+              borderRadius: 4,
               transition: "color 0.15s ease, background-color 0.15s ease",
               "&:hover": {
                 backgroundColor: "rgba(95, 136, 199, 0.08)",
@@ -141,7 +141,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
         onClose={handleMenuClose}
         sx={{
           "& .MuiPaper-root": {
-            borderRadius: "8px",
+            borderRadius: 4,
             border: "1px solid rgba(255, 255, 255, 0.08)",
             boxShadow:
               "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
@@ -192,7 +192,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
             onClick={() => setDeleteDialogOpen(false)}
             sx={{
               minHeight: "38px",
-              borderRadius: "8px",
+              borderRadius: 4,
               textTransform: "none",
               fontWeight: 500,
               fontSize: "0.875rem",
@@ -213,7 +213,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
             onClick={confirmDelete}
             sx={{
               minHeight: "38px",
-              borderRadius: "8px",
+              borderRadius: 4,
               textTransform: "none",
               fontWeight: 600,
               fontSize: "0.875rem",

@@ -359,7 +359,7 @@ const SDKObservationPropertiesPanel: React.FC<
                 >
                   Vertical FOV: {local.fovV}°
                 </Typography>
-            <Slider
+                <Slider
                   value={Math.min(180, local.fovV)}
                   min={10}
                   max={180}
@@ -498,7 +498,7 @@ const SDKObservationPropertiesPanel: React.FC<
                 theme.palette.mode === "dark"
                   ? theme.palette.background.paper
                   : theme.palette.common.white,
-              borderRadius: "8px",
+              borderRadius: "4px",
               border:
                 theme.palette.mode === "dark"
                   ? "1px solid rgba(255, 255, 255, 0.08)"
@@ -552,7 +552,7 @@ const SDKObservationPropertiesPanel: React.FC<
                 theme.palette.mode === "dark"
                   ? theme.palette.background.paper
                   : theme.palette.common.white,
-              borderRadius: "8px",
+              borderRadius: "4px",
               border:
                 theme.palette.mode === "dark"
                   ? "1px solid rgba(255, 255, 255, 0.08)"

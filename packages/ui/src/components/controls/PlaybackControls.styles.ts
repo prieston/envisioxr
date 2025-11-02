@@ -15,7 +15,7 @@ export const StyledIconButton: React.FC<IconButtonProps> = styled(IconButton)(
   ({ theme }) => ({
     minWidth: 40,
     height: 40,
-    borderRadius: "8px", // Design system: 8px for clickable items
+    borderRadius: 4, // Design system: 8px for clickable items
     backgroundColor: "transparent",
     color: "rgba(51, 65, 85, 0.7)", // Design system color
     border: "none",

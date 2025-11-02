@@ -145,7 +145,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                   : "#1d4ed8",
             },
             textTransform: "none",
-            borderRadius: "8px",
+            borderRadius: 4,
             px: 3,
             color: theme.palette.getContrastText(theme.palette.primary.main),
           })}

@@ -121,7 +121,7 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
                 gap: 2,
                 backgroundColor: alpha(theme.palette.primary.main, 0.12),
                 padding: "12px 16px",
-                borderRadius: "8px",
+                borderRadius: 4,
                 border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
               })}
             >
@@ -182,7 +182,7 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
             onClick={onCancel}
             sx={(theme) => ({
               textTransform: "none",
-              borderRadius: "8px",
+              borderRadius: 4,
               borderColor:
                 theme.palette.mode === "dark"
                   ? alpha(theme.palette.error.main, 0.4)
@@ -210,7 +210,7 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
             disabled={!selectedPosition}
             sx={(theme) => ({
               textTransform: "none",
-              borderRadius: "8px",
+              borderRadius: 4,
               backgroundColor: theme.palette.primary.main,
               fontSize: "0.813rem",
               fontWeight: 500,

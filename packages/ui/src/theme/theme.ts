@@ -88,6 +88,26 @@ export const createAppTheme = (mode: ThemeMode): Theme =>
           }),
         },
       },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            borderRadius: 4,
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderRadius: 4,
+            },
+          },
+          input: {
+            borderRadius: 4,
+          },
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          select: {
+            borderRadius: 4,
+          },
+        },
+      },
       MuiButton: {
         styleOverrides: {
           root: {

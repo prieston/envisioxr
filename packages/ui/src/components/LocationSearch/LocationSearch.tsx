@@ -194,10 +194,10 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
           startAdornment={
             <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />
           }
-          sx={{
-            ...inputStyles,
-            paddingLeft: "8px", // Adjust for icon
-          }}
+          sx={(theme) => ({
+            ...((typeof inputStyles === 'function' ? inputStyles(theme) : inputStyles) as Record<string, any>),
+            paddingLeft: "8px", // Adjust for icon with search icon
+          })}
         />
       </Box>
 
