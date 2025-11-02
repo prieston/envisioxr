@@ -15,7 +15,13 @@ import {
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ThermostatIcon from "@mui/icons-material/Thermostat";
 import AirIcon from "@mui/icons-material/Air";
-import { textFieldStyles, selectStyles, menuItemStyles } from "@envisio/ui";
+import {
+  textFieldStyles,
+  selectStyles,
+  menuItemStyles,
+  SettingContainer,
+  SettingLabel,
+} from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
 
 interface IoTDevicePropertiesPanelProps {
@@ -123,50 +129,8 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
     };
 
     return (
-      <Box
-        sx={(theme) => ({
-          marginBottom: theme.spacing(2.5),
-          padding: theme.spacing(3),
-          backgroundColor:
-            theme.palette.mode === "dark"
-              ? theme.palette.background.paper
-              : "rgba(248, 250, 252, 0.6)",
-          borderRadius: 4,
-          border:
-            theme.palette.mode === "dark"
-              ? "1px solid rgba(255, 255, 255, 0.08)"
-              : "1px solid rgba(255, 255, 255, 0.08)",
-          transition: "background-color 0.15s ease, border-color 0.15s ease",
-          "&:hover": {
-            backgroundColor:
-              theme.palette.mode === "dark"
-                ? theme.palette.background.default
-                : "rgba(248, 250, 252, 0.9)",
-            borderColor:
-              theme.palette.mode === "dark"
-                ? "rgba(255, 255, 255, 0.12)"
-                : "rgba(95, 136, 199, 0.2)",
-          },
-          "&:last-child": {
-            marginBottom: 0,
-          },
-        })}
-      >
-        <Typography
-          sx={(theme) => ({
-            fontSize: "0.75rem",
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            marginBottom: theme.spacing(1),
-            color:
-              theme.palette.mode === "dark"
-                ? theme.palette.text.primary
-                : "rgba(51, 65, 85, 0.95)",
-          })}
-        >
-          IoT Connection Settings
-        </Typography>
+      <SettingContainer>
+        <SettingLabel>IoT Connection Settings</SettingLabel>
 
         {/* Enable IoT Device Switch */}
         <Box
@@ -387,11 +351,17 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {/* Show in Scene Switch */}
                 <Box
-                  sx={{
-                    backgroundColor: "#ffffff",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
-                  }}
+                  sx={(theme) => ({
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? "#14171A"
+                        : "rgba(255, 255, 255, 0.92)",
+                    borderRadius: 4,
+                    border:
+                      theme.palette.mode === "dark"
+                        ? "1px solid rgba(255, 255, 255, 0.05)"
+                        : "1px solid rgba(226, 232, 240, 0.8)",
+                  })}
                 >
                   <FormControlLabel
                     control={
@@ -408,13 +378,14 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                           },
                           "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
                             {
-                              backgroundColor: "var(--color-primary-600, #4B6FAF)",
+                              backgroundColor:
+                                "var(--color-primary-600, #4B6FAF)",
                             },
                         }}
                       />
                     }
                     label="Show in 3D Scene"
-                    sx={{
+                    sx={(theme) => ({
                       margin: 0,
                       padding: "8.5px 14px",
                       width: "100%",
@@ -423,10 +394,10 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                       "& .MuiFormControlLabel-label": {
                         fontSize: "0.75rem",
                         fontWeight: 400,
-                        color: "rgba(51, 65, 85, 0.9)",
+                        color: theme.palette.text.secondary,
                         flex: 1,
                       },
-                    }}
+                    })}
                     labelPlacement="start"
                   />
                 </Box>
@@ -539,20 +510,29 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
 
               {weatherData && (
                 <Box
-                  sx={{
-                    backgroundColor: "#ffffff",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                  sx={(theme) => ({
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? "#14171A"
+                        : "rgba(255, 255, 255, 0.92)",
+                    borderRadius: 4,
+                    border:
+                      theme.palette.mode === "dark"
+                        ? "1px solid rgba(255, 255, 255, 0.05)"
+                        : "1px solid rgba(226, 232, 240, 0.8)",
                     padding: "14px",
-                  }}
+                  })}
                 >
                   <Typography
-                    sx={{
+                    sx={(theme) => ({
                       fontSize: "0.75rem",
                       fontWeight: 600,
-                      color: "rgba(51, 65, 85, 0.9)",
+                      color:
+                        theme.palette.mode === "dark"
+                          ? theme.palette.text.primary
+                          : "rgba(51, 65, 85, 0.9)",
                       mb: 2,
-                    }}
+                    })}
                   >
                     Current Weather Data
                   </Typography>
@@ -651,7 +631,7 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
             </Box>
           </Box>
         )}
-      </Box>
+      </SettingContainer>
     );
   }
 );
