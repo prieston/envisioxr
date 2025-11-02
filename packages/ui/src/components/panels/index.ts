@@ -20,7 +20,7 @@ export const LeftPanelContainer: React.FC<PanelContainerProps & BoxProps> =
       marginRight: "8px",
       backgroundColor:
         theme.palette.mode === "dark"
-          ? alpha("#0D0F11", 0.94)
+          ? alpha("#14171A", 0.94)
           : "var(--glass-bg, rgba(255, 255, 255, 0.85))",
       backdropFilter: "blur(24px) saturate(140%)",
       WebkitBackdropFilter: "blur(24px) saturate(140%)",
@@ -51,21 +51,6 @@ export const LeftPanelContainer: React.FC<PanelContainerProps & BoxProps> =
       display: "flex",
       flexDirection: "column",
       overflow: "hidden",
-      "&::before": {
-        content: '""',
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        borderRadius: "inherit",
-        background:
-          theme.palette.mode === "dark"
-            ? "linear-gradient(180deg, rgba(84, 117, 164, 0.05) 0%, rgba(8, 11, 14, 0.55) 100%)"
-            : "linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%)",
-        pointerEvents: "none",
-        zIndex: -1,
-      },
       "&:hover": {
         borderColor:
           theme.palette.mode === "dark"
@@ -86,10 +71,10 @@ export const RightPanelContainer: React.FC<PanelContainerProps & BoxProps> =
       marginLeft: "8px",
       backgroundColor:
         theme.palette.mode === "dark"
-          ? alpha("#14171A", 0.96)
-          : "var(--glass-bg, #14171A)",
-      backdropFilter: "blur(20px) saturate(130%)",
-      WebkitBackdropFilter: "blur(20px) saturate(130%)",
+          ? alpha("#14171A", 0.94)
+          : "var(--glass-bg, rgba(255, 255, 255, 0.85))",
+      backdropFilter: "blur(24px) saturate(140%)",
+      WebkitBackdropFilter: "blur(24px) saturate(140%)",
       color:
         theme.palette.mode === "dark"
           ? theme.palette.text.primary
@@ -118,21 +103,6 @@ export const RightPanelContainer: React.FC<PanelContainerProps & BoxProps> =
       zIndex: 1400,
       transform: "translateZ(0)",
       willChange: "backdrop-filter",
-      "&::before": {
-        content: '""',
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        borderRadius: "inherit",
-        background:
-          theme.palette.mode === "dark"
-            ? "linear-gradient(180deg, rgba(84, 117, 164, 0.04) 0%, rgba(20, 23, 26, 0.4) 100%)"
-            : "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)",
-        pointerEvents: "none",
-        zIndex: -1,
-      },
     })
   );
 
@@ -142,6 +112,8 @@ export const TabPanel: React.FC<BoxProps> = styled(Box)(
     overflow: "auto",
     paddingRight: theme.spacing(0.5),
     maxHeight: "calc(100vh - 200px)",
+    backgroundColor:
+      theme.palette.mode === "dark" ? "#14171A" : "rgba(248, 250, 252, 0.6)",
     "&::-webkit-scrollbar": {
       width: "8px",
     },
@@ -190,10 +162,10 @@ export const BottomPanelContainer: React.FC<
     marginTop: _theme.spacing(1),
     backgroundColor:
       _theme.palette.mode === "dark"
-        ? alpha("#0E0F10", 0.88)
-        : "var(--glass-bg, #14171A)",
-    backdropFilter: "blur(20px) saturate(130%)",
-    WebkitBackdropFilter: "blur(20px) saturate(130%)",
+        ? alpha("#14171A", 0.94)
+        : "var(--glass-bg, rgba(255, 255, 255, 0.85))",
+    backdropFilter: "blur(24px) saturate(140%)",
+    WebkitBackdropFilter: "blur(24px) saturate(140%)",
     padding: _theme.spacing(3),
     display: "flex",
     alignItems: "stretch", // Allow sections to stretch to full height
@@ -214,20 +186,5 @@ export const BottomPanelContainer: React.FC<
     transform: "translateZ(0)",
     willChange: "backdrop-filter",
     transition: "border-color 0.15s ease",
-    "&::before": {
-      content: '""',
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      borderRadius: "inherit",
-      background:
-        _theme.palette.mode === "dark"
-          ? "linear-gradient(135deg, rgba(61, 166, 255, 0.08) 0%, rgba(12, 20, 28, 0.5) 100%)"
-          : "linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%)",
-      pointerEvents: "none",
-      zIndex: -1,
-    },
   })
 );

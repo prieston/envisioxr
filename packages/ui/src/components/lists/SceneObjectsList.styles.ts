@@ -11,8 +11,8 @@ export const StyledList: React.FC<ListProps> = styled(List)(
 export const ObjectListItem: React.FC<ListItemProps & { selected: boolean }> =
   styled(ListItem)<{ selected: boolean }>(({ theme, selected }) => ({
     cursor: "pointer",
-    borderRadius: 4,
-    marginBottom: theme.spacing(1),
+    borderRadius: 0,
+    marginBottom: 0,
     padding: theme.spacing(1.5, 2),
     backgroundColor: selected
       ? alpha(theme.palette.primary.main, 0.18)
@@ -28,21 +28,18 @@ export const ObjectListItem: React.FC<ListItemProps & { selected: boolean }> =
     alignItems: "center",
     justifyContent: "space-between",
     flex: 1,
-    border: "1px solid",
-    borderColor: selected
-      ? alpha(theme.palette.primary.main, 0.3)
-      : theme.palette.mode === "dark"
+    borderBottom: "1px solid",
+    borderColor:
+      theme.palette.mode === "dark"
         ? "rgba(255, 255, 255, 0.08)"
         : "rgba(255, 255, 255, 0.08)",
-    transition:
-      "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease",
+    transition: "background-color 0.15s ease, color 0.15s ease",
     "&:hover": {
       backgroundColor: selected
         ? alpha(theme.palette.primary.main, 0.24)
         : theme.palette.mode === "dark"
           ? alpha(theme.palette.primary.main, 0.1)
           : "rgba(248, 250, 252, 0.9)",
-      borderColor: alpha(theme.palette.primary.main, 0.3),
       color: theme.palette.primary.main,
     },
   }));
