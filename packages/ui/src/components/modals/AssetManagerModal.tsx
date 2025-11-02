@@ -97,8 +97,8 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
         sx: {
           borderRadius: "16px",
           boxShadow:
-            "0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
-          border: "1px solid rgba(226, 232, 240, 0.8)",
+            "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
           minHeight: "600px",
           maxHeight: "80vh",
         },
@@ -110,7 +110,7 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
           padding: "20px 24px",
           backgroundColor: "rgba(248, 250, 252, 0.6)",
         }}
@@ -127,13 +127,15 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
         <IconButton
           onClick={onClose}
           size="small"
-          sx={{
+          sx={(theme) => ({
             color: "rgba(100, 116, 139, 0.8)",
             "&:hover": {
-              color: "#2563eb",
-              backgroundColor: "rgba(37, 99, 235, 0.08)",
+              color: theme.palette.primary.main,
+              backgroundColor: theme.palette.mode === "dark"
+                ? "rgba(107, 156, 216, 0.12)"
+                : "rgba(107, 156, 216, 0.08)",
             },
-          }}
+          })}
         >
           <Close />
         </IconButton>
@@ -144,12 +146,12 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
         value={activeTab}
         onChange={handleTabChange}
         variant="fullWidth"
-        sx={{
+        sx={(theme) => ({
           mb: 2,
           minHeight: "48px",
           paddingY: "4px",
-          backgroundColor: "rgba(255, 255, 255, 0.6)",
-          borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
+          backgroundColor: "rgba(20, 23, 26, 0.88)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
           "& .MuiTab-root": {
             color: "rgba(100, 116, 139, 0.8)",
             minHeight: "40px",
@@ -164,12 +166,16 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
             transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
             textTransform: "none",
             "&:hover": {
-              backgroundColor: "rgba(37, 99, 235, 0.08)",
-              color: "#2563eb",
+              backgroundColor: theme.palette.mode === "dark"
+                ? "rgba(107, 156, 216, 0.12)"
+                : "rgba(107, 156, 216, 0.08)",
+              color: theme.palette.primary.main,
             },
             "&.Mui-selected": {
-              color: "#2563eb",
-              backgroundColor: "rgba(37, 99, 235, 0.12)",
+              color: theme.palette.primary.main,
+              backgroundColor: theme.palette.mode === "dark"
+                ? "rgba(95, 136, 199, 0.16)"
+                : "rgba(107, 156, 216, 0.15)",
               fontWeight: 600,
             },
             "& .MuiSvgIcon-root": {
@@ -180,7 +186,7 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
           "& .MuiTabs-indicator": {
             display: "none",
           },
-        }}
+        })}
       >
         <Tab icon={<Folder />} iconPosition="start" label="My Library" />
         <Tab icon={<CloudUpload />} iconPosition="start" label="Upload Model" />

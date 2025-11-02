@@ -14,14 +14,13 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  FormHelperText,
   Switch,
   FormControlLabel,
-  Divider,
   Accordion,
   AccordionSummary,
   AccordionDetails,
 } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import {
   CloudUpload,
   Close,
@@ -48,6 +47,7 @@ export interface UploadToIonTabProps {
       geometricCompression?: string;
       epsgCode?: string;
       makeDownloadable?: boolean;
+      tilesetJson?: string;
     };
   }) => Promise<{ assetId: string }>;
   uploading?: boolean;
@@ -59,6 +59,13 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
   uploading = false,
   uploadProgress = 0,
 }) => {
+  const theme = useTheme();
+  const accent = theme.palette.primary.main;
+  const accentActive = theme.palette.primary.dark;
+  const accentBorder = alpha(accent, 0.4);
+  const accentSoft = alpha(accent, 0.08);
+  const accentSubtle = alpha(accent, 0.05);
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -76,6 +83,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
   const [geometricCompression, setGeometricCompression] = useState("Draco");
   const [epsgCode, setEpsgCode] = useState("");
   const [makeDownloadable, setMakeDownloadable] = useState(false);
+  const [tilesetJson, setTilesetJson] = useState("tileset.json");
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -113,6 +121,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
     setGeometricCompression("Draco");
     setEpsgCode("");
     setMakeDownloadable(false);
+    setTilesetJson("tileset.json");
   };
 
   const handleUpload = async () => {
@@ -135,6 +144,10 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           geometricCompression,
           epsgCode: epsgCode || undefined,
           makeDownloadable,
+          tilesetJson:
+            sourceType === "3DTILES_ARCHIVE"
+              ? tilesetJson || "tileset.json"
+              : undefined,
         },
       });
 
@@ -182,7 +195,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           sx={{
             p: 2,
             borderRadius: "12px",
-            border: "1px solid rgba(226, 232, 240, 0.8)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
             backgroundColor: "rgba(248, 250, 252, 0.6)",
           }}
         >
@@ -199,7 +212,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
             sx={{
               fontSize: "1rem",
               fontWeight: 600,
-              color: "#2563eb",
+              color: accent,
               fontFamily: "monospace",
             }}
           >
@@ -218,11 +231,11 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
             textTransform: "none",
             fontWeight: 500,
             fontSize: "0.875rem",
-            borderColor: "rgba(37, 99, 235, 0.3)",
-            color: "#2563eb",
+            borderColor: accentBorder,
+            color: accent,
             "&:hover": {
-              borderColor: "#2563eb",
-              backgroundColor: "rgba(37, 99, 235, 0.08)",
+              borderColor: accent,
+              backgroundColor: accentSoft,
             },
           }}
         >
@@ -244,18 +257,18 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           {...getRootProps()}
           sx={{
             border: "2px dashed",
-            borderColor: isDragActive ? "#2563eb" : "rgba(226, 232, 240, 0.8)",
+            borderColor: isDragActive ? accent : "rgba(255, 255, 255, 0.08)",
             borderRadius: "12px",
             padding: "60px 24px",
             textAlign: "center",
             cursor: "pointer",
             backgroundColor: isDragActive
-              ? "rgba(37, 99, 235, 0.05)"
+              ? accentSubtle
               : "rgba(248, 250, 252, 0.6)",
             transition: "all 0.2s ease",
             "&:hover": {
-              borderColor: "#2563eb",
-              backgroundColor: "rgba(37, 99, 235, 0.05)",
+              borderColor: accent,
+              backgroundColor: accentSubtle,
             },
           }}
         >
@@ -263,7 +276,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           <CloudUpload
             sx={{
               fontSize: "4rem",
-              color: isDragActive ? "#2563eb" : "rgba(100, 116, 139, 0.4)",
+              color: isDragActive ? accent : "rgba(100, 116, 139, 0.4)",
               mb: 2,
             }}
           />
@@ -308,7 +321,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         sx={{
           p: 2,
           borderRadius: "12px",
-          border: "1px solid rgba(226, 232, 240, 0.8)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
           backgroundColor: "rgba(248, 250, 252, 0.6)",
           display: "flex",
           alignItems: "center",
@@ -408,6 +421,9 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
             borderRadius: "8px",
           }}
         >
+          <MenuItem value="3DTILES_ARCHIVE">
+            3D Tiles (existing tileset.json)
+          </MenuItem>
           <MenuItem value="3DTILES">3D Model (tile as 3D Tiles)</MenuItem>
           <MenuItem value="GLTF">3D Model (convert to glTF)</MenuItem>
           <MenuItem value="3DTILES_BIM">
@@ -424,6 +440,22 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           <MenuItem value="CZML">CZML</MenuItem>
         </Select>
       </FormControl>
+
+      {sourceType === "3DTILES_ARCHIVE" && (
+        <TextField
+          fullWidth
+          label="Tileset JSON path"
+          value={tilesetJson}
+          onChange={(e) => setTilesetJson(e.target.value)}
+          disabled={uploading}
+          helperText="Relative path to the tileset.json inside the archive"
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "8px",
+            },
+          }}
+        />
+      )}
 
       {/* Options based on selected type */}
       {(sourceType === "3DTILES" ||
@@ -449,7 +481,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
               },
             }}
           >
-            <Settings sx={{ fontSize: "1.25rem", color: "#2563eb" }} />
+            <Settings sx={{ fontSize: "1.25rem", color: accent }} />
             <Typography sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
               {sourceType === "3DTILES_BIM"
                 ? "BIM/CAD Options"
@@ -675,10 +707,10 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
             sx={{
               height: "8px",
               borderRadius: "4px",
-              backgroundColor: "rgba(37, 99, 235, 0.1)",
+              backgroundColor: accentSoft,
               "& .MuiLinearProgress-bar": {
                 borderRadius: "4px",
-                backgroundColor: "#2563eb",
+                backgroundColor: accentActive,
               },
             }}
           />
@@ -723,9 +755,9 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
             textTransform: "none",
             fontWeight: 600,
             fontSize: "0.875rem",
-            backgroundColor: "#2563eb",
+            backgroundColor: accent,
             "&:hover": {
-              backgroundColor: "#1d4ed8",
+              backgroundColor: accentActive,
             },
           }}
         >

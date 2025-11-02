@@ -67,7 +67,7 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
           value={activeTab}
           onChange={handleTabChange}
           variant="fullWidth"
-          sx={{
+          sx={(theme) => ({
             mb: 2,
             minHeight: "40px",
             "& .MuiTab-root": {
@@ -84,12 +84,16 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
               transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
               textTransform: "none",
               "&:hover": {
-                backgroundColor: "rgba(37, 99, 235, 0.08)",
-                color: "#2563eb",
+                backgroundColor: theme.palette.mode === "dark"
+                  ? "rgba(107, 156, 216, 0.12)"
+                  : "rgba(107, 156, 216, 0.1)",
+                color: theme.palette.primary.main,
               },
               "&.Mui-selected": {
-                color: "#2563eb",
-                backgroundColor: "rgba(37, 99, 235, 0.12)",
+                color: theme.palette.primary.main,
+                backgroundColor: theme.palette.mode === "dark"
+                  ? "rgba(95, 136, 199, 0.16)"
+                  : "rgba(107, 156, 216, 0.15)",
                 fontWeight: 600,
               },
               "& .MuiSvgIcon-root": {
@@ -100,7 +104,7 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
             "& .MuiTabs-indicator": {
               display: "none",
             },
-          }}
+          })}
         >
           {config.tabs.map((tab) => (
             <Tab

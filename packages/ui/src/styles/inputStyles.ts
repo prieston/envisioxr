@@ -6,6 +6,7 @@
  */
 
 import { SxProps, Theme } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 
 /**
  * Standard TextField/OutlinedInput styles
@@ -13,38 +14,48 @@ import { SxProps, Theme } from "@mui/material";
  * Usage:
  * <TextField sx={textFieldStyles} />
  */
-export const textFieldStyles: SxProps<Theme> = {
+export const textFieldStyles: SxProps<Theme> = (theme) => ({
   "& .MuiOutlinedInput-root": {
     minHeight: "38px",
-    borderRadius: "8px",
-    backgroundColor: "#ffffff", // ✅ Pure white background
-    fontSize: "0.75rem", // 12px - input text
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "#14171A"
+        : theme.palette.common.white,
+    fontSize: "0.75rem",
     fontWeight: 400,
     "& input": {
-      padding: "8.5px 14px", // Standard input padding
+      padding: "8.5px 14px",
     },
     "& textarea": {
       padding: "8.5px 14px",
     },
     "& fieldset": {
-      borderColor: "rgba(226, 232, 240, 0.8)",
+      borderColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.08)"
+          : "rgba(255, 255, 255, 0.08)",
     },
     "&:hover fieldset": {
-      borderColor: "rgba(37, 99, 235, 0.4)",
+      borderColor:
+        theme.palette.mode === "dark"
+          ? alpha(theme.palette.primary.main, 0.5)
+          : "rgba(95, 136, 199, 0.4)",
     },
     "&.Mui-focused fieldset": {
-      borderColor: "#2563eb",
+      borderColor: theme.palette.primary.main,
       borderWidth: "2px",
     },
   },
   "& .MuiInputLabel-root": {
-    fontSize: "0.75rem", // 12px
+    fontSize: "0.75rem",
     fontWeight: 500,
+    color: theme.palette.text.secondary,
     "&.Mui-focused": {
-      color: "#2563eb",
+      color: theme.palette.primary.main,
     },
   },
-};
+});
 
 /**
  * Standard Select/Dropdown styles
@@ -52,26 +63,35 @@ export const textFieldStyles: SxProps<Theme> = {
  * Usage:
  * <Select sx={selectStyles} />
  */
-export const selectStyles: SxProps<Theme> = {
+export const selectStyles: SxProps<Theme> = (theme) => ({
   minHeight: "38px",
-  borderRadius: "8px",
-  backgroundColor: "#ffffff", // ✅ Pure white background
-  fontSize: "0.75rem", // 12px - dropdown text
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "#14171A"
+      : theme.palette.common.white,
+  fontSize: "0.75rem",
   fontWeight: 400,
   "& .MuiSelect-select": {
-    padding: "8.5px 14px", // Standard input padding
+    padding: "8.5px 14px",
   },
   "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(226, 232, 240, 0.8)",
+    borderColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.08)"
+        : "rgba(255, 255, 255, 0.08)",
   },
   "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(37, 99, 235, 0.4)",
+    borderColor:
+      theme.palette.mode === "dark"
+        ? alpha(theme.palette.primary.main, 0.5)
+        : "rgba(95, 136, 199, 0.4)",
   },
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#2563eb",
+    borderColor: theme.palette.primary.main,
     borderWidth: "2px",
   },
-};
+});
 
 /**
  * Menu item styles for Select dropdowns
@@ -79,20 +99,20 @@ export const selectStyles: SxProps<Theme> = {
  * Usage:
  * <MenuItem sx={menuItemStyles}>Option</MenuItem>
  */
-export const menuItemStyles: SxProps<Theme> = {
-  fontSize: "0.75rem", // 12px
+export const menuItemStyles: SxProps<Theme> = (theme) => ({
+  fontSize: "0.75rem",
   fontWeight: 400,
   padding: "8px 14px",
   "&.Mui-selected": {
-    backgroundColor: "rgba(37, 99, 235, 0.08)",
+    backgroundColor: alpha(theme.palette.primary.main, 0.12),
     "&:hover": {
-      backgroundColor: "rgba(37, 99, 235, 0.12)",
+      backgroundColor: alpha(theme.palette.primary.main, 0.18),
     },
   },
   "&:hover": {
-    backgroundColor: "rgba(37, 99, 235, 0.08)",
+    backgroundColor: alpha(theme.palette.primary.main, 0.08),
   },
-};
+});
 
 /**
  * Standard Input (non-outlined) styles for search/basic inputs
@@ -100,27 +120,37 @@ export const menuItemStyles: SxProps<Theme> = {
  * Usage:
  * <Input sx={inputStyles} />
  */
-export const inputStyles: SxProps<Theme> = {
+export const inputStyles: SxProps<Theme> = (theme) => ({
   minHeight: "38px",
-  borderRadius: "8px",
-  backgroundColor: "#ffffff", // ✅ Pure white background
-  border: "1px solid rgba(226, 232, 240, 0.8)",
-  fontSize: "0.75rem", // 12px
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "#14171A"
+      : theme.palette.common.white,
+  border:
+    theme.palette.mode === "dark"
+      ? "1px solid rgba(255, 255, 255, 0.08)"
+      : "1px solid rgba(255, 255, 255, 0.08)",
+  fontSize: "0.75rem",
   fontWeight: 400,
   padding: "8.5px 14px",
   transition: "border-color 0.15s ease",
+  color: theme.palette.text.primary,
   "&:hover": {
-    borderColor: "rgba(37, 99, 235, 0.4)",
+    borderColor:
+      theme.palette.mode === "dark"
+        ? alpha(theme.palette.primary.main, 0.5)
+        : "rgba(95, 136, 199, 0.4)",
   },
   "&.Mui-focused": {
-    borderColor: "#2563eb",
+    borderColor: theme.palette.primary.main,
     borderWidth: "2px",
-    padding: "7.5px 13px", // Adjust for thicker border
+    padding: "7.5px 13px",
   },
   "&::before, &::after": {
-    display: "none", // Remove default MUI Input underline
+    display: "none",
   },
-};
+});
 
 /**
  * Standard Switch/Checkbox label styles
@@ -128,8 +158,8 @@ export const inputStyles: SxProps<Theme> = {
  * Usage:
  * <FormControlLabel label={<Typography sx={switchLabelStyles}>Label</Typography>} />
  */
-export const switchLabelStyles: SxProps<Theme> = {
-  fontSize: "0.75rem", // 12px
+export const switchLabelStyles: SxProps<Theme> = (theme) => ({
+  fontSize: "0.75rem",
   fontWeight: 400,
-  color: "rgba(51, 65, 85, 0.9)",
-};
+  color: theme.palette.text.secondary,
+});

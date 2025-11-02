@@ -138,18 +138,20 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
         {...getRootProps()}
         sx={{
           border: "2px dashed",
-          borderColor: isDragActive ? "#2563eb" : "rgba(226, 232, 240, 0.8)",
+          borderColor: isDragActive
+            ? "var(--color-primary, #6B9CD8)"
+            : "rgba(255, 255, 255, 0.08)",
           borderRadius: "12px",
           padding: "60px 24px",
           textAlign: "center",
           cursor: "pointer",
           backgroundColor: isDragActive
-            ? "rgba(37, 99, 235, 0.05)"
+            ? "rgba(95, 136, 199, 0.08)"
             : "rgba(248, 250, 252, 0.6)",
           transition: "all 0.2s ease",
           "&:hover": {
-            borderColor: "#2563eb",
-            backgroundColor: "rgba(37, 99, 235, 0.05)",
+            borderColor: "var(--color-primary, #6B9CD8)",
+            backgroundColor: "rgba(95, 136, 199, 0.05)",
           },
         }}
       >
@@ -157,7 +159,9 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
         <CloudUpload
           sx={{
             fontSize: "4rem",
-            color: isDragActive ? "#2563eb" : "rgba(100, 116, 139, 0.4)",
+            color: isDragActive
+              ? "var(--color-primary, #6B9CD8)"
+              : "rgba(100, 116, 139, 0.4)",
             mb: 2,
           }}
         />
@@ -201,7 +205,7 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
         sx={{
           p: 2,
           borderRadius: "12px",
-          border: "1px solid rgba(226, 232, 240, 0.8)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
           backgroundColor: "rgba(248, 250, 252, 0.6)",
           display: "flex",
           alignItems: "center",
@@ -249,7 +253,7 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
           sx={{
             p: 2,
             borderRadius: "12px",
-            border: "1px solid rgba(226, 232, 240, 0.8)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
             backgroundColor: "rgba(248, 250, 252, 0.6)",
           }}
         >
@@ -280,11 +284,11 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
                 textTransform: "none",
                 fontWeight: 500,
                 fontSize: "0.75rem",
-                color: "#2563eb",
-                borderColor: "rgba(37, 99, 235, 0.3)",
+                color: "var(--color-primary, #6B9CD8)",
+                borderColor: "rgba(95, 136, 199, 0.3)",
                 "&:hover": {
-                  borderColor: "#2563eb",
-                  backgroundColor: "rgba(37, 99, 235, 0.08)",
+                  borderColor: "var(--color-primary, #6B9CD8)",
+                  backgroundColor: "rgba(95, 136, 199, 0.08)",
                 },
               }}
               variant="outlined"
@@ -300,7 +304,7 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
               borderRadius: "8px",
               overflow: "hidden",
               backgroundColor: "#f8fafc",
-              border: "1px solid rgba(226, 232, 240, 0.8)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
             }}
           >
             <Canvas
@@ -339,7 +343,7 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
                   maxHeight: "200px",
                   objectFit: "contain",
                   borderRadius: "8px",
-                  border: "1px solid rgba(226, 232, 240, 0.8)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
                 }}
               />
             </Box>
@@ -437,7 +441,7 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
           sx={{
             textTransform: "none",
             fontSize: "0.75rem",
-            color: "#2563eb",
+            color: "var(--color-primary, #6B9CD8)",
           }}
         >
           + Add Metadata Field
@@ -453,10 +457,10 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
             sx={{
               height: "8px",
               borderRadius: "4px",
-              backgroundColor: "rgba(37, 99, 235, 0.1)",
+              backgroundColor: "rgba(95, 136, 199, 0.1)",
               "& .MuiLinearProgress-bar": {
                 borderRadius: "4px",
-                backgroundColor: "#2563eb",
+                backgroundColor: "var(--color-primary-600, #4B6FAF)",
               },
             }}
           />
@@ -500,7 +504,7 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
             textTransform: "none",
             fontWeight: 600,
             fontSize: "0.875rem",
-            backgroundColor: "#2563eb",
+            backgroundColor: "var(--color-primary-600, #4B6FAF)",
             "&:hover": {
               backgroundColor: "#1d4ed8",
             },

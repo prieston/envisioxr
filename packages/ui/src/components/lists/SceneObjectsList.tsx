@@ -97,9 +97,9 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = ({
         sx={{
           "& .MuiPaper-root": {
             borderRadius: "8px",
-            border: "1px solid rgba(226, 232, 240, 0.8)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
             boxShadow:
-              "0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+              "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
           },
         }}
       >
@@ -129,7 +129,7 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = ({
             borderRadius: "12px",
             padding: "8px",
             boxShadow:
-              "0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+              "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
           },
         }}
       >
@@ -152,12 +152,12 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = ({
               fontWeight: 500,
               fontSize: "0.875rem",
               color: "rgba(100, 116, 139, 0.85)",
-              border: "1px solid rgba(226, 232, 240, 0.8)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
               padding: "0 16px",
               transition: "border-color 0.15s ease, color 0.15s ease",
               "&:hover": {
-                borderColor: "rgba(37, 99, 235, 0.2)",
-                color: "#2563eb",
+                borderColor: "rgba(95, 136, 199, 0.2)",
+                color: "var(--color-primary, #6B9CD8)",
                 backgroundColor: "transparent",
               },
             }}

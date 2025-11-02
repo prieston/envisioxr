@@ -8,6 +8,7 @@ import {
   Card,
   Typography,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
@@ -51,30 +52,57 @@ export default function ProjectCard({
     <Card
       className={`glass-card ${selected ? "selected" : ""}`}
       onClick={handleCardClick}
-      sx={{
+      sx={(theme) => {
+        const base = theme.palette.primary.main;
+        const hoverTone = alpha(base, 0.14);
+        const borderTone = alpha(base, theme.palette.mode === "dark" ? 0.35 : 0.4);
+        const shadowTone = alpha(base, 0.18);
+
+        return {
         width: 300,
         position: "relative",
         overflow: "hidden",
         cursor: "pointer",
-        background: "rgba(255, 255, 255, 0.8)",
+        background:
+          theme.palette.mode === "dark"
+            ? "rgba(22, 24, 26, 0.85)"
+            : "#14171A",
         backdropFilter: "blur(20px) saturate(130%)",
         WebkitBackdropFilter: "blur(20px) saturate(130%)",
-        border: "1px solid rgba(37, 99, 235, 0.3)",
-        borderRadius: "16px",
-        boxShadow: "0 8px 32px rgba(37, 99, 235, 0.15)",
+        border:
+          theme.palette.mode === "dark"
+            ? "1px solid rgba(255, 255, 255, 0.08)"
+            : `1px solid ${alpha(base, 0.35)}`,
+        borderRadius: "4px",
+        boxShadow:
+          theme.palette.mode === "dark"
+            ? "0 1px 3px rgba(0, 0, 0, 0.35)"
+            : `0 8px 32px ${alpha(base, 0.18)}`,
         transition: "background-color 0.15s ease, border-color 0.15s ease",
         "&:hover": {
-          background: "rgba(37, 99, 235, 0.1)",
+          background:
+            theme.palette.mode === "dark"
+              ? "rgba(28, 31, 34, 0.9)"
+              : hoverTone,
+          borderColor:
+            theme.palette.mode === "dark"
+              ? "rgba(255, 255, 255, 0.18)"
+              : borderTone,
           // Trigger button underline animation on card hover
           "& .action-button::after": {
             maxWidth: "100%",
           },
         },
         "&.selected": {
-          background: "rgba(37, 99, 235, 0.12)",
-          borderColor: "#2563eb",
+          background:
+            theme.palette.mode === "dark"
+              ? alpha(base, 0.18)
+              : alpha(base, 0.16),
+          borderColor: base,
           boxShadow:
-            "0 20px 25px -5px rgba(37, 99, 235, 0.15), 0 10px 10px -5px rgba(37, 99, 235, 0.06), 0 0 0 2px rgba(37, 99, 235, 0.2)",
+            theme.palette.mode === "dark"
+              ? `0 1px 3px rgba(0, 0, 0, 0.5), 0 0 0 1px ${alpha(base, 0.35)}`
+              : `0 20px 25px -5px ${shadowTone}, 0 10px 10px -5px ${alpha(base, 0.09)}, 0 0 0 2px ${alpha(base, 0.28)}`,
         },
         "&::before": {
           content: '""',
@@ -84,7 +112,9 @@ export default function ProjectCard({
           right: 0,
           bottom: 0,
           background:
-            "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.1) 100%)",
+            theme.palette.mode === "dark"
+              ? "linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 50%, rgba(255, 255, 255, 0.02) 100%)"
+              : "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.1) 100%)",
           opacity: 0,
           transition: "opacity 0.15s ease",
           pointerEvents: "none",
@@ -93,6 +123,7 @@ export default function ProjectCard({
         "&:hover::before": {
           opacity: 1,
         },
+        };
       }}
     >
       <Chip
@@ -135,8 +166,8 @@ export default function ProjectCard({
           className="action-button"
           size="small"
           onClick={() => onGoToBuilder(project.id)}
-          sx={{
-            color: "#2563eb",
+          sx={(theme) => ({
+            color: theme.palette.primary.main,
             textTransform: "none",
             position: "relative",
             overflow: "visible",
@@ -155,12 +186,12 @@ export default function ProjectCard({
               width: "100%",
               maxWidth: 0,
               height: "1px",
-              background: "#2563eb",
+              background: theme.palette.primary.main,
               transition: "max-width 0.3s ease",
               borderRadius: 0,
             },
             "&:hover::after": { maxWidth: "100%" },
-          }}
+          })}
         >
           Open Project
           <ArrowForwardIcon sx={{ fontSize: 16, ml: 0.5 }} />

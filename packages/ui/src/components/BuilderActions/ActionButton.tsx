@@ -34,8 +34,8 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
         padding: "8px 12px",
         color: "var(--glass-text-secondary, #646464)",
         "&:hover": {
-          backgroundColor: "rgba(37, 99, 235, 0.1)",
-          color: "var(--glass-text-primary, #2563eb)",
+          backgroundColor: "rgba(95, 136, 199, 0.1)",
+          color: "var(--glass-text-primary, #6B9CD8)",
         },
         "&.Mui-disabled": {
           color: "var(--glass-text-disabled, #9ca3af)",

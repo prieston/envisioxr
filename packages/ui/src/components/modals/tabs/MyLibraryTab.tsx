@@ -233,15 +233,15 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                     boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
                     border:
                       selectedAsset?.id === asset.id
-                        ? "2px solid #2563eb"
+                        ? "2px solid var(--color-primary, #6B9CD8)"
                         : "2px solid transparent",
                     transition: "all 0.2s ease",
                     "&:hover": {
-                      boxShadow: "0 4px 12px rgba(37, 99, 235, 0.15)",
+                      boxShadow: "0 4px 12px rgba(107, 156, 216, 0.18)",
                       borderColor:
                         selectedAsset?.id === asset.id
-                          ? "#2563eb"
-                          : "rgba(37, 99, 235, 0.3)",
+                          ? "var(--color-primary, #6B9CD8)"
+                          : "rgba(107, 156, 216, 0.35)",
                     },
                   }}
                 >
@@ -267,7 +267,12 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                       }}
                     >
                       {asset.assetType === "cesiumIonAsset" ? (
-                        <Public sx={{ fontSize: "2.5rem", color: "#2563eb" }} />
+                        <Public
+                          sx={{
+                            fontSize: "2.5rem",
+                            color: "var(--color-primary, #6B9CD8)",
+                          }}
+                        />
                       ) : (
                         <ViewInAr
                           sx={{
@@ -307,11 +312,11 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                             height: "18px",
                             fontSize: "0.625rem",
                             fontWeight: 500,
-                            color: "#2563eb",
-                            backgroundColor: "rgba(37, 99, 235, 0.1)",
+                            color: "var(--color-primary, #6B9CD8)",
+                            backgroundColor: "rgba(107, 156, 216, 0.12)",
                             "& .MuiChip-icon": {
                               fontSize: "0.75rem",
-                              color: "#2563eb",
+                              color: "var(--color-primary, #6B9CD8)",
                             },
                           }}
                         />
@@ -552,9 +557,9 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
             {/* Fixed Action Bar */}
             <Box
               sx={{
-                borderTop: "1px solid rgba(226, 232, 240, 0.8)",
+                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
                 padding: 2,
-                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                backgroundColor: "rgba(20, 23, 26, 0.88)",
                 display: "flex",
                 gap: 1,
                 alignItems: "center",
@@ -569,12 +574,12 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                   textTransform: "none",
                   fontWeight: 500,
                   fontSize: "0.75rem",
-                  borderColor: "rgba(37, 99, 235, 0.3)",
-                  color: "#2563eb",
+                borderColor: "rgba(107, 156, 216, 0.35)",
+                color: "var(--color-primary, #6B9CD8)",
                   padding: "6px 16px",
                   "&:hover": {
-                    borderColor: "#2563eb",
-                    backgroundColor: "rgba(37, 99, 235, 0.08)",
+                  borderColor: "var(--color-primary, #6B9CD8)",
+                  backgroundColor: "rgba(107, 156, 216, 0.12)",
                   },
                 }}
               >
@@ -589,13 +594,13 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                   size="small"
                   sx={{
                     color: "rgba(100, 116, 139, 0.8)",
-                    border: "1px solid rgba(226, 232, 240, 0.8)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
                     borderRadius: "8px",
                     padding: "6px",
                     "&:hover": {
-                      backgroundColor: "rgba(37, 99, 235, 0.08)",
-                      borderColor: "#2563eb",
-                      color: "#2563eb",
+                        backgroundColor: "rgba(107, 156, 216, 0.12)",
+                        borderColor: "var(--color-primary, #6B9CD8)",
+                        color: "var(--color-primary, #6B9CD8)",
                     },
                   }}
                 >
@@ -607,13 +612,13 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                     onClick={handleSaveChanges}
                     size="small"
                     sx={{
-                      color: "#2563eb",
-                      border: "1px solid rgba(37, 99, 235, 0.3)",
+                      color: "var(--color-primary, #6B9CD8)",
+                      border: "1px solid rgba(107, 156, 216, 0.35)",
                       borderRadius: "8px",
                       padding: "6px",
                       "&:hover": {
-                        backgroundColor: "rgba(37, 99, 235, 0.1)",
-                        borderColor: "#2563eb",
+                        backgroundColor: "rgba(107, 156, 216, 0.14)",
+                        borderColor: "var(--color-primary, #6B9CD8)",
                       },
                     }}
                   >
@@ -624,7 +629,7 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                     size="small"
                     sx={{
                       color: "rgba(100, 116, 139, 0.8)",
-                      border: "1px solid rgba(226, 232, 240, 0.8)",
+                      border: "1px solid rgba(255, 255, 255, 0.08)",
                       borderRadius: "8px",
                       padding: "6px",
                       "&:hover": {
@@ -642,7 +647,7 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                 size="small"
                 sx={{
                   color: "rgba(100, 116, 139, 0.8)",
-                  border: "1px solid rgba(226, 232, 240, 0.8)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
                   borderRadius: "8px",
                   padding: "6px",
                   "&:hover": {
@@ -685,8 +690,8 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
             backdropFilter: "blur(20px) saturate(180%)",
             WebkitBackdropFilter: "blur(20px) saturate(180%)",
             boxShadow:
-              "0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
-            border: "1px solid rgba(226, 232, 240, 0.8)",
+              "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
           },
         }}
       >

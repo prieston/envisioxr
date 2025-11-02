@@ -118,7 +118,7 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
           alignItems: "center",
           gap: 2,
           p: "32px 32px 24px 32px",
-          borderBottom: "1px solid rgba(37, 99, 235, 0.08)",
+          borderBottom: "1px solid rgba(95, 136, 199, 0.08)",
         }}
       >
         <Box
@@ -129,9 +129,9 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            border: "1px solid rgba(37, 99, 235, 0.2)",
+            border: "1px solid rgba(95, 136, 199, 0.2)",
             borderRadius: 1,
-            backgroundColor: "rgba(37, 99, 235, 0.02)",
+            backgroundColor: "rgba(95, 136, 199, 0.02)",
           }}
         >
           <HelpOutlineIcon
@@ -141,7 +141,7 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
         <Box sx={{ flex: 1 }}>
           <DialogTitle
             sx={{
-              color: "var(--glass-text-primary, #2563eb)",
+              color: "var(--glass-text-primary, #6B9CD8)",
               fontWeight: 600,
               fontSize: "1.5rem",
               p: 0,
@@ -168,7 +168,7 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
         <Box
           sx={{
             borderBottom: 1,
-            borderColor: "rgba(37, 99, 235, 0.08)",
+            borderColor: "rgba(95, 136, 199, 0.08)",
             mb: 3,
           }}
         >
@@ -205,7 +205,7 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
           <Box sx={{ py: 3, minHeight: 400 }}>
             <Typography
               variant="h6"
-              sx={{ color: "var(--glass-text-primary, #2563eb)", mb: 2 }}
+          sx={{ color: "var(--glass-text-primary, #6B9CD8)", mb: 2 }}
             >
               What you can do with EnvisioXR
             </Typography>
@@ -213,21 +213,21 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
               <Box
                 key={index}
                 sx={{
-                  border: "1px solid rgba(37, 99, 235, 0.1)",
+                  border: "1px solid rgba(95, 136, 199, 0.1)",
                   borderRadius: 1,
                   p: 2.5,
                   mb: 1.5,
                   cursor: "pointer",
                   "&:hover": {
-                    backgroundColor: "rgba(37, 99, 235, 0.02)",
-                    borderColor: "rgba(37, 99, 235, 0.2)",
+                    backgroundColor: "rgba(95, 136, 199, 0.02)",
+                    borderColor: "rgba(95, 136, 199, 0.2)",
                   },
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
                   <Box
                     sx={{
-                      color: "var(--glass-text-primary, #2563eb)",
+                      color: "var(--glass-text-primary, #6B9CD8)",
                       mt: 0.5,
                     }}
                   >
@@ -237,7 +237,7 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
                     <Typography
                       variant="subtitle1"
                       sx={{
-                        color: "var(--glass-text-primary, #2563eb)",
+                        color: "var(--glass-text-primary, #6B9CD8)",
                         fontWeight: 600,
                         mb: 0.5,
                       }}
@@ -261,7 +261,7 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
           <Box sx={{ py: 3, minHeight: 400 }}>
             <Typography
               variant="h6"
-              sx={{ color: "var(--glass-text-primary, #2563eb)", mb: 2 }}
+          sx={{ color: "var(--glass-text-primary, #6B9CD8)", mb: 2 }}
             >
               Video Tutorials
             </Typography>
@@ -269,21 +269,21 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
               <Box
                 key={index}
                 sx={{
-                  border: "1px solid rgba(37, 99, 235, 0.1)",
+                  border: "1px solid rgba(95, 136, 199, 0.1)",
                   borderRadius: 1,
                   p: 2.5,
                   mb: 1.5,
                   cursor: "pointer",
                   "&:hover": {
-                    backgroundColor: "rgba(37, 99, 235, 0.02)",
-                    borderColor: "rgba(37, 99, 235, 0.2)",
+                    backgroundColor: "rgba(95, 136, 199, 0.02)",
+                    borderColor: "rgba(95, 136, 199, 0.2)",
                   },
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
                   <Box
                     sx={{
-                      color: "var(--glass-text-primary, #2563eb)",
+                      color: "var(--glass-text-primary, #6B9CD8)",
                       mt: 0.5,
                     }}
                   >
@@ -301,7 +301,7 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
                       <Typography
                         variant="subtitle1"
                         sx={{
-                          color: "var(--glass-text-primary, #2563eb)",
+                          color: "var(--glass-text-primary, #6B9CD8)",
                           fontWeight: 600,
                         }}
                       >
@@ -311,8 +311,8 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
                         label={tutorial.duration}
                         size="small"
                         sx={{
-                          backgroundColor: "rgba(37, 99, 235, 0.1)",
-                          color: "var(--glass-text-primary, #2563eb)",
+                          backgroundColor: "rgba(95, 136, 199, 0.1)",
+                          color: "var(--glass-text-primary, #6B9CD8)",
                           fontSize: "0.75rem",
                         }}
                       />
@@ -334,7 +334,7 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
           <Box sx={{ py: 3, minHeight: 400 }}>
             <Typography
               variant="h6"
-              sx={{ color: "var(--glass-text-primary, #2563eb)", mb: 2 }}
+          sx={{ color: "var(--glass-text-primary, #6B9CD8)", mb: 2 }}
             >
               Frequently Asked Questions
             </Typography>
@@ -342,14 +342,14 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
               <Box
                 key={index}
                 sx={{
-                  borderBottom: "1px solid rgba(37, 99, 235, 0.08)",
+                  borderBottom: "1px solid rgba(95, 136, 199, 0.08)",
                   py: 2,
                 }}
               >
                 <Typography
                   variant="subtitle1"
                   sx={{
-                    color: "var(--glass-text-primary, #2563eb)",
+                    color: "var(--glass-text-primary, #6B9CD8)",
                     fontWeight: 600,
                     mb: 1,
                   }}
@@ -374,15 +374,15 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
       <DialogActions
         sx={{
           p: "24px 32px 32px 32px",
-          borderTop: "1px solid rgba(37, 99, 235, 0.08)",
+          borderTop: "1px solid rgba(95, 136, 199, 0.08)",
         }}
       >
         <Button
           onClick={onClose}
           variant="outlined"
           sx={{
-            borderColor: "rgba(37, 99, 235, 0.2)",
-            color: "var(--glass-text-primary, #2563eb)",
+            borderColor: "rgba(95, 136, 199, 0.2)",
+            color: "var(--glass-text-primary, #6B9CD8)",
             fontWeight: 500,
             p: "12px 24px",
             borderRadius: "12px",

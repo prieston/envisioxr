@@ -15,12 +15,12 @@ export default function InfoBox({ onDismiss, open }: InfoBoxProps) {
         width: "100%",
         maxHeight: open ? "200px" : "0px",
         overflow: "hidden",
-        backgroundColor: "var(--glass-bg, rgba(255, 255, 255, 0.8))",
+        backgroundColor: "var(--glass-bg, #14171A)",
         backdropFilter: "blur(20px) saturate(130%)",
         WebkitBackdropFilter: "blur(20px) saturate(130%)",
-        border: "1px solid var(--glass-border, rgba(37, 99, 235, 0.3))",
+        border: "1px solid var(--glass-border, rgba(95, 136, 199, 0.3))",
         borderRadius: "16px",
-        boxShadow: "var(--glass-shadow, 0 8px 32px rgba(37, 99, 235, 0.15))",
+        boxShadow: "var(--glass-shadow, 0 8px 32px rgba(95, 136, 199, 0.15))",
         marginBottom: "24px",
         transition: "max-height 0.2s ease, opacity 0.2s ease",
         opacity: open ? 1 : 0,
@@ -46,7 +46,7 @@ export default function InfoBox({ onDismiss, open }: InfoBoxProps) {
             width: "40px",
             height: "40px",
             borderRadius: "50%",
-            backgroundColor: "rgba(37, 99, 235, 0.1)",
+            backgroundColor: "rgba(95, 136, 199, 0.1)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -55,7 +55,7 @@ export default function InfoBox({ onDismiss, open }: InfoBoxProps) {
         >
           <HelpOutlineIcon
             sx={{
-              color: "var(--glass-text-primary, #2563eb)",
+              color: "var(--glass-text-primary, #6B9CD8)",
               fontSize: "20px",
             }}
           />
@@ -67,7 +67,7 @@ export default function InfoBox({ onDismiss, open }: InfoBoxProps) {
           <Typography
             variant="h6"
             sx={{
-              color: "var(--glass-text-primary, #2563eb)",
+              color: "var(--glass-text-primary, #6B9CD8)",
               fontWeight: 600,
               m: 0,
             }}
@@ -99,12 +99,12 @@ export default function InfoBox({ onDismiss, open }: InfoBoxProps) {
               size="small"
               onClick={onDismiss}
               sx={{
-                borderColor: "var(--glass-border, rgba(37, 99, 235, 0.3))",
-                color: "var(--glass-text-primary, #2563eb)",
+                borderColor: "var(--glass-border, rgba(95, 136, 199, 0.3))",
+                color: "var(--glass-text-primary, #6B9CD8)",
                 fontSize: "0.875rem",
                 "&:hover": {
-                  borderColor: "var(--glass-text-primary, #2563eb)",
-                  backgroundColor: "rgba(37, 99, 235, 0.05)",
+                  borderColor: "var(--glass-text-primary, #6B9CD8)",
+                  backgroundColor: "rgba(95, 136, 199, 0.05)",
                 },
               }}
             >
@@ -116,8 +116,8 @@ export default function InfoBox({ onDismiss, open }: InfoBoxProps) {
               sx={{
                 color: "var(--glass-text-secondary, #646464)",
                 "&:hover": {
-                  backgroundColor: "rgba(37, 99, 235, 0.1)",
-                  color: "var(--glass-text-primary, #2563eb)",
+                  backgroundColor: "rgba(95, 136, 199, 0.1)",
+                  color: "var(--glass-text-primary, #6B9CD8)",
                 },
               }}
             >

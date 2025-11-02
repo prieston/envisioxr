@@ -66,7 +66,7 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
           borderRadius: "16px",
           backgroundColor: "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(20px) saturate(180%)",
-          border: "1px solid rgba(226, 232, 240, 0.8)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
         },
       }}
     >
@@ -75,7 +75,7 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
           padding: "20px 24px",
           backgroundColor: "rgba(248, 250, 252, 0.6)",
         }}
@@ -117,7 +117,7 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
             height: "400px",
             borderRadius: "12px",
             overflow: "hidden",
-            border: "1px solid rgba(226, 232, 240, 0.8)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
           }}
         >
           <Canvas
@@ -134,7 +134,7 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
               fallback={
                 <mesh>
                   <boxGeometry args={[1, 1, 1]} />
-                  <meshStandardMaterial color="#2563eb" wireframe />
+                  <meshStandardMaterial color="#6B9CD8" wireframe />
                 </mesh>
               }
             >
@@ -163,12 +163,15 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
           disabled={capturing}
           variant="contained"
           startIcon={<CameraAlt />}
-          sx={{
+          sx={(theme) => ({
             textTransform: "none",
             fontSize: "0.813rem",
             fontWeight: 500,
-            backgroundColor: "#2563eb",
-          }}
+            backgroundColor: theme.palette.primary.main,
+            "&:hover": {
+              backgroundColor: theme.palette.primary.dark,
+            },
+          })}
         >
           {capturing ? "Capturing..." : "Capture Screenshot"}
         </Button>

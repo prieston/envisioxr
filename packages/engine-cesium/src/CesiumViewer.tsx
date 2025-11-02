@@ -321,10 +321,24 @@ export default function CesiumViewer() {
         // Store viewer reference in the store
         setCesiumViewer(viewerRef.current);
 
-        // Safer defaults for mobile GPUs
+        // Safer defaults for mobile GPUs and calmer earth presentation
         const scene = viewerRef.current.scene as any;
         scene.highDynamicRange = false;
         scene.logarithmicDepthBuffer = false; // avoid precision issues with custom materials
+
+        if (scene?.globe) {
+          const globe = scene.globe;
+          globe.baseColor = Cesium.Color.fromCssColorString("#1a1a1c");
+          globe.dynamicAtmosphereLighting = true;
+        }
+
+        if (scene?.skyAtmosphere) {
+          const atmosphere = scene.skyAtmosphere;
+          atmosphere.hueShift = -0.08;
+          atmosphere.saturationShift = -0.22;
+          atmosphere.brightnessShift = -0.18;
+        }
+
         viewerRef.current.resolutionScale = Math.min(
           window.devicePixelRatio || 1,
           1.25
@@ -845,8 +859,8 @@ export default function CesiumViewer() {
               style={{
                 width: 40,
                 height: 40,
-                border: "3px solid rgba(37, 99, 235, 0.2)",
-                borderTopColor: "#2563eb",
+                border: "3px solid rgba(95, 136, 199, 0.2)",
+                borderTopColor: "var(--color-primary-600, #4B6FAF)",
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
                 margin: "0 auto 12px",
@@ -857,7 +871,13 @@ export default function CesiumViewer() {
                 to { transform: rotate(360deg); }
               }
             `}</style>
-            <p style={{ color: "#2563eb", fontSize: 14, fontWeight: 500 }}>
+            <p
+              style={{
+                color: "var(--color-primary, #6B9CD8)",
+                fontSize: 14,
+                fontWeight: 500,
+              }}
+            >
               Loading Scene...
             </p>
           </div>

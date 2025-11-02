@@ -82,7 +82,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
       sx={{
         boxShadow: "none",
         backgroundColor: "transparent",
-        border: "1px solid rgba(226, 232, 240, 0.8)",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "8px",
         overflow: "hidden",
       }}
@@ -99,7 +99,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 fontWeight: 600,
                 fontSize: "0.75rem",
                 color: "rgba(51, 65, 85, 0.95)",
-                borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
                 padding: "12px 16px",
               }}
             >
@@ -110,7 +110,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 fontWeight: 600,
                 fontSize: "0.75rem",
                 color: "rgba(51, 65, 85, 0.95)",
-                borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
                 padding: "12px 16px",
               }}
             >
@@ -122,7 +122,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                   fontWeight: 600,
                   fontSize: "0.75rem",
                   color: "rgba(51, 65, 85, 0.95)",
-                  borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
                   padding: "12px 16px",
                   width: "60px",
                 }}
@@ -229,7 +229,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         <Box
           sx={{
             padding: "12px 16px",
-            borderTop: "1px solid rgba(226, 232, 240, 0.8)",
+            borderTop: "1px solid rgba(255, 255, 255, 0.08)",
             backgroundColor: "rgba(248, 250, 252, 0.5)",
           }}
         >
@@ -237,11 +237,11 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
             size="small"
             onClick={handleAdd}
             sx={{
-              color: "#2563eb",
+              color: "var(--color-primary, #6B9CD8)",
               fontSize: "0.813rem",
               gap: 0.5,
               "&:hover": {
-                backgroundColor: "rgba(37, 99, 235, 0.1)",
+                backgroundColor: "rgba(95, 136, 199, 0.1)",
               },
             }}
           >

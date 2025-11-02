@@ -1,4 +1,4 @@
-import { styled } from "@mui/material/styles";
+import { styled, alpha } from "@mui/material/styles";
 import { List, ListItem, ListItemText, IconButton } from "@mui/material";
 import type { ListProps } from "@mui/material/List";
 import type { ListItemProps } from "@mui/material/ListItem";
@@ -15,25 +15,35 @@ export const ObjectListItem: React.FC<ListItemProps & { selected: boolean }> =
     marginBottom: theme.spacing(1),
     padding: theme.spacing(1.5, 2),
     backgroundColor: selected
-      ? "rgba(37, 99, 235, 0.12)"
-      : "rgba(248, 250, 252, 0.6)",
-    color: selected ? "#2563eb" : "rgba(51, 65, 85, 0.95)",
+      ? alpha(theme.palette.primary.main, 0.18)
+      : theme.palette.mode === "dark"
+        ? theme.palette.background.paper
+        : "rgba(248, 250, 252, 0.6)",
+    color: selected
+      ? theme.palette.primary.main
+      : theme.palette.mode === "dark"
+        ? theme.palette.text.primary
+        : "rgba(51, 65, 85, 0.95)",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     flex: 1,
     border: "1px solid",
     borderColor: selected
-      ? "rgba(37, 99, 235, 0.2)"
-      : "rgba(226, 232, 240, 0.8)",
+      ? alpha(theme.palette.primary.main, 0.3)
+      : theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.08)"
+        : "rgba(255, 255, 255, 0.08)",
     transition:
       "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease",
     "&:hover": {
       backgroundColor: selected
-        ? "rgba(37, 99, 235, 0.16)"
-        : "rgba(248, 250, 252, 0.9)",
-      borderColor: "rgba(37, 99, 235, 0.2)",
-      color: "#2563eb",
+        ? alpha(theme.palette.primary.main, 0.24)
+        : theme.palette.mode === "dark"
+          ? alpha(theme.palette.primary.main, 0.1)
+          : "rgba(248, 250, 252, 0.9)",
+      borderColor: alpha(theme.palette.primary.main, 0.3),
+      color: theme.palette.primary.main,
     },
   }));
 
@@ -46,7 +56,10 @@ export const StyledListItemText: React.FC<any> = styled(ListItemText)(
     },
     "& .MuiListItemText-secondary": {
       fontSize: "0.75rem",
-      color: "rgba(100, 116, 139, 0.85)",
+      color:
+        theme.palette.mode === "dark"
+          ? alpha(theme.palette.text.secondary, 0.9)
+          : "rgba(100, 116, 139, 0.85)",
       marginTop: "4px",
     },
   })
@@ -54,12 +67,15 @@ export const StyledListItemText: React.FC<any> = styled(ListItemText)(
 
 export const StyledIconButton: React.FC<IconButtonProps> = styled(IconButton)(
   ({ theme }) => ({
-    color: "rgba(100, 116, 139, 0.85)",
+    color:
+      theme.palette.mode === "dark"
+        ? theme.palette.text.secondary
+        : "rgba(100, 116, 139, 0.85)",
     borderRadius: "8px",
     transition: "color 0.15s ease, background-color 0.15s ease",
     "&:hover": {
-      backgroundColor: "rgba(37, 99, 235, 0.08)",
-      color: "#2563eb",
+      backgroundColor: alpha(theme.palette.primary.main, 0.12),
+      color: theme.palette.primary.main,
     },
   })
 );

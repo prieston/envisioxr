@@ -123,48 +123,48 @@ const CesiumBasemapSelector = ({ onBasemapChange, currentBasemap = "none", disab
     }
     return (_jsxs(SettingContainer, { children: [_jsx(SettingLabel, { children: "Basemap" }), _jsx(FormControl, { fullWidth: true, size: "small", children: _jsxs(Select, { value: selectedBasemap, onChange: (e) => handleBasemapChange(e.target.value), disabled: disabled, sx: {
                         borderRadius: "8px",
-                        backgroundColor: "rgba(255, 255, 255, 0.8)",
+                        backgroundColor: "#14171A",
                         fontSize: "0.875rem",
                         "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "rgba(226, 232, 240, 0.8)",
+                            borderColor: "rgba(255, 255, 255, 0.08)",
                         },
                         "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "rgba(37, 99, 235, 0.4)",
+                            borderColor: "rgba(95, 136, 199, 0.4)",
                         },
                         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#2563eb",
+                            borderColor: "var(--color-primary, #6B9CD8)",
                             borderWidth: "2px",
                         },
                     }, children: [_jsx(MenuItem, { value: "cesium", sx: {
                                 fontSize: "0.875rem",
                                 "&.Mui-selected": {
-                                    backgroundColor: "rgba(37, 99, 235, 0.08)",
+                                    backgroundColor: "rgba(95, 136, 199, 0.08)",
                                     "&:hover": {
-                                        backgroundColor: "rgba(37, 99, 235, 0.12)",
+                                        backgroundColor: "rgba(95, 136, 199, 0.12)",
                                     },
                                 },
                             }, children: "Cesium World Imagery" }), _jsx(MenuItem, { value: "google", sx: {
                                 fontSize: "0.875rem",
                                 "&.Mui-selected": {
-                                    backgroundColor: "rgba(37, 99, 235, 0.08)",
+                                    backgroundColor: "rgba(95, 136, 199, 0.08)",
                                     "&:hover": {
-                                        backgroundColor: "rgba(37, 99, 235, 0.12)",
+                                        backgroundColor: "rgba(95, 136, 199, 0.12)",
                                     },
                                 },
                             }, children: "Google Satellite" }), _jsx(MenuItem, { value: "google-photorealistic", sx: {
                                 fontSize: "0.875rem",
                                 "&.Mui-selected": {
-                                    backgroundColor: "rgba(37, 99, 235, 0.08)",
+                                    backgroundColor: "rgba(95, 136, 199, 0.08)",
                                     "&:hover": {
-                                        backgroundColor: "rgba(37, 99, 235, 0.12)",
+                                        backgroundColor: "rgba(95, 136, 199, 0.12)",
                                     },
                                 },
                             }, children: "Google Photorealistic" }), _jsx(MenuItem, { value: "none", sx: {
                                 fontSize: "0.875rem",
                                 "&.Mui-selected": {
-                                    backgroundColor: "rgba(37, 99, 235, 0.08)",
+                                    backgroundColor: "rgba(95, 136, 199, 0.08)",
                                     "&:hover": {
-                                        backgroundColor: "rgba(37, 99, 235, 0.12)",
+                                        backgroundColor: "rgba(95, 136, 199, 0.12)",
                                     },
                                 },
                             }, children: "No Basemap" })] }) })] }));
