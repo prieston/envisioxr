@@ -124,42 +124,64 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
 
     return (
       <Box
-        sx={{
-          marginBottom: 2,
-          padding: 2,
-          backgroundColor: "rgba(248, 250, 252, 0.6)",
-          borderRadius: "12px",
-          border: "1px solid rgba(226, 232, 240, 0.8)",
+        sx={(theme) => ({
+          marginBottom: theme.spacing(2.5),
+          padding: theme.spacing(3),
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? theme.palette.background.paper
+              : "rgba(248, 250, 252, 0.6)",
+          borderRadius: 4,
+          border:
+            theme.palette.mode === "dark"
+              ? "1px solid rgba(255, 255, 255, 0.08)"
+              : "1px solid rgba(255, 255, 255, 0.08)",
           transition: "background-color 0.15s ease, border-color 0.15s ease",
           "&:hover": {
-            backgroundColor: "rgba(248, 250, 252, 0.9)",
-            borderColor: "rgba(37, 99, 235, 0.2)",
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? theme.palette.background.default
+                : "rgba(248, 250, 252, 0.9)",
+            borderColor:
+              theme.palette.mode === "dark"
+                ? "rgba(255, 255, 255, 0.12)"
+                : "rgba(95, 136, 199, 0.2)",
           },
           "&:last-child": {
             marginBottom: 0,
           },
-        }}
+        })}
       >
         <Typography
-          sx={{
-            fontSize: "0.813rem",
-            fontWeight: 600,
-            marginBottom: 0.75,
-            color: "rgba(51, 65, 85, 0.95)",
-            letterSpacing: "0.01em",
-          }}
+          sx={(theme) => ({
+            fontSize: "0.75rem",
+            fontWeight: 500,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            marginBottom: theme.spacing(1),
+            color:
+              theme.palette.mode === "dark"
+                ? theme.palette.text.primary
+                : "rgba(51, 65, 85, 0.95)",
+          })}
         >
           IoT Connection Settings
         </Typography>
 
         {/* Enable IoT Device Switch */}
         <Box
-          sx={{
-            backgroundColor: "#ffffff",
-            borderRadius: "8px",
-            border: "1px solid rgba(226, 232, 240, 0.8)",
-            mb: 2,
-          }}
+          sx={(theme) => ({
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? theme.palette.background.paper
+                : theme.palette.common.white,
+            borderRadius: 4,
+            border:
+              theme.palette.mode === "dark"
+                ? "1px solid rgba(255, 255, 255, 0.08)"
+                : "1px solid rgba(255, 255, 255, 0.08)",
+            mb: theme.spacing(2),
+          })}
         >
           <FormControlLabel
             control={
@@ -170,18 +192,18 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                 onChange={(e) =>
                   handlePropertyChange("enabled", e.target.checked)
                 }
-                sx={{
+                sx={(theme) => ({
                   "& .MuiSwitch-switchBase.Mui-checked": {
-                    color: "#2563eb",
+                    color: theme.palette.primary.main,
                   },
                   "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                    backgroundColor: "#2563eb",
+                    backgroundColor: theme.palette.primary.main,
                   },
-                }}
+                })}
               />
             }
             label="Enable IoT Device"
-            sx={{
+            sx={(theme) => ({
               margin: 0,
               padding: "8.5px 14px",
               width: "100%",
@@ -190,10 +212,10 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
               "& .MuiFormControlLabel-label": {
                 fontSize: "0.75rem",
                 fontWeight: 400,
-                color: "rgba(51, 65, 85, 0.9)",
+                color: theme.palette.text.secondary,
                 flex: 1,
               },
-            }}
+            })}
             labelPlacement="start"
           />
         </Box>
@@ -203,12 +225,17 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
             {/* Service Type */}
             <Box>
               <Typography
-                sx={{
+                sx={(theme) => ({
                   fontSize: "0.75rem",
                   fontWeight: 500,
-                  color: "rgba(100, 116, 139, 0.8)",
-                  mb: 0.75,
-                }}
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.text.secondary
+                      : "rgba(100, 116, 139, 0.8)",
+                  mb: theme.spacing(1),
+                })}
               >
                 Service Type
               </Typography>
@@ -233,12 +260,17 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
             {/* API Endpoint */}
             <Box>
               <Typography
-                sx={{
+                sx={(theme) => ({
                   fontSize: "0.75rem",
                   fontWeight: 500,
-                  color: "rgba(100, 116, 139, 0.8)",
-                  mb: 0.75,
-                }}
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.text.secondary
+                      : "rgba(100, 116, 139, 0.8)",
+                  mb: theme.spacing(1),
+                })}
               >
                 API Endpoint
               </Typography>
@@ -257,12 +289,17 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
             {/* Update Interval */}
             <Box>
               <Typography
-                sx={{
+                sx={(theme) => ({
                   fontSize: "0.75rem",
                   fontWeight: 500,
-                  color: "rgba(100, 116, 139, 0.8)",
-                  mb: 0.75,
-                }}
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.text.secondary
+                      : "rgba(100, 116, 139, 0.8)",
+                  mb: theme.spacing(1),
+                })}
               >
                 Update Interval (ms)
               </Typography>
@@ -282,11 +319,17 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
 
             {/* Auto Refresh Switch */}
             <Box
-              sx={{
-                backgroundColor: "#ffffff",
-                borderRadius: "8px",
-                border: "1px solid rgba(226, 232, 240, 0.8)",
-              }}
+              sx={(theme) => ({
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.background.paper
+                    : theme.palette.common.white,
+                borderRadius: 4,
+                border:
+                  theme.palette.mode === "dark"
+                    ? "1px solid rgba(255, 255, 255, 0.08)"
+                    : "1px solid rgba(255, 255, 255, 0.08)",
+              })}
             >
               <FormControlLabel
                 control={
@@ -297,19 +340,19 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                     onChange={(e) =>
                       handlePropertyChange("autoRefresh", e.target.checked)
                     }
-                    sx={{
+                    sx={(theme) => ({
                       "& .MuiSwitch-switchBase.Mui-checked": {
-                        color: "#2563eb",
+                        color: theme.palette.primary.main,
                       },
                       "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
                         {
-                          backgroundColor: "#2563eb",
+                          backgroundColor: theme.palette.primary.main,
                         },
-                    }}
+                    })}
                   />
                 }
                 label="Auto Refresh"
-                sx={{
+                sx={(theme) => ({
                   margin: 0,
                   padding: "8.5px 14px",
                   width: "100%",
@@ -318,10 +361,10 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                   "& .MuiFormControlLabel-label": {
                     fontSize: "0.75rem",
                     fontWeight: 400,
-                    color: "rgba(51, 65, 85, 0.9)",
+                    color: theme.palette.text.secondary,
                     flex: 1,
                   },
-                }}
+                })}
                 labelPlacement="start"
               />
             </Box>
@@ -347,7 +390,7 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                   sx={{
                     backgroundColor: "#ffffff",
                     borderRadius: "8px",
-                    border: "1px solid rgba(226, 232, 240, 0.8)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
                   }}
                 >
                   <FormControlLabel
@@ -361,11 +404,11 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                         }
                         sx={{
                           "& .MuiSwitch-switchBase.Mui-checked": {
-                            color: "#2563eb",
+                            color: "var(--color-primary, #6B9CD8)",
                           },
                           "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
                             {
-                              backgroundColor: "#2563eb",
+                              backgroundColor: "var(--color-primary-600, #4B6FAF)",
                             },
                         }}
                       />
@@ -468,13 +511,13 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                   textTransform: "none",
                   fontWeight: 500,
                   fontSize: "0.75rem",
-                  borderColor: "rgba(37, 99, 235, 0.3)",
-                  color: "#2563eb",
+                  borderColor: "rgba(95, 136, 199, 0.3)",
+                  color: "var(--color-primary, #6B9CD8)",
                   padding: "6px 16px",
                   mb: 2,
                   "&:hover": {
-                    borderColor: "#2563eb",
-                    backgroundColor: "rgba(37, 99, 235, 0.08)",
+                    borderColor: "var(--color-primary, #6B9CD8)",
+                    backgroundColor: "rgba(95, 136, 199, 0.08)",
                   },
                 }}
               >
@@ -499,7 +542,7 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
                   sx={{
                     backgroundColor: "#ffffff",
                     borderRadius: "8px",
-                    border: "1px solid rgba(226, 232, 240, 0.8)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
                     padding: "14px",
                   }}
                 >

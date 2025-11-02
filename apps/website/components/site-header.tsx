@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const navigation = [
@@ -15,9 +16,17 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-container items-center justify-between px-6 py-6">
         <Link
           href="/"
-          className="text-xs font-medium uppercase tracking-[0.4em] text-text-tertiary"
+          className="flex items-center gap-3 text-xs font-medium uppercase tracking-[0.4em] text-text-tertiary"
         >
-          Klorad
+          <Image
+            src="/klorad-logo.png"
+            alt="Klorad mark"
+            width={24}
+            height={24}
+            className="h-6 w-6"
+            priority
+          />
+          <span>Klorad</span>
         </Link>
         <nav className="flex items-center gap-6 text-sm text-text-secondary">
           {navigation.map((item) => (

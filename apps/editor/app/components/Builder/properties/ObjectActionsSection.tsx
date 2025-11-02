@@ -39,12 +39,12 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
             textTransform: "none",
             fontWeight: 500,
             fontSize: "0.75rem",
-            borderColor: "rgba(37, 99, 235, 0.3)",
-            color: "#2563eb",
+            borderColor: "rgba(95, 136, 199, 0.3)",
+            color: "var(--color-primary, #6B9CD8)",
             padding: "6px 16px",
             "&:hover": {
-              borderColor: "#2563eb",
-              backgroundColor: "rgba(37, 99, 235, 0.08)",
+              borderColor: "var(--color-primary, #6B9CD8)",
+              backgroundColor: "rgba(95, 136, 199, 0.08)",
             },
           }}
         >
@@ -61,12 +61,12 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
               textTransform: "none",
               fontWeight: 500,
               fontSize: "0.75rem",
-              borderColor: "rgba(37, 99, 235, 0.3)",
-              color: "#2563eb",
+              borderColor: "rgba(95, 136, 199, 0.3)",
+              color: "var(--color-primary, #6B9CD8)",
               padding: "6px 16px",
               "&:hover": {
-                borderColor: "#2563eb",
-                backgroundColor: "rgba(37, 99, 235, 0.08)",
+                borderColor: "var(--color-primary, #6B9CD8)",
+                backgroundColor: "rgba(95, 136, 199, 0.08)",
               },
             }}
             disabled={repositioning}
@@ -103,16 +103,16 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
                 textTransform: "none",
                 fontWeight: 500,
                 fontSize: "0.75rem",
-                borderColor: "rgba(37, 99, 235, 0.3)",
-                color: "#2563eb",
+                borderColor: "rgba(95, 136, 199, 0.3)",
+                color: "var(--color-primary, #6B9CD8)",
                 padding: "6px 16px",
                 "&:hover": {
-                  borderColor: "#2563eb",
-                  backgroundColor: "rgba(37, 99, 235, 0.08)",
+                  borderColor: "var(--color-primary, #6B9CD8)",
+                  backgroundColor: "rgba(95, 136, 199, 0.08)",
                 },
                 ...(transformMode === "translate" && {
-                  backgroundColor: "rgba(37, 99, 235, 0.2)",
-                  borderColor: "#2563eb",
+                  backgroundColor: "rgba(95, 136, 199, 0.2)",
+                  borderColor: "var(--color-primary, #6B9CD8)",
                 }),
               }}
             >
@@ -128,16 +128,16 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
                 textTransform: "none",
                 fontWeight: 500,
                 fontSize: "0.75rem",
-                borderColor: "rgba(37, 99, 235, 0.3)",
-                color: "#2563eb",
+                borderColor: "rgba(95, 136, 199, 0.3)",
+                color: "var(--color-primary, #6B9CD8)",
                 padding: "6px 16px",
                 "&:hover": {
-                  borderColor: "#2563eb",
-                  backgroundColor: "rgba(37, 99, 235, 0.08)",
+                  borderColor: "var(--color-primary, #6B9CD8)",
+                  backgroundColor: "rgba(95, 136, 199, 0.08)",
                 },
                 ...(transformMode === "rotate" && {
-                  backgroundColor: "rgba(37, 99, 235, 0.2)",
-                  borderColor: "#2563eb",
+                  backgroundColor: "rgba(95, 136, 199, 0.2)",
+                  borderColor: "var(--color-primary, #6B9CD8)",
                 }),
               }}
             >

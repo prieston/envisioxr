@@ -13,6 +13,7 @@ import {
   Box,
   Divider,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { useSceneStore } from "@envisio/core";
 
 interface ProjectSettingsModalProps {
@@ -36,24 +37,32 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
       maxWidth="sm"
       fullWidth
       PaperProps={{
-        sx: {
+        sx: (theme) => ({
           borderRadius: "16px",
-          backgroundColor: "var(--glass-bg, rgba(255, 255, 255, 0.95))",
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? alpha("#0E0F10", 0.92)
+              : "var(--glass-bg, rgba(255, 255, 255, 0.95))",
           backdropFilter: "blur(24px)",
-        },
+          border:
+            theme.palette.mode === "dark"
+              ? "1px solid rgba(255, 255, 255, 0.08)"
+              : undefined,
+        }),
       }}
     >
       <DialogTitle
-        sx={{
+        sx={(theme) => ({
           fontSize: "1.25rem",
           fontWeight: 600,
           pb: 1,
-        }}
+          color: theme.palette.text.primary,
+        })}
       >
         Project Settings
       </DialogTitle>
 
-      <Divider sx={{ mb: 2 }} />
+      <Divider sx={{ mb: 2, borderColor: (theme) => theme.palette.divider }} />
 
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -61,14 +70,17 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           <Box>
             <Typography
               variant="subtitle2"
-              sx={{
+              sx={(theme) => ({
                 fontWeight: 600,
                 mb: 2,
-                color: "rgba(15, 23, 42, 0.7)",
+                color:
+                  theme.palette.mode === "dark"
+                    ? alpha(theme.palette.text.secondary, 0.9)
+                    : "rgba(15, 23, 42, 0.7)",
                 textTransform: "uppercase",
                 fontSize: "0.75rem",
                 letterSpacing: "0.5px",
-              }}
+              })}
             >
               Interface
             </Typography>
@@ -78,31 +90,35 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                 <Switch
                   checked={bottomPanelVisible}
                   onChange={(e) => setBottomPanelVisible(e.target.checked)}
-                  sx={{
+                  sx={(theme) => ({
                     "& .MuiSwitch-switchBase.Mui-checked": {
-                      color: "#2563eb",
+                      color: theme.palette.primary.main,
                     },
                     "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                      backgroundColor: "#2563eb",
+                      backgroundColor: theme.palette.primary.main,
                     },
-                  }}
+                  })}
                 />
               }
               label={
                 <Box>
                   <Typography
-                    sx={{
+                    sx={(theme) => ({
                       fontSize: "0.875rem",
                       fontWeight: 500,
-                    }}
+                      color: theme.palette.text.primary,
+                    })}
                   >
                     Show Bottom Panel
                   </Typography>
                   <Typography
-                    sx={{
+                    sx={(theme) => ({
                       fontSize: "0.75rem",
-                      color: "rgba(15, 23, 42, 0.6)",
-                    }}
+                      color:
+                        theme.palette.mode === "dark"
+                          ? theme.palette.text.secondary
+                          : "rgba(15, 23, 42, 0.6)",
+                    })}
                   >
                     Display the timeline and observation points panel
                   </Typography>
@@ -120,15 +136,19 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
         <Button
           onClick={onClose}
           variant="contained"
-          sx={{
-            backgroundColor: "#2563eb",
+          sx={(theme) => ({
+            backgroundColor: theme.palette.primary.main,
             "&:hover": {
-              backgroundColor: "#1d4ed8",
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.primary.main, 0.85)
+                  : "#1d4ed8",
             },
             textTransform: "none",
             borderRadius: "8px",
             px: 3,
-          }}
+            color: theme.palette.getContrastText(theme.palette.primary.main),
+          })}
         >
           Done
         </Button>

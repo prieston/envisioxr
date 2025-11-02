@@ -188,7 +188,7 @@ const CesiumFeatureProperties: React.FC<CesiumFeaturePropertiesProps> = ({
               expandIcon={<ExpandMoreIcon />}
               sx={{
                 backgroundColor: "rgba(248, 250, 252, 0.6)",
-                borderLeft: "3px solid rgba(37, 99, 235, 0.6)",
+                borderLeft: "3px solid rgba(95, 136, 199, 0.6)",
                 minHeight: "48px",
                 "&.Mui-expanded": {
                   minHeight: "48px",
@@ -223,7 +223,7 @@ const CesiumFeatureProperties: React.FC<CesiumFeaturePropertiesProps> = ({
                   sx={{
                     fontSize: "0.7rem",
                     color: "rgba(100, 116, 139, 0.8)",
-                    backgroundColor: "rgba(37, 99, 235, 0.1)",
+                    backgroundColor: "rgba(95, 136, 199, 0.1)",
                     padding: "2px 8px",
                     borderRadius: "12px",
                     fontWeight: 500,

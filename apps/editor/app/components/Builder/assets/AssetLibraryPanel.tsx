@@ -138,12 +138,12 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
             transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
             textTransform: "none",
             "&:hover": {
-              backgroundColor: "rgba(37, 99, 235, 0.08)",
-              color: "#2563eb",
+              backgroundColor: "rgba(95, 136, 199, 0.08)",
+              color: "var(--color-primary, #6B9CD8)",
             },
             "&.Mui-selected": {
-              color: "#2563eb",
-              backgroundColor: "rgba(37, 99, 235, 0.12)",
+              color: "var(--color-primary, #6B9CD8)",
+              backgroundColor: "rgba(95, 136, 199, 0.12)",
               fontWeight: 600,
             },
           },
@@ -237,13 +237,13 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                   sx={{
                     width: "100%",
                     borderRadius: "8px", // Design system
-                    border: "1px solid rgba(226, 232, 240, 0.8)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
                     backgroundColor: "rgba(248, 250, 252, 0.6)",
                     transition:
                       "border-color 0.15s ease, box-shadow 0.15s ease",
                     "&:hover": {
-                      borderColor: "rgba(37, 99, 235, 0.3)",
-                      boxShadow: "0 2px 8px rgba(37, 99, 235, 0.1)",
+                      borderColor: "rgba(95, 136, 199, 0.3)",
+                      boxShadow: "0 2px 8px rgba(95, 136, 199, 0.1)",
                     },
                   }}
                 >
@@ -403,8 +403,8 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                   transition:
                     "background-color 0.15s ease, border-color 0.15s ease",
                   "&:hover": {
-                    backgroundColor: "rgba(37, 99, 235, 0.05)",
-                    borderColor: "rgba(37, 99, 235, 0.4)",
+                    backgroundColor: "rgba(95, 136, 199, 0.05)",
+                    borderColor: "rgba(95, 136, 199, 0.4)",
                   },
                 }}
                 {...getRootProps()}

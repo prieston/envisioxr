@@ -1,7 +1,7 @@
 import "@/global.css";
 import { redirect } from "next/navigation";
 import { ToastContainer } from "react-toastify";
-import { ThemeModeProvider } from "@klorad/ui";
+import { ThemeModeProvider } from "@envisio/ui";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { SessionProviderWrapper } from "@/app/components/SessionProviderWrapper";
@@ -26,8 +26,14 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var root=document.documentElement;root.classList.add('dark');localStorage.setItem('klorad-theme-mode','dark');}catch(e){}})();",
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -35,14 +41,8 @@ export default async function ProtectedLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap"
           rel="stylesheet"
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "(function(){try{document.documentElement.classList.remove('dark');}catch(e){}})();",
-          }}
         />
       </head>
       <body>

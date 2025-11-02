@@ -151,11 +151,13 @@ export const useCesiumIon = () => {
 
       const { ionType, uploadSourceType } = mapSourceType(sourceType);
 
-      // Build Ion-compatible options for IFC/BIM
-      const ionOptions: any = {};
+      // Build Ion-compatible options
+      const ionOptions: Record<string, unknown> = {};
 
-      // sourceType: "BIM_CAD" for IFC/BIM tiling
-      if (uploadSourceType) {
+      if (sourceType === "3DTILES_ARCHIVE") {
+        ionOptions.sourceType = "3DTILES";
+        ionOptions.tilesetJson = options?.tilesetJson || "tileset.json";
+      } else if (uploadSourceType) {
         ionOptions.sourceType = uploadSourceType;
       }
 

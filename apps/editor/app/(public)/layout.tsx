@@ -10,12 +10,12 @@ export const metadata = {
 
 export default function PublicLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{var m=localStorage.getItem('editor-theme-mode');if(m==='dark'){document.documentElement.classList.add('dark');}else if(m==='light'){document.documentElement.classList.remove('dark');}}catch(e){}})();",
+              "(function(){try{var root=document.documentElement;root.classList.add('dark');localStorage.setItem('klorad-theme-mode','dark');}catch(e){}})();",
           }}
         />
       </head>

@@ -135,15 +135,15 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
                 textTransform: "none",
                 fontWeight: 500,
                 fontSize: "0.75rem",
-                borderColor: "rgba(37, 99, 235, 0.3)",
-                color: "#2563eb",
+                borderColor: "rgba(95, 136, 199, 0.35)",
+                color: "var(--color-primary, #6B9CD8)",
                 padding: "6px 16px",
                 "&:hover": {
-                  borderColor: "#2563eb",
-                  backgroundColor: "rgba(37, 99, 235, 0.08)",
+                  borderColor: "var(--color-primary, #6B9CD8)",
+                  backgroundColor: "rgba(95, 136, 199, 0.12)",
                 },
                 "&:disabled": {
-                  borderColor: "rgba(226, 232, 240, 0.8)",
+                  borderColor: "rgba(255, 255, 255, 0.08)",
                   color: "rgba(100, 116, 139, 0.4)",
                 },
               }}
@@ -161,12 +161,12 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
                 textTransform: "none",
                 fontWeight: 500,
                 fontSize: "0.75rem",
-                borderColor: "rgba(37, 99, 235, 0.3)",
-                color: "#2563eb",
+                borderColor: "rgba(95, 136, 199, 0.35)",
+                color: "var(--color-primary, #6B9CD8)",
                 padding: "6px 16px",
                 "&:hover": {
-                  borderColor: "#2563eb",
-                  backgroundColor: "rgba(37, 99, 235, 0.08)",
+                  borderColor: "var(--color-primary, #6B9CD8)",
+                  backgroundColor: "rgba(95, 136, 199, 0.12)",
                 },
               }}
             >

@@ -2,40 +2,32 @@
 import React, { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useThemeMode } from "@envisio/ui";
 
 export default function LogoHeader() {
-  const { mode } = useThemeMode();
-
-  const { src, alt } = useMemo(() => {
+  const { src, alt, width, height } = useMemo(() => {
     const host = typeof window !== "undefined" ? window.location.host : "";
     const isPSM = /(^|\.)psm\.envisioxr\.com$/i.test(host);
     if (isPSM) {
       return {
         src: "/images/logo/psm-logo-new.png",
         alt: "PSM",
+        width: 99,
+        height: 40,
       };
     }
-    const isDark = mode === "dark";
     return {
-      src: isDark
-        ? "/images/logo/logo-dark.svg"
-        : "/images/logo/klorad-logo.svg",
-      alt: "Klorad Studio",
+      src: "/images/logo/klorad-logo-studio-light.svg",
+      alt: "Klorad",
+      width: 120,
+      height: 32,
     };
-  }, [mode]);
+  }, []);
 
-  if (!src) return <span data-mode={mode}>Envisio</span>;
+  if (!src) return <span>Envisio</span>;
 
   return (
     <Link href="/" aria-label="Go to Home">
-      <Image
-        src={src}
-        alt={alt}
-        width={99}
-        height={40}
-        priority
-      />
+      <Image src={src} alt={alt} width={width} height={height} priority />
     </Link>
   );
 }

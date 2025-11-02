@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Box, Typography, Button, Paper } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { Check, Close, TouchApp } from "@mui/icons-material";
 
 interface ModelPositioningOverlayProps {
@@ -32,18 +33,27 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
     >
       <Paper
         elevation={8}
-        sx={{
+        sx={(theme) => ({
           padding: "20px 24px",
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? alpha("#0E0F10", 0.9)
+              : "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(20px) saturate(180%)",
           WebkitBackdropFilter: "blur(20px) saturate(180%)",
           borderRadius: "16px",
-          border: "2px solid #2563eb",
+          border: `1px solid ${
+            theme.palette.mode === "dark"
+              ? "rgba(255, 255, 255, 0.12)"
+              : theme.palette.primary.main
+          }`,
           boxShadow:
-            "0 8px 32px rgba(37, 99, 235, 0.25), 0 2px 8px rgba(0, 0, 0, 0.1)",
+            theme.palette.mode === "dark"
+              ? "0 14px 42px rgba(10, 16, 24, 0.6)"
+              : "0 8px 32px rgba(95, 136, 199, 0.25), 0 2px 8px rgba(0, 0, 0, 0.1)",
           minWidth: "400px",
           maxWidth: "600px",
-        }}
+        })}
       >
         {/* Header */}
         <Box
@@ -54,14 +64,19 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
             mb: 2,
           }}
         >
-          <TouchApp sx={{ color: "#2563eb", fontSize: "24px" }} />
+          <TouchApp
+            sx={(theme) => ({ color: theme.palette.primary.main, fontSize: "24px" })}
+          />
           <Typography
             variant="h6"
-            sx={{
+            sx={(theme) => ({
               fontSize: "1rem",
               fontWeight: 600,
-              color: "rgba(51, 65, 85, 0.95)",
-            }}
+              color:
+                theme.palette.mode === "dark"
+                  ? theme.palette.text.primary
+                  : "rgba(51, 65, 85, 0.95)",
+            })}
           >
             {isRepositioning
               ? `Reposition: ${modelName}`
@@ -72,12 +87,15 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
         {/* Instructions */}
         {!selectedPosition ? (
           <Typography
-            sx={{
+            sx={(theme) => ({
               fontSize: "0.875rem",
-              color: "rgba(100, 116, 139, 0.9)",
+              color:
+                theme.palette.mode === "dark"
+                  ? theme.palette.text.secondary
+                  : "rgba(100, 116, 139, 0.9)",
               mb: 2,
               lineHeight: 1.5,
-            }}
+            })}
           >
             {isRepositioning
               ? "Click anywhere on the scene to select the new position for this object."
@@ -86,48 +104,51 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
         ) : (
           <Box sx={{ mb: 2 }}>
             <Typography
-              sx={{
+              sx={(theme) => ({
                 fontSize: "0.875rem",
-                color: "rgba(100, 116, 139, 0.9)",
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.text.secondary
+                    : "rgba(100, 116, 139, 0.9)",
                 mb: 1,
-              }}
+              })}
             >
               Selected Position:
             </Typography>
             <Box
-              sx={{
+              sx={(theme) => ({
                 display: "flex",
                 gap: 2,
-                backgroundColor: "rgba(37, 99, 235, 0.08)",
+                backgroundColor: alpha(theme.palette.primary.main, 0.12),
                 padding: "12px 16px",
                 borderRadius: "8px",
-                border: "1px solid rgba(37, 99, 235, 0.2)",
-              }}
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+              })}
             >
               <Typography
-                sx={{
+                sx={(theme) => ({
                   fontSize: "0.813rem",
                   fontWeight: 600,
-                  color: "#2563eb",
-                }}
+                  color: theme.palette.primary.main,
+                })}
               >
                 X: {selectedPosition[0].toFixed(3)}
               </Typography>
               <Typography
-                sx={{
+                sx={(theme) => ({
                   fontSize: "0.813rem",
                   fontWeight: 600,
-                  color: "#2563eb",
-                }}
+                  color: theme.palette.primary.main,
+                })}
               >
                 Y: {selectedPosition[1].toFixed(3)}
               </Typography>
               <Typography
-                sx={{
+                sx={(theme) => ({
                   fontSize: "0.813rem",
                   fontWeight: 600,
-                  color: "#2563eb",
-                }}
+                  color: theme.palette.primary.main,
+                })}
               >
                 Z: {selectedPosition[2].toFixed(3)}
               </Typography>
@@ -159,20 +180,26 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
             variant="outlined"
             startIcon={<Close />}
             onClick={onCancel}
-            sx={{
+            sx={(theme) => ({
               textTransform: "none",
               borderRadius: "8px",
-              borderColor: "rgba(100, 116, 139, 0.3)",
-              color: "rgba(100, 116, 139, 0.8)",
+              borderColor:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.error.main, 0.4)
+                  : "rgba(100, 116, 139, 0.3)",
+              color:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.error.main, 0.85)
+                  : "rgba(100, 116, 139, 0.8)",
               fontSize: "0.813rem",
               fontWeight: 500,
               padding: "6px 16px",
               "&:hover": {
-                borderColor: "#ef4444",
-                backgroundColor: "rgba(239, 68, 68, 0.08)",
-                color: "#ef4444",
+                borderColor: theme.palette.error.main,
+                backgroundColor: alpha(theme.palette.error.main, 0.12),
+                color: theme.palette.error.main,
               },
-            }}
+            })}
           >
             Cancel
           </Button>
@@ -181,23 +208,34 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
             startIcon={<Check />}
             onClick={onConfirm}
             disabled={!selectedPosition}
-            sx={{
+            sx={(theme) => ({
               textTransform: "none",
               borderRadius: "8px",
-              backgroundColor: "#2563eb",
+              backgroundColor: theme.palette.primary.main,
               fontSize: "0.813rem",
               fontWeight: 500,
               padding: "6px 16px",
-              boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? "0 8px 24px rgba(0, 0, 0, 0.45)"
+                  : "0 4px 12px rgba(95, 136, 199, 0.3)",
+              color: theme.palette.getContrastText(theme.palette.primary.main),
               "&:hover": {
-                backgroundColor: "#1d4ed8",
-                boxShadow: "0 6px 16px rgba(37, 99, 235, 0.4)",
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? alpha(theme.palette.primary.main, 0.85)
+                    : "#1d4ed8",
+                boxShadow:
+                  theme.palette.mode === "dark"
+                    ? "0 10px 28px rgba(0, 0, 0, 0.5)"
+                    : "0 6px 16px rgba(95, 136, 199, 0.4)",
               },
               "&:disabled": {
-                backgroundColor: "rgba(100, 116, 139, 0.2)",
-                color: "rgba(100, 116, 139, 0.5)",
+                backgroundColor: alpha(theme.palette.text.secondary, 0.25),
+                color: alpha(theme.palette.text.secondary, 0.55),
+                boxShadow: "none",
               },
-            }}
+            })}
           >
             Confirm Position
           </Button>
