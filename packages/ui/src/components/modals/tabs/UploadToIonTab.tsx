@@ -12,8 +12,6 @@ import {
   Alert,
   Select,
   MenuItem,
-  FormControl,
-  InputLabel,
   Switch,
   FormControlLabel,
   Accordion,
@@ -129,6 +127,27 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
     if (!selectedFile || !name || !accessToken) return;
 
     try {
+      // Build options based on source type
+      const uploadOptions: any = {};
+
+      if (sourceType === "3DTILES_ARCHIVE") {
+        // For existing 3D Tiles archives, only include tilesetJson reference
+        uploadOptions.tilesetJson = tilesetJson || "tileset.json";
+      } else {
+        // For other types, include compression and processing options
+        if (dracoCompression !== undefined)
+          uploadOptions.dracoCompression = dracoCompression;
+        if (ktx2Compression !== undefined)
+          uploadOptions.ktx2Compression = ktx2Compression;
+        if (webpImages !== undefined) uploadOptions.webpImages = webpImages;
+        if (geometricCompression)
+          uploadOptions.geometricCompression = geometricCompression;
+        if (epsgCode) uploadOptions.epsgCode = epsgCode;
+      }
+
+      // Common options for all types
+      if (makeDownloadable) uploadOptions.makeDownloadable = makeDownloadable;
+
       const result = await onUpload({
         file: selectedFile,
         name,
@@ -138,18 +157,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         longitude: longitude ? parseFloat(longitude) : undefined,
         latitude: latitude ? parseFloat(latitude) : undefined,
         height: height ? parseFloat(height) : undefined,
-        options: {
-          dracoCompression,
-          ktx2Compression,
-          webpImages,
-          geometricCompression,
-          epsgCode: epsgCode || undefined,
-          makeDownloadable,
-          tilesetJson:
-            sourceType === "3DTILES_ARCHIVE"
-              ? tilesetJson || "tileset.json"
-              : undefined,
-        },
+        options: uploadOptions,
       });
 
       setUploadedAssetId(result.assetId);
@@ -331,19 +339,19 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
       >
         <Box>
           <Typography
-            sx={{
+            sx={(theme) => ({
               fontSize: "0.875rem",
               fontWeight: 600,
-              color: "rgba(51, 65, 85, 0.95)",
-            }}
+              color: theme.palette.text.primary,
+            })}
           >
             {selectedFile.name}
           </Typography>
           <Typography
-            sx={{
+            sx={(theme) => ({
               fontSize: "0.75rem",
-              color: "rgba(100, 116, 139, 0.8)",
-            }}
+              color: theme.palette.text.secondary,
+            })}
           >
             {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
           </Typography>
@@ -352,60 +360,115 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           onClick={handleCancel}
           size="small"
           disabled={uploading}
-          sx={{
-            color: "rgba(100, 116, 139, 0.8)",
+          sx={(theme) => ({
+            color: theme.palette.text.secondary,
             "&:hover": {
               color: "#ef4444",
               backgroundColor: "rgba(239, 68, 68, 0.08)",
             },
-          }}
+          })}
         >
           <Close />
         </IconButton>
       </Paper>
 
       {/* Asset Details */}
-      <TextField
-        fullWidth
-        label="Asset Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        disabled={uploading}
-        required
-        sx={textFieldStyles}
-      />
+      <Box>
+        <Typography
+          sx={(theme) => ({
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            color: theme.palette.text.primary,
+            mb: 0.5,
+          })}
+        >
+          Asset Name *
+        </Typography>
+        <TextField
+          fullWidth
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          disabled={uploading}
+          size="small"
+          placeholder="Enter asset name"
+          sx={textFieldStyles}
+        />
+      </Box>
 
-      <TextField
-        fullWidth
-        label="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        disabled={uploading}
-        multiline
-        rows={3}
-        sx={textFieldStyles}
-      />
+      <Box>
+        <Typography
+          sx={(theme) => ({
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            color: theme.palette.text.primary,
+            mb: 0.5,
+          })}
+        >
+          Description
+        </Typography>
+        <TextField
+          fullWidth
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          disabled={uploading}
+          size="small"
+          multiline
+          rows={3}
+          placeholder="Add a description..."
+          sx={textFieldStyles}
+        />
+      </Box>
 
-      <TextField
-        fullWidth
-        label="Cesium Ion Access Token"
-        value={accessToken}
-        onChange={(e) => setAccessToken(e.target.value)}
-        disabled={uploading}
-        required
-        type="password"
-        placeholder="Enter your Cesium Ion access token"
-        helperText="Get your token from https://ion.cesium.com/tokens (requires assets:write scope)"
-        sx={textFieldStyles}
-      />
+      <Box>
+        <Typography
+          sx={(theme) => ({
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            color: theme.palette.text.primary,
+            mb: 0.5,
+          })}
+        >
+          Cesium Ion Access Token *
+        </Typography>
+        <TextField
+          fullWidth
+          value={accessToken}
+          onChange={(e) => setAccessToken(e.target.value)}
+          disabled={uploading}
+          size="small"
+          type="password"
+          placeholder="Enter your Cesium Ion access token"
+          sx={textFieldStyles}
+        />
+        <Typography
+          sx={(theme) => ({
+            fontSize: "0.75rem",
+            color: theme.palette.text.secondary,
+            mt: 0.5,
+          })}
+        >
+          Get your token from https://ion.cesium.com/tokens (requires
+          assets:write scope)
+        </Typography>
+      </Box>
 
-      <FormControl fullWidth>
-        <InputLabel>What kind of data is this?</InputLabel>
+      <Box>
+        <Typography
+          sx={(theme) => ({
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            color: theme.palette.text.primary,
+            mb: 0.5,
+          })}
+        >
+          What kind of data is this?
+        </Typography>
         <Select
+          fullWidth
           value={sourceType}
           onChange={(e) => setSourceType(e.target.value)}
           disabled={uploading}
-          label="What kind of data is this?"
+          size="small"
           sx={selectStyles}
         >
           <MenuItem value="3DTILES_ARCHIVE">
@@ -426,18 +489,39 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           <MenuItem value="KML">KML/KMZ</MenuItem>
           <MenuItem value="CZML">CZML</MenuItem>
         </Select>
-      </FormControl>
+      </Box>
 
       {sourceType === "3DTILES_ARCHIVE" && (
-        <TextField
-          fullWidth
-          label="Tileset JSON path"
-          value={tilesetJson}
-          onChange={(e) => setTilesetJson(e.target.value)}
-          disabled={uploading}
-          helperText="Relative path to the tileset.json inside the archive"
-          sx={textFieldStyles}
-        />
+        <Box>
+          <Typography
+            sx={(theme) => ({
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              mb: 0.5,
+            })}
+          >
+            Tileset JSON path
+          </Typography>
+          <TextField
+            fullWidth
+            value={tilesetJson}
+            onChange={(e) => setTilesetJson(e.target.value)}
+            disabled={uploading}
+            size="small"
+            placeholder="tileset.json"
+            sx={textFieldStyles}
+          />
+          <Typography
+            sx={(theme) => ({
+              fontSize: "0.75rem",
+              color: theme.palette.text.secondary,
+              mt: 0.5,
+            })}
+          >
+            Relative path to the tileset.json inside the archive
+          </Typography>
+        </Box>
       )}
 
       {/* Options based on selected type */}
@@ -540,35 +624,64 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
             {/* Geometric Compression */}
             {(sourceType === "3DTILES_BIM" ||
               sourceType === "3DTILES_PHOTOGRAMMETRY") && (
-              <FormControl fullWidth size="small">
-                <InputLabel>Geometric Compression</InputLabel>
+              <Box>
+                <Typography
+                  sx={(theme) => ({
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                    mb: 0.5,
+                  })}
+                >
+                  Geometric Compression
+                </Typography>
                 <Select
+                  fullWidth
                   value={geometricCompression}
                   onChange={(e) => setGeometricCompression(e.target.value)}
                   disabled={uploading}
-                  label="Geometric Compression"
+                  size="small"
                   sx={selectStyles}
                 >
                   <MenuItem value="Draco">Draco</MenuItem>
                   <MenuItem value="Meshopt">Meshopt</MenuItem>
                   <MenuItem value="None">None</MenuItem>
                 </Select>
-              </FormControl>
+              </Box>
             )}
 
             {/* EPSG Code */}
             {sourceType === "3DTILES_BIM" && (
-              <TextField
-                fullWidth
-                size="small"
-                label="EPSG Code (optional)"
-                value={epsgCode}
-                onChange={(e) => setEpsgCode(e.target.value)}
-                disabled={uploading}
-                placeholder="e.g., 4326"
-                helperText="Coordinate reference system code"
-                sx={textFieldStyles}
-              />
+              <Box>
+                <Typography
+                  sx={(theme) => ({
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                    mb: 0.5,
+                  })}
+                >
+                  EPSG Code (Optional)
+                </Typography>
+                <TextField
+                  fullWidth
+                  size="small"
+                  value={epsgCode}
+                  onChange={(e) => setEpsgCode(e.target.value)}
+                  disabled={uploading}
+                  placeholder="e.g., 4326"
+                  sx={textFieldStyles}
+                />
+                <Typography
+                  sx={(theme) => ({
+                    fontSize: "0.75rem",
+                    color: theme.palette.text.secondary,
+                    mt: 0.5,
+                  })}
+                >
+                  Coordinate reference system code
+                </Typography>
+              </Box>
             )}
 
             {/* Info alerts based on type */}
@@ -622,47 +735,86 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
 
       {/* Georeferencing (Optional) */}
       <Typography
-        sx={{
-          fontSize: "0.875rem",
+        sx={(theme) => ({
+          fontSize: "0.813rem",
           fontWeight: 600,
-          color: "rgba(51, 65, 85, 0.95)",
+          color: theme.palette.text.primary,
           mt: 1,
-        }}
+        })}
       >
         Georeferencing (Optional)
       </Typography>
 
       <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2 }}>
-        <TextField
-          size="small"
-          label="Longitude"
-          type="number"
-          value={longitude}
-          onChange={(e) => setLongitude(e.target.value)}
-          disabled={uploading}
-          inputProps={{ step: "0.000001", min: -180, max: 180 }}
-          sx={textFieldStyles}
-        />
-        <TextField
-          size="small"
-          label="Latitude"
-          type="number"
-          value={latitude}
-          onChange={(e) => setLatitude(e.target.value)}
-          disabled={uploading}
-          inputProps={{ step: "0.000001", min: -90, max: 90 }}
-          sx={textFieldStyles}
-        />
-        <TextField
-          size="small"
-          label="Height (m)"
-          type="number"
-          value={height}
-          onChange={(e) => setHeight(e.target.value)}
-          disabled={uploading}
-          inputProps={{ step: "0.1" }}
-          sx={textFieldStyles}
-        />
+        <Box>
+          <Typography
+            sx={(theme) => ({
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              mb: 0.5,
+            })}
+          >
+            Longitude
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            type="number"
+            value={longitude}
+            onChange={(e) => setLongitude(e.target.value)}
+            disabled={uploading}
+            placeholder="0.0"
+            inputProps={{ step: "0.000001", min: -180, max: 180 }}
+            sx={textFieldStyles}
+          />
+        </Box>
+        <Box>
+          <Typography
+            sx={(theme) => ({
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              mb: 0.5,
+            })}
+          >
+            Latitude
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            type="number"
+            value={latitude}
+            onChange={(e) => setLatitude(e.target.value)}
+            disabled={uploading}
+            placeholder="0.0"
+            inputProps={{ step: "0.000001", min: -90, max: 90 }}
+            sx={textFieldStyles}
+          />
+        </Box>
+        <Box>
+          <Typography
+            sx={(theme) => ({
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              mb: 0.5,
+            })}
+          >
+            Height (m)
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            type="number"
+            value={height}
+            onChange={(e) => setHeight(e.target.value)}
+            disabled={uploading}
+            placeholder="0"
+            inputProps={{ step: "0.1" }}
+            sx={textFieldStyles}
+          />
+        </Box>
       </Box>
 
       {/* Upload Progress */}
@@ -682,12 +834,12 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
             }}
           />
           <Typography
-            sx={{
+            sx={(theme) => ({
               fontSize: "0.75rem",
-              color: "rgba(100, 116, 139, 0.8)",
+              color: theme.palette.text.secondary,
               mt: 0.5,
               textAlign: "center",
-            }}
+            })}
           >
             Uploading to Cesium Ion... {uploadProgress}%
           </Typography>
@@ -699,16 +851,21 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         <Button
           onClick={handleCancel}
           disabled={uploading}
-          sx={{
+          sx={(theme) => ({
             borderRadius: "4px",
             textTransform: "none",
             fontWeight: 500,
             fontSize: "0.875rem",
-            color: "rgba(100, 116, 139, 0.85)",
+            color: theme.palette.text.secondary,
+            boxShadow: "none",
             "&:hover": {
-              backgroundColor: "rgba(100, 116, 139, 0.08)",
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(100, 116, 139, 0.12)"
+                  : "rgba(100, 116, 139, 0.08)",
+              boxShadow: "none",
             },
-          }}
+          })}
         >
           Cancel
         </Button>
@@ -717,16 +874,18 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
           onClick={handleUpload}
           disabled={!name || !accessToken || uploading}
           startIcon={<Public />}
-          sx={{
+          sx={(theme) => ({
             borderRadius: "4px",
             textTransform: "none",
             fontWeight: 600,
             fontSize: "0.875rem",
-            backgroundColor: accent,
+            backgroundColor: theme.palette.primary.main,
+            boxShadow: "none",
             "&:hover": {
-              backgroundColor: accentActive,
+              backgroundColor: theme.palette.primary.dark,
+              boxShadow: "none",
             },
-          }}
+          })}
         >
           Upload to Ion
         </Button>

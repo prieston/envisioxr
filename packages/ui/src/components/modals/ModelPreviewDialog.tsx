@@ -62,63 +62,80 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
       onClose={onClose}
       maxWidth="md"
       PaperProps={{
-        sx: {
-          borderRadius: "16px",
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(20px) saturate(180%)",
+        sx: (theme) => ({
+          borderRadius: "4px",
+          backgroundColor: theme.palette.background.paper,
+          boxShadow:
+            theme.palette.mode === "dark"
+              ? "0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)"
+              : "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
-        },
+        }),
       }}
     >
       <DialogTitle
-        sx={{
+        sx={(theme) => ({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-          padding: "20px 24px",
-          backgroundColor: "rgba(248, 250, 252, 0.6)",
-        }}
+          padding: "24px",
+          backgroundColor: theme.palette.background.paper,
+        })}
       >
         <Typography
-          sx={{
+          sx={(theme) => ({
             fontSize: "1.125rem",
             fontWeight: 600,
-            color: "rgba(51, 65, 85, 0.95)",
-          }}
+            color: theme.palette.text.primary,
+          })}
         >
           Retake Photo - {modelName}
         </Typography>
         <IconButton
           onClick={onClose}
           size="small"
-          sx={{ color: "rgba(100, 116, 139, 0.8)" }}
+          sx={(theme) => ({
+            color: theme.palette.text.secondary,
+            "&:hover": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(100, 116, 139, 0.12)"
+                  : "rgba(100, 116, 139, 0.08)",
+            },
+          })}
         >
           <Close />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ padding: "24px" }}>
+      <DialogContent
+        sx={(theme) => ({
+          padding: "24px",
+          backgroundColor: theme.palette.background.default,
+        })}
+      >
         <Typography
-          sx={{
+          sx={(theme) => ({
             fontSize: "0.813rem",
-            color: "rgba(100, 116, 139, 0.9)",
+            color: theme.palette.text.secondary,
             textAlign: "center",
             mb: 2,
-          }}
+          })}
         >
           Rotate the model to your desired angle, then click "Capture
           Screenshot"
         </Typography>
 
         <Box
-          sx={{
+          sx={(theme) => ({
             width: "600px",
             height: "400px",
-            borderRadius: "12px",
+            borderRadius: "4px",
             overflow: "hidden",
+            backgroundColor: theme.palette.background.default,
             border: "1px solid rgba(255, 255, 255, 0.08)",
-          }}
+          })}
         >
           <Canvas
             camera={{ position: [3, 2, 3], fov: 50 }}
@@ -150,11 +167,32 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ padding: "16px 24px", gap: 1 }}>
+      <DialogActions
+        sx={(theme) => ({
+          padding: "16px 24px",
+          gap: 1,
+          backgroundColor: theme.palette.background.paper,
+          borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+        })}
+      >
         <Button
           onClick={onClose}
           disabled={capturing}
-          sx={{ textTransform: "none", fontSize: "0.813rem", fontWeight: 500 }}
+          sx={(theme) => ({
+            textTransform: "none",
+            fontSize: "0.813rem",
+            fontWeight: 500,
+            borderRadius: "4px",
+            color: theme.palette.text.secondary,
+            boxShadow: "none",
+            "&:hover": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(100, 116, 139, 0.12)"
+                  : "rgba(100, 116, 139, 0.08)",
+              boxShadow: "none",
+            },
+          })}
         >
           Cancel
         </Button>
@@ -166,10 +204,13 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
           sx={(theme) => ({
             textTransform: "none",
             fontSize: "0.813rem",
-            fontWeight: 500,
+            fontWeight: 600,
+            borderRadius: "4px",
             backgroundColor: theme.palette.primary.main,
+            boxShadow: "none",
             "&:hover": {
               backgroundColor: theme.palette.primary.dark,
+              boxShadow: "none",
             },
           })}
         >
