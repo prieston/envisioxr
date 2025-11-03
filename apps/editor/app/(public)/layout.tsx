@@ -1,4 +1,5 @@
 import "@/global.css";
+import "react-toastify/dist/ReactToastify.css";
 import { ThemeModeProvider } from "@envisio/ui";
 import { ToastContainer } from "react-toastify";
 

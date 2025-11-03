@@ -1,4 +1,5 @@
 import "@/global.css";
+import "react-toastify/dist/ReactToastify.css";
 import { redirect } from "next/navigation";
 import { ToastContainer } from "react-toastify";
 import { ThemeModeProvider } from "@envisio/ui";

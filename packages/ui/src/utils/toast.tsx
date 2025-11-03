@@ -71,4 +71,3 @@ export const toastWarning = (message: string, options?: ToastOptions) =>
 
 export const toastInfo = (message: string, options?: ToastOptions) =>
   showToast(message, "info", options);
-
