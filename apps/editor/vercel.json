@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm vercel:build:editor",
+  "buildCommand": "cd ../.. && rm -rf packages/*/dist && pnpm vercel:build:editor",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "framework": "nextjs",
   "regions": ["sfo1"],
