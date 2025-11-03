@@ -16,7 +16,7 @@ export default function LogoHeader() {
       };
     }
     return {
-      src: "/images/logo/klorad-logo-studio-light.svg",
+      src: "/images/logo/klorad-logo.svg",
       alt: "Klorad",
       width: 120,
       height: 32,
