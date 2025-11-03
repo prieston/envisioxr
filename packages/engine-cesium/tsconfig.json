@@ -5,6 +5,7 @@
     "declaration": false,
     "declarationMap": false,
     "sourceMap": true,
+    "emitDeclarationOnly": false,
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "moduleResolution": "node",

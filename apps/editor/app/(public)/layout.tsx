@@ -21,7 +21,15 @@ export default function PublicLayout({ children }) {
       </head>
       <body>
         <ThemeModeProvider>{children}</ThemeModeProvider>
-        <ToastContainer position="bottom-right" autoClose={3000} />
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          theme="dark"
+          hideProgressBar={false}
+          closeOnClick
+          pauseOnHover
+          draggable
+        />
       </body>
     </html>
   );

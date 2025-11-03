@@ -1,4 +1,4 @@
-import { showToast } from "@envisio/core/utils";
+import { showToast } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
 import {
   useCesiumIonUpload,

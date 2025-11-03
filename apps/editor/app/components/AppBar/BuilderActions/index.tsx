@@ -8,7 +8,7 @@ import {
   Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { useSceneStore } from "@envisio/core";
-import { showToast } from "@envisio/core/utils";
+import { showToast } from "@envisio/ui";
 import { ActionButton, AssetManagerModal } from "@envisio/ui";
 import ReportGenerator from "../../Report/ReportGenerator";
 import ProjectSettingsModal from "../../Builder/ProjectSettingsModal";
