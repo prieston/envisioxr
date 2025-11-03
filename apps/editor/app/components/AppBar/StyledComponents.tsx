@@ -1,13 +1,22 @@
 import { styled } from "@mui/material/styles";
 import { AppBar, Toolbar, Box, Button } from "@mui/material";
 
-export const AppBarContainer = styled(AppBar)(({ theme: _theme }) => ({
-  backgroundColor: "var(--glass-bg, rgba(255, 255, 255, 0.8)) !important",
-  backdropFilter: "blur(20px) saturate(130%) !important",
-  WebkitBackdropFilter: "blur(20px) saturate(130%) !important",
-  border: "none !important",
-  borderRadius: "var(--glass-border-radius, 16px) !important",
-  boxShadow: "var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.15)) !important",
+export const AppBarContainer = styled(AppBar)(({ theme }) => ({
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(17, 19, 23, 0.9) !important"
+      : "#14171A !important",
+  backdropFilter: "blur(20px) saturate(50%) !important",
+  WebkitBackdropFilter: "blur(20px) saturate(50%) !important",
+  border:
+    theme.palette.mode === "dark"
+      ? "1px solid rgba(255, 255, 255, 0.08) !important"
+      : "none !important",
+  borderRadius: "4px !important",
+  boxShadow:
+    theme.palette.mode === "dark"
+      ? "0 3px 12px rgba(0, 0, 0, 0.35) !important"
+      : "0 8px 32px rgba(0, 0, 0, 0.15) !important",
   zIndex: 1300,
   position: "fixed",
   top: "16px",
@@ -18,20 +27,12 @@ export const AppBarContainer = styled(AppBar)(({ theme: _theme }) => ({
   transform: "translateZ(0)",
   willChange: "backdrop-filter",
   transition: "opacity 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
-  pointerEvents: "auto", // Allow interactions with the app bar
+  pointerEvents: "auto",
   "& .MuiPaper-root": {
     backgroundColor: "transparent !important",
   },
   "&.MuiPaper-root": {
     backgroundColor: "transparent !important",
-  },
-  "&.MuiAppBar-root": {
-    backgroundColor: "var(--glass-bg, rgba(255, 255, 255, 0.8)) !important",
-    backdropFilter: "blur(20px) saturate(130%) !important",
-    WebkitBackdropFilter: "blur(20px) saturate(130%) !important",
-    border: "none !important",
-    borderRadius: "var(--glass-border-radius, 16px) !important",
-    boxShadow: "var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.15)) !important",
   },
   "&::before": {
     content: '""',
@@ -42,55 +43,60 @@ export const AppBarContainer = styled(AppBar)(({ theme: _theme }) => ({
     bottom: 0,
     borderRadius: "inherit",
     background:
-      "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)",
+      theme.palette.mode === "dark"
+        ? "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)"
+        : "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)",
     pointerEvents: "none",
     zIndex: -1,
   },
-  /* Dark mode gradient overlay */
-  "html.dark &::before": {
-    background:
-      "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)",
-  },
 }));
 
-export const ToolbarContainer = styled(Toolbar)(() => ({
+export const ToolbarContainer = styled(Toolbar)(({ theme }) => ({
   minHeight: "64px !important",
   padding: "0 16px !important",
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
   backgroundColor: "transparent !important",
-  color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95)) !important",
+  color:
+    theme.palette.mode === "dark"
+      ? "#ffffff !important"
+      : "rgba(15, 23, 42, 0.95) !important",
   "&.MuiToolbar-root": {
     backgroundColor: "transparent !important",
-    color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95)) !important",
+    color:
+      theme.palette.mode === "dark"
+        ? "#ffffff !important"
+        : "rgba(15, 23, 42, 0.95) !important",
   },
   "& .MuiPaper-root": {
     backgroundColor: "transparent !important",
   },
 }));
 
-export const LeftSection = styled(Box)(({ theme: _theme }) => ({
+export const LeftSection = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
-  gap: _theme.spacing(1),
-  color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
+  gap: theme.spacing(1),
+  color:
+    theme.palette.mode === "dark" ? "#ffffff" : "rgba(15, 23, 42, 0.95)",
 }));
 
-export const RightSection = styled(Box)(({ theme: _theme }) => ({
+export const RightSection = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
-  gap: _theme.spacing(1),
-  color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
+  gap: theme.spacing(1),
+  color:
+    theme.palette.mode === "dark" ? "#ffffff" : "rgba(15, 23, 42, 0.95)",
 }));
 
 export const MinimalButton = styled(Button)<{ active?: boolean }>(
   ({ theme: _theme, active }) => ({
     backgroundColor: active
-      ? "rgba(37, 99, 235, 0.12)" // Blue background when active
+      ? "rgba(59, 130, 246, 0.12)" // Blue background when active
       : "transparent",
     color: active
-      ? "#2563eb" // Blue text when active
+      ? "var(--glass-text-primary, #6B9CD8)"
       : "rgba(51, 65, 85, 0.7)",
     border: "none",
     borderRadius: "6px",
@@ -119,9 +125,9 @@ export const MinimalButton = styled(Button)<{ active?: boolean }>(
     },
     "&:hover": {
       backgroundColor: active
-        ? "rgba(37, 99, 235, 0.16)" // Darker blue on hover when active
-        : "rgba(37, 99, 235, 0.08)", // Light blue on hover when inactive
-      color: "#2563eb",
+        ? "rgba(59, 130, 246, 0.16)" // Darker blue on hover when active
+        : "rgba(59, 130, 246, 0.08)", // Light blue on hover when inactive
+      color: "var(--glass-text-primary, #6B9CD8)",
     },
     "&.Mui-disabled": {
       color: "rgba(51, 65, 85, 0.4)",

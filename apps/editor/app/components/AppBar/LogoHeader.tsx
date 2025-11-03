@@ -1,41 +1,60 @@
 "use client";
-import React, { useMemo } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useThemeMode } from "@envisio/ui";
+import { Box, Typography } from "@mui/material";
+import { useTenant } from "@envisio/core";
 
 export default function LogoHeader() {
-  const { mode } = useThemeMode();
-
-  const { src, alt } = useMemo(() => {
-    const host = typeof window !== "undefined" ? window.location.host : "";
-    const isPSM = /(^|\.)psm\.envisioxr\.com$/i.test(host);
-    if (isPSM) {
-      return {
-        src: "/images/logo/psm-logo-new.png",
-        alt: "PSM",
-      };
-    }
-    const isDark = mode === "dark";
-    return {
-      src: isDark
-        ? "/images/logo/logo-dark.svg"
-        : "/images/logo/klorad-logo.svg",
-      alt: "Klorad Studio",
-    };
-  }, [mode]);
-
-  if (!src) return <span data-mode={mode}>Envisio</span>;
+  const tenant = useTenant();
 
   return (
-    <Link href="/" aria-label="Go to Home">
-      <Image
-        src={src}
-        alt={alt}
-        width={99}
-        height={40}
-        priority
-      />
+    <Link href="/" aria-label="Go to Home" style={{ textDecoration: "none" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 0.5,
+        }}
+      >
+        <Image
+          src={tenant.logo}
+          alt={tenant.logoAlt}
+          width={tenant.logoWidth}
+          height={tenant.logoHeight}
+          priority
+          style={{
+            filter: tenant.logo.endsWith(".png")
+              ? "brightness(0) invert(1)"
+              : "none",
+          }}
+        />
+        {tenant.poweredBy && (
+          <Link
+            href="https://klorad.com/partners"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: "none" }}
+          >
+            <Typography
+              variant="caption"
+              sx={{
+                fontSize: "0.75rem",
+                color: (theme) => theme.palette.text.secondary,
+                opacity: 0.7,
+                letterSpacing: "0.02em",
+                transition: "opacity 0.2s ease",
+                "&:hover": {
+                  opacity: 1,
+                },
+              }}
+            >
+              {tenant.poweredBy}
+            </Typography>
+          </Link>
+        )}
+      </Box>
     </Link>
   );
 }

@@ -2,11 +2,9 @@
 
 import React from "react";
 import { XR, createXRStore } from "@react-three/xr";
-import {
-  CameraSpringController,
-  ObservationPointHandler,
-  CameraPOVCaptureHandler,
-} from ".";
+import CameraSpringController from "../spring/CameraSpringController";
+import ObservationPointHandler from "../../components/Scene/ObservationPointHandler";
+import CameraPOVCaptureHandler from "../../components/Scene/CameraPOVCaptureHandler";
 
 // Create an XR store for XR usage
 const xrStore = createXRStore();

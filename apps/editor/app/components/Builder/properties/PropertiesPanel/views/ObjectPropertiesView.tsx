@@ -174,7 +174,10 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
           </Alert>
         )}
 
-        <ModelInformationSection object={selectedObject} />
+        <ModelInformationSection
+          object={selectedObject}
+          onPropertyChange={handlePropertyChange}
+        />
 
         {/* Only show these sections for regular models, not Cesium Ion assets */}
         {/* Using Collapse to prevent layout shift and maintain scroll position */}

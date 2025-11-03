@@ -479,6 +479,7 @@ const CesiumDateTimeSelector: React.FC<CesiumDateTimeSelectorProps> = ({
       </CurrentTimeBox>
 
       {/* Date & Time Inputs */}
+      {/* @ts-ignore - MUI type complexity */}
       <Box sx={{ mb: 1.5 }}>
         <InputSectionTitle>Set Date & Time</InputSectionTitle>
         <DateTimeContainer>

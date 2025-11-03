@@ -7,7 +7,6 @@ import AdminLayout from "../../../../../app/components/Builder/AdminLayout";
 import SceneCanvas from "../../../../../app/components/Builder/Scene/SceneCanvas";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import { showToast } from "@envisio/ui";
-import { toast } from "react-toastify";
 
 // Function to sanitize scene data before saving
 const sanitizeSceneData = (
@@ -329,10 +328,10 @@ export default function BuilderPage() {
         throw new Error(errorData.error || "Failed to save project");
       }
 
-      toast.success("Project saved successfully");
+      showToast("Project saved successfully", "info");
     } catch (error) {
       console.error("Error saving project:", error);
-      toast.error(error.message || "Failed to save project");
+      showToast(error.message || "Failed to save project", "error");
     } finally {
       setIsSaving(false);
     }

@@ -17,6 +17,7 @@ import {
   DialogActions,
   TextField,
   Chip,
+  alpha,
 } from "@mui/material";
 import {
   Delete,
@@ -30,6 +31,7 @@ import {
 } from "@mui/icons-material";
 import { MetadataTable, type MetadataRow } from "../../table";
 import ModelPreviewDialog from "../ModelPreviewDialog";
+import { textFieldStyles } from "../../../styles/inputStyles";
 
 export interface LibraryAsset {
   id: string;
@@ -198,11 +200,39 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
     <Box sx={{ display: "flex", gap: 2, height: "100%" }}>
       {/* Left Column - Asset Grid */}
       <Box
-        sx={{
+        sx={(theme) => ({
           flex: "0 0 40%",
           overflowY: "auto",
           paddingRight: 1,
-        }}
+          "&::-webkit-scrollbar": {
+            width: "8px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background:
+              theme.palette.mode === "dark"
+                ? alpha(theme.palette.primary.main, 0.08)
+                : "rgba(95, 136, 199, 0.05)",
+            borderRadius: "4px",
+            margin: "4px 0",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background:
+              theme.palette.mode === "dark"
+                ? alpha(theme.palette.primary.main, 0.24)
+                : "rgba(95, 136, 199, 0.2)",
+            borderRadius: "4px",
+            border: "2px solid transparent",
+            backgroundClip: "padding-box",
+            transition: "background 0.2s ease",
+            "&:hover": {
+              background:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.primary.main, 0.38)
+                  : "rgba(95, 136, 199, 0.35)",
+              backgroundClip: "padding-box",
+            },
+          },
+        })}
       >
         {assets.length === 0 ? (
           <Box
@@ -227,23 +257,23 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
               <Grid item xs={4} key={asset.id}>
                 <Card
                   onClick={() => handleAssetClick(asset)}
-                  sx={{
+                  sx={(theme) => ({
                     cursor: "pointer",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                    borderRadius: "4px",
+                    boxShadow: "none",
                     border:
                       selectedAsset?.id === asset.id
-                        ? "2px solid #2563eb"
-                        : "2px solid transparent",
+                        ? `2px solid ${theme.palette.primary.main}`
+                        : "2px solid rgba(255, 255, 255, 0.08)",
                     transition: "all 0.2s ease",
+                    backgroundColor: theme.palette.background.paper,
                     "&:hover": {
-                      boxShadow: "0 4px 12px rgba(37, 99, 235, 0.15)",
                       borderColor:
                         selectedAsset?.id === asset.id
-                          ? "#2563eb"
-                          : "rgba(37, 99, 235, 0.3)",
+                          ? theme.palette.primary.main
+                          : "rgba(107, 156, 216, 0.5)",
                     },
-                  }}
+                  })}
                 >
                   {asset.thumbnailUrl || asset.thumbnail ? (
                     <CardMedia
@@ -267,7 +297,12 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                       }}
                     >
                       {asset.assetType === "cesiumIonAsset" ? (
-                        <Public sx={{ fontSize: "2.5rem", color: "#2563eb" }} />
+                        <Public
+                          sx={{
+                            fontSize: "2.5rem",
+                            color: "var(--color-primary, #6B9CD8)",
+                          }}
+                        />
                       ) : (
                         <ViewInAr
                           sx={{
@@ -307,11 +342,11 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                             height: "18px",
                             fontSize: "0.625rem",
                             fontWeight: 500,
-                            color: "#2563eb",
-                            backgroundColor: "rgba(37, 99, 235, 0.1)",
+                            color: "var(--color-primary, #6B9CD8)",
+                            backgroundColor: "rgba(107, 156, 216, 0.12)",
                             "& .MuiChip-icon": {
                               fontSize: "0.75rem",
-                              color: "#2563eb",
+                              color: "var(--color-primary, #6B9CD8)",
                             },
                           }}
                         />
@@ -341,27 +376,58 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
           <>
             {/* Scrollable Content */}
             <Box
-              sx={{
+              sx={(theme) => ({
                 flex: 1,
                 overflowY: "auto",
                 padding: 2,
                 display: "flex",
                 flexDirection: "column",
                 gap: 2,
-              }}
+                "&::-webkit-scrollbar": {
+                  width: "8px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  background:
+                    theme.palette.mode === "dark"
+                      ? alpha(theme.palette.primary.main, 0.08)
+                      : "rgba(95, 136, 199, 0.05)",
+                  borderRadius: "4px",
+                  margin: "4px 0",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  background:
+                    theme.palette.mode === "dark"
+                      ? alpha(theme.palette.primary.main, 0.24)
+                      : "rgba(95, 136, 199, 0.2)",
+                  borderRadius: "4px",
+                  border: "2px solid transparent",
+                  backgroundClip: "padding-box",
+                  transition: "background 0.2s ease",
+                  "&:hover": {
+                    background:
+                      theme.palette.mode === "dark"
+                        ? alpha(theme.palette.primary.main, 0.38)
+                        : "rgba(95, 136, 199, 0.35)",
+                    backgroundClip: "padding-box",
+                  },
+                },
+              })}
             >
               {/* Asset Info */}
               <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
                 {/* Thumbnail */}
                 <Box
-                  sx={{
+                  sx={(theme) => ({
                     width: "120px",
                     height: "120px",
                     flexShrink: 0,
-                    borderRadius: "12px",
+                    borderRadius: "4px",
                     overflow: "hidden",
-                    backgroundColor: "rgba(226, 232, 240, 0.3)",
-                    border: "1px solid rgba(226, 232, 240, 0.6)",
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? "rgba(226, 232, 240, 0.05)"
+                        : "rgba(226, 232, 240, 0.3)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -370,7 +436,7 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                     "&:hover .retake-overlay": {
                       opacity: 1,
                     },
-                  }}
+                  })}
                 >
                   {selectedAsset.thumbnail || selectedAsset.thumbnailUrl ? (
                     <img
@@ -436,12 +502,12 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                   {isEditing ? (
                     <>
                       <Typography
-                        sx={{
+                        sx={(theme) => ({
                           fontSize: "0.75rem",
                           fontWeight: 600,
-                          color: "rgba(51, 65, 85, 0.95)",
+                          color: theme.palette.text.primary,
                           mb: 0.5,
-                        }}
+                        })}
                       >
                         Name
                       </Typography>
@@ -450,22 +516,16 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                         onChange={(e) => setEditedName(e.target.value)}
                         size="small"
                         fullWidth
-                        sx={{
-                          mb: 1.5,
-                          "& .MuiInputBase-input": {
-                            fontSize: "1rem",
-                            fontWeight: 600,
-                            padding: "8px 12px",
-                          },
-                        }}
+                        sx={textFieldStyles}
                       />
                       <Typography
-                        sx={{
+                        sx={(theme) => ({
                           fontSize: "0.75rem",
                           fontWeight: 600,
-                          color: "rgba(51, 65, 85, 0.95)",
+                          color: theme.palette.text.primary,
                           mb: 0.5,
-                        }}
+                          mt: 1.5,
+                        })}
                       >
                         Description
                       </Typography>
@@ -477,13 +537,7 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                         multiline
                         rows={2}
                         placeholder="Add a description..."
-                        sx={{
-                          mb: 1.5,
-                          "& .MuiInputBase-input": {
-                            fontSize: "0.813rem",
-                            padding: "8px 12px",
-                          },
-                        }}
+                        sx={textFieldStyles}
                       />
                     </>
                   ) : (
@@ -552,9 +606,9 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
             {/* Fixed Action Bar */}
             <Box
               sx={{
-                borderTop: "1px solid rgba(226, 232, 240, 0.8)",
+                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
                 padding: 2,
-                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                backgroundColor: "rgba(20, 23, 26, 0.88)",
                 display: "flex",
                 gap: 1,
                 alignItems: "center",
@@ -564,19 +618,27 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                 variant="outlined"
                 startIcon={<AddCircleOutline />}
                 onClick={handleAddToScene}
-                sx={{
-                  borderRadius: "8px",
+                sx={(theme) => ({
+                  borderRadius: "4px",
                   textTransform: "none",
                   fontWeight: 500,
                   fontSize: "0.75rem",
-                  borderColor: "rgba(37, 99, 235, 0.3)",
-                  color: "#2563eb",
+                  borderColor:
+                    theme.palette.mode === "dark"
+                      ? "rgba(107, 156, 216, 0.35)"
+                      : "rgba(95, 136, 199, 0.4)",
+                  color: theme.palette.primary.main,
                   padding: "6px 16px",
+                  boxShadow: "none",
                   "&:hover": {
-                    borderColor: "#2563eb",
-                    backgroundColor: "rgba(37, 99, 235, 0.08)",
+                    borderColor: theme.palette.primary.main,
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? "rgba(107, 156, 216, 0.12)"
+                        : "rgba(95, 136, 199, 0.08)",
+                    boxShadow: "none",
                   },
-                }}
+                })}
               >
                 Add to Scene
               </Button>
@@ -587,17 +649,20 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                 <IconButton
                   onClick={handleEditClick}
                   size="small"
-                  sx={{
-                    color: "rgba(100, 116, 139, 0.8)",
-                    border: "1px solid rgba(226, 232, 240, 0.8)",
-                    borderRadius: "8px",
+                  sx={(theme) => ({
+                    color: theme.palette.text.secondary,
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    borderRadius: "4px",
                     padding: "6px",
                     "&:hover": {
-                      backgroundColor: "rgba(37, 99, 235, 0.08)",
-                      borderColor: "#2563eb",
-                      color: "#2563eb",
+                      backgroundColor:
+                        theme.palette.mode === "dark"
+                          ? "rgba(107, 156, 216, 0.12)"
+                          : "rgba(95, 136, 199, 0.08)",
+                      borderColor: theme.palette.primary.main,
+                      color: theme.palette.primary.main,
                     },
-                  }}
+                  })}
                 >
                   <Edit fontSize="small" />
                 </IconButton>
@@ -606,32 +671,39 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
                   <IconButton
                     onClick={handleSaveChanges}
                     size="small"
-                    sx={{
-                      color: "#2563eb",
-                      border: "1px solid rgba(37, 99, 235, 0.3)",
-                      borderRadius: "8px",
+                    sx={(theme) => ({
+                      color: theme.palette.primary.main,
+                      border: `1px solid ${
+                        theme.palette.mode === "dark"
+                          ? "rgba(107, 156, 216, 0.35)"
+                          : "rgba(95, 136, 199, 0.4)"
+                      }`,
+                      borderRadius: "4px",
                       padding: "6px",
                       "&:hover": {
-                        backgroundColor: "rgba(37, 99, 235, 0.1)",
-                        borderColor: "#2563eb",
+                        backgroundColor:
+                          theme.palette.mode === "dark"
+                            ? "rgba(107, 156, 216, 0.14)"
+                            : "rgba(95, 136, 199, 0.1)",
+                        borderColor: theme.palette.primary.main,
                       },
-                    }}
+                    })}
                   >
                     <Save fontSize="small" />
                   </IconButton>
                   <IconButton
                     onClick={handleCancelEdit}
                     size="small"
-                    sx={{
-                      color: "rgba(100, 116, 139, 0.8)",
-                      border: "1px solid rgba(226, 232, 240, 0.8)",
-                      borderRadius: "8px",
+                    sx={(theme) => ({
+                      color: theme.palette.text.secondary,
+                      border: "1px solid rgba(255, 255, 255, 0.08)",
+                      borderRadius: "4px",
                       padding: "6px",
                       "&:hover": {
                         backgroundColor: "rgba(100, 116, 139, 0.1)",
-                        borderColor: "rgba(100, 116, 139, 0.8)",
+                        borderColor: theme.palette.text.secondary,
                       },
-                    }}
+                    })}
                   >
                     <Close fontSize="small" />
                   </IconButton>
@@ -640,17 +712,17 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
               <IconButton
                 onClick={handleDeleteClick}
                 size="small"
-                sx={{
-                  color: "rgba(100, 116, 139, 0.8)",
-                  border: "1px solid rgba(226, 232, 240, 0.8)",
-                  borderRadius: "8px",
+                sx={(theme) => ({
+                  color: theme.palette.text.secondary,
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "4px",
                   padding: "6px",
                   "&:hover": {
                     backgroundColor: "rgba(239, 68, 68, 0.1)",
                     borderColor: "#ef4444",
                     color: "#ef4444",
                   },
-                }}
+                })}
               >
                 <Delete fontSize="small" />
               </IconButton>
@@ -678,35 +750,35 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
         open={deleteConfirmOpen}
         onClose={handleCancelDelete}
         PaperProps={{
-          sx: {
-            borderRadius: "12px",
+          sx: (theme) => ({
+            borderRadius: "4px",
             padding: "8px",
-            backgroundColor: "rgba(255, 255, 255, 0.95)",
-            backdropFilter: "blur(20px) saturate(180%)",
-            WebkitBackdropFilter: "blur(20px) saturate(180%)",
+            backgroundColor: theme.palette.background.paper,
             boxShadow:
-              "0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
-            border: "1px solid rgba(226, 232, 240, 0.8)",
-          },
+              theme.palette.mode === "dark"
+                ? "0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)"
+                : "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+          }),
         }}
       >
         <DialogTitle
-          sx={{
+          sx={(theme) => ({
             fontSize: "1rem",
             fontWeight: 600,
-            color: "rgba(51, 65, 85, 0.95)",
+            color: theme.palette.text.primary,
             pb: 1,
-          }}
+          })}
         >
           Confirm Deletion
         </DialogTitle>
         <DialogContent>
           <Typography
-            sx={{
+            sx={(theme) => ({
               fontSize: "0.875rem",
-              color: "rgba(100, 116, 139, 0.9)",
+              color: theme.palette.text.secondary,
               lineHeight: 1.5,
-            }}
+            })}
           >
             Are you sure you want to delete "
             <strong>
@@ -718,15 +790,21 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
         <DialogActions sx={{ padding: "16px 24px" }}>
           <Button
             onClick={handleCancelDelete}
-            sx={{
+            sx={(theme) => ({
               textTransform: "none",
               fontSize: "0.813rem",
               fontWeight: 500,
-              color: "rgba(100, 116, 139, 0.8)",
+              borderRadius: "4px",
+              color: theme.palette.text.secondary,
+              boxShadow: "none",
               "&:hover": {
-                backgroundColor: "rgba(100, 116, 139, 0.08)",
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(100, 116, 139, 0.12)"
+                    : "rgba(100, 116, 139, 0.08)",
+                boxShadow: "none",
               },
-            }}
+            })}
           >
             Cancel
           </Button>
@@ -737,11 +815,12 @@ const MyLibraryTab: React.FC<MyLibraryTabProps> = ({
               textTransform: "none",
               fontSize: "0.813rem",
               fontWeight: 500,
+              borderRadius: "4px",
               backgroundColor: "#ef4444",
-              boxShadow: "0 2px 8px rgba(239, 68, 68, 0.3)",
+              boxShadow: "none",
               "&:hover": {
                 backgroundColor: "#dc2626",
-                boxShadow: "0 4px 12px rgba(239, 68, 68, 0.4)",
+                boxShadow: "none",
               },
             }}
           >

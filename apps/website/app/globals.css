@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --base-bg: #0f1113;
+    --base-bg-alt: #141617;
+    --text-primary: #e6e7e9;
+    --text-secondary: #9fa6ad;
+    --text-tertiary: #6b7176;
+    --line-soft: #1c1f21;
+    --line-strong: #2a2f32;
+    --accent: #4c7fff;
+  }
+
+  body {
+    @apply bg-base-bg font-sans text-text-primary antialiased;
+  }
+
+  a {
+    @apply text-text-primary transition-colors duration-500;
+  }
+
+  a:hover {
+    @apply text-text-primary;
+  }
+}
+
+@keyframes ambient-rotation {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@layer utilities {
+  .animate-ambient {
+    animation: ambient-rotation 180s linear infinite;
+  }
+}
+

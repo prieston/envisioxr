@@ -132,13 +132,15 @@ const RightPanel: React.FC<RightPanelProps> = ({
         )}
       </Box>
 
-      {/* Panel Content - Direct pass through, no wrapper */}
-      <GenericPanel
-        Container={({ children }) => <>{children}</>}
-        config={config}
-        renderSetting={(setting) => <SettingRenderer setting={setting} />}
-        previewMode={previewMode}
-      />
+      {/* Panel Content - Wrapped in Box to enable flex layout */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <GenericPanel
+          Container={({ children }) => <>{children}</>}
+          config={config}
+          renderSetting={(setting) => <SettingRenderer setting={setting} />}
+          previewMode={previewMode}
+        />
+      </Box>
     </RightPanelContainer>
   );
 };

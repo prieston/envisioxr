@@ -8,7 +8,7 @@ import {
   Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { useSceneStore } from "@envisio/core";
-import { showToast } from "@envisio/core/utils";
+import { showToast } from "@envisio/ui";
 import { ActionButton, AssetManagerModal } from "@envisio/ui";
 import ReportGenerator from "../../Report/ReportGenerator";
 import ProjectSettingsModal from "../../Builder/ProjectSettingsModal";
@@ -65,9 +65,8 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
   // Handle save button click
   const handleSave = async () => {
     if (onSave) {
-      await onSave()
-        .then(() => showToast("Saved!"))
-        .catch(() => showToast("Error saving."));
+      await onSave();
+      // Toast is shown in the parent component's handleSave
     } else {
       showToast("Save action not yet implemented.");
     }

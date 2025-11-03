@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
-import { showToast } from "@envisio/core/utils";
+import { showToast } from "@envisio/ui";
 import { ToastContainer } from "react-toastify";
 
 const EditProjectPage = () => {
@@ -145,7 +145,15 @@ const EditProjectPage = () => {
           </Button>
         </Box>
       </Box>
-      <ToastContainer />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        theme="dark"
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
     </>
   );
 };

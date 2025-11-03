@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import 'react-toastify/dist/ReactToastify.css';
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -105,10 +107,10 @@
   position: absolute;
   width: 4px;
   height: 4px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(20, 23, 26, 0.88) 50%, transparent 100%);
   border-radius: 50%;
   animation: lightParticles 8s linear infinite;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 0 24px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 12px #14171A, 0 0 24px rgba(255, 255, 255, 0.4);
 }
 
 .light-particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 8s; }
@@ -161,27 +163,27 @@
   --color-text-primary: #0f172a;
   --color-text-secondary: #475569;
 
-  --color-primary: #6366f1;
-  --color-primary-400: #818cf8;
-  --color-primary-600: #4f46e5;
+  --color-primary: #6b9cd8;
+  --color-primary-400: #5f88c7;
+  --color-primary-600: #4b6faf;
 
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
-  --color-info: #3b82f6;
+  --color-info: #6b9cd8;
 
   /* Glass effect tokens - Day Mode */
-  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-bg: #14171A;
   --glass-bg-fallback: rgba(237, 237, 237, 0.9);
-  --glass-border: rgba(37, 99, 235, 0.3);
-  --glass-shadow: 0 8px 32px rgba(37, 99, 235, 0.15);
-  --glass-backdrop: blur(20px) saturate(130%);
-  --glass-border-radius: 16px;
+  --glass-border: rgba(107, 156, 216, 0.28);
+  --glass-shadow: 0 8px 32px rgba(95, 136, 199, 0.15);
+  --glass-backdrop: blur(20px) saturate(50%);
+  --glass-border-radius: 4px;
   --glass-panel-margin: 16px;
   --glass-panel-gap: 16px;
-  --glass-text-primary: #2563eb;
+  --glass-text-primary: #6B9CD8;
   --glass-text-secondary: #646464;
-  --brand-blue: #2563eb;
+  --brand-blue: #6B9CD8;
   --brand-gray: #646464;
 }
 
@@ -191,32 +193,35 @@ html.dark {
 
 html.dark {
   /* Dark (night) overrides */
-  --color-bg: #0b0f1a;
-  --color-surface-1: #0f172a;
-  --color-surface-2: #111827;
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-text-primary: #e5e7eb;
-  --color-text-secondary: #94a3b8;
+  --color-bg: #0e0f10;
+  --color-surface-1: #16181a;
+  --color-surface-2: #1c1f22;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.65);
+  --color-primary: #6b9cd8;
+  --color-primary-400: #5f88c7;
+  --color-primary-600: #4b6faf;
+  --color-error: #ff5656;
+  --color-info: #6b9cd8;
 
   /* Dark mode glass effect tokens */
-  --glass-bg: rgba(11, 15, 26, 0.8);
-  --glass-bg-fallback: rgba(11, 15, 26, 0.9);
-  --glass-border: rgba(37, 99, 235, 0.4);
-  --glass-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
+  --glass-bg: rgba(17, 19, 23, 0.9);
+  --glass-bg-fallback: rgba(17, 19, 23, 0.92);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
   --glass-text-primary: #ffffff;
-  --glass-text-secondary: #646464;
+  --glass-text-secondary: rgba(255, 255, 255, 0.65);
 }
 
 body {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
-  /* Add a more visible pattern to make glass effect more visible */
-  background-image:
-    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.3) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.3) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.2) 0%, transparent 60%);
+}
+
+html.dark body {
+  background-image: linear-gradient(180deg, #0d0e11 0%, #111317 100%);
   background-attachment: fixed;
-  background-size: 400px 400px, 300px 300px, 500px 500px;
 }
 
 /* Reset default styles */
@@ -334,7 +339,7 @@ a {
 
 /* Force glass effect on AppBar specifically */
 .MuiAppBar-root.glass-panel {
-  background: var(--glass-bg, rgba(255, 255, 255, 0.8)) !important;
+  background: var(--glass-bg, #14171A) !important;
   backdrop-filter: blur(20px) saturate(130%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(130%) !important;
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.3)) !important;
@@ -345,7 +350,7 @@ a {
 /* Override any MUI default styles that might interfere */
 .glass-panel.MuiAppBar-root,
 .glass-panel.MuiAppBar-root.MuiPaper-root {
-  background: var(--glass-bg, rgba(255, 255, 255, 0.8)) !important;
+  background: var(--glass-bg, #14171A) !important;
   backdrop-filter: blur(20px) saturate(130%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(130%) !important;
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.3)) !important;
@@ -356,7 +361,7 @@ a {
 /* Most specific override for AppBar */
 [class*="MuiAppBar-root"].glass-panel,
 [class*="MuiAppBar-root"][class*="glass-panel"] {
-  background: var(--glass-bg, rgba(255, 255, 255, 0.8)) !important;
+  background: var(--glass-bg, #14171A) !important;
   backdrop-filter: blur(20px) saturate(130%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(130%) !important;
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.3)) !important;
@@ -421,19 +426,19 @@ a {
 .glass-card:hover {
   transform: translateY(-4px) !important;
   box-shadow:
-    0 25px 50px -12px rgba(37, 99, 235, 0.25),
-    0 0 0 1px rgba(37, 99, 235, 0.5) !important;
-  border-color: rgba(37, 99, 235, 0.5) !important;
-  background: rgba(37, 99, 235, 0.1) !important;
+    0 25px 50px -12px rgba(107, 156, 216, 0.25),
+    0 0 0 1px rgba(107, 156, 216, 0.5) !important;
+  border-color: rgba(107, 156, 216, 0.5) !important;
+  background: rgba(107, 156, 216, 0.1) !important;
 }
 
 .glass-card.selected {
-  background: rgba(37, 99, 235, 0.12) !important;
-  border-color: #2563eb !important;
+  background: rgba(95, 136, 199, 0.12) !important;
+  border-color: #6B9CD8 !important;
   box-shadow:
-    0 20px 25px -5px rgba(37, 99, 235, 0.15),
-    0 10px 10px -5px rgba(37, 99, 235, 0.06),
-    0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+    0 20px 25px -5px rgba(107, 156, 216, 0.18),
+    0 10px 10px -5px rgba(95, 136, 199, 0.08),
+    0 0 0 2px rgba(107, 156, 216, 0.22) !important;
 }
 
 /* Force hover effects to work */
@@ -444,13 +449,13 @@ a {
 
 /* Special styling for dashed border cards (CreateProjectCard) */
 .glass-card[style*="dashed"]:hover {
-  border-color: rgba(37, 99, 235, 0.6) !important;
-  background: rgba(37, 99, 235, 0.08) !important;
+  border-color: rgba(95, 136, 199, 0.6) !important;
+  background: rgba(107, 156, 216, 0.08) !important;
 }
 
 .glass-card[style*="dashed"].selected {
-  border-color: #2563eb !important;
-  background: rgba(37, 99, 235, 0.15) !important;
+  border-color: #6B9CD8 !important;
+  background: rgba(107, 156, 216, 0.15) !important;
 }
 
 .glass-card:hover::before {
@@ -503,7 +508,7 @@ a {
   left: 0;
   width: 0;
   height: 2px;
-  background: #2563eb;
+  background: #6B9CD8;
   transition: width 0.3s ease;
 }
 
@@ -782,4 +787,104 @@ html.dark .glass-panel {
 
 .glass-layout > * + * {
   margin-top: var(--glass-panel-gap);
+}
+
+/* React Toastify Animations */
+.Toastify__toast-container {
+  width: 320px;
+  position: fixed !important;
+  z-index: 9999 !important;
+  pointer-events: none;
+}
+
+.Toastify__toast-container--bottom-right {
+  bottom: 24px !important;
+  right: 24px !important;
+}
+
+.Toastify__toast-container .Toastify__toast {
+  opacity: 1 !important;
+  transform: none !important;
+  animation-fill-mode: forwards;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.Toastify__toast-container .Toastify__toast .Toastify__progress-bar,
+.Toastify__toast-container .Toastify__toast .Toastify__progress-bar--success,
+.Toastify__toast-container .Toastify__toast .Toastify__progress-bar--error,
+.Toastify__toast-container .Toastify__toast .Toastify__progress-bar--warning,
+.Toastify__toast-container .Toastify__toast .Toastify__progress-bar--info {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  top: auto !important;
+  height: 3px !important;
+  border-radius: 0 0 4px 4px !important;
+  transform: translate3d(0, 0, 0) !important;
+  opacity: 1 !important;
+}
+
+/* Progress bar gradients with reduced saturation */
+.Toastify__progress-bar--success {
+  background: linear-gradient(90deg, rgba(99, 157, 116, 0.8), rgba(99, 157, 116, 1)) !important;
+}
+
+.Toastify__progress-bar--error {
+  background: linear-gradient(90deg, rgba(185, 131, 131, 0.8), rgba(185, 131, 131, 1)) !important;
+}
+
+.Toastify__progress-bar--warning {
+  background: linear-gradient(90deg, rgba(179, 149, 99, 0.8), rgba(179, 149, 99, 1)) !important;
+}
+
+.Toastify__progress-bar--info {
+  background: linear-gradient(90deg, rgba(130, 151, 175, 0.8), rgba(130, 151, 175, 1)) !important;
+}
+
+/* Fade in animation */
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade out animation */
+@keyframes toastFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+/* Apply animations */
+.Toastify__toast--top-right,
+.Toastify__toast--top-center,
+.Toastify__toast--top-left {
+  animation: toastFadeIn 0.3s ease-out;
+  animation-fill-mode: forwards;
+}
+
+.Toastify__toast--bottom-right,
+.Toastify__toast--bottom-center,
+.Toastify__toast--bottom-left {
+  animation: toastFadeIn 0.3s ease-out;
+  animation-fill-mode: forwards;
+}
+
+/* Exit animations */
+.Toastify__toast--closing {
+  animation: toastFadeOut 0.3s ease-in forwards;
 }

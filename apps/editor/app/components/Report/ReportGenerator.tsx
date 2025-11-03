@@ -1,5 +1,5 @@
 import React from "react";
-import { showToast } from "@envisio/core/utils";
+import { showToast } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
 import * as THREE from "three";
 import { localToGeographic } from "@envisio/core/utils";

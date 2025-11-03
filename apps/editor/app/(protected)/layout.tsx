@@ -1,59 +1,40 @@
 import "@/global.css";
-import { cookies } from "next/headers";
+import "react-toastify/dist/ReactToastify.css";
 import { redirect } from "next/navigation";
 import { ToastContainer } from "react-toastify";
 import { ThemeModeProvider } from "@envisio/ui";
-import { serverEnv } from "@/lib/env/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/authOptions";
+import { SessionProviderWrapper } from "@/app/components/SessionProviderWrapper";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "EnvisioXR | App",
-  description: "This is my cool app.",
-  icons: { icon: "/icons/favicon.ico" },
+  title: "Klorad | App",
+  description: "Control and publish immersive experiences with Klorad.",
+  icons: { icon: "/klorad-favicon.png" },
 };
 
-async function getSessionFromAuthApp(baseUrl) {
-  try {
-    const response = await fetch(`${baseUrl}/api/auth/session`, {
-      headers: { Cookie: cookies().toString() },
-      credentials: "include",
-    });
-    if (!response.ok)
-      throw new Error(`Session request failed: ${response.status}`);
-    const session = await response.json();
-    if (!session || Object.keys(session).length === 0) {
-      throw new Error("No valid session found");
-    }
-    return session;
-  } catch (error) {
-    return null;
-  }
-}
+export default async function ProtectedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await getServerSession(authOptions);
 
-export default async function RootLayout({ children }) {
-  if (!serverEnv) {
-    throw new Error(
-      "Environment variables not properly initialized. Please check your .env file."
-    );
-  }
-
-  const baseUrl = serverEnv.NEXT_PUBLIC_WEBSITE_URL;
-
-  // Check the pathname if possible. (This approach may need adjustments.)
-  // For a robust solution, use route groups (Option 1).
-  const pathname = ""; // You would need to extract the current pathname.
-  // If pathname starts with "/publish", skip session check.
-  if (!pathname.startsWith("/publish")) {
-    const session = await getSessionFromAuthApp(baseUrl);
-    if (!session) {
-      redirect(`${baseUrl}/auth/signin`);
-    }
+  if (!session) {
+    redirect("/auth/signin");
   }
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var root=document.documentElement;root.classList.add('dark');localStorage.setItem('klorad-theme-mode','dark');}catch(e){}})();",
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -61,19 +42,34 @@ export default async function RootLayout({ children }) {
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap"
           rel="stylesheet"
         />
-        <script
+        <style
           dangerouslySetInnerHTML={{
-            __html:
-              "(function(){try{document.documentElement.classList.remove('dark');}catch(e){}})();",
+            __html: `
+              html, body {
+                background: linear-gradient(135deg, #0a0d10 0%, #14171a 50%, #1a1f24 100%);
+                min-height: 100vh;
+                margin: 0;
+              }
+            `,
           }}
         />
       </head>
       <body>
-        <ThemeModeProvider>{children}</ThemeModeProvider>
-        <ToastContainer position="bottom-right" autoClose={3000} />
+        <SessionProviderWrapper session={session}>
+          <ThemeModeProvider>{children}</ThemeModeProvider>
+          <ToastContainer
+            position="bottom-right"
+            autoClose={3000}
+            theme="dark"
+            hideProgressBar={false}
+            closeOnClick
+            pauseOnHover
+            draggable
+          />
+        </SessionProviderWrapper>
       </body>
     </html>
   );

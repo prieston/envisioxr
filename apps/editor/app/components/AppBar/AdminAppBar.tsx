@@ -14,6 +14,7 @@ import {
 } from "./StyledComponents.tsx";
 import { PublishDialog } from "@envisio/ui";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import UserAccountMenu from "./UserAccountMenu";
 
 interface AdminAppBarProps {
   mode?: string;
@@ -146,6 +147,7 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
               {rightSection?.tools.map((tool) => (
                 <TopBarToolRenderer key={tool.id} tool={tool} />
               ))}
+              <UserAccountMenu />
             </RightSection>
           </ToolbarContainer>
         </AppBarContainer>
@@ -165,7 +167,7 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
   // Simple mode (dashboard/edit)
   return (
     <>
-      <AppBarContainer position="fixed">
+      <AppBarContainer position="fixed" className="glass-panel">
         <ToolbarContainer>
           <LeftSection>
             <LogoHeader />
@@ -175,12 +177,12 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
             <IconButton
               onClick={onHelpClick}
               sx={{
-                color: "var(--glass-text-secondary, #646464)",
+                color: "var(--glass-text-secondary, rgba(255,255,255,0.65))",
                 animation: showHelpPulse ? "pulse 2s infinite" : "none",
                 "&:hover": {
                   animation: "none",
-                  backgroundColor: "rgba(37, 99, 235, 0.1)",
-                  color: "var(--glass-text-primary, #2563eb)",
+                  backgroundColor: "rgba(95, 136, 199, 0.12)",
+                  color: "var(--glass-text-primary, #6B9CD8)",
                   transform: "scale(1.1)",
                 },
                 transition: "transform 0.2s ease",
@@ -193,6 +195,8 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
             >
               <HelpOutlineIcon />
             </IconButton>
+
+            <UserAccountMenu />
           </RightSection>
         </ToolbarContainer>
       </AppBarContainer>

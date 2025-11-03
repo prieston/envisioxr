@@ -17,9 +17,9 @@ A comprehensive guide to the EnvisioXR UI design system for consistent, premium 
 ### Brand Colors
 
 ```css
---primary-blue: #2563eb --primary-blue-dark: #1d4ed8
-  --primary-blue-light: rgba(37, 99, 235, 0.08)
-  --primary-blue-hover: rgba(37, 99, 235, 0.12);
+--primary-base: #6B9CD8 --primary-hover: #5F88C7
+  --primary-blue-light: rgba(95, 136, 199, 0.08)
+  --primary-blue-hover: rgba(95, 136, 199, 0.12);
 ```
 
 ### Neutral Colors
@@ -35,8 +35,8 @@ A comprehensive guide to the EnvisioXR UI design system for consistent, premium 
 
 ```css
 --glass-bg:
-  rgba(255, 255, 255, 0.85) --glass-border: rgba(37, 99, 235, 0.15)
-    --glass-shadow: 0 8px 32px rgba(37, 99, 235, 0.12),
+  rgba(255, 255, 255, 0.85) --glass-border: rgba(95, 136, 199, 0.15)
+    --glass-shadow: 0 8px 32px rgba(95, 136, 199, 0.12),
   0 2px 8px rgba(0, 0, 0, 0.08);
 ```
 
@@ -289,12 +289,12 @@ Standardized heights for consistent visual alignment:
     textTransform: "none",
     fontWeight: 600,
     fontSize: "0.875rem",
-    backgroundColor: "#2563eb",
+    backgroundColor: "#6B9CD8",
     color: "#ffffff",
     padding: "0 16px",
     transition: "background-color 0.15s ease",
     "&:hover": {
-      backgroundColor: "#1d4ed8",
+      backgroundColor: "#5F88C7",
     },
   }}
 >
@@ -319,13 +319,13 @@ Standardized heights for consistent visual alignment:
     textTransform: "none",
     fontWeight: 500,
     fontSize: "0.875rem",
-    borderColor: "rgba(37, 99, 235, 0.3)",
-    color: "#2563eb",
+    borderColor: "rgba(95, 136, 199, 0.3)",
+    color: "#6B9CD8",
     padding: "0 16px",
     transition: "background-color 0.15s ease, border-color 0.15s ease",
     "&:hover": {
-      borderColor: "#2563eb",
-      backgroundColor: "rgba(37, 99, 235, 0.08)",
+      borderColor: "#6B9CD8",
+      backgroundColor: "rgba(95, 136, 199, 0.08)",
     },
   }}
 >
@@ -352,10 +352,10 @@ Standardized heights for consistent visual alignment:
       borderColor: "rgba(226, 232, 240, 0.8)",
     },
     "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "rgba(37, 99, 235, 0.4)",
+      borderColor: "rgba(95, 136, 199, 0.4)",
     },
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#2563eb",
+      borderColor: "#6B9CD8",
       borderWidth: "2px",
     },
   }}
@@ -365,9 +365,9 @@ Standardized heights for consistent visual alignment:
     sx={{
       fontSize: "0.875rem",
       "&.Mui-selected": {
-        backgroundColor: "rgba(37, 99, 235, 0.08)",
+        backgroundColor: "rgba(95, 136, 199, 0.08)",
         "&:hover": {
-          backgroundColor: "rgba(37, 99, 235, 0.12)",
+          backgroundColor: "rgba(95, 136, 199, 0.12)",
         },
       },
     }}
@@ -398,10 +398,10 @@ Standardized heights for consistent visual alignment:
         borderColor: "rgba(226, 232, 240, 0.8)",
       },
       "&:hover fieldset": {
-        borderColor: "rgba(37, 99, 235, 0.4)",
+        borderColor: "rgba(95, 136, 199, 0.4)",
       },
       "&.Mui-focused fieldset": {
-        borderColor: "#2563eb",
+        borderColor: "#6B9CD8",
         borderWidth: "2px",
       },
     },
@@ -430,11 +430,11 @@ For search fields or simpler inputs without the TextField wrapper:
     transition: "background-color 0.15s ease, border-color 0.15s ease",
     "&:hover": {
       backgroundColor: "rgba(255, 255, 255, 0.9)",
-      borderColor: "rgba(37, 99, 235, 0.3)",
+      borderColor: "rgba(95, 136, 199, 0.3)",
     },
     "&.Mui-focused": {
       backgroundColor: "rgba(255, 255, 255, 0.95)",
-      borderColor: "#2563eb",
+      borderColor: "#6B9CD8",
       outline: "none",
     },
     "&:before, &:after": {
@@ -461,13 +461,13 @@ For search fields or simpler inputs without the TextField wrapper:
   min={0}
   max={100}
   sx={{
-    color: "#2563eb",
+    color: "#6B9CD8",
     height: 4,
     "& .MuiSlider-thumb": {
       width: 16,
       height: 16,
       "&:hover, &.Mui-focusVisible": {
-        boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+        boxShadow: "0 0 0 8px rgba(95, 136, 199, 0.16)",
       },
     },
     "& .MuiSlider-track": {
@@ -493,10 +493,10 @@ For search fields or simpler inputs without the TextField wrapper:
   onChange={handleChange}
   sx={{
     "& .MuiSwitch-switchBase.Mui-checked": {
-      color: "#2563eb",
+      color: "#6B9CD8",
     },
     "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-      backgroundColor: "#2563eb",
+      backgroundColor: "#6B9CD8",
     },
   }}
 />
@@ -565,7 +565,7 @@ When switches are presented as **individual setting items** (like in settings pa
     alignItems: "center",
     transition: "border-color 0.15s ease",
     "&:hover": {
-      borderColor: "rgba(37, 99, 235, 0.4)",
+      borderColor: "rgba(95, 136, 199, 0.4)",
       cursor: "pointer",
     },
   }}
@@ -806,12 +806,12 @@ const SwitchLabel = styled(Typography)({
       transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
       textTransform: "none",
       "&:hover": {
-        backgroundColor: "rgba(37, 99, 235, 0.08)",
-        color: "#2563eb",
+        backgroundColor: "rgba(95, 136, 199, 0.08)",
+        color: "#6B9CD8",
       },
       "&.Mui-selected": {
-        color: "#2563eb",
-        backgroundColor: "rgba(37, 99, 235, 0.12)",
+        color: "#6B9CD8",
+        backgroundColor: "rgba(95, 136, 199, 0.12)",
         fontWeight: 600,
       },
       "& .MuiSvgIcon-root": {
@@ -843,8 +843,8 @@ const SwitchLabel = styled(Typography)({
     transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
     "&:hover": {
       backgroundColor: "rgba(248, 250, 252, 0.9)",
-      borderColor: "rgba(37, 99, 235, 0.2)",
-      boxShadow: "0 2px 8px rgba(37, 99, 235, 0.08)",
+      borderColor: "rgba(95, 136, 199, 0.2)",
+      boxShadow: "0 2px 8px rgba(95, 136, 199, 0.08)",
     },
   }}
 >
@@ -862,13 +862,13 @@ const SwitchLabel = styled(Typography)({
     background: "rgba(255, 255, 255, 0.8)",
     backdropFilter: "blur(20px) saturate(130%)",
     WebkitBackdropFilter: "blur(20px) saturate(130%)",
-    border: "1px solid rgba(37, 99, 235, 0.3)",
+    border: "1px solid rgba(95, 136, 199, 0.3)",
     borderRadius: "16px",
-    boxShadow: "0 8px 32px rgba(37, 99, 235, 0.15)",
+    boxShadow: "0 8px 32px rgba(95, 136, 199, 0.15)",
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     "&:hover": {
-      boxShadow: "0 25px 50px -12px rgba(37, 99, 235, 0.25)",
-      background: "rgba(37, 99, 235, 0.1)",
+      boxShadow: "0 25px 50px -12px rgba(95, 136, 199, 0.25)",
+      background: "rgba(95, 136, 199, 0.1)",
     },
   }}
 >
@@ -890,15 +890,15 @@ const SwitchLabel = styled(Typography)({
     backdropFilter: "blur(24px) saturate(140%)",
     WebkitBackdropFilter: "blur(24px) saturate(140%)",
     padding: "20px",
-    border: "1px solid rgba(37, 99, 235, 0.15)",
+    border: "1px solid rgba(95, 136, 199, 0.15)",
     borderRadius: "20px",
     boxShadow:
-      "0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+      "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     "&:hover": {
       boxShadow:
-        "0 12px 40px rgba(37, 99, 235, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1)",
-      borderColor: "rgba(37, 99, 235, 0.25)",
+        "0 12px 40px rgba(95, 136, 199, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1)",
+      borderColor: "rgba(95, 136, 199, 0.25)",
     },
   }}
 >
@@ -928,10 +928,10 @@ const SwitchLabel = styled(Typography)({
 --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
 
 /* Medium - Default for panels and cards */
---shadow-md: 0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+--shadow-md: 0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
 
 /* Large - Elevated panels */
---shadow-lg: 0 12px 40px rgba(37, 99, 235, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+--shadow-lg: 0 12px 40px rgba(95, 136, 199, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
 
 /* Note: Keep shadows consistent - avoid animating shadow changes */
 ```
@@ -960,8 +960,8 @@ transition:
 
 /* Good - Color change only */
 "&:hover": {
-  backgroundColor: "rgba(37, 99, 235, 0.08)",
-  borderColor: "rgba(37, 99, 235, 0.4)",
+  backgroundColor: "rgba(95, 136, 199, 0.08)",
+  borderColor: "rgba(95, 136, 199, 0.4)",
 }
 
 /* Avoid - Movement animations */
@@ -986,19 +986,19 @@ backdrop-filter: blur(24px) saturate(140%);
   width: 8px;
 }
 &::-webkit-scrollbar-track {
-  background: rgba(37, 99, 235, 0.05);
+  background: rgba(95, 136, 199, 0.05);
   border-radius: 4px;
   margin: 4px 0;
 }
 &::-webkit-scrollbar-thumb {
-  background: rgba(37, 99, 235, 0.2);
+  background: rgba(95, 136, 199, 0.2);
   border-radius: 4px;
   border: 2px solid transparent;
   background-clip: padding-box;
   transition: background 0.2s ease;
 }
 &::-webkit-scrollbar-thumb:hover {
-  background: rgba(37, 99, 235, 0.35);
+  background: rgba(95, 136, 199, 0.35);
   background-clip: padding-box;
 }
 ```
@@ -1013,7 +1013,7 @@ All interactive elements should have visible focus states:
 
 ```css
 &:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #6B9CD8;
   outline-offset: 2px;
 }
 ```
@@ -1078,7 +1078,7 @@ All interactive elements should have visible focus states:
 // - Border color changes to blue
 // - Slight background change
 "&:hover fieldset": {
-  borderColor: "rgba(37, 99, 235, 0.4)", // Blue tint = hoverable
+  borderColor: "rgba(95, 136, 199, 0.4)", // Blue tint = hoverable
 }
 ```
 
@@ -1089,7 +1089,7 @@ All interactive elements should have visible focus states:
 // - Strong blue border (2px)
 // - Clear visual feedback
 "&.Mui-focused fieldset": {
-  borderColor: "#2563eb",      // Strong blue = active
+  borderColor: "#6B9CD8",      // Strong blue = active
   borderWidth: "2px",          // Thicker = focused
 }
 ```
@@ -1122,9 +1122,9 @@ sx={{
 // - Solid blue background
 // - White text (high contrast)
 // - Shadow for elevation
-backgroundColor: "#2563eb",
+backgroundColor: "#6B9CD8",
 color: "#ffffff",
-boxShadow: "0 2px 8px rgba(37, 99, 235, 0.2)",
+boxShadow: "0 2px 8px rgba(95, 136, 199, 0.2)",
 ```
 
 **Hover (Ready to Click):**
@@ -1135,9 +1135,9 @@ boxShadow: "0 2px 8px rgba(37, 99, 235, 0.2)",
 // - Lifts up slightly
 // - Shadow increases
 "&:hover": {
-  backgroundColor: "#1d4ed8",              // Darker = hoverable
+  backgroundColor: "#5F88C7",              // Darker = hoverable
   transform: "translateY(-1px)",            // Lift = interactive
-  boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)", // More shadow = elevated
+  boxShadow: "0 4px 12px rgba(95, 136, 199, 0.3)", // More shadow = elevated
 }
 ```
 
@@ -1149,7 +1149,7 @@ boxShadow: "0 2px 8px rgba(37, 99, 235, 0.2)",
 // - Momentary darker state
 "&:active": {
   transform: "translateY(0px)",  // Press down
-  boxShadow: "0 1px 4px rgba(37, 99, 235, 0.2)", // Less shadow
+  boxShadow: "0 1px 4px rgba(95, 136, 199, 0.2)", // Less shadow
 }
 ```
 
@@ -1163,8 +1163,8 @@ boxShadow: "0 2px 8px rgba(37, 99, 235, 0.2)",
 // - Blue text instead of white
 // - Less prominent
 backgroundColor: "transparent",
-border: "1px solid rgba(37, 99, 235, 0.3)",
-color: "#2563eb",
+border: "1px solid rgba(95, 136, 199, 0.3)",
+color: "#6B9CD8",
 ```
 
 **Hover (Interactive Feedback):**
@@ -1174,8 +1174,8 @@ color: "#2563eb",
 // - Light blue background appears
 // - Border becomes solid blue
 "&:hover": {
-  backgroundColor: "rgba(37, 99, 235, 0.08)", // Subtle fill
-  borderColor: "#2563eb",                     // Solid border
+  backgroundColor: "rgba(95, 136, 199, 0.08)", // Subtle fill
+  borderColor: "#6B9CD8",                     // Solid border
 }
 ```
 
@@ -1201,7 +1201,7 @@ borderColor: "rgba(226, 232, 240, 0.8)",
 // - Border turns blue
 // - Cursor changes to pointer
 "&:hover": {
-  borderColor: "rgba(37, 99, 235, 0.4)",
+  borderColor: "rgba(95, 136, 199, 0.4)",
   cursor: "pointer",
 }
 ```
@@ -1214,7 +1214,7 @@ borderColor: "rgba(226, 232, 240, 0.8)",
 // - Menu appears below
 // - Current item highlighted
 "&.Mui-focused": {
-  borderColor: "#2563eb",
+  borderColor: "#6B9CD8",
   borderWidth: "2px",
 }
 ```
@@ -1226,7 +1226,7 @@ borderColor: "rgba(226, 232, 240, 0.8)",
 // - Light blue background
 // - Checkmark or different styling
 "&.Mui-selected": {
-  backgroundColor: "rgba(37, 99, 235, 0.08)", // Light blue = selected
+  backgroundColor: "rgba(95, 136, 199, 0.08)", // Light blue = selected
 }
 ```
 
@@ -1247,7 +1247,7 @@ sx={{
   borderRadius: "12px",
   "&:hover": {
     backgroundColor: "rgba(248, 250, 252, 0.9)", // Subtle highlight
-    borderColor: "rgba(37, 99, 235, 0.2)",       // Blue tint
+    borderColor: "rgba(95, 136, 199, 0.2)",       // Blue tint
   },
 }}
 ```
@@ -1262,7 +1262,7 @@ sx={{
 sx={{
   backgroundColor: "rgba(255, 255, 255, 0.85)", // Opaque = container
   backdropFilter: "blur(24px)",                 // Blur = elevated
-  boxShadow: "0 8px 32px rgba(37, 99, 235, 0.12)", // Shadow = depth
+  boxShadow: "0 8px 32px rgba(95, 136, 199, 0.12)", // Shadow = depth
   borderRadius: "20px",                         // Large radius = container
 }}
 ```
@@ -1271,7 +1271,7 @@ sx={{
 
 ### Color Meaning
 
-#### Blue (`#2563eb`)
+#### Blue (`#6B9CD8`)
 
 - **Primary actions** (Save, Publish, Submit)
 - **Interactive elements** (Links, hover states)
@@ -1305,19 +1305,19 @@ sx={{
 
 ```jsx
 // Primary buttons, critical actions
-backgroundColor: "#2563eb",
+backgroundColor: "#6B9CD8",
 color: "#ffffff",
 fontWeight: 600,
-boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
+boxShadow: "0 4px 12px rgba(95, 136, 199, 0.3)",
 ```
 
 #### Medium Priority (Should See)
 
 ```jsx
 // Secondary buttons, important text
-color: "#2563eb",
+color: "#6B9CD8",
 fontWeight: 500,
-border: "1px solid rgba(37, 99, 235, 0.3)",
+border: "1px solid rgba(95, 136, 199, 0.3)",
 ```
 
 #### Low Priority (Can See)

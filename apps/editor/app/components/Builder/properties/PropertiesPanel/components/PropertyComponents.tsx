@@ -52,7 +52,7 @@ export const InfoText: React.FC<{ label: string; value: React.ReactNode }> = ({
         backgroundColor: "rgba(248, 250, 252, 0.8)",
         padding: "6px 12px",
         borderRadius: "6px",
-        border: "1px solid rgba(226, 232, 240, 0.8)",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
       }}
     >
       {value}

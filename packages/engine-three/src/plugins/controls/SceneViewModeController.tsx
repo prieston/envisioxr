@@ -14,7 +14,7 @@ import {
   updateThirdPersonCamera,
   KeyStates,
   MovementParams,
-} from "./ControlHelpers";
+} from "../../components/Scene/ControlHelpers";
 
 interface PlayerRigidBodyProps {
   playerHeight: number;

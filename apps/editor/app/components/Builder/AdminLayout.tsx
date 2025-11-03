@@ -15,7 +15,7 @@ import {
 import { BottomPanel, LeftPanel, RightPanel } from "./panels";
 import ModelPositioningManager from "./ModelPositioningManager";
 import { useSceneStore } from "@envisio/core";
-import { showToast } from "@envisio/core/utils";
+import { showToast } from "@envisio/ui";
 
 const AdminLayout = ({ children, onSave, onPublish }) => {
   const [selectingPosition, setSelectingPosition] = useState(false);

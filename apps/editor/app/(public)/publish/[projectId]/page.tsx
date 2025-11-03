@@ -2,23 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CircularProgress, Typography } from "@mui/material";
-import { styled, useTheme } from "@mui/material/styles";
+import { Typography, Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useSceneStore, useWorldStore } from "@envisio/core";
+import { LoadingScreen } from "@envisio/ui";
 import MobileLayout from "@/app/components/PublishPage/MobileLayout";
 import DesktopLayout from "@/app/components/PublishPage/DesktopLayout";
-
-const LoadingContainer = styled("div")(() => ({
-  height: "100vh",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-}));
-
-const ErrorContainer = styled("div")(({ theme }) => ({
-  padding: theme.spacing(5),
-}));
 
 const PublishedScenePage = () => {
   const { projectId } = useParams();
@@ -132,20 +122,16 @@ const PublishedScenePage = () => {
   }, [projectId, setObservationPoints, selectObservation, setActiveWorld]);
 
   if (loading) {
-    return (
-      <LoadingContainer>
-        <CircularProgress />
-      </LoadingContainer>
-    );
+    return <LoadingScreen message="Loading project..." />;
   }
 
   if (!project) {
     return (
-      <ErrorContainer>
+      <Box sx={{ p: 5 }}>
         <Typography variant="h6">
           Project not found or not published.
         </Typography>
-      </ErrorContainer>
+      </Box>
     );
   }
 

@@ -8,17 +8,20 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"pnpm dev:website\" \"pnpm dev:editor\"",
-    "dev:website": "cd apps/website && pnpm dev",
+    "dev": "concurrently \"pnpm dev:editor\" \"pnpm dev:website\" --names \"editor,website\" --prefix-colors \"cyan,magenta\"",
     "dev:editor": "cd apps/editor && pnpm dev",
+    "dev:website": "cd apps/website && pnpm dev",
+    "build": "pnpm -r build --if-present",
+    "build:packages": "pnpm --filter @envisio/core build && pnpm --filter @envisio/ui build && pnpm --filter @envisio/ion-sdk build && pnpm --filter @envisio/engine-cesium build && pnpm --filter @envisio/engine-three build && pnpm --filter @envisio/config build",
+    "build:editor": "pnpm build:packages && cd apps/editor && pnpm build",
     "build:website": "cd apps/website && pnpm build",
-    "build:editor": "cd apps/editor && pnpm build",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "prisma:generate": "pnpm --filter @envisioxr/prisma prisma generate",
-    "prisma:migrate:deploy": "pnpm --filter @envisioxr/prisma prisma migrate deploy",
-    "vercel:build:website": "pnpm prisma:generate && pnpm prisma:migrate:deploy && pnpm build:website",
-    "vercel:build:editor": "pnpm prisma:generate && pnpm prisma:migrate:deploy && pnpm build:editor"
+    "prisma:generate": "pnpm --filter @envisioxr/prisma generate",
+    "prisma:migrate:deploy": "cd packages/prisma && prisma migrate deploy",
+    "vercel:build:editor": "pnpm prisma:generate && pnpm build:editor",
+    "vercel:build:website": "pnpm build:website",
+    "postinstall": "pnpm prisma:generate"
   },
   "engines": {
     "node": ">=20 <23",

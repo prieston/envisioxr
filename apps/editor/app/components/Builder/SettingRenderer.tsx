@@ -8,6 +8,7 @@ import {
   Button,
   TextField,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import {
   SettingContainer,
   CustomSettingContainer,
@@ -54,14 +55,14 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
                 checked={value ?? setting.defaultValue ?? false}
                 onChange={(e) => handleChange(e.target.checked)}
                 disabled={setting.disabled}
-                sx={{
+                sx={(theme) => ({
                   "& .MuiSwitch-switchBase.Mui-checked": {
-                    color: "#2563eb",
+                    color: theme.palette.primary.main,
                   },
                   "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                    backgroundColor: "#2563eb",
+                    backgroundColor: theme.palette.primary.main,
                   },
-                }}
+                })}
               />
             }
             label=""
@@ -80,24 +81,27 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             marks={setting.marks}
             disabled={setting.disabled}
             valueLabelDisplay="auto"
-            sx={{
-              color: "#2563eb",
+            sx={(theme) => ({
+              color: theme.palette.primary.main,
               height: 4,
               "& .MuiSlider-thumb": {
                 width: 16,
                 height: 16,
                 "&:hover, &.Mui-focusVisible": {
-                  boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+                  boxShadow: `0 0 0 8px ${alpha(theme.palette.primary.main, 0.16)}`,
                 },
               },
               "& .MuiSlider-track": {
                 border: "none",
               },
               "& .MuiSlider-rail": {
-                opacity: 0.3,
-                backgroundColor: "rgba(100, 116, 139, 0.3)",
+                opacity: theme.palette.mode === "dark" ? 0.4 : 0.3,
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? alpha(theme.palette.common.white, 0.25)
+                    : "rgba(100, 116, 139, 0.3)",
               },
-            }}
+            })}
           />
         );
 
@@ -131,19 +135,22 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
             disabled={setting.disabled}
             fullWidth
             size="small"
-            sx={{
-              borderRadius: "8px",
+            sx={(theme) => ({
+              borderRadius: 4,
               textTransform: "none",
               fontWeight: 500,
-              fontSize: "0.75rem", // 12px - button text
-              borderColor: "rgba(37, 99, 235, 0.3)",
-              color: "#2563eb",
+              fontSize: "0.75rem",
+              borderColor:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.primary.main, 0.4)
+                  : "rgba(95, 136, 199, 0.3)",
+              color: theme.palette.primary.main,
               padding: "6px 16px",
               "&:hover": {
-                borderColor: "#2563eb",
-                backgroundColor: "rgba(37, 99, 235, 0.08)",
+                borderColor: theme.palette.primary.main,
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
               },
-            }}
+            })}
           >
             {setting.label}
           </Button>

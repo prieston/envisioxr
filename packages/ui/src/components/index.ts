@@ -1,5 +1,6 @@
 export * from "./panels";
 export * from "./modals";
+export * from "./loading/LoadingScreen";
 export { default as ViewModeControls } from "./controls/ViewModeControls";
 export * as ViewModeControlsStyles from "./controls/ViewModeControls.styles";
 export { default as PlaybackControls } from "./controls/PlaybackControls";

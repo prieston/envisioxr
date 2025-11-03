@@ -1,4 +1,4 @@
-import { styled } from "@mui/material/styles";
+import { styled, alpha } from "@mui/material/styles";
 import { Box, ListItem, IconButton } from "@mui/material";
 import type { BoxProps } from "@mui/material/Box";
 import type { ListItemProps } from "@mui/material/ListItem";
@@ -27,17 +27,26 @@ export const ObservationSection: React.FC<BoxProps & { previewMode: boolean }> =
       height: "6px", // Horizontal scrollbar
     },
     "&::-webkit-scrollbar-track": {
-      background: "rgba(37, 99, 235, 0.05)",
+      background:
+        theme.palette.mode === "dark"
+          ? alpha(theme.palette.primary.main, 0.08)
+          : "rgba(95, 136, 199, 0.05)",
       borderRadius: "4px",
     },
     "&::-webkit-scrollbar-thumb": {
-      background: "rgba(37, 99, 235, 0.2)",
+      background:
+        theme.palette.mode === "dark"
+          ? alpha(theme.palette.primary.main, 0.24)
+          : "rgba(95, 136, 199, 0.2)",
       borderRadius: "4px",
       border: "2px solid transparent",
       backgroundClip: "padding-box",
       transition: "background 0.2s ease",
       "&:hover": {
-        background: "rgba(37, 99, 235, 0.35)",
+        background:
+          theme.palette.mode === "dark"
+            ? alpha(theme.palette.primary.main, 0.38)
+            : "rgba(95, 136, 199, 0.35)",
         backgroundClip: "padding-box",
       },
     },
@@ -48,7 +57,7 @@ export const ObservationListItem: React.FC<
   ListItemProps & { selected: boolean }
 > = styled(ListItem)<{ selected: boolean }>(({ theme, selected }) => ({
   cursor: "pointer",
-  borderRadius: "8px", // Design system: 8px for clickable items
+  borderRadius: 4, // Design system: 8px for clickable items
   padding: theme.spacing(1, 1.5),
   width: "140px", // Fixed width for horizontal cards
   minWidth: "140px",
@@ -56,11 +65,21 @@ export const ObservationListItem: React.FC<
   height: "100%",
   flexShrink: 0, // Don't shrink in horizontal layout
   backgroundColor: selected
-    ? "rgba(37, 99, 235, 0.12)"
-    : "rgba(248, 250, 252, 0.6)",
+    ? alpha(theme.palette.primary.main, 0.18)
+    : theme.palette.mode === "dark"
+      ? theme.palette.background.paper
+      : "rgba(248, 250, 252, 0.6)",
   border: "1px solid",
-  borderColor: selected ? "rgba(37, 99, 235, 0.2)" : "rgba(226, 232, 240, 0.8)",
-  color: selected ? "#2563eb" : "rgba(51, 65, 85, 0.95)", // Match SceneObjectsList
+  borderColor: selected
+    ? alpha(theme.palette.primary.main, 0.3)
+    : theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.08)"
+      : "rgba(255, 255, 255, 0.08)",
+  color: selected
+    ? theme.palette.primary.main
+    : theme.palette.mode === "dark"
+      ? theme.palette.text.primary
+      : "rgba(51, 65, 85, 0.95)",
   transition:
     "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease",
   display: "flex",
@@ -68,10 +87,12 @@ export const ObservationListItem: React.FC<
   justifyContent: "center",
   "&:hover": {
     backgroundColor: selected
-      ? "rgba(37, 99, 235, 0.16)"
-      : "rgba(248, 250, 252, 0.9)",
-    borderColor: "rgba(37, 99, 235, 0.2)",
-    color: "#2563eb", // Match SceneObjectsList hover color
+      ? alpha(theme.palette.primary.main, 0.24)
+      : theme.palette.mode === "dark"
+        ? alpha(theme.palette.primary.main, 0.12)
+        : "rgba(248, 250, 252, 0.9)",
+    borderColor: alpha(theme.palette.primary.main, 0.3),
+    color: theme.palette.primary.main,
   },
   "& .MuiListItemText-primary": {
     fontSize: "0.875rem", // 14px - match SceneObjectsList
@@ -84,7 +105,7 @@ export const ObservationListItem: React.FC<
 // Add button for horizontal layout
 export const AddButton: React.FC<IconButtonProps> = styled(IconButton)(
   ({ theme }) => ({
-    borderRadius: "8px",
+    borderRadius: 4,
     padding: theme.spacing(1, 1.5),
     width: "140px",
     minWidth: "140px",
@@ -92,9 +113,18 @@ export const AddButton: React.FC<IconButtonProps> = styled(IconButton)(
     maxWidth: "140px",
     height: "100%",
     flexShrink: 0,
-    backgroundColor: "rgba(248, 250, 252, 0.6)",
-    border: "1px solid rgba(226, 232, 240, 0.8)",
-    color: "rgba(51, 65, 85, 0.7)",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? theme.palette.background.paper
+        : "rgba(248, 250, 252, 0.6)",
+    border:
+      theme.palette.mode === "dark"
+        ? "1px solid rgba(255, 255, 255, 0.08)"
+        : "1px solid rgba(255, 255, 255, 0.08)",
+    color:
+      theme.palette.mode === "dark"
+        ? theme.palette.text.secondary
+        : "rgba(51, 65, 85, 0.7)",
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
@@ -103,9 +133,9 @@ export const AddButton: React.FC<IconButtonProps> = styled(IconButton)(
     transition:
       "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease",
     "&:hover": {
-      backgroundColor: "rgba(37, 99, 235, 0.08)",
-      borderColor: "rgba(37, 99, 235, 0.3)",
-      color: "#2563eb",
+      backgroundColor: alpha(theme.palette.primary.main, 0.12),
+      borderColor: alpha(theme.palette.primary.main, 0.3),
+      color: theme.palette.primary.main,
     },
   })
 );

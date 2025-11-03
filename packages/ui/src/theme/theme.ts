@@ -4,42 +4,52 @@ import { createTheme, Theme } from "@mui/material/styles";
 
 export type ThemeMode = "light" | "dark";
 
+const PRIMARY_BASE = "#6B9CD8";
+const PRIMARY_HOVER = "#5F88C7";
+const PRIMARY_ACTIVE = "#4B6FAF";
+
 export const createAppTheme = (mode: ThemeMode): Theme =>
   createTheme({
+    shape: {
+      borderRadius: 4,
+    },
     palette: {
       mode,
-      primary: { main: "#2563eb" },
-      secondary: { main: "#646464" },
+      primary: {
+        main: PRIMARY_BASE,
+        dark: PRIMARY_ACTIVE,
+        light: "#87ADD9",
+        contrastText: "#FFFFFF",
+      },
+      secondary: { main: mode === "dark" ? "#94a3b8" : "#646464" },
       background: {
-        default: mode === "dark" ? "#0b0f1a" : "#ffffff",
-        paper: mode === "dark" ? "#0f172a" : "#f8fafc",
+        default: mode === "dark" ? "#0E0F10" : "#ffffff",
+        paper: mode === "dark" ? "#16181A" : "#f8fafc",
       },
       text: {
-        primary: mode === "dark" ? "#e5e7eb" : "#0f172a",
-        secondary: mode === "dark" ? "#94a3b8" : "#475569",
+        primary: mode === "dark" ? "#FFFFFF" : "#0f172a",
+        secondary: mode === "dark" ? "rgba(255, 255, 255, 0.65)" : "#475569",
       },
       divider:
-        mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(15,23,42,0.12)",
+        mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.12)",
+      error: { main: mode === "dark" ? "#FF5656" : "#ef4444" },
     },
     typography: {
-      fontFamily: `"Montserrat", "Inter", "Roboto", "Arial", sans-serif`,
+      fontFamily: `"Inter", "system-ui", "Roboto", "Arial", sans-serif`,
       h1: {
-        fontWeight: 700,
+        fontWeight: 500,
         fontSize: "2.5rem",
-        color: "var(--color-text-primary)",
       },
       h2: {
-        fontWeight: 600,
+        fontWeight: 500,
         fontSize: "2rem",
-        color: "var(--color-text-primary)",
       },
       h3: {
         fontWeight: 500,
         fontSize: "1.75rem",
-        color: "var(--color-text-primary)",
       },
-      body1: { fontSize: "1rem", color: "var(--color-text-secondary)" },
-      button: { textTransform: "none", fontWeight: 600 },
+      body1: { fontSize: "1rem", fontWeight: 400 },
+      button: { textTransform: "none", fontWeight: 500 },
     },
     components: {
       MuiCssBaseline: {
@@ -66,21 +76,138 @@ export const createAppTheme = (mode: ThemeMode): Theme =>
           },
         },
       },
+      MuiPaper: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            backgroundColor: theme.palette.background.paper,
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0 1px 3px rgba(0,0,0,0.35)"
+                : "0 2px 6px rgba(15, 23, 42, 0.08)",
+            borderRadius: 4,
+          }),
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            borderRadius: 4,
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderRadius: 4,
+            },
+          },
+          input: {
+            borderRadius: 4,
+          },
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          select: {
+            borderRadius: 4,
+          },
+        },
+      },
       MuiButton: {
-        styleOverrides: { root: { borderRadius: "8px", padding: "10px 16px" } },
+        styleOverrides: {
+          root: {
+            borderRadius: 4,
+            padding: "6px 14px",
+            fontWeight: 500,
+            boxShadow: "none",
+          },
+          containedPrimary: {
+            backgroundColor: PRIMARY_BASE,
+            color: "#FFFFFF",
+            boxShadow: "none",
+            "&:hover": {
+              backgroundColor: PRIMARY_HOVER,
+              boxShadow: "none",
+            },
+            "&:active": {
+              backgroundColor: PRIMARY_ACTIVE,
+              boxShadow: "none",
+            },
+            "&:disabled": {
+              backgroundColor: "rgba(255,255,255,0.12)",
+              color: "rgba(255,255,255,0.35)",
+            },
+          },
+          outlined: ({ theme }) => ({
+            borderColor:
+              theme.palette.mode === "dark"
+                ? "rgba(255,255,255,0.24)"
+                : "rgba(107, 156, 216, 0.35)",
+            color: theme.palette.text.primary,
+            "&:hover": {
+              borderColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(255,255,255,0.45)"
+                  : "rgba(95, 136, 199, 0.5)",
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(107, 156, 216, 0.08)"
+                  : "rgba(107, 156, 216, 0.1)",
+            },
+          }),
+          outlinedError: {
+            borderColor: "#FF5656",
+            color: "#FF5656",
+            backgroundColor: "transparent",
+            "&:hover": {
+              borderColor: "#FF5656",
+              backgroundColor: "rgba(255, 86, 86, 0.12)",
+            },
+          },
+          text: ({ theme }) => ({
+            color:
+              theme.palette.mode === "dark"
+                ? "rgba(255,255,255,0.75)"
+                : theme.palette.primary.main,
+            padding: "4px 8px",
+            "&:hover": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(107, 156, 216, 0.08)"
+                  : "rgba(107, 156, 216, 0.08)",
+            },
+          }),
+        },
       },
       MuiCard: {
         styleOverrides: {
           root: {
             backgroundColor: "var(--color-surface-2)",
-            boxShadow: "0px 4px 12px rgba(0,0,0,0.1)",
-            borderRadius: "12px",
+            boxShadow: "none",
+            borderRadius: 4,
             border: "1px solid var(--color-border)",
+          },
+        },
+      },
+      MuiSvgIcon: {
+        styleOverrides: {
+          root: {
+            fontSize: "1.25rem",
+          },
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: 4,
+            padding: "6px",
+          },
+        },
+      },
+      MuiTooltip: {
+        styleOverrides: {
+          tooltip: {
+            borderRadius: 4,
           },
         },
       },
     },
   });
 
-const theme: Theme = createAppTheme("light");
+const theme: Theme = createAppTheme("dark");
 export default theme;

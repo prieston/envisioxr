@@ -10,6 +10,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { selectStyles, menuItemStyles } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
 
@@ -164,23 +165,29 @@ const SDKObservationPropertiesPanel: React.FC<
       {/* Sensor Configuration */}
       <Box>
         <Typography
-          sx={{
+          sx={(theme) => ({
             fontSize: "0.688rem",
             fontWeight: 600,
-            color: "rgba(51, 65, 85, 0.85)",
+            color:
+              theme.palette.mode === "dark"
+                ? alpha(theme.palette.text.secondary, 0.9)
+                : "rgba(51, 65, 85, 0.85)",
             mb: 0.5,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
-          }}
+          })}
         >
           Sensor Configuration
         </Typography>
         <Typography
-          sx={{
+          sx={(theme) => ({
             fontSize: "0.75rem",
-            color: "rgba(100, 116, 139, 0.7)",
+            color:
+              theme.palette.mode === "dark"
+                ? alpha(theme.palette.text.secondary, 0.9)
+                : "rgba(100, 116, 139, 0.7)",
             mb: 1.5,
-          }}
+          })}
         >
           Configure field of view and visibility range
         </Typography>
@@ -189,12 +196,15 @@ const SDKObservationPropertiesPanel: React.FC<
           {/* Sensor Type */}
           <Box>
             <Typography
-              sx={{
+              sx={(theme) => ({
                 fontSize: "0.75rem",
                 fontWeight: 500,
-                color: "rgba(100, 116, 139, 0.8)",
+                color:
+                  theme.palette.mode === "dark"
+                    ? alpha(theme.palette.text.secondary, 0.9)
+                    : "rgba(100, 116, 139, 0.8)",
                 mb: 0.75,
-              }}
+              })}
             >
               Sensor Type
             </Typography>
@@ -228,12 +238,15 @@ const SDKObservationPropertiesPanel: React.FC<
           {local.sensorType === "cone" && (
             <Box>
               <Typography
-                sx={{
+                sx={(theme) => ({
                   fontSize: "0.75rem",
                   fontWeight: 500,
-                  color: "rgba(100, 116, 139, 0.8)",
+                  color:
+                    theme.palette.mode === "dark"
+                      ? alpha(theme.palette.text.secondary, 0.9)
+                      : "rgba(100, 116, 139, 0.8)",
                   mb: 0.5,
-                }}
+                })}
               >
                 Field of View: {local.fov}°
               </Typography>
@@ -255,24 +268,27 @@ const SDKObservationPropertiesPanel: React.FC<
                   handlePropertyChange("fov", next);
                 }}
                 valueLabelDisplay="auto"
-                sx={{
-                  color: "#2563eb",
+                sx={(theme) => ({
+                  color: theme.palette.primary.main,
                   height: 4,
                   "& .MuiSlider-thumb": {
                     width: 16,
                     height: 16,
                     "&:hover, &.Mui-focusVisible": {
-                      boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+                      boxShadow: `0 0 0 8px ${alpha(theme.palette.primary.main, 0.16)}`,
                     },
                   },
                   "& .MuiSlider-track": {
                     border: "none",
                   },
                   "& .MuiSlider-rail": {
-                    opacity: 0.3,
-                    backgroundColor: "rgba(100, 116, 139, 0.3)",
+                    opacity: theme.palette.mode === "dark" ? 0.4 : 0.3,
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? alpha(theme.palette.common.white, 0.25)
+                        : "rgba(100, 116, 139, 0.3)",
                   },
-                }}
+                })}
               />
             </Box>
           )}
@@ -309,24 +325,27 @@ const SDKObservationPropertiesPanel: React.FC<
                     handlePropertyChange("fovH", next);
                   }}
                   valueLabelDisplay="auto"
-                  sx={{
-                    color: "#2563eb",
+                  sx={(theme) => ({
+                    color: theme.palette.primary.main,
                     height: 4,
                     "& .MuiSlider-thumb": {
                       width: 16,
                       height: 16,
                       "&:hover, &.Mui-focusVisible": {
-                        boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+                        boxShadow: `0 0 0 8px ${alpha(theme.palette.primary.main, 0.16)}`,
                       },
                     },
                     "& .MuiSlider-track": {
                       border: "none",
                     },
                     "& .MuiSlider-rail": {
-                      opacity: 0.3,
-                      backgroundColor: "rgba(100, 116, 139, 0.3)",
+                      opacity: theme.palette.mode === "dark" ? 0.4 : 0.3,
+                      backgroundColor:
+                        theme.palette.mode === "dark"
+                          ? alpha(theme.palette.common.white, 0.25)
+                          : "rgba(100, 116, 139, 0.3)",
                     },
-                  }}
+                  })}
                 />
               </Box>
               <Box>
@@ -358,24 +377,27 @@ const SDKObservationPropertiesPanel: React.FC<
                     handlePropertyChange("fovV", next);
                   }}
                   valueLabelDisplay="auto"
-                  sx={{
-                    color: "#2563eb",
+                  sx={(theme) => ({
+                    color: theme.palette.primary.main,
                     height: 4,
                     "& .MuiSlider-thumb": {
                       width: 16,
                       height: 16,
                       "&:hover, &.Mui-focusVisible": {
-                        boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+                        boxShadow: `0 0 0 8px ${alpha(theme.palette.primary.main, 0.16)}`,
                       },
                     },
                     "& .MuiSlider-track": {
                       border: "none",
                     },
                     "& .MuiSlider-rail": {
-                      opacity: 0.3,
-                      backgroundColor: "rgba(100, 116, 139, 0.3)",
+                      opacity: theme.palette.mode === "dark" ? 0.4 : 0.3,
+                      backgroundColor:
+                        theme.palette.mode === "dark"
+                          ? alpha(theme.palette.common.white, 0.25)
+                          : "rgba(100, 116, 139, 0.3)",
                     },
-                  }}
+                  })}
                 />
               </Box>
             </>
@@ -412,24 +434,27 @@ const SDKObservationPropertiesPanel: React.FC<
                 handlePropertyChange("visibilityRadius", next);
               }}
               valueLabelDisplay="auto"
-              sx={{
-                color: "#2563eb",
+              sx={(theme) => ({
+                color: theme.palette.primary.main,
                 height: 4,
                 "& .MuiSlider-thumb": {
                   width: 16,
                   height: 16,
                   "&:hover, &.Mui-focusVisible": {
-                    boxShadow: "0 0 0 8px rgba(37, 99, 235, 0.16)",
+                    boxShadow: `0 0 0 8px ${alpha(theme.palette.primary.main, 0.16)}`,
                   },
                 },
                 "& .MuiSlider-track": {
                   border: "none",
                 },
                 "& .MuiSlider-rail": {
-                  opacity: 0.3,
-                  backgroundColor: "rgba(100, 116, 139, 0.3)",
+                  opacity: theme.palette.mode === "dark" ? 0.4 : 0.3,
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? alpha(theme.palette.common.white, 0.25)
+                      : "rgba(100, 116, 139, 0.3)",
                 },
-              }}
+              })}
             />
           </Box>
         </Box>
@@ -438,23 +463,29 @@ const SDKObservationPropertiesPanel: React.FC<
       {/* Visualization Settings */}
       <Box>
         <Typography
-          sx={{
+          sx={(theme) => ({
             fontSize: "0.688rem",
             fontWeight: 600,
-            color: "rgba(51, 65, 85, 0.85)",
+            color:
+              theme.palette.mode === "dark"
+                ? alpha(theme.palette.text.secondary, 0.9)
+                : "rgba(51, 65, 85, 0.85)",
             mb: 0.5,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
-          }}
+          })}
         >
           Visualization
         </Typography>
         <Typography
-          sx={{
+          sx={(theme) => ({
             fontSize: "0.75rem",
-            color: "rgba(100, 116, 139, 0.7)",
+            color:
+              theme.palette.mode === "dark"
+                ? alpha(theme.palette.text.secondary, 0.9)
+                : "rgba(100, 116, 139, 0.7)",
             mb: 1.5,
-          }}
+          })}
         >
           Control visibility of sensor geometry and viewshed
         </Typography>
@@ -462,11 +493,17 @@ const SDKObservationPropertiesPanel: React.FC<
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {/* Show Sensor Geometry */}
           <Box
-            sx={{
-              backgroundColor: "#ffffff",
-              borderRadius: "8px",
-              border: "1px solid rgba(226, 232, 240, 0.8)",
-            }}
+            sx={(theme) => ({
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? theme.palette.background.paper
+                  : theme.palette.common.white,
+              borderRadius: "4px",
+              border:
+                theme.palette.mode === "dark"
+                  ? "1px solid rgba(255, 255, 255, 0.08)"
+                  : "1px solid rgba(255, 255, 255, 0.08)",
+            })}
           >
             <FormControlLabel
               control={
@@ -480,18 +517,18 @@ const SDKObservationPropertiesPanel: React.FC<
                     schedulePreview({ showSensorGeometry: checked });
                     handlePropertyChange("showSensorGeometry", checked);
                   }}
-                  sx={{
+                  sx={(theme) => ({
                     "& .MuiSwitch-switchBase.Mui-checked": {
-                      color: "#2563eb",
+                      color: theme.palette.primary.main,
                     },
                     "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                      backgroundColor: "#2563eb",
+                      backgroundColor: theme.palette.primary.main,
                     },
-                  }}
+                  })}
                 />
               }
               label="Show Sensor Geometry"
-              sx={{
+              sx={(theme) => ({
                 margin: 0,
                 padding: "8.5px 14px",
                 width: "100%",
@@ -500,21 +537,27 @@ const SDKObservationPropertiesPanel: React.FC<
                 "& .MuiFormControlLabel-label": {
                   fontSize: "0.75rem",
                   fontWeight: 400,
-                  color: "rgba(51, 65, 85, 0.9)",
+                  color: theme.palette.text.secondary,
                   flex: 1,
                 },
-              }}
+              })}
               labelPlacement="start"
             />
           </Box>
 
           {/* Show Viewshed */}
           <Box
-            sx={{
-              backgroundColor: "#ffffff",
-              borderRadius: "8px",
-              border: "1px solid rgba(226, 232, 240, 0.8)",
-            }}
+            sx={(theme) => ({
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? theme.palette.background.paper
+                  : theme.palette.common.white,
+              borderRadius: "4px",
+              border:
+                theme.palette.mode === "dark"
+                  ? "1px solid rgba(255, 255, 255, 0.08)"
+                  : "1px solid rgba(255, 255, 255, 0.08)",
+            })}
           >
             <FormControlLabel
               control={
@@ -528,18 +571,18 @@ const SDKObservationPropertiesPanel: React.FC<
                     schedulePreview({ showViewshed: checked });
                     handlePropertyChange("showViewshed", checked);
                   }}
-                  sx={{
+                  sx={(theme) => ({
                     "& .MuiSwitch-switchBase.Mui-checked": {
-                      color: "#2563eb",
+                      color: theme.palette.primary.main,
                     },
                     "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                      backgroundColor: "#2563eb",
+                      backgroundColor: theme.palette.primary.main,
                     },
-                  }}
+                  })}
                 />
               }
               label="Show Viewshed"
-              sx={{
+              sx={(theme) => ({
                 margin: 0,
                 padding: "8.5px 14px",
                 width: "100%",
@@ -548,10 +591,10 @@ const SDKObservationPropertiesPanel: React.FC<
                 "& .MuiFormControlLabel-label": {
                   fontSize: "0.75rem",
                   fontWeight: 400,
-                  color: "rgba(51, 65, 85, 0.9)",
+                  color: theme.palette.text.secondary,
                   flex: 1,
                 },
-              }}
+              })}
               labelPlacement="start"
             />
           </Box>

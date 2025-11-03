@@ -4,39 +4,33 @@ import type { BoxProps, TypographyProps } from "@mui/material";
 
 export const SettingContainer: React.FC<BoxProps> = styled(Box)(
   ({ theme }) => ({
-    marginBottom: theme.spacing(2),
-    padding: theme.spacing(2),
-    backgroundColor: "rgba(248, 250, 252, 0.6)",
-    borderRadius: "12px",
-    border: "1px solid rgba(226, 232, 240, 0.8)",
-    transition: "background-color 0.15s ease, border-color 0.15s ease",
-    "&:hover": {
-      backgroundColor: "rgba(248, 250, 252, 0.9)",
-      borderColor: "rgba(37, 99, 235, 0.2)",
-    },
-    "&:last-child": {
-      marginBottom: 0,
-    },
+    padding: theme.spacing(3),
+    backgroundColor:
+      theme.palette.mode === "dark" ? "#14171A" : "rgba(248, 250, 252, 0.6)",
+    borderBottom:
+      theme.palette.mode === "dark"
+        ? "1px solid rgba(255, 255, 255, 0.05)"
+        : "1px solid rgba(226, 232, 240, 0.8)",
   })
 );
 
 export const CustomSettingContainer: React.FC<BoxProps> = styled(Box)(
   ({ theme }) => ({
-    marginBottom: theme.spacing(1.5),
     width: "100%",
-    "&:last-child": {
-      marginBottom: 0,
-    },
   })
 );
 
 export const SettingLabel: React.FC<TypographyProps> = styled(Typography)(
   ({ theme }) => ({
-    fontSize: "0.813rem", // 13px - section title
-    fontWeight: 600,
-    marginBottom: theme.spacing(0.75),
-    color: "rgba(51, 65, 85, 0.95)",
-    letterSpacing: "0.01em",
+    fontSize: "0.75rem",
+    fontWeight: 500,
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+    marginBottom: theme.spacing(1),
+    color:
+      theme.palette.mode === "dark"
+        ? theme.palette.text.primary
+        : "rgba(51, 65, 85, 0.95)",
   })
 );
 
@@ -45,7 +39,10 @@ export const SettingDescription: React.FC<TypographyProps> = styled(Typography)(
     fontSize: "0.75rem", // 12px - descriptions
     fontWeight: 400,
     lineHeight: 1.4,
-    color: "rgba(100, 116, 139, 0.85)",
+    color:
+      theme.palette.mode === "dark"
+        ? "rgba(20, 23, 26, 0.88)"
+        : "rgba(100, 116, 139, 0.85)",
     marginBottom: theme.spacing(1.25),
   })
 );

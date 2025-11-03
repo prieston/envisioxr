@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Paper, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 /**
  * EmptyStateView - Displays when no object is selected
@@ -7,25 +7,22 @@ import { Paper, Typography } from "@mui/material";
  */
 export const EmptyStateView: React.FC = memo(() => {
   return (
-    <Paper
+    <Box
       sx={{
         p: 3,
         textAlign: "center",
-        backgroundColor: "rgba(248, 250, 252, 0.4)",
-        border: "1px dashed rgba(226, 232, 240, 0.6)",
-        borderRadius: "12px",
       }}
     >
       <Typography
-        sx={{
+        sx={(theme) => ({
           fontSize: "0.875rem",
-          color: "rgba(100, 116, 139, 0.7)",
+          color: theme.palette.text.secondary,
           fontStyle: "italic",
-        }}
+        })}
       >
         Select an object or observation point to view its properties
       </Typography>
-    </Paper>
+    </Box>
   );
 });
 

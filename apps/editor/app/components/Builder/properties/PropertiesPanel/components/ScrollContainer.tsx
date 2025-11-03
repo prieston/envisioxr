@@ -78,14 +78,16 @@ export const ScrollContainer: React.FC<ScrollContainerProps> = ({
     <Box
       ref={ref}
       onScroll={handleScroll}
-      sx={{
+      sx={(theme) => ({
         display: "flex",
         flexDirection: "column",
         height: "100%",
         overflow: "auto",
         overscrollBehavior: "contain",
-        ...sx,
-      }}
+        backgroundColor:
+          theme.palette.mode === "dark" ? "#14171A" : "rgba(248, 250, 252, 0.6)",
+        ...(typeof sx === "function" ? sx(theme) : sx),
+      })}
     >
       {children}
     </Box>

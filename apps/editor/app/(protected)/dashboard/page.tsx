@@ -23,7 +23,7 @@ const AnimatedBackground = styled(Box)(() => ({
   height: "100%",
   zIndex: -1,
   overflow: "hidden",
-  background: "transparent",
+  background: "linear-gradient(180deg, #0d0e11 0%, #111317 100%)",
 }));
 
 const GlowingContainer = styled(Box)(() => ({

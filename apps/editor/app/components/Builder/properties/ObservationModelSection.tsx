@@ -44,12 +44,18 @@ const ObservationModelSection: React.FC<ObservationModelSectionProps> = memo(
 
         {/* Enable Switch */}
         <Box
-          sx={{
-            backgroundColor: "#ffffff",
-            borderRadius: "8px",
-            border: "1px solid rgba(226, 232, 240, 0.8)",
+          sx={(theme) => ({
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A"
+                : "rgba(255, 255, 255, 0.92)",
+            borderRadius: "4px",
+            border:
+              theme.palette.mode === "dark"
+                ? "1px solid rgba(255, 255, 255, 0.05)"
+                : "1px solid rgba(226, 232, 240, 0.8)",
             mb: isObservationModel ? 2 : 0,
-          }}
+          })}
         >
           <FormControlLabel
             control={
@@ -68,18 +74,18 @@ const ObservationModelSection: React.FC<ObservationModelSectionProps> = memo(
                     );
                   }
                 }}
-                sx={{
+                sx={(theme) => ({
                   "& .MuiSwitch-switchBase.Mui-checked": {
-                    color: "#2563eb",
+                    color: theme.palette.primary.main,
                   },
                   "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                    backgroundColor: "#2563eb",
+                    backgroundColor: theme.palette.primary.main,
                   },
-                }}
+                })}
               />
             }
             label="Enable Observation Model"
-            sx={{
+            sx={(theme) => ({
               margin: 0,
               padding: "8.5px 14px",
               width: "100%",
@@ -88,10 +94,10 @@ const ObservationModelSection: React.FC<ObservationModelSectionProps> = memo(
               "& .MuiFormControlLabel-label": {
                 fontSize: "0.75rem",
                 fontWeight: 400,
-                color: "rgba(51, 65, 85, 0.9)",
+                color: theme.palette.text.secondary,
                 flex: 1,
               },
-            }}
+            })}
             labelPlacement="start"
           />
         </Box>

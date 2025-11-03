@@ -1,4 +1,4 @@
-import { styled } from "@mui/material/styles";
+import { styled, alpha } from "@mui/material/styles";
 import { Box } from "@mui/material";
 import type { BoxProps } from "@mui/material/Box";
 import type React from "react";
@@ -18,15 +18,26 @@ export const LeftPanelContainer: React.FC<PanelContainerProps & BoxProps> =
       height: "100%",
       maxHeight: "calc(100vh - 120px)",
       marginRight: "8px",
-      backgroundColor: "var(--glass-bg, rgba(255, 255, 255, 0.85))",
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? alpha("#14171A", 0.92)
+          : "var(--glass-bg, rgba(255, 255, 255, 0.92))",
       backdropFilter: "blur(24px) saturate(140%)",
       WebkitBackdropFilter: "blur(24px) saturate(140%)",
-      color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
-      padding: theme.spacing(2.5),
-      border: "1px solid rgba(37, 99, 235, 0.15)",
-      borderRadius: "var(--glass-border-radius, 20px)",
+      color:
+        theme.palette.mode === "dark"
+          ? theme.palette.text.primary
+          : "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
+      padding: theme.spacing(3),
+      border:
+        theme.palette.mode === "dark"
+          ? "1px solid rgba(255, 255, 255, 0.08)"
+          : "1px solid rgba(95, 136, 199, 0.15)",
+      borderRadius: 4,
       boxShadow:
-        "0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+        theme.palette.mode === "dark"
+          ? "0 2px 6px rgba(0, 0, 0, 0.4)"
+          : "0 2px 6px rgba(15, 23, 42, 0.08)",
       userSelect: "none",
       pointerEvents: previewMode ? "none" : "auto",
       opacity: previewMode ? 0.5 : 1,
@@ -40,21 +51,11 @@ export const LeftPanelContainer: React.FC<PanelContainerProps & BoxProps> =
       display: "flex",
       flexDirection: "column",
       overflow: "hidden",
-      "&::before": {
-        content: '""',
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        borderRadius: "inherit",
-        background:
-          "linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%)",
-        pointerEvents: "none",
-        zIndex: -1,
-      },
       "&:hover": {
-        borderColor: "rgba(37, 99, 235, 0.25)",
+        borderColor:
+          theme.palette.mode === "dark"
+            ? "rgba(255, 255, 255, 0.12)"
+            : "rgba(95, 136, 199, 0.25)",
       },
     })
   );
@@ -68,14 +69,26 @@ export const RightPanelContainer: React.FC<PanelContainerProps & BoxProps> =
       height: "100%",
       maxHeight: "calc(100vh - 120px)",
       marginLeft: "8px",
-      backgroundColor: "var(--glass-bg, rgba(255, 255, 255, 0.8))",
-      backdropFilter: "blur(20px) saturate(130%)",
-      WebkitBackdropFilter: "blur(20px) saturate(130%)",
-      color: "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
-      padding: theme.spacing(2),
-      border: "1px solid var(--glass-border, rgba(255, 255, 255, 0.3))",
-      borderRadius: "var(--glass-border-radius, 16px)",
-      boxShadow: "var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.15))",
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? alpha("#14171A", 0.92)
+          : "var(--glass-bg, rgba(255, 255, 255, 0.92))",
+      backdropFilter: "blur(24px) saturate(140%)",
+      WebkitBackdropFilter: "blur(24px) saturate(140%)",
+      color:
+        theme.palette.mode === "dark"
+          ? theme.palette.text.primary
+          : "var(--glass-text-primary, rgba(15, 23, 42, 0.95))",
+      padding: theme.spacing(3),
+      border:
+        theme.palette.mode === "dark"
+          ? "1px solid rgba(255, 255, 255, 0.08)"
+          : "1px solid var(--glass-border, rgba(255, 255, 255, 0.3))",
+      borderRadius: 4,
+      boxShadow:
+        theme.palette.mode === "dark"
+          ? "0 2px 6px rgba(0, 0, 0, 0.4)"
+          : "0 2px 6px rgba(15, 23, 42, 0.08)",
       userSelect: "none",
       pointerEvents: previewMode ? "none" : "auto",
       opacity: previewMode ? 0.5 : 1,
@@ -90,19 +103,6 @@ export const RightPanelContainer: React.FC<PanelContainerProps & BoxProps> =
       zIndex: 1400,
       transform: "translateZ(0)",
       willChange: "backdrop-filter",
-      "&::before": {
-        content: '""',
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        borderRadius: "inherit",
-        background:
-          "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)",
-        pointerEvents: "none",
-        zIndex: -1,
-      },
     })
   );
 
@@ -111,23 +111,33 @@ export const TabPanel: React.FC<BoxProps> = styled(Box)(
     flex: 1,
     overflow: "auto",
     paddingRight: theme.spacing(0.5),
-    maxHeight: "calc(100vh - 200px)",
+    backgroundColor:
+      theme.palette.mode === "dark" ? "#14171A" : "rgba(248, 250, 252, 0.6)",
     "&::-webkit-scrollbar": {
       width: "8px",
     },
     "&::-webkit-scrollbar-track": {
-      background: "rgba(37, 99, 235, 0.05)",
+      background:
+        theme.palette.mode === "dark"
+          ? alpha(theme.palette.primary.main, 0.08)
+          : "rgba(95, 136, 199, 0.05)",
       borderRadius: "4px",
       margin: "4px 0",
     },
     "&::-webkit-scrollbar-thumb": {
-      background: "rgba(37, 99, 235, 0.2)",
+      background:
+        theme.palette.mode === "dark"
+          ? alpha(theme.palette.primary.main, 0.24)
+          : "rgba(95, 136, 199, 0.2)",
       borderRadius: "4px",
       border: "2px solid transparent",
       backgroundClip: "padding-box",
       transition: "background 0.2s ease",
       "&:hover": {
-        background: "rgba(37, 99, 235, 0.35)",
+        background:
+          theme.palette.mode === "dark"
+            ? alpha(theme.palette.primary.main, 0.38)
+            : "rgba(95, 136, 199, 0.35)",
         backgroundClip: "padding-box",
       },
     },
@@ -149,16 +159,25 @@ export const BottomPanelContainer: React.FC<
     height: "auto", // Allow natural height based on content
     maxHeight: "200px", // Maximum to prevent too tall
     marginTop: _theme.spacing(1),
-    backgroundColor: "var(--glass-bg, rgba(255, 255, 255, 0.8))",
-    backdropFilter: "blur(20px) saturate(130%)",
-    WebkitBackdropFilter: "blur(20px) saturate(130%)",
-    padding: _theme.spacing(2),
+    backgroundColor:
+      _theme.palette.mode === "dark"
+        ? alpha("#14171A", 0.92)
+        : "var(--glass-bg, rgba(255, 255, 255, 0.92))",
+    backdropFilter: "blur(24px) saturate(140%)",
+    WebkitBackdropFilter: "blur(24px) saturate(140%)",
+    padding: _theme.spacing(3),
     display: "flex",
     alignItems: "stretch", // Allow sections to stretch to full height
     gap: _theme.spacing(2),
-    border: "1px solid var(--glass-border, rgba(255, 255, 255, 0.3))",
-    borderRadius: "16px",
-    boxShadow: "var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.15))",
+    border:
+      _theme.palette.mode === "dark"
+        ? "1px solid rgba(255, 255, 255, 0.08)"
+        : "1px solid var(--glass-border, rgba(255, 255, 255, 0.3))",
+    borderRadius: 4,
+    boxShadow:
+      _theme.palette.mode === "dark"
+        ? "0 2px 6px rgba(0, 0, 0, 0.4)"
+        : "var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.15))",
     userSelect: "none",
     pointerEvents: "auto",
     position: "relative",
@@ -166,18 +185,5 @@ export const BottomPanelContainer: React.FC<
     transform: "translateZ(0)",
     willChange: "backdrop-filter",
     transition: "border-color 0.15s ease",
-    "&::before": {
-      content: '""',
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      borderRadius: "inherit",
-      background:
-        "linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%)",
-      pointerEvents: "none",
-      zIndex: -1,
-    },
   })
 );

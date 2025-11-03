@@ -18,18 +18,54 @@
     "paths": {
       "@/*": ["./*"],
       "@prisma": ["../packages/prisma"],
-      "@envisio/core": ["../packages/core/src/index.ts"],
-      "@envisio/core/*": ["../packages/core/src/*"],
-      "@envisio/ui": ["../packages/ui/src/index.ts"],
-      "@envisio/ui/*": ["../packages/ui/src/*"],
-      "@envisio/config": ["../packages/config/src/index.ts"],
-      "@envisio/config/*": ["../packages/config/src/*"],
-      "@envisio/engine-three/*": ["../packages/engine-three/src/*"],
-      "@envisio/engine-cesium/*": ["../packages/engine-cesium/src/*"],
-      "@envisio/engine-three": ["../packages/engine-three/src/index.ts"],
-      "@envisio/engine-cesium": ["../packages/engine-cesium/src/index.ts"],
-      "@envisio/ion-sdk": ["../packages/ion-sdk/src/index.ts"],
-      "@envisio/ion-sdk/*": ["../packages/ion-sdk/src/*"]
+      "@envisio/core": [
+        "../packages/core/dist/index.d.ts",
+        "../packages/core/dist/index.js"
+      ],
+      "@envisio/core/*": [
+        "../packages/core/dist/*",
+        "../packages/core/dist/*.js"
+      ],
+      "@envisio/ui": [
+        "../packages/ui/dist/index.d.ts",
+        "../packages/ui/dist/index.js"
+      ],
+      "@envisio/ui/*": [
+        "../packages/ui/dist/*",
+        "../packages/ui/dist/*.js"
+      ],
+      "@envisio/config": [
+        "../packages/config/dist/index.d.ts",
+        "../packages/config/dist/index.js"
+      ],
+      "@envisio/config/*": [
+        "../packages/config/dist/*",
+        "../packages/config/dist/*.js"
+      ],
+      "@envisio/engine-three": [
+        "../packages/engine-three/dist/index.d.ts",
+        "../packages/engine-three/dist/index.js"
+      ],
+      "@envisio/engine-three/*": [
+        "../packages/engine-three/dist/*",
+        "../packages/engine-three/dist/*.js"
+      ],
+      "@envisio/engine-cesium": [
+        "../packages/engine-cesium/dist/index.d.ts",
+        "../packages/engine-cesium/dist/index.js"
+      ],
+      "@envisio/engine-cesium/*": [
+        "../packages/engine-cesium/dist/*",
+        "../packages/engine-cesium/dist/*.js"
+      ],
+      "@envisio/ion-sdk": [
+        "../packages/ion-sdk/dist/index.d.ts",
+        "../packages/ion-sdk/dist/index.js"
+      ],
+      "@envisio/ion-sdk/*": [
+        "../packages/ion-sdk/dist/*",
+        "../packages/ion-sdk/dist/*.js"
+      ]
     },
   },
   "include": [

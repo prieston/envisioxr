@@ -1,4 +1,4 @@
-import { styled } from "@mui/material/styles";
+import { styled, alpha } from "@mui/material/styles";
 import { Box, Typography, Switch, Slider } from "@mui/material";
 
 export const Container = styled(Box)(({ theme }) => ({
@@ -20,16 +20,16 @@ export const DateTimeContainer = styled(Box)(({ theme }) => ({
   gap: theme.spacing(1),
 }));
 
-export const StyledSwitch = styled(Switch)(({ theme }) => ({
+export const StyledSwitch = styled(Switch)(() => ({
   "& .MuiSwitch-switchBase.Mui-checked": {
-    color: "#2563eb",
+    color: "var(--color-primary, #6B9CD8)",
   },
   "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-    backgroundColor: "#2563eb",
+    backgroundColor: "var(--color-primary-600, #4B6FAF)",
   },
 }));
 
-export const GreenSwitch = styled(Switch)(({ theme }) => ({
+export const GreenSwitch = styled(Switch)(() => ({
   "& .MuiSwitch-switchBase.Mui-checked": {
     color: "#10b981",
   },
@@ -39,63 +39,69 @@ export const GreenSwitch = styled(Switch)(({ theme }) => ({
 }));
 
 export const SwitchContainer = styled(Box)(({ theme }) => ({
-  backgroundColor: "rgba(255, 255, 255, 0.8)",
-  border: "1px solid rgba(226, 232, 240, 0.8)",
-  borderRadius: "8px",
-  padding: "8.5px 14px", // Standard input padding
+  backgroundColor:
+    theme.palette.mode === "dark" ? "#14171A" : "rgba(255, 255, 255, 0.92)",
+  border:
+    theme.palette.mode === "dark"
+      ? "1px solid rgba(255, 255, 255, 0.05)"
+      : "1px solid rgba(226, 232, 240, 0.8)",
+  borderRadius: 4,
+  padding: "8.5px 14px",
   marginBottom: theme.spacing(1),
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  transition: "border-color 0.15s ease",
-  "&:hover": {
-    borderColor: "rgba(37, 99, 235, 0.4)",
-    cursor: "pointer",
-  },
 }));
 
 export const SwitchLabel = styled(Typography)(({ theme }) => ({
-  fontSize: "0.75rem", // 12px - control labels
-  fontWeight: 400, // Normal weight for labels
-  color: "rgba(51, 65, 85, 0.95)",
+  fontSize: "0.75rem",
+  fontWeight: 400,
+  color:
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.78)"
+      : "rgba(51, 65, 85, 0.95)",
 }));
 
 export const LockToNowContainer = styled(Box)<{ locked: boolean }>(
   ({ locked, theme }) => ({
     backgroundColor: locked
-      ? "rgba(16, 185, 129, 0.08)"
-      : "rgba(255, 255, 255, 0.8)",
+      ? alpha("#10b981", theme.palette.mode === "dark" ? 0.18 : 0.12)
+      : theme.palette.mode === "dark"
+        ? "#14171A"
+        : "rgba(255, 255, 255, 0.92)",
     border: locked
-      ? "1px solid rgba(16, 185, 129, 0.3)"
-      : "1px solid rgba(226, 232, 240, 0.8)",
-    borderRadius: "8px",
+      ? `1px solid ${alpha("#10b981", 0.45)}`
+      : theme.palette.mode === "dark"
+        ? "1px solid rgba(255, 255, 255, 0.05)"
+        : "1px solid rgba(226, 232, 240, 0.8)",
+    borderRadius: 4,
     padding: "8.5px 14px", // Standard input padding
     marginBottom: theme.spacing(1.5),
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    transition: "border-color 0.15s ease, background-color 0.15s ease",
-    "&:hover": {
-      borderColor: locked
-        ? "rgba(16, 185, 129, 0.5)"
-        : "rgba(37, 99, 235, 0.4)",
-      cursor: "pointer",
-    },
   })
 );
 
 export const LockToNowLabel = styled(Typography)<{ locked: boolean }>(
-  ({ locked }) => ({
-    fontSize: "0.75rem", // 12px - control labels
-    fontWeight: 400, // Normal weight
-    color: locked ? "#10b981" : "rgba(51, 65, 85, 0.95)",
+  ({ locked, theme }) => ({
+    fontSize: "0.75rem",
+    fontWeight: 400,
+    color: locked
+      ? "#10b981"
+      : theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.78)"
+        : "rgba(51, 65, 85, 0.95)",
   })
 );
 
 export const LockToNowDescription = styled(Typography)(({ theme }) => ({
-  fontSize: "0.75rem", // 12px - descriptions
+  fontSize: "0.75rem",
   fontWeight: 400,
-  color: "rgba(100, 116, 139, 0.85)",
+  color:
+    theme.palette.mode === "dark"
+      ? "rgba(208, 214, 222, 0.7)"
+      : "rgba(100, 116, 139, 0.85)",
   marginTop: "2px",
   lineHeight: 1.4,
 }));
@@ -106,18 +112,24 @@ export const CurrentTimeBox = styled(Box)<{ locked: boolean }>(
     padding: theme.spacing(1.5),
     backgroundColor: locked
       ? "rgba(16, 185, 129, 0.08)"
-      : "rgba(37, 99, 235, 0.08)",
-    borderRadius: "8px",
+      : alpha(
+          theme.palette.primary.main,
+          theme.palette.mode === "dark" ? 0.12 : 0.08
+        ),
+    borderRadius: 4,
     border: locked
       ? "1px solid rgba(16, 185, 129, 0.2)"
-      : "1px solid rgba(37, 99, 235, 0.2)",
+      : `1px solid ${alpha(theme.palette.primary.main, 0.28)}`,
   })
 );
 
 export const CurrentTimeTitle = styled(Typography)(({ theme }) => ({
   fontSize: "0.688rem", // 11px - tiny labels
   fontWeight: 600,
-  color: "rgba(51, 65, 85, 0.7)",
+  color:
+    theme.palette.mode === "dark"
+      ? "rgba(208, 214, 222, 0.7)"
+      : "rgba(51, 65, 85, 0.7)",
   marginBottom: theme.spacing(0.5),
   textTransform: "uppercase",
   letterSpacing: "0.05em",
@@ -134,7 +146,7 @@ export const CurrentTimeText = styled(Typography)<{ locked: boolean }>(
   ({ locked, theme }) => ({
     fontSize: "0.75rem", // 12px - display text
     fontWeight: 600,
-    color: locked ? "#10b981" : "#2563eb",
+    color: locked ? "#10b981" : theme.palette.primary.dark,
     fontFamily: "monospace",
     flex: 1,
   })
@@ -150,21 +162,24 @@ export const InputSectionTitle = styled(Typography)(({ theme }) => ({
 }));
 
 export const JoystickContainer = styled(Box)(({ theme }) => ({
-  backgroundColor: "rgba(255, 255, 255, 0.8)",
-  border: "1px solid rgba(226, 232, 240, 0.8)",
-  borderRadius: "8px",
+  backgroundColor:
+    theme.palette.mode === "dark" ? "#14171A" : "rgba(255, 255, 255, 0.92)",
+  border:
+    theme.palette.mode === "dark"
+      ? "1px solid rgba(255, 255, 255, 0.05)"
+      : "1px solid rgba(226, 232, 240, 0.8)",
+  borderRadius: 4,
   padding: "14px", // Slightly more padding for the joystick container (has slider inside)
   marginBottom: theme.spacing(1.5),
-  transition: "border-color 0.15s ease",
-  "&:hover": {
-    borderColor: "rgba(37, 99, 235, 0.4)",
-  },
 }));
 
 export const JoystickTitle = styled(Typography)(({ theme }) => ({
   fontSize: "0.688rem", // 11px - subsection title
   fontWeight: 600,
-  color: "rgba(51, 65, 85, 0.95)",
+  color:
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.78)"
+      : "rgba(51, 65, 85, 0.95)",
   marginBottom: theme.spacing(0.5),
   textTransform: "uppercase",
   letterSpacing: "0.05em",
@@ -173,18 +188,23 @@ export const JoystickTitle = styled(Typography)(({ theme }) => ({
 export const JoystickStatus = styled(Typography)(({ theme }) => ({
   fontSize: "0.688rem", // 11px - status text
   fontWeight: 400,
-  color: "rgba(100, 116, 139, 0.85)",
+  color:
+    theme.palette.mode === "dark"
+      ? "rgba(208, 214, 222, 0.7)"
+      : "rgba(100, 116, 139, 0.85)",
   marginBottom: theme.spacing(1),
   textAlign: "center",
 }));
 
 export const JoystickSlider = styled(Slider)<{ joystickValue: number }>(
-  ({ joystickValue }) => ({
+  ({ joystickValue, theme }) => ({
     color:
       joystickValue === 0
-        ? "#64748b"
+        ? theme.palette.mode === "dark"
+          ? "rgba(148, 163, 184, 0.7)"
+          : "#64748b"
         : joystickValue > 0
-          ? "#2563eb"
+          ? theme.palette.primary.dark
           : "#ef4444",
     height: 6,
     "& .MuiSlider-thumb": {
@@ -195,15 +215,16 @@ export const JoystickSlider = styled(Slider)<{ joystickValue: number }>(
         joystickValue === 0
           ? "#94a3b8"
           : joystickValue > 0
-            ? "#2563eb"
+            ? "var(--color-primary-600, #4B6FAF)"
             : "#ef4444",
       "&:hover, &.Mui-focusVisible": {
-        boxShadow: `0 0 0 8px ${joystickValue > 0 ? "rgba(37, 99, 235, 0.16)" : "rgba(239, 68, 68, 0.16)"}`,
+        boxShadow: `0 0 0 8px ${joystickValue > 0 ? "rgba(95, 136, 199, 0.16)" : "rgba(239, 68, 68, 0.16)"}`,
       },
     },
     "& .MuiSlider-track": {
       border: "none",
-      backgroundColor: joystickValue > 0 ? "#2563eb" : "#ef4444",
+      backgroundColor:
+        joystickValue > 0 ? "var(--color-primary-600, #4B6FAF)" : "#ef4444",
     },
     "& .MuiSlider-rail": {
       opacity: 0.3,
@@ -225,20 +246,20 @@ export const JoystickSlider = styled(Slider)<{ joystickValue: number }>(
 export const textFieldStyles = {
   "& .MuiOutlinedInput-root": {
     minHeight: "38px",
-    borderRadius: "8px",
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    borderRadius: 4,
+    backgroundColor: "#14171A",
     fontSize: "0.75rem", // 12px - input text
     "& input": {
       padding: "8.5px 14px", // Standard input padding
     },
     "& fieldset": {
-      borderColor: "rgba(226, 232, 240, 0.8)",
+      borderColor: "rgba(255, 255, 255, 0.08)",
     },
     "&:hover fieldset": {
-      borderColor: "rgba(37, 99, 235, 0.4)",
+      borderColor: "rgba(95, 136, 199, 0.4)",
     },
     "&.Mui-focused fieldset": {
-      borderColor: "#2563eb",
+      borderColor: "var(--color-primary, #6B9CD8)",
       borderWidth: "2px",
     },
   },
@@ -246,20 +267,20 @@ export const textFieldStyles = {
 
 export const selectStyles = {
   minHeight: "38px",
-  borderRadius: "8px",
-  backgroundColor: "rgba(255, 255, 255, 0.8)",
+  borderRadius: 4,
+  backgroundColor: "#14171A",
   fontSize: "0.75rem", // 12px - dropdown text
   "& .MuiSelect-select": {
     padding: "8.5px 14px", // Standard input padding
   },
   "& fieldset": {
-    borderColor: "rgba(226, 232, 240, 0.8)",
+    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   "&:hover fieldset": {
-    borderColor: "rgba(37, 99, 235, 0.4)",
+    borderColor: "rgba(95, 136, 199, 0.4)",
   },
   "&.Mui-focused fieldset": {
-    borderColor: "#2563eb",
+    borderColor: "var(--color-primary, #6B9CD8)",
     borderWidth: "2px",
   },
 };
@@ -267,19 +288,19 @@ export const selectStyles = {
 export const menuItemStyles = {
   fontSize: "0.75rem", // 12px - menu items
   "&:hover": {
-    backgroundColor: "rgba(37, 99, 235, 0.08)",
+    backgroundColor: "rgba(95, 136, 199, 0.08)",
   },
   "&.Mui-selected": {
-    backgroundColor: "rgba(37, 99, 235, 0.12)",
+    backgroundColor: "rgba(95, 136, 199, 0.12)",
     "&:hover": {
-      backgroundColor: "rgba(37, 99, 235, 0.16)",
+      backgroundColor: "rgba(95, 136, 199, 0.16)",
     },
   },
 };
 
 export const playButtonStyles = (locked: boolean) => ({
   color: "#ffffff",
-  backgroundColor: locked ? "#94a3b8" : "#2563eb",
+  backgroundColor: locked ? "#94a3b8" : "var(--color-primary-600, #4B6FAF)",
   width: "32px",
   height: "32px",
   "&:hover": {

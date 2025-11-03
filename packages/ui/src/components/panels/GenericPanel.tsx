@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useLayoutEffect } from "react";
-import { Tabs, Tab } from "@mui/material";
+import { Tabs, Tab, Box } from "@mui/material";
 import { TabPanel } from "./index";
 
 // Generic panel configuration types (avoiding cross-package type imports)
@@ -60,14 +60,14 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
 
   const currentTab = config.tabs[activeTab];
 
-  return (
-    <Container previewMode={previewMode} className="glass-panel">
+  const content = (
+    <>
       {config.tabs.length > 1 && (
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
           variant="fullWidth"
-          sx={{
+          sx={(theme) => ({
             mb: 2,
             minHeight: "40px",
             "& .MuiTab-root": {
@@ -79,17 +79,21 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
               flexDirection: "row",
               gap: "6px",
               justifyContent: "center",
-              borderRadius: "8px",
+            borderRadius: "4px",
               margin: "0 2px",
               transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
               textTransform: "none",
               "&:hover": {
-                backgroundColor: "rgba(37, 99, 235, 0.08)",
-                color: "#2563eb",
+                backgroundColor: theme.palette.mode === "dark"
+                  ? "rgba(107, 156, 216, 0.12)"
+                  : "rgba(107, 156, 216, 0.1)",
+                color: theme.palette.primary.main,
               },
               "&.Mui-selected": {
-                color: "#2563eb",
-                backgroundColor: "rgba(37, 99, 235, 0.12)",
+                color: theme.palette.primary.main,
+                backgroundColor: theme.palette.mode === "dark"
+                  ? "rgba(95, 136, 199, 0.16)"
+                  : "rgba(107, 156, 216, 0.15)",
                 fontWeight: 600,
               },
               "& .MuiSvgIcon-root": {
@@ -100,7 +104,7 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
             "& .MuiTabs-indicator": {
               display: "none",
             },
-          }}
+          })}
         >
           {config.tabs.map((tab) => (
             <Tab
@@ -120,6 +124,14 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
           </React.Fragment>
         ))}
       </TabPanel>
+    </>
+  );
+
+  return (
+    <Container previewMode={previewMode} className="glass-panel">
+      <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
+        {content}
+      </Box>
     </Container>
   );
 };

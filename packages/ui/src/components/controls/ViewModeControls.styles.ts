@@ -1,4 +1,4 @@
-import { styled } from "@mui/material/styles";
+import { alpha, styled } from "@mui/material/styles";
 import { Box, Button } from "@mui/material";
 import type { BoxProps } from "@mui/material/Box";
 import type { ButtonProps } from "@mui/material/Button";
@@ -30,21 +30,21 @@ export const ViewModeButton: React.FC<ButtonProps> = styled(Button)(
     minWidth: 40,
     height: 40,
     padding: theme.spacing(0.5),
-    borderRadius: "8px", // Design system: 8px for clickable items
+    borderRadius: 4, // Design system: 8px for clickable items
     backgroundColor: "transparent",
     color: "rgba(51, 65, 85, 0.7)", // Design system color
     border: "none",
     boxShadow: "none",
     transition: "background-color 0.15s ease, color 0.15s ease",
     "&:hover": {
-      backgroundColor: "rgba(37, 99, 235, 0.08)", // Blue tint on hover
-      color: "#2563eb",
+      backgroundColor: alpha(theme.palette.primary.main, 0.12),
+      color: theme.palette.primary.main,
     },
     "&.active": {
-      backgroundColor: "rgba(37, 99, 235, 0.12)",
-      color: "#2563eb",
+      backgroundColor: alpha(theme.palette.primary.main, 0.16),
+      color: theme.palette.primary.main,
       "&:hover": {
-        backgroundColor: "rgba(37, 99, 235, 0.16)",
+        backgroundColor: alpha(theme.palette.primary.main, 0.2),
       },
     },
     "& .MuiSvgIcon-root": {

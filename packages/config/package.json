@@ -7,8 +7,39 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "default": "./dist/index.js"
+    },
+    "./factory": {
+      "types": "./dist/factory/index.d.ts",
+      "import": "./dist/factory/index.js",
+      "default": "./dist/factory/index.js"
+    },
+    "./panels": {
+      "types": "./dist/panels/index.d.ts",
+      "import": "./dist/panels/index.js",
+      "default": "./dist/panels/index.js"
+    },
+    "./scene-controls": {
+      "types": "./dist/scene-controls/index.d.ts",
+      "import": "./dist/scene-controls/index.js",
+      "default": "./dist/scene-controls/index.js"
+    },
+    "./top-bar": {
+      "types": "./dist/top-bar/index.d.ts",
+      "import": "./dist/top-bar/index.js",
+      "default": "./dist/top-bar/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "default": "./dist/types/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js",
+      "default": "./dist/utils/index.js"
     }
   },
   "dependencies": {

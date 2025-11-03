@@ -5,15 +5,21 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
   Switch,
   FormControlLabel,
   Typography,
   Box,
-  Divider,
+  IconButton,
 } from "@mui/material";
+import { Close } from "@mui/icons-material";
+import { alpha } from "@mui/material/styles";
 import { useSceneStore } from "@envisio/core";
+import {
+  modalPaperStyles,
+  modalTitleStyles,
+  modalTitleTextStyles,
+  modalCloseButtonStyles,
+} from "@envisio/ui";
 
 interface ProjectSettingsModalProps {
   open: boolean;
@@ -36,39 +42,39 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
       maxWidth="sm"
       fullWidth
       PaperProps={{
-        sx: {
-          borderRadius: "16px",
-          backgroundColor: "var(--glass-bg, rgba(255, 255, 255, 0.95))",
-          backdropFilter: "blur(24px)",
-        },
+        sx: modalPaperStyles,
       }}
     >
-      <DialogTitle
-        sx={{
-          fontSize: "1.25rem",
-          fontWeight: 600,
-          pb: 1,
-        }}
-      >
-        Project Settings
+      <DialogTitle sx={modalTitleStyles}>
+        <Typography sx={modalTitleTextStyles}>Project Settings</Typography>
+        <IconButton onClick={onClose} size="small" sx={modalCloseButtonStyles}>
+          <Close />
+        </IconButton>
       </DialogTitle>
 
-      <Divider sx={{ mb: 2 }} />
-
-      <DialogContent>
+      <DialogContent
+        sx={(theme) => ({
+          padding: "24px !important",
+          paddingTop: "24px !important",
+          backgroundColor: theme.palette.background.default,
+        })}
+      >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {/* UI Settings Section */}
           <Box>
             <Typography
               variant="subtitle2"
-              sx={{
+              sx={(theme) => ({
                 fontWeight: 600,
                 mb: 2,
-                color: "rgba(15, 23, 42, 0.7)",
+                color:
+                  theme.palette.mode === "dark"
+                    ? alpha(theme.palette.text.secondary, 0.9)
+                    : "rgba(15, 23, 42, 0.7)",
                 textTransform: "uppercase",
                 fontSize: "0.75rem",
                 letterSpacing: "0.5px",
-              }}
+              })}
             >
               Interface
             </Typography>
@@ -78,31 +84,35 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                 <Switch
                   checked={bottomPanelVisible}
                   onChange={(e) => setBottomPanelVisible(e.target.checked)}
-                  sx={{
+                  sx={(theme) => ({
                     "& .MuiSwitch-switchBase.Mui-checked": {
-                      color: "#2563eb",
+                      color: theme.palette.primary.main,
                     },
                     "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                      backgroundColor: "#2563eb",
+                      backgroundColor: theme.palette.primary.main,
                     },
-                  }}
+                  })}
                 />
               }
               label={
                 <Box>
                   <Typography
-                    sx={{
+                    sx={(theme) => ({
                       fontSize: "0.875rem",
                       fontWeight: 500,
-                    }}
+                      color: theme.palette.text.primary,
+                    })}
                   >
                     Show Bottom Panel
                   </Typography>
                   <Typography
-                    sx={{
+                    sx={(theme) => ({
                       fontSize: "0.75rem",
-                      color: "rgba(15, 23, 42, 0.6)",
-                    }}
+                      color:
+                        theme.palette.mode === "dark"
+                          ? theme.palette.text.secondary
+                          : "rgba(15, 23, 42, 0.6)",
+                    })}
                   >
                     Display the timeline and observation points panel
                   </Typography>
@@ -115,27 +125,8 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           {/* Future settings can be added here */}
         </Box>
       </DialogContent>
-
-      <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button
-          onClick={onClose}
-          variant="contained"
-          sx={{
-            backgroundColor: "#2563eb",
-            "&:hover": {
-              backgroundColor: "#1d4ed8",
-            },
-            textTransform: "none",
-            borderRadius: "8px",
-            px: 3,
-          }}
-        >
-          Done
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
 
 export default ProjectSettingsModal;
-

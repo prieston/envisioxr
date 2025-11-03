@@ -6,7 +6,9 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  Typography,
 } from "@mui/material";
+import { modalPaperStyles, modalTitleStyles, modalTitleTextStyles } from "../../styles/modalStyles";
 
 export interface PublishDialogProps {
   open: boolean;
@@ -36,9 +38,17 @@ export default function PublishDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      PaperProps={{
+        sx: modalPaperStyles,
+      }}
+    >
+      <DialogTitle sx={modalTitleStyles}>
+        <Typography sx={modalTitleTextStyles}>{title}</Typography>
+      </DialogTitle>
+      <DialogContent sx={{ pt: 3 }}>
         <DialogContentText>{description}</DialogContentText>
       </DialogContent>
       <DialogActions>

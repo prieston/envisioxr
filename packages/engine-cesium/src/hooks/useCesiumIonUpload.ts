@@ -7,6 +7,7 @@ export interface CesiumIonUploadOptions {
   geometricCompression?: string;
   epsgCode?: string;
   makeDownloadable?: boolean;
+  tilesetJson?: string;
 }
 
 export interface CesiumIonUploadData {
@@ -103,7 +104,13 @@ export const useCesiumIonUpload = () => {
     let ionType = sourceType;
     let uploadSourceType: string | undefined = undefined;
 
-    if (sourceType === "3DTILES" || sourceType === "GLTF") {
+    if (sourceType === "3DTILES") {
+      ionType = "3DTILES";
+      uploadSourceType = "3D_MODEL";
+    } else if (sourceType === "3DTILES_ARCHIVE") {
+      ionType = "3DTILES";
+      uploadSourceType = undefined;
+    } else if (sourceType === "GLTF") {
       ionType = sourceType;
       uploadSourceType = "3D_MODEL";
     } else if (sourceType === "3DTILES_BIM") {

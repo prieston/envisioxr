@@ -5,9 +5,11 @@
   "main": "./index.ts",
   "types": "./index.ts",
   "scripts": {
+    "prisma": "prisma",
     "generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "migrate": "prisma migrate"
   },
   "devDependencies": {
     "@types/three": "^0.170.0",

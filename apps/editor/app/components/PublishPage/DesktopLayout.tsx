@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
-import { Button, FormControlLabel, Switch, Typography } from "@mui/material";
+import { Button, FormControlLabel, Switch, Typography, Box } from "@mui/material";
+import { LeftPanelContainer } from "@envisio/ui";
 import {
   DesktopContainer,
-  DesktopSidebar,
+  SidebarHeader,
   SidebarContent,
   ButtonGroupContainer,
   DesktopSceneContainer,
@@ -49,65 +50,6 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
 }) => {
   return (
     <DesktopContainer>
-      <DesktopSidebar>
-        <LogoHeader />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={previewMode}
-              onChange={(e) => setPreviewMode(e.target.checked)}
-              color="primary"
-            />
-          }
-          label={previewMode ? "Preview Mode" : "Free Navigation"}
-          sx={{ marginBottom: 2 }}
-        />
-        <ButtonGroupContainer>
-          <Button
-            variant="outlined"
-            onClick={prevObservation}
-            disabled={previewIndex === 0}
-            fullWidth
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={nextObservation}
-            disabled={
-              !observationPoints || previewIndex >= observationPoints.length - 1
-            }
-            fullWidth
-          >
-            Next
-          </Button>
-        </ButtonGroupContainer>
-        <SidebarContent>
-          <Typography variant="h4" gutterBottom sx={{ marginTop: 2 }}>
-            {project.title}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            {project.description}
-          </Typography>
-          <Separator />
-          <div style={{ marginTop: 2 }}>
-            {currentObservation ? (
-              <>
-                <Typography variant="h6" gutterBottom>
-                  {currentObservation.title || "Untitled"}
-                </Typography>
-                <Typography variant="body2">
-                  {currentObservation.description || "No description provided."}
-                </Typography>
-              </>
-            ) : (
-              <Typography variant="body2">
-                No observation point selected.
-              </Typography>
-            )}
-          </div>
-        </SidebarContent>
-      </DesktopSidebar>
       <DesktopSceneContainer>
         <PreviewScene
           initialSceneData={project.sceneData}
@@ -116,6 +58,112 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
           isPublishMode={true}
         />
       </DesktopSceneContainer>
+
+      <LeftPanelContainer
+        previewMode={false}
+        sx={{
+          position: "absolute",
+          top: 16,
+          left: 16,
+          height: "calc(100vh - 32px)",
+          maxHeight: "calc(100vh - 32px)",
+          zIndex: 1000,
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+          <SidebarHeader>
+            <LogoHeader />
+          </SidebarHeader>
+
+          <SidebarHeader>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={previewMode}
+                  onChange={(e) => setPreviewMode(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label={previewMode ? "Preview Mode" : "Free Navigation"}
+            />
+          </SidebarHeader>
+
+          <ButtonGroupContainer>
+            <Button
+              variant="outlined"
+              onClick={prevObservation}
+              disabled={previewIndex === 0}
+              fullWidth
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={nextObservation}
+              disabled={
+                !observationPoints || previewIndex >= observationPoints.length - 1
+              }
+              fullWidth
+            >
+              Next
+            </Button>
+          </ButtonGroupContainer>
+
+          <SidebarContent>
+            <Typography
+              variant="h5"
+              gutterBottom
+              sx={{
+                fontWeight: 600,
+                color: (theme) => theme.palette.text.primary,
+              }}
+            >
+              {project.title}
+            </Typography>
+            <Typography
+              variant="body1"
+              gutterBottom
+              sx={{
+                color: (theme) => theme.palette.text.secondary,
+              }}
+            >
+              {project.description}
+            </Typography>
+            <Separator />
+            {currentObservation ? (
+              <>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{
+                    fontWeight: 600,
+                    color: (theme) => theme.palette.text.primary,
+                  }}
+                >
+                  {currentObservation.title || "Untitled"}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: (theme) => theme.palette.text.secondary,
+                  }}
+                >
+                  {currentObservation.description || "No description provided."}
+                </Typography>
+              </>
+            ) : (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: (theme) => theme.palette.text.secondary,
+                }}
+              >
+                No observation point selected.
+              </Typography>
+            )}
+          </SidebarContent>
+        </Box>
+      </LeftPanelContainer>
     </DesktopContainer>
   );
 };

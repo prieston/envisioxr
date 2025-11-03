@@ -28,6 +28,8 @@ interface CesiumIonUploadRequest {
     inputCrs?: string; // "EPSG:xxxx" format for IFC without embedded CRS
     geometryCompression?: string; // "MESHOPT" | "DRACO" for BIM/CAD
     textureFormat?: string; // "KTX2" for BIM/CAD
+    tilesetJson?: string;
+    makeDownloadable?: boolean;
   };
 }
 
@@ -131,6 +133,14 @@ export async function POST(request: NextRequest) {
       // textureFormat: "KTX2" for BIM/CAD
       if (options.textureFormat) {
         cleanOptions.textureFormat = options.textureFormat.toUpperCase();
+      }
+
+      if (options.tilesetJson) {
+        cleanOptions.tilesetJson = options.tilesetJson;
+      }
+
+      if (typeof options.makeDownloadable === "boolean") {
+        cleanOptions.makeDownloadable = options.makeDownloadable;
       }
     }
 

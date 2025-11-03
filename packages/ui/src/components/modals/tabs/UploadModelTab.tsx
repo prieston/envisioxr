@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, Suspense, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Box,
   Button,
@@ -9,26 +9,19 @@ import {
   LinearProgress,
   IconButton,
   Paper,
-  CircularProgress,
+  alpha,
 } from "@mui/material";
 import { CloudUpload, Close, CameraAlt } from "@mui/icons-material";
 import { useDropzone } from "react-dropzone";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, useGLTF } from "@react-three/drei";
-
-interface ModelProps {
-  url: string;
-}
-
-const Model: React.FC<ModelProps> = ({ url }) => {
-  const { scene } = useGLTF(url);
-  return <primitive object={scene} />;
-};
+import { textFieldStyles } from "../../../styles/inputStyles";
+import { MetadataTable, type MetadataRow } from "../../table";
+import ModelPreviewDialog from "../ModelPreviewDialog";
 
 export interface UploadModelTabProps {
   onUpload: (data: {
     file: File;
     friendlyName: string;
+    description?: string;
     metadata: Array<{ label: string; value: string }>;
     screenshot: string | null;
   }) => Promise<void>;
@@ -44,14 +37,10 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [friendlyName, setFriendlyName] = useState("");
+  const [description, setDescription] = useState("");
   const [screenshot, setScreenshot] = useState<string | null>(null);
-  const [metadata, setMetadata] = useState<
-    Array<{ label: string; value: string }>
-  >([
-    { label: "Category", value: "" },
-    { label: "Description", value: "" },
-  ]);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [metadata, setMetadata] = useState<MetadataRow[]>([]);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -87,11 +76,9 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
     setSelectedFile(null);
     setPreviewUrl(null);
     setFriendlyName("");
+    setDescription("");
     setScreenshot(null);
-    setMetadata([
-      { label: "Category", value: "" },
-      { label: "Description", value: "" },
-    ]);
+    setMetadata([]);
   };
 
   const handleUpload = async () => {
@@ -100,6 +87,7 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
     await onUpload({
       file: selectedFile,
       friendlyName,
+      description,
       metadata,
       screenshot,
     });
@@ -107,57 +95,41 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
     handleCancel();
   };
 
-  const handleMetadataChange = (
-    index: number,
-    field: "label" | "value",
-    value: string
-  ) => {
-    const newMetadata = [...metadata];
-    newMetadata[index][field] = value;
-    setMetadata(newMetadata);
-  };
-
-  const handleAddMetadata = () => {
-    setMetadata([...metadata, { label: "", value: "" }]);
-  };
-
-  const handleRemoveMetadata = (index: number) => {
-    setMetadata(metadata.filter((_, i) => i !== index));
-  };
-
-  const captureScreenshot = () => {
-    if (canvasRef.current) {
-      const dataUrl = canvasRef.current.toDataURL("image/png");
-      setScreenshot(dataUrl);
-    }
+  const handleCaptureScreenshot = (screenshot: string) => {
+    setScreenshot(screenshot);
+    setPreviewDialogOpen(false);
   };
 
   if (!selectedFile) {
     return (
       <Box
         {...getRootProps()}
-        sx={{
+        sx={(theme) => ({
           border: "2px dashed",
-          borderColor: isDragActive ? "#2563eb" : "rgba(226, 232, 240, 0.8)",
-          borderRadius: "12px",
+          borderColor: isDragActive
+            ? theme.palette.primary.main
+            : "rgba(255, 255, 255, 0.08)",
+          borderRadius: "4px",
           padding: "60px 24px",
           textAlign: "center",
           cursor: "pointer",
           backgroundColor: isDragActive
-            ? "rgba(37, 99, 235, 0.05)"
-            : "rgba(248, 250, 252, 0.6)",
+            ? "rgba(95, 136, 199, 0.08)"
+            : theme.palette.background.default,
           transition: "all 0.2s ease",
           "&:hover": {
-            borderColor: "#2563eb",
-            backgroundColor: "rgba(37, 99, 235, 0.05)",
+            borderColor: theme.palette.primary.main,
+            backgroundColor: "rgba(95, 136, 199, 0.05)",
           },
-        }}
+        })}
       >
         <input {...getInputProps()} />
         <CloudUpload
           sx={{
             fontSize: "4rem",
-            color: isDragActive ? "#2563eb" : "rgba(100, 116, 139, 0.4)",
+            color: isDragActive
+              ? "var(--color-primary, #6B9CD8)"
+              : "rgba(100, 116, 139, 0.4)",
             mb: 2,
           }}
         />
@@ -195,34 +167,69 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    <Box sx={(theme) => ({
+      display: "flex",
+      flexDirection: "column",
+      gap: 2,
+      height: "100%",
+      overflowY: "auto",
+      paddingRight: 1,
+      "&::-webkit-scrollbar": {
+        width: "8px",
+      },
+      "&::-webkit-scrollbar-track": {
+        background:
+          theme.palette.mode === "dark"
+            ? alpha(theme.palette.primary.main, 0.08)
+            : "rgba(95, 136, 199, 0.05)",
+        borderRadius: "4px",
+        margin: "4px 0",
+      },
+      "&::-webkit-scrollbar-thumb": {
+        background:
+          theme.palette.mode === "dark"
+            ? alpha(theme.palette.primary.main, 0.24)
+            : "rgba(95, 136, 199, 0.2)",
+        borderRadius: "4px",
+        border: "2px solid transparent",
+        backgroundClip: "padding-box",
+        transition: "background 0.2s ease",
+        "&:hover": {
+          background:
+            theme.palette.mode === "dark"
+              ? alpha(theme.palette.primary.main, 0.38)
+              : "rgba(95, 136, 199, 0.35)",
+          backgroundClip: "padding-box",
+        },
+      },
+    })}>
       {/* File Info */}
       <Paper
-        sx={{
+        sx={(theme) => ({
           p: 2,
-          borderRadius: "12px",
-          border: "1px solid rgba(226, 232, 240, 0.8)",
-          backgroundColor: "rgba(248, 250, 252, 0.6)",
+          borderRadius: "4px",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          backgroundColor: theme.palette.background.paper,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-        }}
+        })}
       >
         <Box>
           <Typography
-            sx={{
+            sx={(theme) => ({
               fontSize: "0.875rem",
               fontWeight: 600,
-              color: "rgba(51, 65, 85, 0.95)",
-            }}
+              color: theme.palette.text.primary,
+            })}
           >
             {selectedFile.name}
           </Typography>
           <Typography
-            sx={{
+            sx={(theme) => ({
               fontSize: "0.75rem",
-              color: "rgba(100, 116, 139, 0.8)",
-            }}
+              color: theme.palette.text.secondary,
+            })}
           >
             {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
           </Typography>
@@ -231,217 +238,165 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
           onClick={handleCancel}
           size="small"
           disabled={uploading}
-          sx={{
-            color: "rgba(100, 116, 139, 0.8)",
+          sx={(theme) => ({
+            color: theme.palette.text.secondary,
             "&:hover": {
               color: "#ef4444",
               backgroundColor: "rgba(239, 68, 68, 0.08)",
             },
-          }}
+          })}
         >
           <Close />
         </IconButton>
       </Paper>
 
-      {/* Model Preview */}
-      {previewUrl && (
-        <Paper
-          sx={{
-            p: 2,
-            borderRadius: "12px",
-            border: "1px solid rgba(226, 232, 240, 0.8)",
-            backgroundColor: "rgba(248, 250, 252, 0.6)",
-          }}
+      {/* Thumbnail and Model Details */}
+      <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        {/* Thumbnail */}
+        <Box
+          sx={(theme) => ({
+            width: "120px",
+            height: "120px",
+            flexShrink: 0,
+            borderRadius: "4px",
+            overflow: "hidden",
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "rgba(226, 232, 240, 0.05)"
+                : "rgba(226, 232, 240, 0.3)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            cursor: previewUrl && !uploading ? "pointer" : "default",
+            "&:hover .retake-overlay": {
+              opacity: previewUrl && !uploading ? 1 : 0,
+            },
+          })}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              mb: 1,
-            }}
-          >
+          {screenshot ? (
+            <img
+              src={screenshot}
+              alt="Model thumbnail"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
             <Typography
-              sx={{
-                fontSize: "0.875rem",
-                fontWeight: 600,
-                color: "rgba(51, 65, 85, 0.95)",
-              }}
+              sx={(theme) => ({
+                fontSize: "0.625rem",
+                color: theme.palette.text.secondary,
+                fontStyle: "italic",
+                textAlign: "center",
+                px: 1,
+              })}
             >
-              Model Preview
+              No preview
             </Typography>
-            <Button
-              size="small"
-              startIcon={<CameraAlt />}
-              onClick={captureScreenshot}
-              disabled={uploading}
+          )}
+
+          {/* Hover Overlay */}
+          {previewUrl && !uploading && (
+            <Box
+              className="retake-overlay"
+              onClick={() => setPreviewDialogOpen(true)}
               sx={{
-                borderRadius: "8px",
-                textTransform: "none",
-                fontWeight: 500,
-                fontSize: "0.75rem",
-                color: "#2563eb",
-                borderColor: "rgba(37, 99, 235, 0.3)",
-                "&:hover": {
-                  borderColor: "#2563eb",
-                  backgroundColor: "rgba(37, 99, 235, 0.08)",
-                },
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "column",
+                gap: 0.5,
+                opacity: 0,
+                transition: "opacity 0.2s ease",
               }}
-              variant="outlined"
             >
-              Capture Screenshot
-            </Button>
-          </Box>
-
-          <Box
-            sx={{
-              width: "100%",
-              height: "300px",
-              borderRadius: "8px",
-              overflow: "hidden",
-              backgroundColor: "#f8fafc",
-              border: "1px solid rgba(226, 232, 240, 0.8)",
-            }}
-          >
-            <Canvas
-              ref={canvasRef}
-              camera={{ position: [5, 5, 5], fov: 50 }}
-              gl={{ preserveDrawingBuffer: true }}
-            >
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[10, 10, 5]} intensity={1} />
-              <Suspense fallback={null}>
-                <Model url={previewUrl} />
-              </Suspense>
-              <OrbitControls />
-            </Canvas>
-          </Box>
-
-          {screenshot && (
-            <Box sx={{ mt: 2 }}>
+              <CameraAlt sx={{ color: "white", fontSize: "2rem" }} />
               <Typography
                 sx={{
-                  fontSize: "0.75rem",
+                  color: "white",
+                  fontSize: "0.625rem",
                   fontWeight: 500,
-                  color: "rgba(51, 65, 85, 0.95)",
-                  mb: 1,
                 }}
               >
-                Captured Screenshot
+                {screenshot ? "Retake Photo" : "Capture Photo"}
               </Typography>
-              <Box
-                component="img"
-                src={screenshot}
-                alt="Screenshot"
-                sx={{
-                  width: "100%",
-                  height: "auto",
-                  maxHeight: "200px",
-                  objectFit: "contain",
-                  borderRadius: "8px",
-                  border: "1px solid rgba(226, 232, 240, 0.8)",
-                }}
-              />
             </Box>
           )}
-        </Paper>
-      )}
+        </Box>
 
-      {/* Friendly Name */}
-      <TextField
-        fullWidth
-        label="Model Name"
-        value={friendlyName}
-        onChange={(e) => setFriendlyName(e.target.value)}
-        disabled={uploading}
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            borderRadius: "8px",
-          },
-        }}
-      />
+        {/* Name and Description */}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            sx={(theme) => ({
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              mb: 0.5,
+            })}
+          >
+            Name
+          </Typography>
+          <TextField
+            value={friendlyName}
+            onChange={(e) => setFriendlyName(e.target.value)}
+            size="small"
+            fullWidth
+            placeholder="Enter model name"
+            disabled={uploading}
+            sx={textFieldStyles}
+          />
+          <Typography
+            sx={(theme) => ({
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              mb: 0.5,
+              mt: 1.5,
+            })}
+          >
+            Description (Optional)
+          </Typography>
+          <TextField
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            size="small"
+            fullWidth
+            multiline
+            rows={2}
+            placeholder="Add a description..."
+            disabled={uploading}
+            sx={textFieldStyles}
+          />
+        </Box>
+      </Box>
 
-      {/* Metadata Fields */}
+      {/* Metadata Table */}
       <Box>
         <Typography
-          sx={{
-            fontSize: "0.875rem",
+          sx={(theme) => ({
+            fontSize: "0.813rem",
             fontWeight: 600,
-            color: "rgba(51, 65, 85, 0.95)",
+            color: theme.palette.text.primary,
             mb: 1,
-          }}
+          })}
         >
           Metadata (Optional)
         </Typography>
-        {metadata.map((field, index) => (
-          <Box
-            key={index}
-            sx={{
-              display: "flex",
-              gap: 1,
-              mb: 1,
-            }}
-          >
-            <TextField
-              size="small"
-              placeholder="Label"
-              value={field.label}
-              onChange={(e) =>
-                handleMetadataChange(index, "label", e.target.value)
-              }
-              disabled={uploading}
-              sx={{
-                flex: 1,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                },
-              }}
-            />
-            <TextField
-              size="small"
-              placeholder="Value"
-              value={field.value}
-              onChange={(e) =>
-                handleMetadataChange(index, "value", e.target.value)
-              }
-              disabled={uploading}
-              sx={{
-                flex: 2,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                },
-              }}
-            />
-            {metadata.length > 1 && (
-              <IconButton
-                onClick={() => handleRemoveMetadata(index)}
-                size="small"
-                disabled={uploading}
-                sx={{
-                  color: "rgba(100, 116, 139, 0.8)",
-                  "&:hover": {
-                    color: "#ef4444",
-                    backgroundColor: "rgba(239, 68, 68, 0.08)",
-                  },
-                }}
-              >
-                <Close />
-              </IconButton>
-            )}
-          </Box>
-        ))}
-        <Button
-          size="small"
-          onClick={handleAddMetadata}
-          disabled={uploading}
-          sx={{
-            textTransform: "none",
-            fontSize: "0.75rem",
-            color: "#2563eb",
-          }}
-        >
-          + Add Metadata Field
-        </Button>
+        <MetadataTable
+          data={metadata}
+          editable={!uploading}
+          onChange={setMetadata}
+        />
       </Box>
 
       {/* Upload Progress */}
@@ -453,10 +408,10 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
             sx={{
               height: "8px",
               borderRadius: "4px",
-              backgroundColor: "rgba(37, 99, 235, 0.1)",
+              backgroundColor: "rgba(95, 136, 199, 0.1)",
               "& .MuiLinearProgress-bar": {
                 borderRadius: "4px",
-                backgroundColor: "#2563eb",
+                backgroundColor: "var(--color-primary-600, #4B6FAF)",
               },
             }}
           />
@@ -478,16 +433,16 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
         <Button
           onClick={handleCancel}
           disabled={uploading}
-          sx={{
-            borderRadius: "8px",
+          sx={(theme) => ({
+            borderRadius: "4px",
             textTransform: "none",
             fontWeight: 500,
             fontSize: "0.875rem",
-            color: "rgba(100, 116, 139, 0.85)",
+            color: theme.palette.text.secondary,
             "&:hover": {
               backgroundColor: "rgba(100, 116, 139, 0.08)",
             },
-          }}
+          })}
         >
           Cancel
         </Button>
@@ -495,20 +450,32 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
           variant="contained"
           onClick={handleUpload}
           disabled={!friendlyName || uploading}
-          sx={{
-            borderRadius: "8px",
+          sx={(theme) => ({
+            borderRadius: "4px",
             textTransform: "none",
             fontWeight: 600,
             fontSize: "0.875rem",
-            backgroundColor: "#2563eb",
+            backgroundColor: theme.palette.primary.main,
+            boxShadow: "none",
             "&:hover": {
-              backgroundColor: "#1d4ed8",
+              backgroundColor: theme.palette.primary.dark,
             },
-          }}
+          })}
         >
           Upload Model
         </Button>
       </Box>
+
+      {/* Model Preview Dialog */}
+      {previewUrl && (
+        <ModelPreviewDialog
+          open={previewDialogOpen}
+          onClose={() => setPreviewDialogOpen(false)}
+          modelUrl={previewUrl}
+          modelName={friendlyName || selectedFile.name}
+          onCapture={handleCaptureScreenshot}
+        />
+      )}
     </Box>
   );
 };

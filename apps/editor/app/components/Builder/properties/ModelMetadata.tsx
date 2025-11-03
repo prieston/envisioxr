@@ -19,7 +19,7 @@ const ModelMetadata: React.FC<ModelMetadataProps> = ({ assetId }) => {
       <Box
         sx={{
           backgroundColor: "rgba(248, 250, 252, 0.4)",
-          borderRadius: "8px",
+          borderRadius: 4,
           border: "1px dashed rgba(226, 232, 240, 0.6)",
           padding: "16px",
           textAlign: "center",
@@ -76,7 +76,7 @@ const ModelMetadata: React.FC<ModelMetadataProps> = ({ assetId }) => {
     <Box
       sx={{
         backgroundColor: "rgba(248, 250, 252, 0.4)",
-        borderRadius: "8px",
+        borderRadius: 4,
         border: "1px solid rgba(226, 232, 240, 0.6)",
         padding: "14px",
       }}
@@ -102,15 +102,15 @@ const ModelMetadata: React.FC<ModelMetadataProps> = ({ assetId }) => {
                 px: 1,
                 py: 0.5,
                 borderRadius: "4px",
-                backgroundColor: "rgba(37, 99, 235, 0.1)",
-                border: "1px solid rgba(37, 99, 235, 0.2)",
+                backgroundColor: "rgba(95, 136, 199, 0.1)",
+                border: "1px solid rgba(95, 136, 199, 0.2)",
               }}
             >
               <Typography
                 sx={{
                   fontSize: "0.688rem",
                   fontWeight: 500,
-                  color: "#2563eb",
+                  color: "var(--color-primary, #6B9CD8)",
                 }}
               >
                 {data.category}

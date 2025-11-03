@@ -122,11 +122,11 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
             size="small"
             sx={{
               color: "rgba(100, 116, 139, 0.85)",
-              borderRadius: "8px",
+              borderRadius: 4,
               transition: "color 0.15s ease, background-color 0.15s ease",
               "&:hover": {
-                backgroundColor: "rgba(37, 99, 235, 0.08)",
-                color: "#2563eb",
+                backgroundColor: "rgba(95, 136, 199, 0.08)",
+                color: "var(--color-primary, #6B9CD8)",
               },
             }}
           >
@@ -141,10 +141,10 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
         onClose={handleMenuClose}
         sx={{
           "& .MuiPaper-root": {
-            borderRadius: "8px",
-            border: "1px solid rgba(226, 232, 240, 0.8)",
+            borderRadius: 4,
+            border: "1px solid rgba(255, 255, 255, 0.08)",
             boxShadow:
-              "0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+              "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
           },
         }}
       >
@@ -174,7 +174,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
             borderRadius: "12px",
             padding: "8px",
             boxShadow:
-              "0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+              "0 8px 32px rgba(95, 136, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
           },
         }}
       >
@@ -192,17 +192,17 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
             onClick={() => setDeleteDialogOpen(false)}
             sx={{
               minHeight: "38px",
-              borderRadius: "8px",
+              borderRadius: 4,
               textTransform: "none",
               fontWeight: 500,
               fontSize: "0.875rem",
               color: "rgba(100, 116, 139, 0.85)",
-              border: "1px solid rgba(226, 232, 240, 0.8)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
               padding: "0 16px",
               transition: "border-color 0.15s ease, color 0.15s ease",
               "&:hover": {
-                borderColor: "rgba(37, 99, 235, 0.2)",
-                color: "#2563eb",
+                borderColor: "rgba(95, 136, 199, 0.2)",
+                color: "var(--color-primary, #6B9CD8)",
                 backgroundColor: "transparent",
               },
             }}
@@ -213,7 +213,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
             onClick={confirmDelete}
             sx={{
               minHeight: "38px",
-              borderRadius: "8px",
+              borderRadius: 4,
               textTransform: "none",
               fontWeight: 600,
               fontSize: "0.875rem",

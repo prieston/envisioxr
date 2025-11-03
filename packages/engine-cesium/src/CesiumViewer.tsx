@@ -321,10 +321,24 @@ export default function CesiumViewer() {
         // Store viewer reference in the store
         setCesiumViewer(viewerRef.current);
 
-        // Safer defaults for mobile GPUs
+        // Safer defaults for mobile GPUs and calmer earth presentation
         const scene = viewerRef.current.scene as any;
         scene.highDynamicRange = false;
         scene.logarithmicDepthBuffer = false; // avoid precision issues with custom materials
+
+        if (scene?.globe) {
+          const globe = scene.globe;
+          globe.baseColor = Cesium.Color.fromCssColorString("#1a1a1c");
+          globe.dynamicAtmosphereLighting = true;
+        }
+
+        if (scene?.skyAtmosphere) {
+          const atmosphere = scene.skyAtmosphere;
+          atmosphere.hueShift = -0.08;
+          atmosphere.saturationShift = -0.22;
+          atmosphere.brightnessShift = -0.18;
+        }
+
         viewerRef.current.resolutionScale = Math.min(
           window.devicePixelRatio || 1,
           1.25
@@ -834,22 +848,34 @@ export default function CesiumViewer() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "rgba(255, 255, 255, 0.95)",
-            backdropFilter: "blur(10px)",
+            background: "linear-gradient(135deg, #0a0d10 0%, #14171a 50%, #1a1f24 100%)",
             zIndex: 9999,
             pointerEvents: "none",
           }}
         >
-          <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "24px",
+              padding: "32px",
+              backgroundColor: "rgba(20, 23, 26, 0.95)",
+              backdropFilter: "blur(24px) saturate(140%)",
+              WebkitBackdropFilter: "blur(24px) saturate(140%)",
+              borderRadius: "8px",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              boxShadow: "0 0 30px rgba(0, 0, 0, 0.4)",
+            }}
+          >
             <div
               style={{
-                width: 40,
-                height: 40,
-                border: "3px solid rgba(37, 99, 235, 0.2)",
-                borderTopColor: "#2563eb",
+                width: 48,
+                height: 48,
+                border: "3px solid rgba(107, 156, 216, 0.2)",
+                borderTopColor: "#6B9CD8",
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
-                margin: "0 auto 12px",
               }}
             />
             <style>{`
@@ -857,8 +883,15 @@ export default function CesiumViewer() {
                 to { transform: rotate(360deg); }
               }
             `}</style>
-            <p style={{ color: "#2563eb", fontSize: 14, fontWeight: 500 }}>
-              Loading Scene...
+            <p
+              style={{
+                color: "rgba(148, 163, 184, 0.9)",
+                fontSize: "15px",
+                fontWeight: 500,
+                margin: 0,
+              }}
+            >
+              Loading scene...
             </p>
           </div>
         </div>
