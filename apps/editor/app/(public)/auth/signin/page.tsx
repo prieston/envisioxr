@@ -6,6 +6,7 @@ import { Button, Typography, Box } from "@mui/material";
 import { styled, alpha } from "@mui/material/styles";
 import GoogleIcon from "@mui/icons-material/Google";
 import LogoHeader from "@/app/components/AppBar/LogoHeader";
+import { useTenant } from "@envisio/core";
 
 const SignInContainer = styled(Box)(({ theme }) => ({
   minHeight: "100vh",
@@ -74,6 +75,8 @@ const GoogleButton = styled(Button)(({ theme }) => ({
 }));
 
 export default function SignInPage() {
+  const tenant = useTenant();
+
   return (
     <SignInContainer>
       <SignInCard>
@@ -114,7 +117,7 @@ export default function SignInPage() {
             textAlign: "center",
           }}
         >
-          Sign in to continue to Klorad Studio
+          Sign in to continue to {tenant.name}
         </Typography>
 
         <GoogleButton
