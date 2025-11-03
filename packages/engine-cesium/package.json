@@ -60,7 +60,7 @@
     "three": ">=0.170.0 <1"
   },
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist && find . -name '*.js' -not -path './node_modules/*' -not -path './dist/*' -delete || true",
     "build": "pnpm clean && tsc",
     "dev": "tsc --watch"
   }
