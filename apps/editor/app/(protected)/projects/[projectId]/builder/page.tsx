@@ -328,7 +328,7 @@ export default function BuilderPage() {
         throw new Error(errorData.error || "Failed to save project");
       }
 
-      showToast("Project saved successfully", "success");
+      showToast("Project saved successfully", "info");
     } catch (error) {
       console.error("Error saving project:", error);
       showToast(error.message || "Failed to save project", "error");

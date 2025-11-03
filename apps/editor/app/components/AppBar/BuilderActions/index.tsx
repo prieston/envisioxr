@@ -65,9 +65,8 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
   // Handle save button click
   const handleSave = async () => {
     if (onSave) {
-      await onSave()
-        .then(() => showToast("Saved!"))
-        .catch(() => showToast("Error saving."));
+      await onSave();
+      // Toast is shown in the parent component's handleSave
     } else {
       showToast("Save action not yet implemented.");
     }

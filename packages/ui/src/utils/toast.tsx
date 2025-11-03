@@ -10,6 +10,7 @@ const defaultToastOptions: ToastOptions = {
   closeOnClick: true,
   pauseOnHover: true,
   draggable: true,
+  icon: false, // Disable default icon since we're using CustomToast with its own icon
   style: {
     background: "rgba(20, 23, 26, 0.95)",
     backdropFilter: "blur(24px) saturate(140%)",
@@ -28,16 +29,35 @@ const defaultToastOptions: ToastOptions = {
 
 const typeSpecificStyles = {
   success: {
-    borderColor: "rgba(34, 197, 94, 0.4)",
+    borderColor: "rgba(99, 157, 116, 0.4)",
   },
   error: {
-    borderColor: "rgba(255, 86, 86, 0.4)",
+    borderColor: "rgba(185, 131, 131, 0.4)",
   },
   warning: {
-    borderColor: "rgba(245, 158, 11, 0.4)",
+    borderColor: "rgba(179, 149, 99, 0.4)",
   },
   info: {
-    borderColor: "rgba(107, 156, 216, 0.4)",
+    borderColor: "rgba(130, 151, 175, 0.4)",
+  },
+};
+
+const progressBarStyles = {
+  success: {
+    background:
+      "linear-gradient(90deg, rgba(99, 157, 116, 0.8), rgba(99, 157, 116, 1))",
+  },
+  error: {
+    background:
+      "linear-gradient(90deg, rgba(185, 131, 131, 0.8), rgba(185, 131, 131, 1))",
+  },
+  warning: {
+    background:
+      "linear-gradient(90deg, rgba(179, 149, 99, 0.8), rgba(179, 149, 99, 1))",
+  },
+  info: {
+    background:
+      "linear-gradient(90deg, rgba(130, 151, 175, 0.8), rgba(130, 151, 175, 1))",
   },
 };
 
@@ -53,6 +73,11 @@ export const showToast = (
       ...defaultToastOptions.style,
       ...typeSpecificStyles[type],
       ...(options?.style || {}),
+    },
+    progressStyle: {
+      ...defaultToastOptions.progressStyle,
+      ...progressBarStyles[type],
+      ...(options?.progressStyle || {}),
     },
   };
 

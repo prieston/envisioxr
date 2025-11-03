@@ -33,6 +33,7 @@ export const CustomToast: React.FC<CustomToastProps> = ({ message, type }) => {
         display: "flex",
         alignItems: "center",
         gap: 1.5,
+        filter: "saturate(0.5)",
       }}
     >
       <Icon sx={{ color, fontSize: "20px", flexShrink: 0 }} />
