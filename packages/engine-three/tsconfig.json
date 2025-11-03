@@ -23,9 +23,11 @@
     "strict": false,
     "noEmit": false
   },
-  "include": ["src", "src/types/**/*"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/types/**/*"],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.js",
+    "**/*.jsx"
   ]
 }
