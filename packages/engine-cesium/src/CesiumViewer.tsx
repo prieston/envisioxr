@@ -853,8 +853,8 @@ export default function CesiumViewer() {
             pointerEvents: "none",
           }}
         >
-          <div
-            style={{
+            <div
+              style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
