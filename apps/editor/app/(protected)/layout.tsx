@@ -45,6 +45,17 @@ export default async function ProtectedLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap"
           rel="stylesheet"
         />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              html, body {
+                background: linear-gradient(135deg, #0a0d10 0%, #14171a 50%, #1a1f24 100%);
+                min-height: 100vh;
+                margin: 0;
+              }
+            `,
+          }}
+        />
       </head>
       <body>
         <SessionProviderWrapper session={session}>

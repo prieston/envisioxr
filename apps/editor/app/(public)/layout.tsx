@@ -19,6 +19,17 @@ export default function PublicLayout({ children }) {
               "(function(){try{var root=document.documentElement;root.classList.add('dark');localStorage.setItem('klorad-theme-mode','dark');}catch(e){}})();",
           }}
         />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              html, body {
+                background: linear-gradient(135deg, #0a0d10 0%, #14171a 50%, #1a1f24 100%);
+                min-height: 100vh;
+                margin: 0;
+              }
+            `,
+          }}
+        />
       </head>
       <body>
         <ThemeModeProvider>{children}</ThemeModeProvider>
