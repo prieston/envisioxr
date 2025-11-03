@@ -44,7 +44,8 @@
     "three": ">=0.170.0 <1"
   },
   "scripts": {
-    "build": "tsc",
+    "clean": "rm -rf dist",
+    "build": "pnpm clean && tsc",
     "dev": "tsc --watch"
   }
 }
