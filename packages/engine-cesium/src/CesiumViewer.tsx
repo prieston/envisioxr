@@ -848,22 +848,34 @@ export default function CesiumViewer() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "rgba(255, 255, 255, 0.95)",
-            backdropFilter: "blur(10px)",
+            background: "linear-gradient(135deg, #0a0d10 0%, #14171a 50%, #1a1f24 100%)",
             zIndex: 9999,
             pointerEvents: "none",
           }}
         >
-          <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "24px",
+              padding: "32px",
+              backgroundColor: "rgba(20, 23, 26, 0.95)",
+              backdropFilter: "blur(24px) saturate(140%)",
+              WebkitBackdropFilter: "blur(24px) saturate(140%)",
+              borderRadius: "8px",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              boxShadow: "0 0 30px rgba(0, 0, 0, 0.4)",
+            }}
+          >
             <div
               style={{
-                width: 40,
-                height: 40,
-                border: "3px solid rgba(95, 136, 199, 0.2)",
-                borderTopColor: "var(--color-primary-600, #4B6FAF)",
+                width: 48,
+                height: 48,
+                border: "3px solid rgba(107, 156, 216, 0.2)",
+                borderTopColor: "#6B9CD8",
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
-                margin: "0 auto 12px",
               }}
             />
             <style>{`
@@ -873,12 +885,13 @@ export default function CesiumViewer() {
             `}</style>
             <p
               style={{
-                color: "var(--color-primary, #6B9CD8)",
-                fontSize: 14,
+                color: "rgba(148, 163, 184, 0.9)",
+                fontSize: "15px",
                 fontWeight: 500,
+                margin: 0,
               }}
             >
-              Loading Scene...
+              Loading scene...
             </p>
           </div>
         </div>

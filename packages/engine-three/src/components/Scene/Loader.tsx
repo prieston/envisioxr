@@ -17,7 +17,7 @@ const Loader = () => {
         top: 0,
         left: 0,
         width: "100%",
-        height: "4px", // Thin progress bar
+        height: "3px",
         background: "transparent",
         zIndex: 9999,
         pointerEvents: "none",
@@ -27,8 +27,9 @@ const Loader = () => {
         style={{
           width: `${progress}%`,
           height: "100%",
-          background: `rgba(0, 123, 255, ${dynamicOpacity})`, // Blue color with dynamic opacity
+          background: `linear-gradient(90deg, rgba(107, 156, 216, ${dynamicOpacity * 0.8}), rgba(107, 156, 216, ${dynamicOpacity}))`,
           transition: "width 0.2s ease-out, background 0.2s ease-out",
+          borderRadius: "0 0 2px 2px",
         }}
       />
     </div>

@@ -1,7 +1,8 @@
 "use client";
 import PreviewScene from "@/app/components/Builder/Scene/PreviewScene";
 import { useSceneStore } from "@envisio/core";
-import { Box, CircularProgress, Typography } from "@mui/material";
+import { LoadingScreen } from "@envisio/ui";
+import { Box, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -84,18 +85,7 @@ export default function Scene() {
   }, [projectId]);
 
   if (loading) {
-    return (
-      <Box
-        sx={{
-          height: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingScreen message="Loading XR scene..." />;
   }
 
   if (!project) {
