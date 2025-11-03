@@ -20,6 +20,7 @@
     "prisma:generate": "pnpm --filter @envisioxr/prisma generate",
     "prisma:migrate:deploy": "cd packages/prisma && prisma migrate deploy",
     "vercel:build:editor": "pnpm prisma:generate && pnpm build:editor",
+    "vercel:build:website": "pnpm build:website",
     "postinstall": "pnpm prisma:generate"
   },
   "engines": {
