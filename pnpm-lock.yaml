@@ -6,6 +6,7 @@ settings:
 
 overrides:
   next: ^14.1.0
+  '@cesium/engine': ^22.0.0
 
 importers:
 
@@ -61,8 +62,8 @@ importers:
         specifier: ^3.741.0
         version: 3.922.0
       '@cesium/engine':
-        specifier: ^20.0.1
-        version: 20.0.1
+        specifier: ^22.0.0
+        version: 22.0.0
       '@cesium/widgets':
         specifier: ^13.1.1
         version: 13.2.1
@@ -342,8 +343,8 @@ importers:
         specifier: '>=3.884.0'
         version: 3.922.0
       '@cesium/engine':
-        specifier: ^20.0.1
-        version: 20.0.1
+        specifier: ^22.0.0
+        version: 22.0.0
       '@envisio/core':
         specifier: workspace:*
         version: link:../core
@@ -1250,14 +1251,6 @@ packages:
 
   '@bufbuild/protobuf@2.10.0':
     resolution: {integrity: sha512-fdRs9PSrBF7QUntpZpq6BTw58fhgGJojgg39m9oFOJGZT+nip9b0so5cYY1oWl5pvemDLr0cPPsH46vwThEbpQ==}
-
-  '@cesium/engine@20.0.1':
-    resolution: {integrity: sha512-B2TQ9VtVb791dUJatgx6SCRZg3tFPcRi8QseWg9flovaFOHJY0o+LX5BN2J5plFKRO5r5v7g+M2OyjcUYwaRDQ==}
-    engines: {node: '>=20.19.0'}
-
-  '@cesium/engine@21.0.1':
-    resolution: {integrity: sha512-V4MEHOcYMcg+zCxrPjPAVpUyJxmIw6K9qPz5Fd2fnYPoMSPV7FJsiZYoFns03yoPHOPIeqnXQNspZKLX5Xzgfw==}
-    engines: {node: '>=20.19.0'}
 
   '@cesium/engine@22.0.0':
     resolution: {integrity: sha512-7hYwgzu5MYD7TryiZoXz6EvNk6YaBgT1y10L8iHQcKwmv6EPone46C8YGBerYb3uUHR21qmbmDWMSN7xGpBUiw==}
@@ -3104,10 +3097,6 @@ packages:
 
   '@xtuc/long@4.2.2':
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
-
-  '@zip.js/zip.js@2.7.73':
-    resolution: {integrity: sha512-I2UP8/rdQE5hTtVVL08B7P8XuwXiKuuMUPjNuFOVL/9b+8IsExR9S5jz2H58u0rJjU4M1BikLgqEMG8gZJZVBw==}
-    engines: {bun: '>=0.7.0', deno: '>=1.0.0', node: '>=16.5.0'}
 
   '@zip.js/zip.js@2.8.8':
     resolution: {integrity: sha512-v0KutehhSAuaoFAFGLp+V4+UiZ1mIxQ8vNOYMD7k9ZJaBbtQV49MYlg568oRLiuwWDg2Di58Iw3Q0ESNWR+5JA==}
@@ -7438,54 +7427,6 @@ snapshots:
 
   '@bufbuild/protobuf@2.10.0': {}
 
-  '@cesium/engine@20.0.1':
-    dependencies:
-      '@cesium/wasm-splats': 0.1.0-alpha.2
-      '@spz-loader/core': 0.3.0
-      '@tweenjs/tween.js': 25.0.0
-      '@zip.js/zip.js': 2.7.73
-      autolinker: 4.1.5
-      bitmap-sdf: 1.0.4
-      dompurify: 3.3.0
-      draco3d: 1.5.7
-      earcut: 3.0.2
-      grapheme-splitter: 1.0.4
-      jsep: 1.4.0
-      kdbush: 4.0.2
-      ktx-parse: 1.1.0
-      lerc: 2.0.0
-      mersenne-twister: 1.1.0
-      meshoptimizer: 0.25.0
-      pako: 2.1.0
-      protobufjs: 7.5.4
-      rbush: 4.0.1
-      topojson-client: 3.1.0
-      urijs: 1.19.11
-
-  '@cesium/engine@21.0.1':
-    dependencies:
-      '@cesium/wasm-splats': 0.1.0-alpha.2
-      '@spz-loader/core': 0.3.0
-      '@tweenjs/tween.js': 25.0.0
-      '@zip.js/zip.js': 2.8.8
-      autolinker: 4.1.5
-      bitmap-sdf: 1.0.4
-      dompurify: 3.3.0
-      draco3d: 1.5.7
-      earcut: 3.0.2
-      grapheme-splitter: 1.0.4
-      jsep: 1.4.0
-      kdbush: 4.0.2
-      ktx-parse: 1.1.0
-      lerc: 2.0.0
-      mersenne-twister: 1.1.0
-      meshoptimizer: 0.25.0
-      pako: 2.1.0
-      protobufjs: 7.5.4
-      rbush: 4.0.1
-      topojson-client: 3.1.0
-      urijs: 1.19.11
-
   '@cesium/engine@22.0.0':
     dependencies:
       '@cesium/wasm-splats': 0.1.0-alpha.2
@@ -7514,7 +7455,7 @@ snapshots:
 
   '@cesium/widgets@13.2.1':
     dependencies:
-      '@cesium/engine': 21.0.1
+      '@cesium/engine': 22.0.0
       nosleep.js: 0.12.0
 
   '@cesium/widgets@14.0.0':
@@ -9476,8 +9417,6 @@ snapshots:
   '@xtuc/ieee754@1.2.0': {}
 
   '@xtuc/long@4.2.2': {}
-
-  '@zip.js/zip.js@2.7.73': {}
 
   '@zip.js/zip.js@2.8.8': {}
 

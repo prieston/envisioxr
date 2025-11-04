@@ -30,6 +30,11 @@
   "resolutions": {
     "next": "^14.1.0"
   },
+  "pnpm": {
+    "overrides": {
+      "@cesium/engine": "^22.0.0"
+    }
+  },
   "dependencies": {
     "@envisio/ion-sdk": "workspace:^",
     "@types/react": "^18.3.20",
