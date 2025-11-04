@@ -16,7 +16,8 @@ import LogoHeader from "../AppBar/LogoHeader";
 import ReportGenerator from "../Report/ReportGenerator";
 import BuilderActions from "../AppBar/BuilderActions";
 // Import directly from component file to avoid pulling in 3d-tiles-renderer via barrel exports
-import { ThreeJSLocationSearchSection } from "@envisio/engine-three/components/ThreeJSLocationSearchSection";
+// Component is a default export, so use default import syntax
+import ThreeJSLocationSearchSection from "@envisio/engine-three/components/ThreeJSLocationSearchSection";
 import {
   CesiumLocationSearchSection,
   CesiumBasemapSelector,
