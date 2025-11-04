@@ -33,12 +33,14 @@
     "validate:core": "pnpm why next react typescript | grep -E '(next|react|typescript)' && echo '✓ Core dependencies locked'",
     "validate": "pnpm syncpack:check && pnpm typecheck && pnpm -r lint",
     "check:clean": "pnpm clean && git diff --quiet || (echo '❌ Working tree dirty after clean' && git status --short && exit 1)",
+    "verify:deps": "node scripts/verify-workspace-deps.mjs",
     "prisma:generate": "pnpm --filter @envisioxr/prisma generate",
     "prisma:migrate:deploy": "cd packages/prisma && prisma migrate deploy",
     "vercel:build:editor": "pnpm prisma:generate && pnpm clean && pnpm build:packages && cd apps/editor && pnpm build",
     "check:tarball": "pnpm -r --filter ./packages... exec bash -lc 'pnpm pack --pack-destination /tmp && tar -tf /tmp/*.tgz | (grep -E \"(^package/dist/|^package/package.json$)\" && ! grep -E \"package/src/\")'",
     "vercel:build:website": "pnpm build:website",
-    "postinstall": "pnpm prisma:generate"
+    "postinstall": "pnpm prisma:generate",
+    "prepare": "husky"
   },
   "engines": {
     "node": ">=20 <23",
