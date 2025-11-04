@@ -14,20 +14,6 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   secret: process.env.SECRET,
 
-  cookies: {
-    sessionToken: {
-      name: "next-auth.session-token",
-      options: {
-        domain:
-          process.env.NODE_ENV === "production" ? ".klorad.com" : "localhost",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        httpOnly: true,
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      },
-    },
-  },
-
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
