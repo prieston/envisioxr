@@ -1,3 +1,5 @@
+"use client";
+
 import React, { memo, useCallback } from "react";
 import { Alert, Button, Collapse } from "@mui/material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
