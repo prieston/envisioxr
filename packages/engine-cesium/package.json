@@ -64,6 +64,7 @@
   "dependencies": {},
   "devDependencies": {
     "typescript": "^5.9.0",
+    "@cesium/engine": "^20.0.1",
     "@types/cesium": "^1.70.4",
     "@types/node": "^20.11.30",
     "@types/react": "^18.3.0",
