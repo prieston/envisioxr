@@ -68,7 +68,7 @@ function checkTypeSafety() {
 
   for (const file of sourceFiles) {
     const fullPath = path.join(WORKSPACE_ROOT, file);
-    
+
     // Skip directories
     try {
       const stats = fs.statSync(fullPath);
@@ -76,7 +76,7 @@ function checkTypeSafety() {
     } catch {
       continue; // Skip if we can't stat the file
     }
-    
+
     const content = fs.readFileSync(fullPath, "utf8");
     const lines = content.split("\n");
 
@@ -92,7 +92,7 @@ function checkTypeSafety() {
 
       for (const pattern of anyPatterns) {
         const matches = Array.from(line.matchAll(pattern));
-        for (const _match of matches) {
+        if (matches.length > 0) {
           // Check if it's in a prop type or exported API
           const isPropType = /(?:props|Props|interface\s+\w+Props|type\s+\w+Props)/i.test(line);
           const isExported = isExportedDeclaration(content, index);

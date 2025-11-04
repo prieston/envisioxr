@@ -48,6 +48,7 @@ const PlayerRigidBody = forwardRef<any, PlayerRigidBodyProps>((props, ref) => {
     </RigidBody>
   );
 });
+PlayerRigidBody.displayName = "PlayerRigidBody";
 
 // First person controls
 const FirstPersonControls = () => {
@@ -785,6 +786,7 @@ const CarControls = forwardRef<any, Record<string, never>>((_props, _ref) => {
 
   return null;
 });
+CarControls.displayName = "CarControls";
 
 // Third person car controls
 const ThirdPersonCarControls = forwardRef<any, Record<string, never>>(
@@ -1150,6 +1152,7 @@ const ThirdPersonCarControls = forwardRef<any, Record<string, never>>(
     );
   }
 );
+ThirdPersonCarControls.displayName = "ThirdPersonCarControls";
 
 const SceneViewModeController = () => {
   // Combine all scene store subscriptions into a single selector to reduce subscriptions from 8 to 1
