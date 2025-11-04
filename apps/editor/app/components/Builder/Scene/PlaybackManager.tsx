@@ -8,9 +8,12 @@ import { useSceneStore } from "@envisio/core";
  * when playback is active
  */
 const PlaybackManager: React.FC = () => {
-  const isPlaying = useSceneStore((state) => state.isPlaying);
-  const observationPoints = useSceneStore((state) => state.observationPoints);
-  const nextObservation = useSceneStore((state) => state.nextObservation);
+  // Combine store subscriptions to reduce from 4 to 1
+  const sceneState = useSceneStore((state) => ({
+    isPlaying: state.isPlaying,
+    observationPoints: state.observationPoints,
+    nextObservation: state.nextObservation,
+  }));
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
