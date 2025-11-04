@@ -129,7 +129,7 @@ export const GenericPanel: React.FC<GenericPanelProps> = ({
 
   return (
     <Container previewMode={previewMode} className="glass-panel">
-      <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', minHeight: 0 }}>
         {content}
       </Box>
     </Container>

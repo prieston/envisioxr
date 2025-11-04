@@ -62,13 +62,15 @@ const LeftPanel: React.FC = () => {
         <LogoHeader />
       </Box>
 
-      {/* Panel Content - Direct pass through, no wrapper */}
-      <GenericPanel
-        Container={({ children }) => <>{children}</>}
-        config={config}
-        renderSetting={(setting) => <SettingRenderer setting={setting} />}
-        previewMode={previewMode}
-      />
+      {/* Panel Content - Wrap in flex container to allow scrolling */}
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <GenericPanel
+          Container={({ children }) => <>{children}</>}
+          config={config}
+          renderSetting={(setting) => <SettingRenderer setting={setting} />}
+          previewMode={previewMode}
+        />
+      </Box>
     </LeftPanelContainer>
   );
 };

@@ -110,6 +110,7 @@ export const TabPanel: React.FC<BoxProps> = styled(Box)(
   ({ theme }: { theme: any }) => ({
     flex: 1,
     overflow: "auto",
+    minHeight: 0, // Allow flex item to shrink below content size
     paddingRight: theme.spacing(0.5),
     backgroundColor:
       theme.palette.mode === "dark" ? "#14171A" : "rgba(248, 250, 252, 0.6)",
