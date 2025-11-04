@@ -32,18 +32,17 @@
   },
   "dependencies": {
     "uuid": "^9.0.1",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "@types/three": "^0.170.0",
+    "@types/uuid": "^9.0.8",
+    "@types/react-toastify": "^4.0.2",
+    "typescript": "^5.9.0"
   },
   "peerDependencies": {
     "three": ">=0.170.0 <1",
     "react-toastify": ">=9.1.3"
   },
-  "devDependencies": {
-    "typescript": "^5.9.0",
-    "@types/three": "^0.170.0",
-    "@types/uuid": "^9.0.8",
-    "@types/react-toastify": "^4.0.2"
-  },
+  "devDependencies": {},
   "scripts": {
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "build": "pnpm clean && tsc -p tsconfig.json"

@@ -12,7 +12,10 @@
     }
   },
   "dependencies": {
-    "react-toastify": "^11.0.3"
+    "react-toastify": "^11.0.3",
+    "@types/three": "^0.170.0",
+    "@types/uuid": "^9.0.8",
+    "typescript": "^5.0.0"
   },
   "peerDependencies": {
     "@envisio/core": "workspace:*",
@@ -20,11 +23,7 @@
     "next": ">=14",
     "react": ">=18"
   },
-  "devDependencies": {
-    "@types/three": "^0.170.0",
-    "@types/uuid": "^9.0.8",
-    "typescript": "^5.0.0"
-  },
+  "devDependencies": {},
   "scripts": {
     "build": "rm -rf dist tsconfig.tsbuildinfo && tsc -p tsconfig.json && cp -R src/vendor dist/",
     "dev": "tsc -w -p tsconfig.json"

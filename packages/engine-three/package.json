@@ -58,13 +58,14 @@
     "three": ">=0.170.0 <1",
     "@envisio/core": "workspace:*"
   },
-  "dependencies": {},
-  "devDependencies": {
+  "dependencies": {
     "typescript": "^5.9.0",
     "@types/node": "^18.19.0",
     "@types/three": "^0.170.0",
-    "@types/uuid": "^9.0.8"
+    "@types/uuid": "^9.0.8",
+    "3d-tiles-renderer": "^0.4.7"
   },
+  "devDependencies": {},
   "scripts": {
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "build": "pnpm clean && tsc -p tsconfig.json",

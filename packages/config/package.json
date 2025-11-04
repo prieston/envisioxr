@@ -44,14 +44,13 @@
   },
   "dependencies": {
     "@mui/icons-material": "^5.18.0",
-    "react": "^18.0.0"
-  },
-  "devDependencies": {
+    "react": "^18.0.0",
     "@types/react": "^18.0.0",
     "@types/three": "^0.170.0",
     "@types/uuid": "^9.0.8",
     "typescript": "^5.0.0"
   },
+  "devDependencies": {},
   "scripts": {
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "build": "pnpm clean && tsc",
