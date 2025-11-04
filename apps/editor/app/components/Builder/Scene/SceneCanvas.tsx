@@ -4,6 +4,7 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { useWorldStore, useSceneStore } from "@envisio/core";
 import PlaybackManager from "./PlaybackManager";
+import type { SceneProps } from "@envisio/engine-three";
 
 const Scene = dynamic(() => import("@envisio/engine-three"), {
   ssr: false,
@@ -22,8 +23,8 @@ const CesiumObjectTransformEditor = dynamic(
 // ViewshedAnalysis is rendered within the Cesium engine viewer; do not render here to avoid duplication
 
 interface SceneCanvasProps {
-  initialSceneData: any;
-  onSceneDataChange?: (data: any) => void;
+  initialSceneData: NonNullable<SceneProps["initialSceneData"]>;
+  onSceneDataChange?: SceneProps["onSceneDataChange"];
   renderObservationPoints?: boolean;
 }
 
