@@ -1,7 +1,10 @@
 import process from 'process';
 import path from 'path';
+import { createRequire } from 'module';
 import withBundleAnalyzer from '@next/bundle-analyzer';
 import withPWA from '@ducanh2912/next-pwa';
+
+const require = createRequire(import.meta.url);
 
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -27,6 +30,10 @@ const nextConfig = {
   output: 'standalone',
   // Ensure proper asset handling
   assetPrefix: process.env.NODE_ENV === 'production' ? undefined : '',
+  // Cesium base URL - must be exported at build time
+  env: {
+    CESIUM_BASE_URL: '/cesium',
+  },
   webpack(config, { isServer, webpack: _webpack }) {
     config.resolve = {
       ...config.resolve,
@@ -141,11 +148,56 @@ const nextConfig = {
       use: ['raw-loader', 'glslify-loader'],
     });
 
-    // Note: Cesium assets are pre-copied to public/cesium/ and committed to git
-    // No need to copy during build - prevents webpack from processing them
+    // Note: Cesium assets are generated at build time via CopyWebpackPlugin
+    // Assets are copied to public/cesium/ but not committed (in .gitignore)
 
-    // Enhanced webpack optimization for Cesium
-    if (!isServer) {
+    // Strip console.* in production
+    if (!isServer && process.env.NODE_ENV === 'production') {
+      const TerserPlugin = require('terser-webpack-plugin');
+      config.optimization = {
+        ...config.optimization,
+        minimizer: [
+          ...(config.optimization?.minimizer || []),
+          new TerserPlugin({
+            terserOptions: {
+              compress: {
+                drop_console: true,
+              },
+            },
+          }),
+        ],
+        splitChunks: {
+          ...config.optimization?.splitChunks,
+          chunks: 'all',
+          cacheGroups: {
+            ...config.optimization?.splitChunks?.cacheGroups,
+            cesium: {
+              test: /[\\/]node_modules[\\/]cesium[\\/]/,
+              name: 'cesium',
+              chunks: 'all',
+              priority: 10,
+              enforce: true,
+            },
+            three: {
+              test: /[\\/]node_modules[\\/]three[\\/]/,
+              name: 'three',
+              chunks: 'all',
+              priority: 9,
+            },
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 5,
+            },
+          },
+        },
+        runtimeChunk: {
+          name: 'runtime',
+        },
+      };
+    } else if (!isServer) {
+      // Development optimization
       config.optimization = {
         ...config.optimization,
         splitChunks: {

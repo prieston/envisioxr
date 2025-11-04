@@ -14,18 +14,18 @@
   "dependencies": {
     "react-toastify": "^11.0.3",
     "@types/three": "^0.170.0",
-    "@types/uuid": "^9.0.8",
-    "typescript": "^5.0.0"
+    "@types/uuid": "^9.0.8"
   },
   "peerDependencies": {
     "@envisio/core": "workspace:*",
     "cesium": ">=1.131.0",
-    "next": ">=14",
-    "react": ">=18"
+    "next": "^14.2.18",
+    "react": "^18.3.1"
   },
   "devDependencies": {},
   "scripts": {
-    "build": "rm -rf dist tsconfig.tsbuildinfo && tsc -p tsconfig.json && cp -R src/vendor dist/",
+    "clean": "cd ../.. && pnpm clean",
+    "build": "pnpm clean && tsc -p tsconfig.json && cp -R src/vendor dist/",
     "dev": "tsc -w -p tsconfig.json"
   }
 }

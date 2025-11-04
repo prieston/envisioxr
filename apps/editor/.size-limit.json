@@ -1,0 +1,15 @@
+[
+  {
+    "path": ".next/static/chunks/vendors*.js",
+    "limit": "2 MB"
+  },
+  {
+    "path": ".next/static/chunks/cesium*.js",
+    "limit": "5 MB"
+  },
+  {
+    "path": ".next/static/chunks/pages/**/*.js",
+    "limit": "500 KB"
+  }
+]
+

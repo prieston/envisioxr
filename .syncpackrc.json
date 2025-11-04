@@ -1,0 +1,34 @@
+{
+  "versionGroups": [
+    {
+      "label": "Lock core dependencies",
+      "dependencies": ["next", "react", "react-dom", "typescript"],
+      "isIgnored": false,
+      "isRequired": true
+    },
+    {
+      "label": "Ignore workspace protocol variations",
+      "dependencies": ["@envisio/*", "@envisioxr/*"],
+      "isIgnored": true
+    },
+    {
+      "label": "Ignore peer dependency ranges",
+      "dependencyTypes": ["peer"],
+      "isIgnored": true
+    }
+  ],
+  "dependencyTypes": ["prod", "dev"],
+  "semverGroups": [
+    {
+      "label": "Use exact versions for locked dependencies",
+      "range": "=",
+      "dependencies": ["next", "react", "react-dom", "typescript"]
+    }
+  ],
+  "semverRange": "^",
+  "sortAz": ["contributors", "dependencies", "devDependencies", "keywords", "peerDependencies", "scripts"],
+  "sortFirst": ["name", "private", "version"],
+  "source": ["package.json", "apps/*/package.json", "packages/*/package.json"]
+}
+
+

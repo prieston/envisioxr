@@ -47,8 +47,8 @@
     }
   },
   "peerDependencies": {
-    "react": ">=18",
-    "react-dom": ">=18",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "@mui/material": ">=5",
     "@react-spring/three": ">=9.7.0",
     "@react-three/fiber": ">=8.15.0",
@@ -59,15 +59,14 @@
     "@envisio/core": "workspace:*"
   },
   "dependencies": {
-    "typescript": "^5.9.0",
-    "@types/node": "^18.19.0",
+    "@types/node": "^20.11.30",
     "@types/three": "^0.170.0",
     "@types/uuid": "^9.0.8",
     "3d-tiles-renderer": "^0.4.7"
   },
   "devDependencies": {},
   "scripts": {
-    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "clean": "cd ../.. && pnpm clean",
     "build": "pnpm clean && tsc -p tsconfig.json",
     "dev": "tsc -w -p tsconfig.json"
   }

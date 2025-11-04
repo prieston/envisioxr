@@ -252,6 +252,13 @@ export default function CesiumViewer() {
         if (!window.CESIUM_BASE_URL) {
           // CESIUM_BASE_URL not set, using default
           window.CESIUM_BASE_URL = "/cesium/";
+          // Log warning in development if misconfigured
+          if (process.env.NODE_ENV === "development") {
+            console.warn(
+              "[CesiumViewer] CESIUM_BASE_URL not set via env, using default '/cesium/'. " +
+              "Set NEXT_PUBLIC_CESIUM_BASE_URL or ensure env.CESIUM_BASE_URL is configured."
+            );
+          }
         }
 
         // Set Cesium Ion access token with validation (support both naming conventions)
@@ -320,6 +327,11 @@ export default function CesiumViewer() {
 
         // Store viewer reference in the store
         setCesiumViewer(viewerRef.current);
+
+        // Expose viewer on window for smoke tests and debugging
+        if (typeof window !== "undefined") {
+          (window as any).cesiumViewer = viewerRef.current;
+        }
 
         // Safer defaults for mobile GPUs and calmer earth presentation
         const scene = viewerRef.current.scene as any;

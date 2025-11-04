@@ -2,6 +2,10 @@
   "name": "@envisioxr/prisma",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20 <23",
+    "pnpm": ">=9"
+  },
   "main": "./index.ts",
   "types": "./index.ts",
   "scripts": {
@@ -13,8 +17,7 @@
   },
   "devDependencies": {
     "@types/three": "^0.170.0",
-    "@types/uuid": "^9.0.8",
-    "typescript": "^5.3.3"
+    "@types/uuid": "^9.0.8"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
