@@ -17,11 +17,11 @@ function getPackageJson(pkgPath) {
 // Recursively find all TypeScript files
 function findTsFiles(dir, fileList = []) {
   const files = fs.readdirSync(dir);
-  
+
   for (const file of files) {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
-    
+
     if (stat.isDirectory()) {
       // Skip node_modules and dist directories
       if (file !== "node_modules" && file !== "dist" && file !== ".next") {
@@ -31,7 +31,7 @@ function findTsFiles(dir, fileList = []) {
       fileList.push(filePath);
     }
   }
-  
+
   return fileList;
 }
 
@@ -39,17 +39,17 @@ let errors = [];
 
 for (const pkg of fs.readdirSync(packagesDir)) {
   const pkgPath = path.join(packagesDir, pkg);
-  
+
   // Skip if not a directory
   if (!fs.statSync(pkgPath).isDirectory()) {
     continue;
   }
-  
+
   const srcPath = path.join(pkgPath, "src");
   if (!fs.existsSync(srcPath)) {
     continue;
   }
-  
+
   const pkgJson = getPackageJson(pkgPath);
 
   const deps = {
