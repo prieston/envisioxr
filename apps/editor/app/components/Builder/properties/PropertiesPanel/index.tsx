@@ -1,3 +1,5 @@
+"use client";
+
 import React, { memo } from "react";
 import { useSceneStore } from "@envisio/core";
 import { ModelObject, ObservationPoint } from "../types";
