@@ -45,21 +45,29 @@ interface CesiumDateTimeSelectorProps {
 const CesiumDateTimeSelector: React.FC<CesiumDateTimeSelectorProps> = ({
   disabled = false,
 }) => {
-  const cesiumViewer = useSceneStore((state) => state.cesiumViewer);
-  const cesiumInstance = useSceneStore((state) => state.cesiumInstance);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 8 to 1
+  const sceneState = useSceneStore((state) => ({
+    cesiumViewer: state.cesiumViewer,
+    cesiumInstance: state.cesiumInstance,
+    lightingEnabled: state.cesiumLightingEnabled,
+    shadowsEnabled: state.cesiumShadowsEnabled,
+    setCesiumLightingEnabled: state.setCesiumLightingEnabled,
+    setCesiumShadowsEnabled: state.setCesiumShadowsEnabled,
+    setCesiumCurrentTime: state.setCesiumCurrentTime,
+    cesiumCurrentTime: state.cesiumCurrentTime,
+  }));
 
-  // Get time simulation settings from store
-  const lightingEnabled = useSceneStore((state) => state.cesiumLightingEnabled);
-  const shadowsEnabled = useSceneStore((state) => state.cesiumShadowsEnabled);
-  const setCesiumLightingEnabled = useSceneStore(
-    (state) => state.setCesiumLightingEnabled
-  );
-  const setCesiumShadowsEnabled = useSceneStore(
-    (state) => state.setCesiumShadowsEnabled
-  );
-  const setCesiumCurrentTime = useSceneStore(
-    (state) => state.setCesiumCurrentTime
-  );
+  // Destructure for cleaner lookups
+  const {
+    cesiumViewer,
+    cesiumInstance,
+    lightingEnabled,
+    shadowsEnabled,
+    setCesiumLightingEnabled,
+    setCesiumShadowsEnabled,
+    setCesiumCurrentTime,
+    cesiumCurrentTime: storedTime,
+  } = sceneState;
 
   // Local state for UI
   const [isPlaying, setIsPlaying] = useState(false);
@@ -69,9 +77,7 @@ const CesiumDateTimeSelector: React.FC<CesiumDateTimeSelectorProps> = ({
   const [lockToNow, setLockToNow] = useState(false);
   const joystickIntervalRef = useRef<number | null>(null);
   const lockToNowIntervalRef = useRef<number | null>(null);
-  const storedTime = useSceneStore((state) => state.cesiumCurrentTime);
 
-  // Initialize with saved time from store, or current date/time
   const [dateValue, setDateValue] = useState(() => {
     const now = storedTime ? new Date(storedTime) : new Date();
     const year = now.getFullYear();
@@ -479,7 +485,6 @@ const CesiumDateTimeSelector: React.FC<CesiumDateTimeSelectorProps> = ({
       </CurrentTimeBox>
 
       {/* Date & Time Inputs */}
-      {/* @ts-ignore - MUI type complexity */}
       <Box sx={{ mb: 1.5 }}>
         <InputSectionTitle>Set Date & Time</InputSectionTitle>
         <DateTimeContainer>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 // MUI imports not needed here; styled elements come from the styles file
 import {
   Container,
@@ -64,19 +64,24 @@ const CesiumSimulationInstructions: React.FC<
 
   const { title, instructions } = getInstructions();
 
+  // Memoize instructions list to prevent unnecessary re-renders
+  const memoizedInstructions = useMemo(() => {
+    return instructions.map((instruction, index) => (
+      <InstructionText key={index}>
+        {instruction.split(":").map((part, partIndex) => {
+          if (partIndex === 0) {
+            return <KeyHighlight key={partIndex}>{part}</KeyHighlight>;
+          }
+          return `: ${part}`;
+        })}
+      </InstructionText>
+    ));
+  }, [instructions]);
+
   return (
     <Container>
       <Title>{title}</Title>
-      {instructions.map((instruction, index) => (
-        <InstructionText key={index}>
-          {instruction.split(":").map((part, partIndex) => {
-            if (partIndex === 0) {
-              return <KeyHighlight key={partIndex}>{part}</KeyHighlight>;
-            }
-            return `: ${part}`;
-          })}
-        </InstructionText>
-      ))}
+      {memoizedInstructions}
     </Container>
   );
 };

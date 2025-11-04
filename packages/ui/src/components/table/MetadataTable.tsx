@@ -60,8 +60,17 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
 
   // Update local data when prop changes
   React.useEffect(() => {
-    setLocalData(data);
-  }, [data]);
+    // Guard: only update if data actually changed (by reference or content)
+    if (data !== localData && (
+      data.length !== localData.length ||
+      data.some((item, index) =>
+        item.label !== localData[index]?.label ||
+        item.value !== localData[index]?.value
+      )
+    )) {
+      setLocalData(data);
+    }
+  }, [data, localData]);
 
   if (localData.length === 0 && !editable) {
     return (
@@ -80,7 +89,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
   return (
     <TableContainer
       component={Paper}
-      sx={(theme) => ({
+      sx={(_theme) => ({
         boxShadow: "none",
         backgroundColor: "transparent",
         border: "1px solid rgba(255, 255, 255, 0.08)",

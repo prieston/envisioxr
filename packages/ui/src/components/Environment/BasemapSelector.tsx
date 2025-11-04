@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button, Box, Typography, ButtonGroup } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
@@ -71,6 +71,19 @@ export default function BasemapSelector({
     return null;
   }
 
+  // Memoize options list to prevent unnecessary re-renders
+  const memoizedOptions = useMemo(() => {
+    return options.map((option) => (
+      <Button
+        key={option.value}
+        onClick={() => handleBasemapChange(option.value)}
+        variant={selectedBasemap === option.value ? "contained" : "outlined"}
+      >
+        {option.label}
+      </Button>
+    ));
+  }, [options, selectedBasemap, handleBasemapChange]);
+
   return (
     <Container>
       <SectionTitle>{title}</SectionTitle>
@@ -80,17 +93,7 @@ export default function BasemapSelector({
         size="small"
         disabled={disabled}
       >
-        {options.map((option) => (
-          <Button
-            key={option.value}
-            onClick={() => handleBasemapChange(option.value)}
-            variant={
-              selectedBasemap === option.value ? "contained" : "outlined"
-            }
-          >
-            {option.label}
-          </Button>
-        ))}
+        {memoizedOptions}
       </StyledButtonGroup>
     </Container>
   );

@@ -188,16 +188,23 @@ function analyzeFile(filePath, content) {
       }
 
       // Check for early return followed by hooks
-      const returnMatch = body.match(/if\s*\([^)]+\)\s*\{[\s\S]*?return[\s\S]*?\}/);
+      // Only flag if the return is at the component body level, not inside useEffect/useCallback
+      // Look for pattern: if (...) { return } ... hooks ... (hooks after conditional return in component body)
+      const earlyReturnPattern = /if\s*\([^)]+\)\s*\{[\s\S]*?return[\s\S]*?\}/;
+      const returnMatch = body.match(earlyReturnPattern);
       if (returnMatch) {
         const returnIndex = returnMatch.index;
-        const hookMatch = body.substring(returnIndex + returnMatch[0].length).match(/(useState|useEffect|useMemo|useCallback|useSceneStore|useWorldStore)/);
-        if (hookMatch) {
+        // Check if there are hooks AFTER the early return block
+        // But exclude hooks that are inside useEffect/useCallback/useMemo (those are fine)
+        const afterReturn = body.substring(returnIndex + returnMatch[0].length);
+        // Only flag if hooks appear directly after return, not inside nested function calls
+        const hookAfterReturn = afterReturn.match(/^\s*(?:const\s+\w+\s*[:=]\s*)?(useState|useEffect|useMemo|useCallback|useSceneStore|useWorldStore)\s*\(/);
+        if (hookAfterReturn && !afterReturn.match(/^\s*(?:useEffect|useCallback|useMemo)\s*\(/)) {
           issues.critical.push({
             file: relativePath,
             issue: "CRITICAL: Hook called after conditional return",
             description: "Hooks must be called unconditionally before any returns",
-            line: findLineNumber(content, hookMatch[0]),
+            line: findLineNumber(content, hookAfterReturn[0]),
             fix: "Move hook calls before conditional return or use early return after all hooks",
           });
         }

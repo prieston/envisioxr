@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { showToast } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";

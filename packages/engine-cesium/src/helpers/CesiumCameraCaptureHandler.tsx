@@ -7,15 +7,23 @@ import { useSceneStore } from "@envisio/core";
 type Vector3Tuple = [number, number, number];
 
 const CesiumCameraCaptureHandler: React.FC = () => {
-  const cesiumViewer = useSceneStore((state) => state.cesiumViewer);
-  const capturingPOV = useSceneStore((state) => state.capturingPOV);
-  const selectedObservation = useSceneStore(
-    (state) => state.selectedObservation
-  );
-  const updateObservationPoint = useSceneStore(
-    (state) => state.updateObservationPoint
-  );
-  const setCapturingPOV = useSceneStore((state) => state.setCapturingPOV);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 5 to 1
+  const sceneState = useSceneStore((state) => ({
+    cesiumViewer: state.cesiumViewer,
+    capturingPOV: state.capturingPOV,
+    selectedObservation: state.selectedObservation,
+    updateObservationPoint: state.updateObservationPoint,
+    setCapturingPOV: state.setCapturingPOV,
+  }));
+
+  // Destructure for cleaner lookups
+  const {
+    cesiumViewer,
+    capturingPOV,
+    selectedObservation,
+    updateObservationPoint,
+    setCapturingPOV,
+  } = sceneState;
 
   useEffect(() => {
     if (

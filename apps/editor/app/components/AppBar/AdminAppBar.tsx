@@ -104,12 +104,18 @@ const AdminAppBar: React.FC<AdminAppBarProps> = ({
   }, [
     mode,
     engine,
-    selectedObject,
-    transformMode,
-    previewMode,
+    sceneState.selectedObject,
+    sceneState.transformMode,
+    sceneState.previewMode,
+    handleTransformModeChange,
+    handleSave,
+    handlePublish,
     selectingPosition,
     selectedPosition,
     pendingModel,
+    setSelectingPosition,
+    setSelectedPosition,
+    setPendingModel,
   ]);
 
   if (mode === "builder") {

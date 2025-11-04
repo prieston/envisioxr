@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   ListItemText,
   Typography,
@@ -87,6 +87,40 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
     setSelectedItemForDelete(null);
   };
 
+  // Memoize observation points list to prevent unnecessary re-renders
+  const memoizedObservationPoints = useMemo(() => {
+    return observationPoints?.map((point, index) => (
+      <ObservationListItem
+        key={point.id}
+        selected={selectedObservation?.id === point.id}
+        onClick={() => handleClick(point, index)}
+      >
+        <ListItemText
+          primary={point.title || `Point ${index + 1}`}
+          primaryTypographyProps={{
+            noWrap: true,
+            sx: { color: "inherit" }, // Inherit color from parent
+          }}
+        />
+        <IconButton
+          onClick={(e) => handleMenuOpen(e, point.id)}
+          size="small"
+          sx={{
+            color: "rgba(100, 116, 139, 0.85)",
+            borderRadius: 4,
+            transition: "color 0.15s ease, background-color 0.15s ease",
+            "&:hover": {
+              backgroundColor: "rgba(95, 136, 199, 0.08)",
+              color: "var(--color-primary, #6B9CD8)",
+            },
+          }}
+        >
+          <MoreVert />
+        </IconButton>
+      </ObservationListItem>
+    ));
+  }, [observationPoints, selectedObservation?.id, handleClick, handleMenuOpen]);
+
   return (
     <ObservationSection previewMode={previewMode || false}>
       {/* Add button */}
@@ -104,36 +138,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
       </AddButton>
 
       {/* List items */}
-      {observationPoints?.map((point, index) => (
-        <ObservationListItem
-          key={point.id}
-          selected={selectedObservation?.id === point.id}
-          onClick={() => handleClick(point, index)}
-        >
-          <ListItemText
-            primary={point.title || `Point ${index + 1}`}
-            primaryTypographyProps={{
-              noWrap: true,
-              sx: { color: "inherit" }, // Inherit color from parent
-            }}
-          />
-          <IconButton
-            onClick={(e) => handleMenuOpen(e, point.id)}
-            size="small"
-            sx={{
-              color: "rgba(100, 116, 139, 0.85)",
-              borderRadius: 4,
-              transition: "color 0.15s ease, background-color 0.15s ease",
-              "&:hover": {
-                backgroundColor: "rgba(95, 136, 199, 0.08)",
-                color: "var(--color-primary, #6B9CD8)",
-              },
-            }}
-          >
-            <MoreVert />
-          </IconButton>
-        </ObservationListItem>
-      ))}
+      {memoizedObservationPoints}
 
       <Menu
         anchorEl={menuAnchor}

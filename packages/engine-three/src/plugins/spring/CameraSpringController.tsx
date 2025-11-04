@@ -9,12 +9,25 @@ type Vector3Tuple = [number, number, number];
 
 const CameraSpringController: React.FC = () => {
   const { camera } = useThree();
-  const previewMode = useSceneStore((state) => state.previewMode);
-  const previewIndex = useSceneStore((state) => state.previewIndex);
-  const observationPoints = useSceneStore((state) => state.observationPoints);
-  const capturingPOV = useSceneStore((state) => state.capturingPOV);
-  const viewMode = useSceneStore((state) => state.viewMode);
-  const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 6 to 1
+  const sceneState = useSceneStore((state) => ({
+    previewMode: state.previewMode,
+    previewIndex: state.previewIndex,
+    observationPoints: state.observationPoints,
+    capturingPOV: state.capturingPOV,
+    viewMode: state.viewMode,
+    orbitControlsRef: state.orbitControlsRef,
+  }));
+
+  // Destructure for cleaner lookups
+  const {
+    previewMode,
+    previewIndex,
+    observationPoints,
+    capturingPOV,
+    viewMode,
+    orbitControlsRef,
+  } = sceneState;
 
   const [spring, api] = useSpring(() => ({
     cameraPosition: camera.position.toArray() as Vector3Tuple,

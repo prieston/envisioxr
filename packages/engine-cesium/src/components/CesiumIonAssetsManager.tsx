@@ -14,11 +14,23 @@ import { SettingContainer, SettingLabel } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
 
 export default function CesiumIonAssetsManager() {
-  const cesiumIonAssets = useSceneStore((s) => s.cesiumIonAssets);
-  const addCesiumIonAsset = useSceneStore((s) => s.addCesiumIonAsset);
-  const removeCesiumIonAsset = useSceneStore((s) => s.removeCesiumIonAsset);
-  const toggleCesiumIonAsset = useSceneStore((s) => s.toggleCesiumIonAsset);
-  const flyToCesiumIonAsset = useSceneStore((s) => s.flyToCesiumIonAsset);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 5 to 1
+  const sceneState = useSceneStore((s) => ({
+    cesiumIonAssets: s.cesiumIonAssets,
+    addCesiumIonAsset: s.addCesiumIonAsset,
+    removeCesiumIonAsset: s.removeCesiumIonAsset,
+    toggleCesiumIonAsset: s.toggleCesiumIonAsset,
+    flyToCesiumIonAsset: s.flyToCesiumIonAsset,
+  }));
+
+  // Destructure for cleaner lookups
+  const {
+    cesiumIonAssets,
+    addCesiumIonAsset,
+    removeCesiumIonAsset,
+    toggleCesiumIonAsset,
+    flyToCesiumIonAsset,
+  } = sceneState;
 
   const [assetIdInput, setAssetIdInput] = useState("");
   const [assetNameInput, setAssetNameInput] = useState("");

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   DialogTitle,
   DialogContent,
@@ -209,7 +209,7 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
             >
               What you can do with EnvisioXR
             </Typography>
-            {features.map((feature, index) => (
+            {useMemo(() => features.map((feature, index) => (
               <Box
                 key={index}
                 sx={{
@@ -253,7 +253,7 @@ export default function HelpPopup({ open, onClose }: HelpPopupProps) {
                   </Box>
                 </Box>
               </Box>
-            ))}
+            )), [features])}
           </Box>
         )}
 

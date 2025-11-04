@@ -34,16 +34,27 @@ interface ThreeJSLocationSearchSectionProps {
 const ThreeJSLocationSearchSection: React.FC<
   ThreeJSLocationSearchSectionProps
 > = () => {
-  // Use specific selectors to avoid unnecessary re-renders
-  const showTiles = useSceneStore((state) => state.showTiles);
-  const setShowTiles = useSceneStore((state) => state.setShowTiles);
-  const selectedAssetId = useSceneStore((state) => state.selectedAssetId);
-  const selectedLocation = useSceneStore((state) => state.selectedLocation);
-  const setSelectedAssetId = useSceneStore((state) => state.setSelectedAssetId);
-  const setSelectedLocation = useSceneStore(
-    (state) => state.setSelectedLocation
-  );
-  const tilesRenderer = useSceneStore((state) => state.tilesRenderer);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 7 to 1
+  const sceneState = useSceneStore((state) => ({
+    showTiles: state.showTiles,
+    setShowTiles: state.setShowTiles,
+    selectedAssetId: state.selectedAssetId,
+    selectedLocation: state.selectedLocation,
+    setSelectedAssetId: state.setSelectedAssetId,
+    setSelectedLocation: state.setSelectedLocation,
+    tilesRenderer: state.tilesRenderer,
+  }));
+
+  // Destructure for cleaner lookups
+  const {
+    showTiles,
+    setShowTiles,
+    selectedAssetId,
+    selectedLocation,
+    setSelectedAssetId,
+    setSelectedLocation,
+    tilesRenderer,
+  } = sceneState;
 
   const handleAssetSelect = useCallback(
     (assetId: string, latitude: number, longitude: number) => {

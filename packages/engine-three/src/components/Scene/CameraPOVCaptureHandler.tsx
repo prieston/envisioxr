@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { useThree } from "@react-three/fiber";
-import { useSceneStore, useWorldStore } from "@envisio/core";
+import { useSceneStore } from "@envisio/core";
 import { localToGeographic } from "@envisio/core";
 import * as THREE from "three";
 
@@ -10,17 +10,27 @@ type Vector3Tuple = [number, number, number];
 
 const CameraPOVCaptureHandler: React.FC = () => {
   const { camera } = useThree();
-  const capturingPOV = useSceneStore((state) => state.capturingPOV);
-  const selectedObservation = useSceneStore(
-    (state) => state.selectedObservation
-  );
-  const updateObservationPoint = useSceneStore(
-    (state) => state.updateObservationPoint
-  );
-  const setCapturingPOV = useSceneStore((state) => state.setCapturingPOV);
-  const viewMode = useSceneStore((state) => state.viewMode);
-  const orbitControlsRef = useSceneStore((state) => state.orbitControlsRef);
-  const tilesRenderer = useSceneStore((state) => state.tilesRenderer);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 7 to 1
+  const sceneState = useSceneStore((state) => ({
+    capturingPOV: state.capturingPOV,
+    selectedObservation: state.selectedObservation,
+    updateObservationPoint: state.updateObservationPoint,
+    setCapturingPOV: state.setCapturingPOV,
+    viewMode: state.viewMode,
+    orbitControlsRef: state.orbitControlsRef,
+    tilesRenderer: state.tilesRenderer,
+  }));
+
+  // Destructure for cleaner lookups
+  const {
+    capturingPOV,
+    selectedObservation,
+    updateObservationPoint,
+    setCapturingPOV,
+    viewMode,
+    orbitControlsRef,
+    tilesRenderer,
+  } = sceneState;
 
   useEffect(() => {
     if (capturingPOV && selectedObservation) {

@@ -92,6 +92,8 @@ export default function CesiumPerformanceOptimizer({
       let lastTime = performance.now();
 
       const countFrames = () => {
+        if (!optimizationRef.current.frameRateMonitor) return;
+
         frameCount++;
         const currentTime = performance.now();
 
@@ -110,7 +112,12 @@ export default function CesiumPerformanceOptimizer({
           lastTime = currentTime;
         }
 
-        requestAnimationFrame(countFrames);
+        // Cancel previous RAF before scheduling new one
+        const currentRafId = optimizationRef.current.frameRateMonitor;
+        if (currentRafId) {
+          cancelAnimationFrame(currentRafId);
+        }
+        optimizationRef.current.frameRateMonitor = requestAnimationFrame(countFrames);
       };
 
       optimizationRef.current.frameRateMonitor =

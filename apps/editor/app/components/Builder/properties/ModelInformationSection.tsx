@@ -18,9 +18,12 @@ const ModelInformationSection: React.FC<ModelInformationSectionProps> = ({
 
   // Sync local state when object changes (but not while editing)
   useEffect(() => {
-    // Only sync if we're not currently focused on the input
-    setLocalName(object.name || "Untitled");
-  }, [object.id]); // Only sync when object changes, not on every name change
+    // Only sync if we're not currently focused on the input and the name actually changed
+    const newName = object.name || "Untitled";
+    if (localName !== newName) {
+      setLocalName(newName);
+    }
+  }, [object.id, object.name]); // Include object.name to detect changes
 
   const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newName = event.target.value;

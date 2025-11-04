@@ -133,7 +133,10 @@ export const useSimulation = (
       }
     }
 
-    // Continue animation loop
+    // Continue animation loop - cancel previous RAF before scheduling next
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+    }
     animationFrameId.current = requestAnimationFrame(animate);
   }, [
     cesiumViewer,

@@ -14,14 +14,25 @@ import { useSceneStore } from "@envisio/core";
  * - Clears selection on empty clicks
  */
 const CesiumFeatureSelector: React.FC = () => {
-  const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
-  const cesiumInstance = useSceneStore((s) => s.cesiumInstance);
-  const previewMode = useSceneStore((s) => s.previewMode);
-  const selectedCesiumFeature = useSceneStore((s) => s.selectedCesiumFeature);
-  const setSelectedCesiumFeature = useSceneStore(
-    (s) => s.setSelectedCesiumFeature
-  );
-  const deselectObject = useSceneStore((s) => s.deselectObject);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 6 to 1
+  const sceneState = useSceneStore((s) => ({
+    cesiumViewer: s.cesiumViewer,
+    cesiumInstance: s.cesiumInstance,
+    previewMode: s.previewMode,
+    selectedCesiumFeature: s.selectedCesiumFeature,
+    setSelectedCesiumFeature: s.setSelectedCesiumFeature,
+    deselectObject: s.deselectObject,
+  }));
+
+  // Destructure for cleaner lookups
+  const {
+    cesiumViewer,
+    cesiumInstance,
+    previewMode,
+    selectedCesiumFeature,
+    setSelectedCesiumFeature,
+    deselectObject,
+  } = sceneState;
   const handlerRef = useRef<any>(null);
   const highlightedFeatureRef = useRef<any>(null);
   const originalColorRef = useRef<any>(null);

@@ -126,6 +126,12 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
   };
 
   useEffect(() => {
+    // Guard: only search if query is not empty
+    if (!searchQuery.trim()) {
+      setLocations([]);
+      return;
+    }
+
     const debounceTimeout = setTimeout(() => {
       searchLocations(searchQuery);
     }, 300);

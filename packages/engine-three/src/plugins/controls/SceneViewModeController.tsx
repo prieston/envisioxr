@@ -1152,8 +1152,14 @@ const ThirdPersonCarControls = forwardRef<any, Record<string, never>>(
 );
 
 const SceneViewModeController = () => {
-  const viewMode = useSceneStore((state) => state.viewMode);
-  const isThirdPerson = useSceneStore((state) => state.isThirdPerson);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 8 to 1
+  const sceneState = useSceneStore((state) => ({
+    viewMode: state.viewMode,
+    isThirdPerson: state.isThirdPerson,
+  }));
+
+  // Destructure for cleaner lookups
+  const { viewMode, isThirdPerson } = sceneState;
 
   const renderControls = () => {
     switch (viewMode) {

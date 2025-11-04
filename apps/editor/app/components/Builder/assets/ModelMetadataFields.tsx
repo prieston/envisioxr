@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Box,
   Typography,
@@ -71,41 +71,46 @@ const ModelMetadataFields: React.FC<ModelMetadataFieldsProps> = ({
     onChange(newMetadata);
   };
 
+  // Memoize metadata fields list to prevent unnecessary re-renders
+  const memoizedMetadataFields = useMemo(() => {
+    return metadata.map((field, index) => (
+      <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
+        <TextField
+          label="Label"
+          size="small"
+          value={field.label}
+          onChange={(e) =>
+            handleFieldChange(index, "label", e.target.value)
+          }
+          sx={{ flex: 1 }}
+        />
+        <TextField
+          label="Value"
+          size="small"
+          value={field.value}
+          onChange={(e) =>
+            handleFieldChange(index, "value", e.target.value)
+          }
+          sx={{ flex: 1 }}
+        />
+        <IconButton
+          onClick={() => handleRemoveField(index)}
+          color="error"
+          size="small"
+        >
+          <DeleteIcon />
+        </IconButton>
+      </Box>
+    ));
+  }, [metadata, handleFieldChange, handleRemoveField]);
+
   return (
     <Box sx={{ mt: 2 }}>
       <Typography variant="subtitle1" gutterBottom>
         Model Information
       </Typography>
       <Paper variant="outlined" sx={{ p: 2 }}>
-        {metadata.map((field, index) => (
-          <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
-            <TextField
-              label="Label"
-              size="small"
-              value={field.label}
-              onChange={(e) =>
-                handleFieldChange(index, "label", e.target.value)
-              }
-              sx={{ flex: 1 }}
-            />
-            <TextField
-              label="Value"
-              size="small"
-              value={field.value}
-              onChange={(e) =>
-                handleFieldChange(index, "value", e.target.value)
-              }
-              sx={{ flex: 1 }}
-            />
-            <IconButton
-              onClick={() => handleRemoveField(index)}
-              color="error"
-              size="small"
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Box>
-        ))}
+        {memoizedMetadataFields}
         <Button
           startIcon={<AddIcon />}
           onClick={handleAddField}

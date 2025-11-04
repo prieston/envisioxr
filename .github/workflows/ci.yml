@@ -1,45 +1,41 @@
-name: CI/CD
+name: ci
 
 on:
-  push:
-    branches: [main]
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
 
 jobs:
-  lint:
+  audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
+
+      - uses: pnpm/action-setup@v4
         with:
           version: 9
+
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "pnpm"
+          node-version: 20
+          cache: 'pnpm'
+
       - name: Install dependencies
-        run: pnpm install
-      - name: Run linting
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages and editor
+        run: pnpm build:editor
+
+      - name: Run all audits
+        run: pnpm audit:ci
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Lint
         run: pnpm lint
 
-  build:
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "pnpm"
-      - name: Install dependencies
-        run: pnpm install
-      - name: Generate Prisma client
-        run: pnpm prisma:generate
-      - name: Build website
-        run: pnpm build:website
-      - name: Build editor
-        run: pnpm build:editor
+      - name: E2E tests
+        run: pnpm e2e:ci:editor
+        continue-on-error: true

@@ -245,6 +245,10 @@ const CesiumObjectTransformEditor: React.FC<
 
           // Skip one frame of change detection if we just updated the gizmo programmatically
           if (suppressChangeRef.current) {
+            // Cancel previous RAF before scheduling new one
+            if (animationId !== null) {
+              cancelAnimationFrame(animationId);
+            }
             animationId = requestAnimationFrame(checkForChanges);
             return;
           }
@@ -284,8 +288,11 @@ const CesiumObjectTransformEditor: React.FC<
             }
           }
 
-          // Continue checking for changes
+          // Continue checking for changes - cancel previous RAF before scheduling new one
           if (!cancelled) {
+            if (animationId !== null) {
+              cancelAnimationFrame(animationId);
+            }
             animationId = requestAnimationFrame(checkForChanges);
           }
         };
@@ -361,10 +368,15 @@ const CesiumObjectTransformEditor: React.FC<
     suppressChangeRef.current = true;
     (transformEditorRef.current as any).viewModel.position = pos;
     (transformEditorRef.current as any).viewModel.headingPitchRoll = hpr;
+
     // Allow polling again on next frame
-    requestAnimationFrame(() => {
+    const suppressRafId = requestAnimationFrame(() => {
       suppressChangeRef.current = false;
     });
+
+    return () => {
+      cancelAnimationFrame(suppressRafId);
+    };
   }, [selectedObject.position, selectedObject.rotation]); // Only when position/rotation changes
 
   // --- update gizmo mode when transform mode changes ---

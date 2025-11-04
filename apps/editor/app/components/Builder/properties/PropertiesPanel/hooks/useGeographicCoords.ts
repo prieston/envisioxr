@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 import * as THREE from "three";
 import { useWorldStore } from "@envisio/core";

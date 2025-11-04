@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Box,
   Dialog,
@@ -65,29 +65,34 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = ({
     setSelectedItemForDelete(null);
   };
 
+  // Memoize items list to prevent unnecessary re-renders
+  const memoizedItems = useMemo(() => {
+    return items.map((object) => (
+      <ObjectListItem
+        key={object.id}
+        className="glass-card"
+        selected={selectedId === object.id}
+        onClick={() => onSelect?.(object.id)}
+      >
+        <StyledListItemText
+          className="glass-card-content"
+          primary={object.name || "Untitled Object"}
+          secondary={`Type: ${object.type}`}
+        />
+        <StyledIconButton
+          onClick={(e) => handleMenuOpen(e, object.id)}
+          size="small"
+        >
+          <MoreVert />
+        </StyledIconButton>
+      </ObjectListItem>
+    ));
+  }, [items, selectedId, onSelect, handleMenuOpen]);
+
   return (
     <Box sx={{ width: "100%" }}>
       <StyledList>
-        {items.map((object) => (
-          <ObjectListItem
-            key={object.id}
-            className="glass-card"
-            selected={selectedId === object.id}
-            onClick={() => onSelect?.(object.id)}
-          >
-            <StyledListItemText
-              className="glass-card-content"
-              primary={object.name || "Untitled Object"}
-              secondary={`Type: ${object.type}`}
-            />
-            <StyledIconButton
-              onClick={(e) => handleMenuOpen(e, object.id)}
-              size="small"
-            >
-              <MoreVert />
-            </StyledIconButton>
-          </ObjectListItem>
-        ))}
+        {memoizedItems}
       </StyledList>
 
       <Menu

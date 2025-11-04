@@ -1,0 +1,36 @@
+# Audit ignore patterns
+# Generated code, vendor shims, and other files that audits should skip
+
+# Build artifacts
+**/dist/**
+**/.next/**
+**/build/**
+**/*.tsbuildinfo
+
+# Dependencies
+**/node_modules/**
+
+# Generated files
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+
+# Vendor code
+**/vendor/**
+**/vendor.d.ts
+
+# Test fixtures
+**/__fixtures__/**
+**/__mocks__/**
+
+# Generated types
+**/*.generated.ts
+**/*.generated.d.ts
+
+# Prisma
+**/prisma/generated/**
+
+# Temporary files
+**/.tmp/**
+**/tmp/**
+

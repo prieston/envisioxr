@@ -1,0 +1,56 @@
+{
+  "ssrGuards": {
+    "serverAllowedDynamic": [
+      "3d-tiles-renderer"
+    ],
+    "ignorePatterns": [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**"
+    ]
+  },
+  "boundaries": {
+    "allowDeep": [
+      "@envisio/ui/dist/styles.css"
+    ],
+    "ignorePatterns": [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**"
+    ]
+  },
+  "types": {
+    "allowAnyIn": [
+      "apps/editor/app/api/**",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts",
+      "**/*.spec.tsx"
+    ],
+    "ignorePatterns": [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**"
+    ]
+  },
+  "size": {
+    "ignorePatterns": [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**",
+      "**/*.test.ts",
+      "**/*.test.tsx"
+    ]
+  },
+  "deadExports": {
+    "ignorePatterns": [
+      "apps/**/page.tsx",
+      "apps/**/layout.tsx",
+      "apps/**/route.ts",
+      "apps/**/loading.tsx",
+      "apps/**/error.tsx",
+      "apps/**/not-found.tsx"
+    ]
+  }
+}
+

@@ -7,12 +7,25 @@ import { useSceneStore } from "@envisio/core";
 type Vector3Tuple = [number, number, number];
 
 const CesiumCameraSpringController: React.FC = () => {
-  const cesiumViewer = useSceneStore((state) => state.cesiumViewer);
-  const previewMode = useSceneStore((state) => state.previewMode);
-  const setPreviewMode = useSceneStore((state) => state.setPreviewMode);
-  const previewIndex = useSceneStore((state) => state.previewIndex);
-  const observationPoints = useSceneStore((state) => state.observationPoints);
-  const capturingPOV = useSceneStore((state) => state.capturingPOV);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 6 to 1
+  const sceneState = useSceneStore((state) => ({
+    cesiumViewer: state.cesiumViewer,
+    previewMode: state.previewMode,
+    setPreviewMode: state.setPreviewMode,
+    previewIndex: state.previewIndex,
+    observationPoints: state.observationPoints,
+    capturingPOV: state.capturingPOV,
+  }));
+
+  // Destructure for cleaner lookups
+  const {
+    cesiumViewer,
+    previewMode,
+    setPreviewMode,
+    previewIndex,
+    observationPoints,
+    capturingPOV,
+  } = sceneState;
 
   const animationRef = useRef<number | null>(null);
 

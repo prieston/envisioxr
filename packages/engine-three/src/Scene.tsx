@@ -59,34 +59,50 @@ export default function Scene({
   initialSceneData,
   renderObservationPoints = true,
   onSceneDataChange,
-  enableXR = false,
+  enableXR: _enableXR = false,
   isPublishMode = false,
 }: SceneProps) {
-  const objects = useSceneStore((state) => state.objects);
-  const observationPoints = useSceneStore((state) => state.observationPoints);
-  const selectedObject = useSceneStore((state) => state.selectedObject);
-  const previewMode = useSceneStore((state) => state.previewMode);
-  const gridEnabled = useSceneStore((state) => state.gridEnabled);
-  const ambientLightIntensity = useSceneStore(
-    (state) => state.ambientLightIntensity
-  );
-  const skyboxType = useSceneStore((state) => state.skyboxType);
-  const selectedAssetId = useSceneStore((state) => state.selectedAssetId);
-  const selectedLocation = useSceneStore((state) => state.selectedLocation);
-  const showTiles = useSceneStore((state) => state.showTiles);
-  const cesiumIonAssets = useSceneStore((state) => state.cesiumIonAssets);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 17 to 1
+  const sceneState = useSceneStore((state) => ({
+    objects: state.objects,
+    observationPoints: state.observationPoints,
+    selectedObject: state.selectedObject,
+    previewMode: state.previewMode,
+    gridEnabled: state.gridEnabled,
+    ambientLightIntensity: state.ambientLightIntensity,
+    skyboxType: state.skyboxType,
+    selectedAssetId: state.selectedAssetId,
+    selectedLocation: state.selectedLocation,
+    showTiles: state.showTiles,
+    cesiumIonAssets: state.cesiumIonAssets,
+    setObjects: state.setObjects,
+    setObservationPoints: state.setObservationPoints,
+    setSelectedAssetId: state.setSelectedAssetId,
+    setSelectedLocation: state.setSelectedLocation,
+    setCesiumIonAssets: state.setCesiumIonAssets,
+  }));
+
+  // Destructure for cleaner lookups
+  const {
+    objects,
+    observationPoints,
+    selectedObject,
+    previewMode,
+    gridEnabled,
+    ambientLightIntensity,
+    skyboxType,
+    selectedAssetId,
+    selectedLocation,
+    showTiles,
+    cesiumIonAssets,
+    setObjects,
+    setObservationPoints,
+    setSelectedAssetId,
+    setSelectedLocation,
+    setCesiumIonAssets,
+  } = sceneState;
 
   const transformControlsRef = useRef<any>(null);
-
-  const setObjects = useSceneStore((state) => state.setObjects);
-  const setObservationPoints = useSceneStore(
-    (state) => state.setObservationPoints
-  );
-  const setSelectedAssetId = useSceneStore((state) => state.setSelectedAssetId);
-  const setSelectedLocation = useSceneStore(
-    (state) => state.setSelectedLocation
-  );
-  const setCesiumIonAssets = useSceneStore((state) => state.setCesiumIonAssets);
 
   useEffect(() => {
     if (initialSceneData) {

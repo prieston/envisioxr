@@ -202,7 +202,10 @@ export class CameraControllerManager {
       this.currentController.update(deltaTime);
     }
 
-    // Continue animation loop
+    // Continue animation loop - cancel previous RAF before scheduling next
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
     this.animationFrameId = requestAnimationFrame(this.animate);
   };
 

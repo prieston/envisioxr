@@ -1,4 +1,4 @@
-import React, { useState, memo } from "react";
+import React, { useState, memo, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -73,7 +73,7 @@ export const CesiumFeatureView: React.FC<CesiumFeatureViewProps> = memo(
                 color: "rgba(100, 116, 139, 0.8)",
               }}
             >
-              {Object.keys(selectedCesiumFeature.properties).length} properties
+              {useMemo(() => Object.keys(selectedCesiumFeature.properties).length, [selectedCesiumFeature.properties])} properties
             </Typography>
             <FormControlLabel
               control={

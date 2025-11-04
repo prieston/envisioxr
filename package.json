@@ -40,13 +40,25 @@
     "audit:errors": "node scripts/audit-error-handling.mjs",
     "audit:modules": "node scripts/audit-module-boundaries.mjs",
     "audit:all": "pnpm audit:state && pnpm audit:cesium && pnpm audit:mesh && pnpm audit:errors && pnpm audit:modules",
+    "audit:light": "pnpm audit:boundaries && pnpm audit:ssr && pnpm audit:size && pnpm audit:types && pnpm audit:dead",
+    "audit:heavy": "pnpm audit:graph && pnpm audit:bundle && pnpm audit:external && pnpm audit:env",
+    "audit:ci": "pnpm audit:light && pnpm audit:heavy",
+    "audit:boundaries": "tsx scripts/audits/boundaries.ts",
+    "audit:ssr": "tsx scripts/audits/ssr-guards.ts",
+    "audit:size": "tsx scripts/audits/size-complexity.ts",
+    "audit:types": "tsx scripts/audits/types.ts",
+    "audit:dead": "tsx scripts/audits/dead-exports.ts",
+    "audit:graph": "tsx scripts/audits/graph.ts",
+    "audit:bundle": "tsx scripts/audits/bundle.ts",
+    "audit:external": "tsx scripts/audits/externalization.ts",
+    "audit:env": "tsx scripts/audits/env.ts",
     "prisma:generate": "pnpm --filter @envisioxr/prisma generate",
     "prisma:migrate:deploy": "cd packages/prisma && prisma migrate deploy",
     "vercel:build:editor": "pnpm prisma:generate && pnpm clean && pnpm build:packages && cd apps/editor && pnpm build",
     "check:tarball": "pnpm -r --filter ./packages... exec bash -lc 'pnpm pack --pack-destination /tmp && tar -tf /tmp/*.tgz | (grep -E \"(^package/dist/|^package/package.json$)\" && ! grep -E \"package/src/\")'",
     "vercel:build:website": "pnpm build:website",
     "postinstall": "pnpm prisma:generate",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "engines": {
     "node": ">=20 <23",
@@ -86,12 +98,16 @@
     "eslint-plugin-import": "^2.32.0",
     "glob": "^11.0.3",
     "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
+    "madge": "^8.0.0",
     "playwright": "^1.56.1",
     "rimraf": "^6.1.0",
     "size-limit": "^11.2.0",
     "start-server-and-test": "^2.1.2",
     "syncpack": "^13.0.4",
     "terser-webpack-plugin": "^5.3.14",
-    "tsup": "^8.0.0"
+    "ts-prune": "^0.10.3",
+    "tsup": "^8.0.0",
+    "tsx": "^4.20.6"
   }
 }

@@ -14,25 +14,41 @@ import ThirdPersonCarControls from "./ThirdPersonCarControls";
 
 const SceneControls = () => {
   const { camera, scene } = useThree();
-  const viewMode = useSceneStore((state) => state.viewMode);
-  const selectedObject = useSceneStore((state) => state.selectedObject);
-  const previewMode = useSceneStore((state) => state.previewMode);
-  const setOrbitControlsRef = useSceneStore(
-    (state) => state.setOrbitControlsRef
-  );
-  const setScene = useSceneStore((state) => state.setScene);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 5 to 1
+  const sceneState = useSceneStore((state) => ({
+    viewMode: state.viewMode,
+    selectedObject: state.selectedObject,
+    previewMode: state.previewMode,
+    setOrbitControlsRef: state.setOrbitControlsRef,
+    setScene: state.setScene,
+  }));
+
+  // Destructure for cleaner lookups
+  const {
+    viewMode,
+    selectedObject,
+    previewMode,
+    setOrbitControlsRef,
+    setScene,
+  } = sceneState;
 
   // Create our own ref
   const localOrbitControlsRef = useRef(null);
 
   // Update the store's ref whenever our local ref changes
   useEffect(() => {
-    setOrbitControlsRef(localOrbitControlsRef.current);
+    // Guard: only update if ref is not null
+    if (localOrbitControlsRef.current) {
+      setOrbitControlsRef(localOrbitControlsRef.current);
+    }
   }, [localOrbitControlsRef.current, setOrbitControlsRef]);
 
   // Set the scene in the store
   useEffect(() => {
-    setScene(scene);
+    // Guard: only update if scene actually changed
+    if (scene) {
+      setScene(scene);
+    }
   }, [scene, setScene]);
 
   // Whenever viewMode changes, "spawn" the camera if needed
