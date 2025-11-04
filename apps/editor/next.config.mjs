@@ -48,13 +48,6 @@ const nextConfig = {
       ],
     },
   },
-  transpilePackages: [
-    '@envisio/engine-three',
-    '@envisio/engine-cesium',
-    '@envisio/core',
-    '@envisio/ion-sdk',
-    '@envisio/ui'
-  ],
   // Optimize output for better performance
   output: 'standalone',
   // Ensure proper asset handling
@@ -66,7 +59,28 @@ const nextConfig = {
         ...config.resolve?.alias,
         '@': '.',
         // Force single Three.js instance across workspace
-        'three': path.resolve(process.cwd(), 'node_modules/three')
+        'three': path.resolve(process.cwd(), 'node_modules/three'),
+        // Workspace package aliases pointing to package directories (for proper exports resolution)
+        '@envisio/core$': path.resolve(process.cwd(), '../../packages/core/dist/index.js'),
+        '@envisio/core/utils': path.resolve(process.cwd(), '../../packages/core/dist/utils/index.js'),
+        '@envisio/core/types': path.resolve(process.cwd(), '../../packages/core/dist/types/index.js'),
+        '@envisio/core/state': path.resolve(process.cwd(), '../../packages/core/dist/state/index.js'),
+        '@envisio/core/services': path.resolve(process.cwd(), '../../packages/core/dist/services/index.js'),
+        '@envisio/ui$': path.resolve(process.cwd(), '../../packages/ui/dist/index.js'),
+        '@envisio/config$': path.resolve(process.cwd(), '../../packages/config/dist/index.js'),
+        '@envisio/config/factory': path.resolve(process.cwd(), '../../packages/config/dist/factory/index.js'),
+        '@envisio/config/panels': path.resolve(process.cwd(), '../../packages/config/dist/panels/index.js'),
+        '@envisio/config/scene-controls': path.resolve(process.cwd(), '../../packages/config/dist/scene-controls/index.js'),
+        '@envisio/config/top-bar': path.resolve(process.cwd(), '../../packages/config/dist/top-bar/index.js'),
+        '@envisio/config/types': path.resolve(process.cwd(), '../../packages/config/dist/types/index.js'),
+        '@envisio/config/utils': path.resolve(process.cwd(), '../../packages/config/dist/utils/index.js'),
+        '@envisio/ion-sdk$': path.resolve(process.cwd(), '../../packages/ion-sdk/dist/index.js'),
+        '@envisio/engine-cesium$': path.resolve(process.cwd(), '../../packages/engine-cesium/dist/index.js'),
+        '@envisio/engine-cesium/components': path.resolve(process.cwd(), '../../packages/engine-cesium/dist/components/index.js'),
+        '@envisio/engine-cesium/helpers': path.resolve(process.cwd(), '../../packages/engine-cesium/dist/helpers/index.js'),
+        '@envisio/engine-cesium/utils': path.resolve(process.cwd(), '../../packages/engine-cesium/dist/utils/index.js'),
+        '@envisio/engine-three$': path.resolve(process.cwd(), '../../packages/engine-three/dist/index.js'),
+        '@envisio/engine-three/components': path.resolve(process.cwd(), '../../packages/engine-three/dist/components/index.js'),
       },
       fallback: {
         ...config.resolve?.fallback,
