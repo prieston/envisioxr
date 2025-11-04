@@ -1,26 +1,44 @@
 import { styled, alpha } from "@mui/material/styles";
-import { Box, Typography, Switch, Slider } from "@mui/material";
+import Box from "@mui/material/Box";
+import type { BoxProps } from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import type { TypographyProps } from "@mui/material/Typography";
+import Switch from "@mui/material/Switch";
+import type { SwitchProps } from "@mui/material/Switch";
+import Slider from "@mui/material/Slider";
+import type { SliderProps } from "@mui/material/Slider";
+import type { ComponentType, HTMLAttributes } from "react";
 
-export const Container = styled(Box)(({ theme }) => ({
+export type ContainerProps = BoxProps;
+const ContainerRoot = styled(Box)<ContainerProps>(({ theme }) => ({
   width: "100%",
   marginBottom: theme.spacing(1.5),
 }));
+export const Container: ComponentType<ContainerProps> = ContainerRoot;
 
-export const SectionTitle = styled(Typography)(({ theme }) => ({
+export type SectionTitleProps = TypographyProps;
+const SectionTitleRoot = styled(Typography)<SectionTitleProps>(({ theme }) => ({
   fontSize: "0.813rem",
   fontWeight: 600,
   marginBottom: theme.spacing(0.75),
   color: "rgba(51, 65, 85, 0.95)",
   letterSpacing: "0.01em",
 }));
+export const SectionTitle: ComponentType<SectionTitleProps> = SectionTitleRoot;
 
-export const DateTimeContainer = styled(Box)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  gap: theme.spacing(1),
-}));
+export type DateTimeContainerProps = BoxProps;
+const DateTimeContainerRoot = styled(Box)<DateTimeContainerProps>(
+  ({ theme }) => ({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.spacing(1),
+  })
+);
+export const DateTimeContainer: ComponentType<DateTimeContainerProps> =
+  DateTimeContainerRoot;
 
-export const StyledSwitch = styled(Switch)(() => ({
+export type StyledSwitchProps = SwitchProps;
+const StyledSwitchRoot = styled(Switch)<StyledSwitchProps>(() => ({
   "& .MuiSwitch-switchBase.Mui-checked": {
     color: "var(--color-primary, #6B9CD8)",
   },
@@ -28,8 +46,11 @@ export const StyledSwitch = styled(Switch)(() => ({
     backgroundColor: "var(--color-primary-600, #4B6FAF)",
   },
 }));
+export const StyledSwitch =
+  StyledSwitchRoot as ComponentType<StyledSwitchProps>;
 
-export const GreenSwitch = styled(Switch)(() => ({
+export type GreenSwitchProps = SwitchProps;
+const GreenSwitchRoot = styled(Switch)<GreenSwitchProps>(() => ({
   "& .MuiSwitch-switchBase.Mui-checked": {
     color: "#10b981",
   },
@@ -37,8 +58,10 @@ export const GreenSwitch = styled(Switch)(() => ({
     backgroundColor: "#10b981",
   },
 }));
+export const GreenSwitch = GreenSwitchRoot as ComponentType<GreenSwitchProps>;
 
-export const SwitchContainer = styled(Box)(({ theme }) => ({
+export type SwitchContainerProps = BoxProps;
+const SwitchContainerRoot = styled(Box)<SwitchContainerProps>(({ theme }) => ({
   backgroundColor:
     theme.palette.mode === "dark" ? "#14171A" : "rgba(255, 255, 255, 0.92)",
   border:
@@ -52,8 +75,11 @@ export const SwitchContainer = styled(Box)(({ theme }) => ({
   justifyContent: "space-between",
   alignItems: "center",
 }));
+export const SwitchContainer: ComponentType<SwitchContainerProps> =
+  SwitchContainerRoot;
 
-export const SwitchLabel = styled(Typography)(({ theme }) => ({
+export type SwitchLabelProps = TypographyProps;
+const SwitchLabelRoot = styled(Typography)<SwitchLabelProps>(({ theme }) => ({
   fontSize: "0.75rem",
   fontWeight: 400,
   color:
@@ -61,8 +87,12 @@ export const SwitchLabel = styled(Typography)(({ theme }) => ({
       ? "rgba(255, 255, 255, 0.78)"
       : "rgba(51, 65, 85, 0.95)",
 }));
+export const SwitchLabel: ComponentType<SwitchLabelProps> = SwitchLabelRoot;
 
-export const LockToNowContainer = styled(Box)<{ locked: boolean }>(
+export interface LockToNowContainerProps extends BoxProps {
+  locked: boolean;
+}
+const LockToNowContainerRoot = styled(Box)<LockToNowContainerProps>(
   ({ locked, theme }) => ({
     backgroundColor: locked
       ? alpha("#10b981", theme.palette.mode === "dark" ? 0.18 : 0.12)
@@ -75,15 +105,20 @@ export const LockToNowContainer = styled(Box)<{ locked: boolean }>(
         ? "1px solid rgba(255, 255, 255, 0.05)"
         : "1px solid rgba(226, 232, 240, 0.8)",
     borderRadius: 4,
-    padding: "8.5px 14px", // Standard input padding
+    padding: "8.5px 14px",
     marginBottom: theme.spacing(1.5),
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
   })
 );
+export const LockToNowContainer: ComponentType<LockToNowContainerProps> =
+  LockToNowContainerRoot;
 
-export const LockToNowLabel = styled(Typography)<{ locked: boolean }>(
+export interface LockToNowLabelProps extends TypographyProps {
+  locked: boolean;
+}
+const LockToNowLabelRoot = styled(Typography)<LockToNowLabelProps>(
   ({ locked, theme }) => ({
     fontSize: "0.75rem",
     fontWeight: 400,
@@ -94,19 +129,29 @@ export const LockToNowLabel = styled(Typography)<{ locked: boolean }>(
         : "rgba(51, 65, 85, 0.95)",
   })
 );
+export const LockToNowLabel: ComponentType<LockToNowLabelProps> =
+  LockToNowLabelRoot;
 
-export const LockToNowDescription = styled(Typography)(({ theme }) => ({
-  fontSize: "0.75rem",
-  fontWeight: 400,
-  color:
-    theme.palette.mode === "dark"
-      ? "rgba(208, 214, 222, 0.7)"
-      : "rgba(100, 116, 139, 0.85)",
-  marginTop: "2px",
-  lineHeight: 1.4,
-}));
+export type LockToNowDescriptionProps = TypographyProps;
+const LockToNowDescriptionRoot = styled(Typography)<LockToNowDescriptionProps>(
+  ({ theme }) => ({
+    fontSize: "0.75rem",
+    fontWeight: 400,
+    color:
+      theme.palette.mode === "dark"
+        ? "rgba(208, 214, 222, 0.7)"
+        : "rgba(100, 116, 139, 0.85)",
+    marginTop: "2px",
+    lineHeight: 1.4,
+  })
+);
+export const LockToNowDescription: ComponentType<LockToNowDescriptionProps> =
+  LockToNowDescriptionRoot;
 
-export const CurrentTimeBox = styled(Box)<{ locked: boolean }>(
+export interface CurrentTimeBoxProps extends BoxProps {
+  locked: boolean;
+}
+const CurrentTimeBoxRoot = styled(Box)<CurrentTimeBoxProps>(
   ({ locked, theme }) => ({
     marginBottom: theme.spacing(1.5),
     padding: theme.spacing(1.5),
@@ -122,81 +167,118 @@ export const CurrentTimeBox = styled(Box)<{ locked: boolean }>(
       : `1px solid ${alpha(theme.palette.primary.main, 0.28)}`,
   })
 );
+export const CurrentTimeBox: ComponentType<CurrentTimeBoxProps> =
+  CurrentTimeBoxRoot;
 
-export const CurrentTimeTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "0.688rem", // 11px - tiny labels
-  fontWeight: 600,
-  color:
-    theme.palette.mode === "dark"
-      ? "rgba(208, 214, 222, 0.7)"
-      : "rgba(51, 65, 85, 0.7)",
-  marginBottom: theme.spacing(0.5),
-  textTransform: "uppercase",
-  letterSpacing: "0.05em",
-}));
+export type CurrentTimeTitleProps = TypographyProps;
+const CurrentTimeTitleRoot = styled(Typography)<CurrentTimeTitleProps>(
+  ({ theme }) => ({
+    fontSize: "0.688rem",
+    fontWeight: 600,
+    color:
+      theme.palette.mode === "dark"
+        ? "rgba(208, 214, 222, 0.7)"
+        : "rgba(51, 65, 85, 0.7)",
+    marginBottom: theme.spacing(0.5),
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+  })
+);
+export const CurrentTimeTitle: ComponentType<CurrentTimeTitleProps> =
+  CurrentTimeTitleRoot;
 
-export const LiveBadge = styled("span")(({ theme }) => ({
+export type LiveBadgeProps = HTMLAttributes<HTMLSpanElement>;
+const LiveBadgeRoot = styled("span")(({ theme }) => ({
   marginLeft: theme.spacing(1),
-  fontSize: "0.688rem", // 11px - badges
+  fontSize: "0.688rem",
   fontWeight: 600,
   color: "#10b981",
 }));
+export const LiveBadge = LiveBadgeRoot as ComponentType<LiveBadgeProps>;
 
-export const CurrentTimeText = styled(Typography)<{ locked: boolean }>(
+export interface CurrentTimeTextProps extends TypographyProps {
+  locked: boolean;
+}
+const CurrentTimeTextRoot = styled(Typography)<CurrentTimeTextProps>(
   ({ locked, theme }) => ({
-    fontSize: "0.75rem", // 12px - display text
+    fontSize: "0.75rem",
     fontWeight: 600,
     color: locked ? "#10b981" : theme.palette.primary.dark,
     fontFamily: "monospace",
     flex: 1,
   })
 );
+export const CurrentTimeText: ComponentType<CurrentTimeTextProps> =
+  CurrentTimeTextRoot;
 
-export const InputSectionTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "0.688rem", // 11px - subsection titles
-  fontWeight: 600,
-  color: "rgba(51, 65, 85, 0.95)",
-  marginBottom: theme.spacing(0.75),
-  textTransform: "uppercase",
-  letterSpacing: "0.05em",
-}));
+export type InputSectionTitleProps = TypographyProps;
+const InputSectionTitleRoot = styled(Typography)<InputSectionTitleProps>(
+  ({ theme }) => ({
+    fontSize: "0.688rem",
+    fontWeight: 600,
+    color: "rgba(51, 65, 85, 0.95)",
+    marginBottom: theme.spacing(0.75),
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+  })
+);
+export const InputSectionTitle: ComponentType<InputSectionTitleProps> =
+  InputSectionTitleRoot;
 
-export const JoystickContainer = styled(Box)(({ theme }) => ({
-  backgroundColor:
-    theme.palette.mode === "dark" ? "#14171A" : "rgba(255, 255, 255, 0.92)",
-  border:
-    theme.palette.mode === "dark"
-      ? "1px solid rgba(255, 255, 255, 0.05)"
-      : "1px solid rgba(226, 232, 240, 0.8)",
-  borderRadius: 4,
-  padding: "14px", // Slightly more padding for the joystick container (has slider inside)
-  marginBottom: theme.spacing(1.5),
-}));
+export type JoystickContainerProps = BoxProps;
+const JoystickContainerRoot = styled(Box)<JoystickContainerProps>(
+  ({ theme }) => ({
+    backgroundColor:
+      theme.palette.mode === "dark" ? "#14171A" : "rgba(255, 255, 255, 0.92)",
+    border:
+      theme.palette.mode === "dark"
+        ? "1px solid rgba(255, 255, 255, 0.05)"
+        : "1px solid rgba(226, 232, 240, 0.8)",
+    borderRadius: 4,
+    padding: "14px",
+    marginBottom: theme.spacing(1.5),
+  })
+);
+export const JoystickContainer: ComponentType<JoystickContainerProps> =
+  JoystickContainerRoot;
 
-export const JoystickTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "0.688rem", // 11px - subsection title
-  fontWeight: 600,
-  color:
-    theme.palette.mode === "dark"
-      ? "rgba(255, 255, 255, 0.78)"
-      : "rgba(51, 65, 85, 0.95)",
-  marginBottom: theme.spacing(0.5),
-  textTransform: "uppercase",
-  letterSpacing: "0.05em",
-}));
+export type JoystickTitleProps = TypographyProps;
+const JoystickTitleRoot = styled(Typography)<JoystickTitleProps>(
+  ({ theme }) => ({
+    fontSize: "0.688rem",
+    fontWeight: 600,
+    color:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.78)"
+        : "rgba(51, 65, 85, 0.95)",
+    marginBottom: theme.spacing(0.5),
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+  })
+);
+export const JoystickTitle: ComponentType<JoystickTitleProps> =
+  JoystickTitleRoot;
 
-export const JoystickStatus = styled(Typography)(({ theme }) => ({
-  fontSize: "0.688rem", // 11px - status text
-  fontWeight: 400,
-  color:
-    theme.palette.mode === "dark"
-      ? "rgba(208, 214, 222, 0.7)"
-      : "rgba(100, 116, 139, 0.85)",
-  marginBottom: theme.spacing(1),
-  textAlign: "center",
-}));
+export type JoystickStatusProps = TypographyProps;
+const JoystickStatusRoot = styled(Typography)<JoystickStatusProps>(
+  ({ theme }) => ({
+    fontSize: "0.688rem",
+    fontWeight: 400,
+    color:
+      theme.palette.mode === "dark"
+        ? "rgba(208, 214, 222, 0.7)"
+        : "rgba(100, 116, 139, 0.85)",
+    marginBottom: theme.spacing(1),
+    textAlign: "center",
+  })
+);
+export const JoystickStatus: ComponentType<JoystickStatusProps> =
+  JoystickStatusRoot;
 
-export const JoystickSlider = styled(Slider)<{ joystickValue: number }>(
+export interface JoystickSliderProps extends SliderProps {
+  joystickValue: number;
+}
+const JoystickSliderRoot = styled(Slider)<JoystickSliderProps>(
   ({ joystickValue, theme }) => ({
     color:
       joystickValue === 0
@@ -242,15 +324,17 @@ export const JoystickSlider = styled(Slider)<{ joystickValue: number }>(
     },
   })
 );
+export const JoystickSlider =
+  JoystickSliderRoot as ComponentType<JoystickSliderProps>;
 
 export const textFieldStyles = {
   "& .MuiOutlinedInput-root": {
     minHeight: "38px",
     borderRadius: 4,
     backgroundColor: "#14171A",
-    fontSize: "0.75rem", // 12px - input text
+    fontSize: "0.75rem",
     "& input": {
-      padding: "8.5px 14px", // Standard input padding
+      padding: "8.5px 14px",
     },
     "& fieldset": {
       borderColor: "rgba(255, 255, 255, 0.08)",
@@ -263,15 +347,15 @@ export const textFieldStyles = {
       borderWidth: "2px",
     },
   },
-};
+} as const;
 
 export const selectStyles = {
   minHeight: "38px",
   borderRadius: 4,
   backgroundColor: "#14171A",
-  fontSize: "0.75rem", // 12px - dropdown text
+  fontSize: "0.75rem",
   "& .MuiSelect-select": {
-    padding: "8.5px 14px", // Standard input padding
+    padding: "8.5px 14px",
   },
   "& fieldset": {
     borderColor: "rgba(255, 255, 255, 0.08)",
@@ -283,10 +367,10 @@ export const selectStyles = {
     borderColor: "var(--color-primary, #6B9CD8)",
     borderWidth: "2px",
   },
-};
+} as const;
 
 export const menuItemStyles = {
-  fontSize: "0.75rem", // 12px - menu items
+  fontSize: "0.75rem",
   "&:hover": {
     backgroundColor: "rgba(95, 136, 199, 0.08)",
   },
@@ -296,7 +380,7 @@ export const menuItemStyles = {
       backgroundColor: "rgba(95, 136, 199, 0.16)",
     },
   },
-};
+} as const;
 
 export const playButtonStyles = (locked: boolean) => ({
   color: "#ffffff",

@@ -1,9 +1,16 @@
 import { styled } from "@mui/material/styles";
-import { Box, Button } from "@mui/material";
+import Box from "@mui/material/Box";
+import type { BoxProps } from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import type { ButtonProps } from "@mui/material/Button";
+import type { ComponentType } from "react";
 
-export const ViewModeSection = styled(Box, {
+export interface ViewModeSectionProps extends BoxProps {
+  previewMode: boolean;
+}
+const ViewModeSectionRoot = styled(Box, {
   shouldForwardProp: (prop) => prop !== "previewMode",
-})<{ previewMode: boolean }>(({ theme, previewMode }) => ({
+})<ViewModeSectionProps>(({ theme, previewMode }) => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
@@ -13,14 +20,19 @@ export const ViewModeSection = styled(Box, {
   filter: previewMode ? "grayscale(100%)" : "none",
   transition: "opacity 0.15s ease, filter 0.15s ease",
 }));
+export const ViewModeSection: ComponentType<ViewModeSectionProps> =
+  ViewModeSectionRoot;
 
-export const ViewModeRow = styled(Box)(({ theme }) => ({
+export type ViewModeRowProps = BoxProps;
+const ViewModeRowRoot = styled(Box)<ViewModeRowProps>(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   gap: theme.spacing(0.5),
 }));
+export const ViewModeRow: ComponentType<ViewModeRowProps> = ViewModeRowRoot;
 
-export const ViewModeButton = styled(Button)(({ theme }) => ({
+export type ViewModeButtonProps = ButtonProps;
+const ViewModeButtonRoot = styled(Button)<ViewModeButtonProps>(({ theme }) => ({
   minWidth: "auto",
   padding: theme.spacing(0.5),
   borderRadius: theme.shape.borderRadius,
@@ -36,3 +48,5 @@ export const ViewModeButton = styled(Button)(({ theme }) => ({
     fontSize: "1.2rem",
   },
 }));
+export const ViewModeButton: ComponentType<ViewModeButtonProps> =
+  ViewModeButtonRoot;

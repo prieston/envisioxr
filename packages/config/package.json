@@ -53,7 +53,7 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "build": "pnpm clean && tsc",
     "dev": "tsc --watch"
   }

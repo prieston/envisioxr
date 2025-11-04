@@ -12,7 +12,7 @@
     "dev:editor": "cd apps/editor && pnpm dev",
     "dev:website": "cd apps/website && pnpm dev",
     "build": "pnpm -r build --if-present",
-    "build:packages": "pnpm --filter @envisio/core build && pnpm --filter @envisio/ui build && pnpm --filter @envisio/ion-sdk build && pnpm --filter @envisio/engine-cesium build && pnpm --filter @envisio/engine-three build && pnpm --filter @envisio/config build",
+    "build:packages": "pnpm --filter @envisio/core build && pnpm --filter @envisio/config build && pnpm --filter @envisio/ui build && pnpm --filter @envisio/ion-sdk build && pnpm --filter @envisio/engine-cesium build && pnpm --filter @envisio/engine-three build",
     "build:editor": "pnpm build:packages && cd apps/editor && pnpm build",
     "build:website": "cd apps/website && pnpm build",
     "lint": "pnpm -r lint",

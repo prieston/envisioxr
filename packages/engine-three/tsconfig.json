@@ -2,33 +2,30 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "declaration": false,
-    "declarationMap": false,
-    "moduleResolution": "node",
-    "module": "esnext",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "target": "ES2020",
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "types": ["node"],
     "allowJs": false,
     "baseUrl": ".",
     "paths": {
-      "@envisio/core": ["../core/src/index"],
-      "@envisio/core/*": ["../core/src/*"],
-      "@envisio/ui": ["../ui/src/index"],
-      "@envisio/ui/*": ["../ui/src/*"],
-      "@envisio/config": ["../config/src/index"],
-      "@envisio/config/*": ["../config/src/*"],
-      "@envisio/engine-cesium": ["../engine-cesium/src/index"],
-      "@envisio/engine-cesium/*": ["../engine-cesium/src/*"]
+      "@envisio/core": ["../core/dist/index"],
+      "@envisio/core/*": ["../core/dist/*"],
+      "@envisio/ui": ["../ui/dist/index"],
+      "@envisio/ui/*": ["../ui/dist/*"],
+      "@envisio/config": ["../config/dist/index"],
+      "@envisio/config/*": ["../config/dist/*"],
+      "@envisio/engine-cesium": ["../engine-cesium/dist/index"],
+      "@envisio/engine-cesium/*": ["../engine-cesium/dist/*"]
     },
     "strict": false,
     "noEmit": false
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/types/**/*"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.js",
-    "**/*.jsx"
-  ]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }

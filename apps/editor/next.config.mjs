@@ -18,11 +18,10 @@ const pwa = withPWA({
 
 const nextConfig = {
   transpilePackages: [
-    '@envisio/engine-three',
+    '@envisio/ui',
     '@envisio/engine-cesium',
-    '@envisio/core',
-    '@envisio/ion-sdk',
-    '@envisio/ui'
+    '@envisio/engine-three',
+    '@envisio/ion-sdk'
   ],
   // Optimize output for better performance
   output: 'standalone',
@@ -100,7 +99,7 @@ const nextConfig = {
       use: ['style-loader', 'css-loader'],
     });
 
-    // Handle other CSS files
+    // Handle other CSS files (fallback until packages are split)
     config.module.rules.push({
       test: /\.css$/,
       exclude: /node_modules\/cesium/,
@@ -110,20 +109,9 @@ const nextConfig = {
           loader: 'css-loader',
           options: {
             importLoaders: 1,
-            modules: {
-              auto: true,
-              localIdentName: '[name]__[local]--[hash:base64:5]',
-            },
           },
         },
-        {
-          loader: 'postcss-loader',
-          options: {
-            postcssOptions: {
-              config: './postcss.config.cjs'
-            }
-          }
-        }
+        'postcss-loader',
       ],
     });
 

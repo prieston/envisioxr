@@ -26,7 +26,7 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && rm -rf dist/vendor && cp -R src/vendor dist/",
+    "build": "rm -rf dist tsconfig.tsbuildinfo && tsc -p tsconfig.json && cp -R src/vendor dist/",
     "dev": "tsc -w -p tsconfig.json"
   }
 }

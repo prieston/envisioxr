@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useRef, useLayoutEffect, useCallback, useEffect } from "react";
-import { Box, SxProps, Theme } from "@mui/material";
+import React, {
+  useRef,
+  useLayoutEffect,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
+import { Box, type SxProps, type Theme } from "@mui/material";
 
 interface ScrollContainerProps {
   children: React.ReactNode;
@@ -74,21 +80,33 @@ export const ScrollContainer: React.FC<ScrollContainerProps> = ({
     };
   }, [storageKey]);
 
+  const baseStyles = useCallback(
+    (theme: Theme) => ({
+      display: "flex",
+      flexDirection: "column",
+      height: "100%",
+      overflow: "auto",
+      overscrollBehavior: "contain",
+      backgroundColor:
+        theme.palette.mode === "dark" ? "#14171A" : "rgba(248, 250, 252, 0.6)",
+    }),
+    []
+  );
+
+  const resolvedSx = useMemo<SxProps<Theme>>(() => {
+    if (!sx) {
+      return baseStyles;
+    }
+
+    if (Array.isArray(sx)) {
+      return [baseStyles, ...sx];
+    }
+
+    return [baseStyles, sx];
+  }, [baseStyles, sx]);
+
   return (
-    <Box
-      ref={ref}
-      onScroll={handleScroll}
-      sx={(theme) => ({
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        overflow: "auto",
-        overscrollBehavior: "contain",
-        backgroundColor:
-          theme.palette.mode === "dark" ? "#14171A" : "rgba(248, 250, 252, 0.6)",
-        ...(typeof sx === "function" ? sx(theme) : sx),
-      })}
-    >
+    <Box ref={ref} onScroll={handleScroll} sx={resolvedSx}>
       {children}
     </Box>
   );

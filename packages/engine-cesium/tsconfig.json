@@ -2,29 +2,32 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "declaration": false,
-    "declarationMap": false,
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
     "emitDeclarationOnly": false,
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "allowJs": false,
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2020",
     "types": ["node"],
     "noImplicitAny": false,
     "noEmit": false,
     "baseUrl": ".",
     "paths": {
-      "@envisio/core": ["../core/src/index"],
-      "@envisio/core/*": ["../core/src/*"],
-      "@envisio/ui": ["../ui/src/index"],
-      "@envisio/ui/*": ["../ui/src/*"],
-      "@envisio/config": ["../config/src/index"],
-      "@envisio/config/*": ["../config/src/*"],
-      "@envisio/ion-sdk": ["../ion-sdk/src/index"],
-      "@envisio/ion-sdk/*": ["../ion-sdk/src/*"]
+      "@envisio/core": ["../core/dist/index"],
+      "@envisio/core/*": ["../core/dist/*"],
+      "@envisio/ui": ["../ui/dist/index"],
+      "@envisio/ui/*": ["../ui/dist/*"],
+      "@envisio/config": ["../config/dist/index"],
+      "@envisio/config/*": ["../config/dist/*"],
+      "@envisio/ion-sdk": ["../ion-sdk/dist/index"],
+      "@envisio/ion-sdk/*": ["../ion-sdk/dist/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", "dist", "**/*.js", "**/*.jsx"]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }

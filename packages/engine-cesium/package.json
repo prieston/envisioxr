@@ -2,9 +2,18 @@
   "name": "@envisio/engine-cesium",
   "version": "0.0.1",
   "private": true,
-  "sideEffects": false,
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist/**",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -37,31 +46,33 @@
       "default": "./dist/utils/index.js"
     }
   },
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.884.0",
-    "@cesium/engine": "^20.0.1",
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "cesium": ">=1.133.0",
+    "@mui/material": ">=5",
+    "@mui/icons-material": ">=5",
+    "@react-three/fiber": ">=8.15.0",
+    "@react-three/drei": ">=9.92.0",
+    "@react-three/rapier": ">=1",
+    "@react-three/xr": ">=6",
+    "three": ">=0.170.0 <1",
     "@envisio/core": "workspace:*",
     "@envisio/ion-sdk": "workspace:*",
-    "@mui/icons-material": "^5.0.0",
-    "@mui/material": "^5.18.0",
-    "@react-three/drei": "^9.92.7",
-    "@react-three/fiber": "^8.15.11",
+    "@aws-sdk/client-s3": ">=3.884.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.9.0",
     "@types/cesium": "^1.70.4",
     "@types/node": "^20.11.30",
-    "@types/react": "^18.0.0",
+    "@types/react": "^18.3.0",
     "@types/three": "^0.170.0",
-    "@types/uuid": "^9.0.8",
-    "cesium": "^1.133.0",
-    "next": "^14.0.0",
-    "react": "^18.0.0",
-    "typescript": "^5.0.0"
-  },
-  "peerDependencies": {
-    "three": ">=0.170.0 <1"
+    "@types/uuid": "^9.0.8"
   },
   "scripts": {
-    "clean": "rm -rf dist && find . -name '*.js' -not -path './node_modules/*' -not -path './dist/*' -delete || true",
-    "build": "pnpm clean && tsc",
-    "dev": "tsc --watch"
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "build": "pnpm clean && tsc -p tsconfig.json",
+    "dev": "tsc -w -p tsconfig.json"
   }
 }
