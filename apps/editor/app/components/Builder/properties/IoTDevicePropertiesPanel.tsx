@@ -10,10 +10,11 @@ import { useSceneStore } from "@envisio/core";
 import { useIoTWeatherData } from "./hooks/useIoTWeatherData";
 import { IoTDeviceSettings } from "./IoTDeviceSettings";
 import { IoTWeatherDisplay } from "./IoTWeatherDisplay";
+import { ModelObject } from "./types";
 
 interface IoTDevicePropertiesPanelProps {
-  selectedObject: any;
-  onPropertyChange: (property: string, value: any) => void;
+  selectedObject: ModelObject | null;
+  onPropertyChange: (property: string, value: unknown) => void;
   geographicCoords: {
     latitude: number;
     longitude: number;
@@ -29,7 +30,8 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
   ({ selectedObject, onPropertyChange, geographicCoords }) => {
     // Read iotProperties directly from store to ensure switch updates
     const storeIotProps = useSceneStore((state) => {
-      const obj = state.objects.find((o) => o.id === selectedObject?.id);
+      if (!selectedObject?.id) return undefined;
+      const obj = state.objects.find((o) => o.id === selectedObject.id);
       return obj?.iotProperties;
     });
 
@@ -55,7 +57,7 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
       return null;
     }
 
-    const handlePropertyChange = (property: string, value: any) => {
+    const handlePropertyChange = (property: string, value: unknown) => {
       // If enabling IoT for the first time, initialize all properties
       if (
         property === "enabled" &&

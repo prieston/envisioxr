@@ -1,7 +1,7 @@
 // controlsUtils.ts
 import * as THREE from "three";
 import { Camera } from "@react-three/fiber";
-import { Scene } from "three";
+import type { Scene } from "three";
 
 export const downVec = new THREE.Vector3(0, -1, 0);
 

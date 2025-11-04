@@ -7,7 +7,7 @@ import { ModelObject } from "./types";
 
 interface ModelInformationSectionProps {
   object: ModelObject;
-  onPropertyChange?: (property: string, value: any) => void;
+  onPropertyChange?: (property: string, value: unknown) => void;
 }
 
 const ModelInformationSection: React.FC<ModelInformationSectionProps> = ({

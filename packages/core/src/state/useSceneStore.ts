@@ -1,4 +1,4 @@
-import { Vector3 } from "three";
+import type { Vector3 } from "three";
 import { createWithEqualityFn as create } from "zustand/traditional";
 import * as THREE from "three";
 import { v4 as uuidv4 } from "uuid";

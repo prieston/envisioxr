@@ -29,7 +29,7 @@ interface IoTProperties {
 interface IoTDeviceSettingsProps {
   selectedObjectId: string;
   iotProps: IoTProperties;
-  onPropertyChange: (property: string, value: any) => void;
+  onPropertyChange: (property: string, value: unknown) => void;
 }
 
 /**

@@ -13,6 +13,7 @@ import {
 import { alpha } from "@mui/material/styles";
 import { selectStyles, menuItemStyles } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
+import { ModelObject } from "./types";
 
 /**
  * Batches updates to once per animation frame
@@ -36,8 +37,8 @@ function useRafSchedule<T>(fn: (arg: T) => void) {
 }
 
 interface SDKObservationPropertiesPanelProps {
-  selectedObject: any;
-  onPropertyChange: (property: string, value: any) => void;
+  selectedObject: ModelObject | null;
+  onPropertyChange: (property: string, value: unknown) => void;
   onCalculateViewshed?: () => void;
   isCalculating?: boolean;
 }
@@ -131,7 +132,7 @@ const SDKObservationPropertiesPanel: React.FC<
   }, []);
 
   const handlePropertyChange = useCallback(
-    (property: string, value: any) => {
+    (property: string, value: unknown) => {
       onPropertyChange(`observationProperties.${property}`, value);
     },
     [onPropertyChange]
