@@ -2,7 +2,7 @@
 
 /**
  * Error Boundary & Failure Handling Audit
- * 
+ *
  * Checks for:
  * - Components that perform side-effects without fallback
  * - Missing try/catch around Cesium async APIs
@@ -27,11 +27,11 @@ let issues = {
 
 function findReactFiles(dir, fileList = []) {
   const files = fs.readdirSync(dir);
-  
+
   for (const file of files) {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
-    
+
     if (stat.isDirectory()) {
       if (file !== "node_modules" && file !== "dist" && file !== ".next") {
         findReactFiles(filePath, fileList);
@@ -40,13 +40,13 @@ function findReactFiles(dir, fileList = []) {
       fileList.push(filePath);
     }
   }
-  
+
   return fileList;
 }
 
 function analyzeFile(filePath, content) {
   const relativePath = path.relative(workspaceRoot, filePath);
-  
+
   // Check 1: Cesium async APIs without try/catch
   const cesiumAsyncPatterns = [
     /\.pickPosition\(/,
@@ -58,7 +58,7 @@ function analyzeFile(filePath, content) {
     /Ion\.Resource\.load/,
     /Cesium\.Ion\.fromAssetId/,
   ];
-  
+
   for (const pattern of cesiumAsyncPatterns) {
     if (pattern.test(content)) {
       // Check if wrapped in try/catch
@@ -69,7 +69,7 @@ function analyzeFile(filePath, content) {
         const contextStart = Math.max(0, lineIndex - 10);
         const contextEnd = Math.min(lines.length, lineIndex + 10);
         const context = lines.slice(contextStart, contextEnd).join("\n");
-        
+
         if (!context.includes("try") && !context.includes("catch")) {
           issues.high.push({
             file: relativePath,
@@ -82,7 +82,7 @@ function analyzeFile(filePath, content) {
       }
     }
   }
-  
+
   // Check 2: Upload workflows without error handling
   if (content.includes("upload") || content.includes("Upload")) {
     const uploadPatterns = [
@@ -90,7 +90,7 @@ function analyzeFile(filePath, content) {
       /FormData/i,
       /\.upload\(/,
     ];
-    
+
     const hasUpload = uploadPatterns.some(p => p.test(content));
     if (hasUpload) {
       const hasErrorHandling = content.includes("catch") || content.includes("onError") || content.includes("error");
@@ -105,19 +105,19 @@ function analyzeFile(filePath, content) {
       }
     }
   }
-  
+
   // Check 3: Async operations without loading state
   const asyncPatterns = [
     /await\s+fetch\(/,
     /\.then\(/,
     /async\s+function/,
   ];
-  
+
   for (const pattern of asyncPatterns) {
     if (pattern.test(content)) {
       const hasLoadingState = content.includes("loading") || content.includes("isLoading") || content.includes("setLoading");
       const hasErrorState = content.includes("error") || content.includes("catch");
-      
+
       if (!hasLoadingState && !hasErrorState) {
         issues.medium.push({
           file: relativePath,
@@ -129,7 +129,7 @@ function analyzeFile(filePath, content) {
       }
     }
   }
-  
+
   // Check 4: Components without ErrorBoundary usage
   // This is more of a structural check - we'll flag critical components
   const criticalComponents = [
@@ -137,7 +137,7 @@ function analyzeFile(filePath, content) {
     "Scene",
     "SceneCanvas",
   ];
-  
+
   const isCritical = criticalComponents.some(c => relativePath.includes(c));
   if (isCritical && !content.includes("ErrorBoundary") && !content.includes("error boundary")) {
     issues.medium.push({
@@ -148,12 +148,12 @@ function analyzeFile(filePath, content) {
       fix: "Wrap component in ErrorBoundary to prevent white screens",
     });
   }
-  
+
   // Check 5: Side effects in render without error handling
   if (content.includes("useEffect") && content.match(/\.(add|remove|set|update)/)) {
     const effectPattern = /useEffect\(\(\)\s*=>\s*\{([\s\S]*?)\},\s*\[.*?\]\)/g;
     const matches = [...content.matchAll(effectPattern)];
-    
+
     for (const match of matches) {
       const effectBody = match[1];
       if (effectBody.match(/\.(add|remove|set|update)/) && !effectBody.includes("try") && !effectBody.includes("catch")) {
@@ -167,7 +167,7 @@ function analyzeFile(filePath, content) {
       }
     }
   }
-  
+
   // Check 6: Ion SDK operations without error handling
   if (content.includes("Ion") || content.includes("ion")) {
     const ionPatterns = [
@@ -176,7 +176,7 @@ function analyzeFile(filePath, content) {
       /createAsset/,
       /uploadAsset/,
     ];
-    
+
     for (const pattern of ionPatterns) {
       if (pattern.test(content)) {
         const context = extractContext(content, pattern);

@@ -2,7 +2,7 @@
 
 /**
  * State Management & Render Flow Audit
- * 
+ *
  * Checks for:
  * - Components subscribing to entire store objects (bad)
  * - Hooks that derive state in render path (bad)
@@ -39,11 +39,11 @@ let issues = {
 // Recursively find all TypeScript/React files
 function findReactFiles(dir, fileList = []) {
   const files = fs.readdirSync(dir);
-  
+
   for (const file of files) {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
-    
+
     if (stat.isDirectory()) {
       if (file !== "node_modules" && file !== "dist" && file !== ".next") {
         findReactFiles(filePath, fileList);
@@ -52,14 +52,14 @@ function findReactFiles(dir, fileList = []) {
       fileList.push(filePath);
     }
   }
-  
+
   return fileList;
 }
 
 function analyzeFile(filePath, content) {
   const relativePath = path.relative(workspaceRoot, filePath);
   const lines = content.split("\n");
-  
+
   // Check 1: Entire store subscription (bad)
   const entireStorePattern = /const\s+\w+\s*=\s*use(Scene|World)Store\(\)/g;
   if (entireStorePattern.test(content)) {
@@ -71,7 +71,7 @@ function analyzeFile(filePath, content) {
       fix: "Use selector: useSceneStore((s) => s.specificProperty)",
     });
   }
-  
+
   // Check 2: Zustand selector without shallow comparison
   const selectorPattern = /use(Scene|World)Store\(\(.*?\)\s*=>\s*\{/gs;
   const selectorMatches = [...content.matchAll(selectorPattern)];
@@ -90,14 +90,14 @@ function analyzeFile(filePath, content) {
       }
     }
   }
-  
+
   // Check 3: setState in useEffect without dependency guards
   const useEffectPattern = /useEffect\(\(\)\s*=>\s*\{[\s\S]*?\},\s*\[.*?\]\)/gs;
   const useEffectMatches = [...content.matchAll(useEffectPattern)];
   for (const match of useEffectMatches) {
     const effectBody = match[0].split("=>")[1]?.split("},")[0] || "";
     const deps = match[0].match(/\[(.*?)\]/)?.[1] || "";
-    
+
     // Check for setState without guard
     if (effectBody.match(/setState|set[A-Z]\w+\(/)) {
       if (!effectBody.match(/if\s*\(|guard|check|return\s+early/i)) {
@@ -111,7 +111,7 @@ function analyzeFile(filePath, content) {
       }
     }
   }
-  
+
   // Check 4: Missing useMemo/useCallback for expensive computations
   const expensiveOps = [
     /\.map\(/,
@@ -122,7 +122,7 @@ function analyzeFile(filePath, content) {
     /Object\.entries/,
     /Object\.keys/,
   ];
-  
+
   const renderBody = extractRenderBody(content);
   if (renderBody) {
     for (const pattern of expensiveOps) {
@@ -141,7 +141,7 @@ function analyzeFile(filePath, content) {
       }
     }
   }
-  
+
   // Check 5: Components without React.memo that receive props
   if (content.includes("export") && content.includes("React.FC") && !content.includes("React.memo")) {
     const propsMatch = content.match(/React\.FC<.*?\{([^}]+)\}/);
@@ -159,21 +159,21 @@ function analyzeFile(filePath, content) {
       }
     }
   }
-  
+
   // Check 6: Conditional hooks (React rules violation)
   // Only check React components/hooks, not store files
   if (!relativePath.includes("Store.ts") && !relativePath.includes("store.ts")) {
     // Extract component function bodies only
     const componentPattern = /(?:const\s+\w+\s*[:=]\s*React\.FC|export\s+(?:default\s+)?function\s+\w+|const\s+\w+\s*[:=]\s*\([^)]*\)\s*[:=]\s*\([^)]*\)\s*=>|export\s+(?:default\s+)?const\s+\w+\s*[:=]\s*React\.FC)/g;
     const componentMatches = [...content.matchAll(componentPattern)];
-    
+
     for (const match of componentMatches) {
       // Extract the component body
       let depth = 0;
       let start = match.index;
       let inBody = false;
       let body = "";
-      
+
       for (let i = start; i < content.length; i++) {
         const char = content[i];
         if (char === "{") {
@@ -186,7 +186,7 @@ function analyzeFile(filePath, content) {
           if (depth === 0 && inBody) break;
         }
       }
-      
+
       // Check for early return followed by hooks
       const returnMatch = body.match(/if\s*\([^)]+\)\s*\{[\s\S]*?return[\s\S]*?\}/);
       if (returnMatch) {
@@ -204,7 +204,7 @@ function analyzeFile(filePath, content) {
       }
     }
   }
-  
+
   // Check 7: Multiple store subscriptions in one component
   const storeSubscriptions = (content.match(/use(Scene|World)Store/g) || []).length;
   if (storeSubscriptions > 3) {
@@ -222,7 +222,7 @@ function extractSelectorBody(content, startIndex) {
   let depth = 0;
   let inBody = false;
   let body = "";
-  
+
   for (let i = startIndex; i < content.length; i++) {
     const char = content[i];
     if (char === "{") {
@@ -235,7 +235,7 @@ function extractSelectorBody(content, startIndex) {
       if (depth === 0 && inBody) break;
     }
   }
-  
+
   return body;
 }
 
@@ -264,7 +264,7 @@ function extractFunctionBodies(content) {
     let depth = 0;
     let start = match.index + match[0].length;
     let body = "";
-    
+
     for (let i = start; i < content.length; i++) {
       const char = content[i];
       if (char === "{") depth++;

@@ -2,7 +2,7 @@
 
 /**
  * Mesh Loading & Asset Pipeline Audit
- * 
+ *
  * Checks for:
  * - Duplicate loader creation
  * - Model scale normalization consistency
@@ -27,11 +27,11 @@ let issues = {
 
 function findReactFiles(dir, fileList = []) {
   const files = fs.readdirSync(dir);
-  
+
   for (const file of files) {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
-    
+
     if (stat.isDirectory()) {
       if (file !== "node_modules" && file !== "dist" && file !== ".next") {
         findReactFiles(filePath, fileList);
@@ -40,13 +40,13 @@ function findReactFiles(dir, fileList = []) {
       fileList.push(filePath);
     }
   }
-  
+
   return fileList;
 }
 
 function analyzeFile(filePath, content) {
   const relativePath = path.relative(workspaceRoot, filePath);
-  
+
   // Check 1: Multiple loader instances (should be singleton or cached)
   const loaderPatterns = [
     /new\s+GLTFLoader\(/g,
@@ -55,7 +55,7 @@ function analyzeFile(filePath, content) {
     /new\s+OBJLoader\(/g,
     /new\s+IFCLoader\(/g,
   ];
-  
+
   for (const pattern of loaderPatterns) {
     const matches = content.match(pattern);
     if (matches && matches.length > 1) {
@@ -68,7 +68,7 @@ function analyzeFile(filePath, content) {
       });
     }
   }
-  
+
   // Check 2: useLoader without cleanup on unmount
   if (content.includes("useLoader")) {
     // Check if component unmounts properly
@@ -82,12 +82,12 @@ function analyzeFile(filePath, content) {
       });
     }
   }
-  
+
   // Check 3: Fetch without AbortController
   const fetchPattern = /fetch\(/g;
   const abortControllerPattern = /AbortController|signal/g;
   const fetchMatches = (content.match(fetchPattern) || []).length;
-  
+
   if (fetchMatches > 0 && !abortControllerPattern.test(content)) {
     issues.medium.push({
       file: relativePath,
@@ -97,7 +97,7 @@ function analyzeFile(filePath, content) {
       fix: "Use AbortController to cancel fetch on component unmount",
     });
   }
-  
+
   // Check 4: Model loading in useEffect without loading state
   if (content.includes("useEffect") && content.match(/\.(glb|gltf|3dm|obj|ifc)/i)) {
     const hasLoadingState = content.includes("loading") || content.includes("isLoading");
@@ -111,7 +111,7 @@ function analyzeFile(filePath, content) {
       });
     }
   }
-  
+
   // Check 5: No LOD strategy detected
   if (content.includes("Model") || content.includes("load")) {
     const lodPatterns = [
@@ -119,7 +119,7 @@ function analyzeFile(filePath, content) {
       /distance.*scale|scale.*distance/i,
       /camera.*distance/i,
     ];
-    
+
     const hasLOD = lodPatterns.some(p => p.test(content));
     if (!hasLOD && content.includes("useSceneStore")) {
       issues.medium.push({
@@ -131,13 +131,13 @@ function analyzeFile(filePath, content) {
       });
     }
   }
-  
+
   // Check 6: Scale normalization inconsistency
   const scalePatterns = [
     /scale\s*[:=]\s*\[/g,
     /\.scale\s*=/g,
   ];
-  
+
   let hasScale = false;
   for (const pattern of scalePatterns) {
     if (pattern.test(content)) {
@@ -145,7 +145,7 @@ function analyzeFile(filePath, content) {
       break;
     }
   }
-  
+
   if (hasScale && !content.includes("normalize") && !content.includes("normalizeScale")) {
     issues.medium.push({
       file: relativePath,

@@ -2,7 +2,7 @@
 
 /**
  * Folder / Module Responsibility Boundaries Audit
- * 
+ *
  * Checks for:
  * - Files exceeding 300 lines
  * - UI components that also modify state (bad)
@@ -26,11 +26,11 @@ let issues = {
 
 function findReactFiles(dir, fileList = []) {
   const files = fs.readdirSync(dir);
-  
+
   for (const file of files) {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
-    
+
     if (stat.isDirectory()) {
       if (file !== "node_modules" && file !== "dist" && file !== ".next") {
         findReactFiles(filePath, fileList);
@@ -39,7 +39,7 @@ function findReactFiles(dir, fileList = []) {
       fileList.push(filePath);
     }
   }
-  
+
   return fileList;
 }
 
@@ -47,7 +47,7 @@ function analyzeFile(filePath, content) {
   const relativePath = path.relative(workspaceRoot, filePath);
   const lines = content.split("\n");
   const lineCount = lines.length;
-  
+
   // Check 1: Files exceeding 300 lines
   if (lineCount > 300) {
     const severity = lineCount > 500 ? "critical" : lineCount > 400 ? "high" : "medium";
@@ -59,12 +59,12 @@ function analyzeFile(filePath, content) {
       fix: `Split into smaller components/hooks (target: <300 lines)`,
     });
   }
-  
+
   // Check 2: UI components that also modify state
   if (content.includes("React.FC") || content.includes("React.Component")) {
     const hasStateModification = content.match(/setState|set[A-Z]\w+\(|useSceneStore.*set/) !== null;
     const hasFetching = content.match(/fetch\(|axios\.|\.get\(|\.post\(/) !== null;
-    
+
     if (hasStateModification && hasFetching) {
       issues.high.push({
         file: relativePath,
@@ -83,12 +83,12 @@ function analyzeFile(filePath, content) {
       });
     }
   }
-  
+
   // Check 3: Hooks that also do fetching
   if (content.includes("function use") || content.match(/const\s+use\w+\s*=/)) {
     const hasFetching = content.match(/fetch\(|axios\.|\.get\(|\.post\(/) !== null;
     const hasStateManagement = content.match(/useState|useReducer|useSceneStore/) !== null;
-    
+
     if (hasFetching && hasStateManagement && lineCount > 150) {
       issues.high.push({
         file: relativePath,
@@ -99,7 +99,7 @@ function analyzeFile(filePath, content) {
       });
     }
   }
-  
+
   // Check 4: Package boundary violations
   // Check if packages import from apps or vice versa incorrectly
   if (relativePath.startsWith("packages/")) {
@@ -114,7 +114,7 @@ function analyzeFile(filePath, content) {
       });
     }
   }
-  
+
   // Check 5: Mixed concerns in single file
   const concerns = {
     rendering: /return\s*\(|JSX|React\.createElement/,
@@ -123,11 +123,11 @@ function analyzeFile(filePath, content) {
     sideEffects: /useEffect/,
     utils: /function\s+\w+\(|const\s+\w+\s*=\s*\(/,
   };
-  
+
   const activeConcerns = Object.entries(concerns)
     .filter(([_, pattern]) => pattern.test(content))
     .map(([name]) => name);
-  
+
   if (activeConcerns.length >= 4 && lineCount > 200) {
     issues.medium.push({
       file: relativePath,
@@ -137,7 +137,7 @@ function analyzeFile(filePath, content) {
       fix: "Split into separate files by concern",
     });
   }
-  
+
   // Check 6: Store files that are too large
   if (relativePath.includes("Store.ts") || relativePath.includes("store.ts")) {
     if (lineCount > 500) {
