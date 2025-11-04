@@ -9,7 +9,9 @@ import {
   TableRow,
   Typography,
   Box,
+  useTheme,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { formatKey, formatValue } from "./CesiumFeaturePropertyFormatter";
 import type { PropertyCategory } from "./CesiumFeaturePropertyCategorizer";
@@ -27,6 +29,7 @@ interface CesiumFeaturePropertyCategoryProps {
 export const CesiumFeaturePropertyCategory: React.FC<
   CesiumFeaturePropertyCategoryProps
 > = ({ category, expanded, onToggle }) => {
+  const theme = useTheme();
   const handleChange = (_event: React.SyntheticEvent, isExpanded: boolean) => {
     onToggle(isExpanded ? category.categoryName : "");
   };
@@ -37,20 +40,24 @@ export const CesiumFeaturePropertyCategory: React.FC<
       onChange={handleChange}
       sx={{
         mb: 1,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+        boxShadow:
+          theme.palette.mode === "dark"
+            ? "0 1px 3px rgba(0,0,0,0.35)"
+            : "0 2px 6px rgba(15, 23, 42, 0.08)",
         "&:before": {
           display: "none",
         },
         "&.Mui-expanded": {
           margin: "0 0 8px 0",
         },
+        backgroundColor: theme.palette.background.paper,
       }}
     >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         sx={{
-          backgroundColor: "rgba(248, 250, 252, 0.6)",
-          borderLeft: "3px solid rgba(95, 136, 199, 0.6)",
+          backgroundColor: alpha(theme.palette.background.paper, 0.6),
+          borderLeft: `3px solid ${alpha(theme.palette.primary.main, 0.6)}`,
           minHeight: "48px",
           "&.Mui-expanded": {
             minHeight: "48px",
@@ -76,7 +83,7 @@ export const CesiumFeaturePropertyCategory: React.FC<
             sx={{
               fontSize: "0.8rem",
               fontWeight: 600,
-              color: "rgba(51, 65, 85, 0.95)",
+              color: theme.palette.text.primary,
             }}
           >
             {category.categoryName}
@@ -84,8 +91,8 @@ export const CesiumFeaturePropertyCategory: React.FC<
           <Typography
             sx={{
               fontSize: "0.7rem",
-              color: "rgba(100, 116, 139, 0.8)",
-              backgroundColor: "rgba(95, 136, 199, 0.1)",
+              color: theme.palette.text.secondary,
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
               padding: "2px 8px",
               borderRadius: "12px",
               fontWeight: 500,
@@ -98,7 +105,10 @@ export const CesiumFeaturePropertyCategory: React.FC<
       <AccordionDetails
         sx={{
           padding: 0,
-          backgroundColor: "rgba(255, 255, 255, 0.4)",
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? alpha(theme.palette.background.paper, 0.4)
+              : alpha(theme.palette.common.white, 0.4),
         }}
       >
         <Table size="small">
@@ -108,7 +118,7 @@ export const CesiumFeaturePropertyCategory: React.FC<
                 key={key}
                 sx={{
                   "&:hover": {
-                    backgroundColor: "rgba(248, 250, 252, 0.8)",
+                    backgroundColor: alpha(theme.palette.background.paper, 0.8),
                   },
                   "&:last-child td": {
                     borderBottom: 0,
@@ -119,8 +129,8 @@ export const CesiumFeaturePropertyCategory: React.FC<
                   sx={{
                     fontSize: "0.7rem",
                     fontWeight: 500,
-                    color: "rgba(100, 116, 139, 0.9)",
-                    borderBottom: "1px solid rgba(226, 232, 240, 0.3)",
+                    color: theme.palette.text.secondary,
+                    borderBottom: `1px solid ${theme.palette.divider}`,
                     padding: "10px 16px",
                     width: "45%",
                     verticalAlign: "top",
@@ -131,8 +141,8 @@ export const CesiumFeaturePropertyCategory: React.FC<
                 <TableCell
                   sx={{
                     fontSize: "0.7rem",
-                    color: "rgba(51, 65, 85, 0.9)",
-                    borderBottom: "1px solid rgba(226, 232, 240, 0.3)",
+                    color: theme.palette.text.primary,
+                    borderBottom: `1px solid ${theme.palette.divider}`,
                     padding: "10px 16px",
                     wordBreak: "break-word",
                     fontFamily:
