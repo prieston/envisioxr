@@ -447,6 +447,10 @@ importers:
       three:
         specifier: '>=0.170.0 <1'
         version: 0.170.0
+    devDependencies:
+      '@envisio/ui':
+        specifier: workspace:*
+        version: link:../ui
 
   packages/engine-three:
     dependencies:
