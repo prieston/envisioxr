@@ -206,7 +206,10 @@ function analyzeFile(filePath, content) {
   }
 
   // Check 7: Multiple store subscriptions in one component
-  const storeSubscriptions = (content.match(/use(Scene|World)Store/g) || []).length;
+  // Only count actual hook calls, not imports or getState() calls
+  // Pattern matches: const x = useSceneStore(...) or const {x} = useWorldStore()
+  const hookCallPattern = /(?:const\s+\w+\s*=|const\s+\{[^}]+\}\s*=)\s*use(Scene|World)Store\(/g;
+  const storeSubscriptions = (content.match(hookCallPattern) || []).length;
   if (storeSubscriptions > 3) {
     issues.medium.push({
       file: relativePath,
