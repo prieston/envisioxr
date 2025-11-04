@@ -46,7 +46,7 @@ const LeftPanel: React.FC = () => {
       className="glass-panel"
       sx={{ maxHeight: "none !important", height: "calc(100vh - 32px)" }}
     >
-      {/* Logo Header */}
+      {/* Logo Header - Fixed height, doesn't shrink */}
       <Box
         sx={{
           display: "flex",
@@ -62,8 +62,8 @@ const LeftPanel: React.FC = () => {
         <LogoHeader />
       </Box>
 
-      {/* Panel Content - Wrap in flex container to allow scrolling */}
-      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      {/* Panel Content - Takes remaining space using flex: 1 */}
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <GenericPanel
           Container={({ children }) => <>{children}</>}
           config={config}

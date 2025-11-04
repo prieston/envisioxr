@@ -1,9 +1,9 @@
 /**
  * Ion SDK Loader
- * 
+ *
  * Centralized loader for vendor Ion SDK modules.
  * These modules modify global objects and must only load on the client, never during SSR.
- * 
+ *
  * This loader ensures vendor modules load exactly once when the Cesium viewer initializes.
  */
 
@@ -14,7 +14,7 @@ let pending: Promise<void> | null = null;
  * Ensure Ion SDK vendor modules are loaded (client-only).
  * Safe to call multiple times - will only load once.
  * Returns immediately if already loaded or currently loading.
- * 
+ *
  * @returns Promise that resolves when modules are loaded (or resolves immediately if already loaded)
  */
 export async function ensureIonSDKLoaded(): Promise<void> {
