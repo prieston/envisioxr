@@ -34,22 +34,25 @@ const ModelPositioningManager: React.FC<ModelPositioningManagerProps> = ({
   onCancel,
 }) => {
   const { engine } = useWorldStore();
-  const viewMode = useSceneStore((s) => s.viewMode);
-  const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
-  const orbitControlsRef = useSceneStore((s) => s.orbitControlsRef);
-  const scene = useSceneStore((s) => s.scene);
+  // Combine store subscriptions to reduce from 4 to 1
+  const sceneState = useSceneStore((s) => ({
+    viewMode: s.viewMode,
+    cesiumViewer: s.cesiumViewer,
+    orbitControlsRef: s.orbitControlsRef,
+    scene: s.scene,
+  }));
 
   useEffect(() => {
     if (!selectingPosition) return;
-    if (viewMode === "firstPerson") return;
+    if (sceneState.viewMode === "firstPerson") return;
 
     // THREE.JS BRANCH (DOM listener on renderer canvas)
     if (engine === "three") {
       const canvas: HTMLCanvasElement =
-        ((scene as any)?.renderer?.domElement as HTMLCanvasElement) ||
+        ((sceneState.scene as any)?.renderer?.domElement as HTMLCanvasElement) ||
         (document.querySelector("canvas") as HTMLCanvasElement);
 
-      if (!canvas || !orbitControlsRef || !scene) return;
+      if (!canvas || !sceneState.orbitControlsRef || !sceneState.scene) return;
 
       const handleClick = (event: MouseEvent) => {
         const rect = (event.target as HTMLElement).getBoundingClientRect();
@@ -59,13 +62,13 @@ const ModelPositioningManager: React.FC<ModelPositioningManagerProps> = ({
         mouse.x = (x / rect.width) * 2 - 1;
         mouse.y = -(y / rect.height) * 2 + 1;
 
-        const camera = (scene as any).camera;
+        const camera = (sceneState.scene as any).camera;
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, camera);
 
         // Get all meshes in scene
         const meshes: THREE.Object3D[] = [];
-        scene.traverse((obj) => {
+        sceneState.scene.traverse((obj) => {
           if ((obj as THREE.Mesh).isMesh) {
             meshes.push(obj);
           }
@@ -83,11 +86,11 @@ const ModelPositioningManager: React.FC<ModelPositioningManagerProps> = ({
     }
 
     // CESIUM BRANCH
-    if (engine === "cesium" && cesiumViewer) {
+    if (engine === "cesium" && sceneState.cesiumViewer) {
       const Cesium = (window as any).Cesium;
 
       const cleanup = setupCesiumClickSelector(
-        cesiumViewer,
+        sceneState.cesiumViewer,
         (screenPosition) => {
           if (!screenPosition) return;
 

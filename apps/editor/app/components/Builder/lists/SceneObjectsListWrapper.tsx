@@ -7,27 +7,28 @@ import { useSceneStore } from "@envisio/core";
  * to the scene store. This keeps the UI component framework-agnostic.
  */
 const SceneObjectsListWrapper: React.FC = () => {
+  // Combine store subscriptions to reduce from 7 to 1
   // Optimize selector: only select minimal data needed for list items
   // This prevents re-renders when object properties change (e.g., weatherData, position)
-  const objects = useSceneStore((state) =>
-    state.objects.map((obj) => ({
+  const sceneState = useSceneStore((state) => ({
+    objects: state.objects.map((obj) => ({
       id: obj.id,
       name: obj.name,
       type: obj.type,
       ref: obj.ref,
-    }))
-  );
-  const selectObject = useSceneStore((state) => state.selectObject);
-  const removeObject = useSceneStore((state) => state.removeObject);
-  const deselectObject = useSceneStore((state) => state.deselectObject);
-
-  // For selectedObject, exclude weatherData to prevent re-renders
-  const selectedObject = useSceneStore((state) => {
-    if (!state.selectedObject) return null;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { weatherData, ...rest } = state.selectedObject;
-    return rest;
-  });
+    })),
+    selectObject: state.selectObject,
+    removeObject: state.removeObject,
+    deselectObject: state.deselectObject,
+    // For selectedObject, exclude weatherData to prevent re-renders
+    selectedObject: state.selectedObject
+      ? (() => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { weatherData, ...rest } = state.selectedObject;
+          return rest;
+        })()
+      : null,
+  }));
 
   const handleSelect = (id: string) => {
     // Clear Cesium feature selection when selecting a scene object
@@ -35,20 +36,20 @@ const SceneObjectsListWrapper: React.FC = () => {
       useSceneStore.getState().setSelectedCesiumFeature;
     setSelectedCesiumFeature(null);
 
-    if (selectedObject?.id === id) {
-      deselectObject();
+    if (sceneState.selectedObject?.id === id) {
+      sceneState.deselectObject();
     } else {
-      const object = objects.find((obj) => obj.id === id);
-      selectObject(id, object?.ref || null);
+      const object = sceneState.objects.find((obj) => obj.id === id);
+      sceneState.selectObject(id, object?.ref || null);
     }
   };
 
   const handleDelete = (id: string) => {
-    removeObject(id);
+    sceneState.removeObject(id);
   };
 
   // Transform objects to the format expected by UI component
-  const items = objects.map((obj) => ({
+  const items = sceneState.objects.map((obj) => ({
     id: obj.id,
     name: obj.name || "Untitled Object",
     type: obj.type || "Unknown",
@@ -57,7 +58,7 @@ const SceneObjectsListWrapper: React.FC = () => {
   return (
     <SceneObjectsList
       items={items}
-      selectedId={selectedObject?.id || null}
+      selectedId={sceneState.selectedObject?.id || null}
       onSelect={handleSelect}
       onDelete={handleDelete}
     />

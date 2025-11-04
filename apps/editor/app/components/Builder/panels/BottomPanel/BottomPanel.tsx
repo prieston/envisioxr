@@ -7,67 +7,64 @@ import { BottomPanelContainer, GenericPanel } from "@envisio/ui";
 import SettingRenderer from "../../SettingRenderer";
 
 const BottomPanel: React.FC = () => {
-  const panelPreviewMode = useSceneStore((state) => state.previewMode);
-  const { engine } = useWorldStore();
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 19 to 1
+  const sceneState = useSceneStore((state) => ({
+    panelPreviewMode: state.previewMode,
+    viewMode: state.viewMode,
+    setViewMode: state.setViewMode,
+    isPlaying: state.isPlaying,
+    togglePlayback: state.togglePlayback,
+    observationPoints: state.observationPoints,
+    selectedObservation: state.selectedObservation,
+    addObservationPoint: state.addObservationPoint,
+    selectObservation: state.selectObservation,
+    deleteObservationPoint: state.deleteObservationPoint,
+    nextObservation: state.nextObservation,
+    prevObservation: state.prevObservation,
+    previewMode: state.previewMode,
+    previewIndex: state.previewIndex,
+    setPreviewIndex: state.setPreviewIndex,
+    setPreviewMode: state.setPreviewMode,
+  }));
 
-  const viewMode = useSceneStore((state) => state.viewMode);
-  const setViewMode = useSceneStore((state) => state.setViewMode);
-  const isPlaying = useSceneStore((state) => state.isPlaying);
-  const togglePlayback = useSceneStore((state) => state.togglePlayback);
-  const observationPoints = useSceneStore((state) => state.observationPoints);
-  const selectedObservation = useSceneStore(
-    (state) => state.selectedObservation
-  );
-  const addObservationPoint = useSceneStore(
-    (state) => state.addObservationPoint
-  );
-  const selectObservation = useSceneStore((state) => state.selectObservation);
-  const deleteObservationPoint = useSceneStore(
-    (state) => state.deleteObservationPoint
-  );
-  const nextObservation = useSceneStore((state) => state.nextObservation);
-  const prevObservation = useSceneStore((state) => state.prevObservation);
-  const previewMode = useSceneStore((state) => state.previewMode);
-  const previewIndex = useSceneStore((state) => state.previewIndex);
-  const setPreviewIndex = useSceneStore((state) => state.setPreviewIndex);
-  const setPreviewMode = useSceneStore((state) => state.setPreviewMode);
+  const { engine } = useWorldStore();
 
   const config = useMemo(() => {
     return getBottomPanelConfig(
-      viewMode,
-      setViewMode,
-      isPlaying,
-      togglePlayback,
-      observationPoints,
-      selectedObservation,
-      addObservationPoint,
-      selectObservation,
-      deleteObservationPoint,
-      nextObservation,
-      prevObservation,
-      previewMode,
-      previewIndex,
-      setPreviewIndex,
-      setPreviewMode,
+      sceneState.viewMode,
+      sceneState.setViewMode,
+      sceneState.isPlaying,
+      sceneState.togglePlayback,
+      sceneState.observationPoints,
+      sceneState.selectedObservation,
+      sceneState.addObservationPoint,
+      sceneState.selectObservation,
+      sceneState.deleteObservationPoint,
+      sceneState.nextObservation,
+      sceneState.prevObservation,
+      sceneState.previewMode,
+      sceneState.previewIndex,
+      sceneState.setPreviewIndex,
+      sceneState.setPreviewMode,
       { engine }
     );
   }, [
     engine,
-    viewMode,
-    setViewMode,
-    isPlaying,
-    togglePlayback,
-    observationPoints,
-    selectedObservation,
-    addObservationPoint,
-    selectObservation,
-    deleteObservationPoint,
-    nextObservation,
-    prevObservation,
-    previewMode,
-    previewIndex,
-    setPreviewIndex,
-    setPreviewMode,
+    sceneState.viewMode,
+    sceneState.setViewMode,
+    sceneState.isPlaying,
+    sceneState.togglePlayback,
+    sceneState.observationPoints,
+    sceneState.selectedObservation,
+    sceneState.addObservationPoint,
+    sceneState.selectObservation,
+    sceneState.deleteObservationPoint,
+    sceneState.nextObservation,
+    sceneState.prevObservation,
+    sceneState.previewMode,
+    sceneState.previewIndex,
+    sceneState.setPreviewIndex,
+    sceneState.setPreviewMode,
   ]);
 
   return (
@@ -75,7 +72,7 @@ const BottomPanel: React.FC = () => {
       Container={BottomPanelContainer}
       config={config}
       renderSetting={(setting) => <SettingRenderer setting={setting} />}
-      previewMode={panelPreviewMode}
+      previewMode={sceneState.panelPreviewMode}
     />
   );
 };

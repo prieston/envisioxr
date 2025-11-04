@@ -262,11 +262,11 @@ export default function CesiumViewer() {
           window.CESIUM_BASE_URL = "/cesium/";
           // Log warning in development if misconfigured (uses compile-time flag)
           // @ts-ignore - __DEV__ is defined at compile time via webpack DefinePlugin
-          if (typeof __DEV__ !== 'undefined' && __DEV__) {
+          if (typeof __DEV__ !== "undefined" && __DEV__) {
             // eslint-disable-next-line no-console
             console.warn(
               "[CesiumViewer] CESIUM_BASE_URL not set via env, using default '/cesium/'. " +
-              "Set NEXT_PUBLIC_CESIUM_BASE_URL or ensure env.CESIUM_BASE_URL is configured."
+                "Set NEXT_PUBLIC_CESIUM_BASE_URL or ensure env.CESIUM_BASE_URL is configured."
             );
           }
         }
@@ -880,13 +880,14 @@ export default function CesiumViewer() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "linear-gradient(135deg, #0a0d10 0%, #14171a 50%, #1a1f24 100%)",
+            background:
+              "linear-gradient(135deg, #0a0d10 0%, #14171a 50%, #1a1f24 100%)",
             zIndex: 9999,
             pointerEvents: "none",
           }}
         >
-            <div
-              style={{
+          <div
+            style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
