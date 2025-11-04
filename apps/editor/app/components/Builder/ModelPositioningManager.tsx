@@ -49,7 +49,8 @@ const ModelPositioningManager: React.FC<ModelPositioningManagerProps> = ({
     // THREE.JS BRANCH (DOM listener on renderer canvas)
     if (engine === "three") {
       const canvas: HTMLCanvasElement =
-        ((sceneState.scene as any)?.renderer?.domElement as HTMLCanvasElement) ||
+        ((sceneState.scene as any)?.renderer
+          ?.domElement as HTMLCanvasElement) ||
         (document.querySelector("canvas") as HTMLCanvasElement);
 
       if (!canvas || !sceneState.orbitControlsRef || !sceneState.scene) return;
@@ -105,24 +106,24 @@ const ModelPositioningManager: React.FC<ModelPositioningManagerProps> = ({
             let cartesian3: any = null;
 
             // First, try to pick a 3D position (terrain, models, etc.)
-            cartesian3 = cesiumViewer.scene.pickPosition(position);
+            cartesian3 = sceneState.cesiumViewer.scene.pickPosition(position);
 
             // If that fails, try to pick on the ellipsoid (globe surface)
             if (!Cesium.defined(cartesian3)) {
-              const ray = cesiumViewer.camera.getPickRay(position);
+              const ray = sceneState.cesiumViewer.camera.getPickRay(position);
               if (ray) {
-                cartesian3 = cesiumViewer.scene.globe.pick(
+                cartesian3 = sceneState.cesiumViewer.scene.globe.pick(
                   ray,
-                  cesiumViewer.scene
+                  sceneState.cesiumViewer.scene
                 );
               }
             }
 
             // If still no position, try the ellipsoid directly
             if (!Cesium.defined(cartesian3)) {
-              cartesian3 = cesiumViewer.camera.pickEllipsoid(
+              cartesian3 = sceneState.cesiumViewer.camera.pickEllipsoid(
                 position,
-                cesiumViewer.scene.globe.ellipsoid
+                sceneState.cesiumViewer.scene.globe.ellipsoid
               );
             }
 
@@ -185,15 +186,7 @@ const ModelPositioningManager: React.FC<ModelPositioningManagerProps> = ({
       // setupCesiumClickSelector returns a cleanup function, just call it directly
       return cleanup;
     }
-  }, [
-    selectingPosition,
-    viewMode,
-    engine,
-    cesiumViewer,
-    orbitControlsRef,
-    scene,
-    onPositionSelected,
-  ]);
+  }, [selectingPosition, sceneState.viewMode, engine, sceneState.cesiumViewer, sceneState.orbitControlsRef, sceneState.scene, onPositionSelected]);
 
   // Show overlay when either placing a new model or repositioning an existing one
   const isActive = selectingPosition && (pendingModel || repositioningObjectId);
