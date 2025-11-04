@@ -8,6 +8,7 @@
     "module": "esnext",
     "jsx": "react-jsx",
     "skipLibCheck": true,
+    "types": ["node"],
     "allowJs": false,
     "baseUrl": ".",
     "paths": {
