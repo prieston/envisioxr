@@ -191,12 +191,15 @@ const applyBasemapType = async (
 };
 
 export default function CesiumViewer() {
+  // All hooks must be called unconditionally at the top level
   const containerRef = useRef<HTMLDivElement>(null);
   const world = useWorldStore((s) => s.activeWorld);
   const setCesiumViewer = useSceneStore((s) => s.setCesiumViewer);
   const setCesiumInstance = useSceneStore((s) => s.setCesiumInstance);
   // const selectedObject = useSceneStore((s) => s.selectedObject); // Unused for now
   const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
+  const objects = useSceneStore((state) => state.objects);
+  const basemapType = useSceneStore((state) => state.basemapType);
 
   const viewerRef = useRef<any>(null);
   const cesiumRef = useRef<any>(null);
@@ -505,9 +508,6 @@ export default function CesiumViewer() {
     };
   }, []);
 
-  // Get objects from scene store
-  const objects = useSceneStore((state) => state.objects);
-
   // Memoize the filtered list of observation objects to prevent re-renders
   const observationObjects = useMemo(
     () =>
@@ -756,6 +756,20 @@ export default function CesiumViewer() {
       // Error rendering entities
       console.warn("[CesiumViewer] Error while rendering objects:", err);
     }
+
+    // Cleanup: Remove all model entities when component unmounts or objects change
+    return () => {
+      if (viewer && viewer.entities) {
+        // Remove all entities with model- prefix to prevent memory leaks
+        const toRemove: any[] = [];
+        viewer.entities.values.forEach((e: any) => {
+          if (typeof e.id === "string" && e.id.startsWith("model-")) {
+            toRemove.push(e);
+          }
+        });
+        toRemove.forEach((e) => viewer.entities.remove(e));
+      }
+    };
   }, [world, isLoading, objects]);
 
   // Effect to ensure styling is applied after viewer is ready
@@ -822,7 +836,6 @@ export default function CesiumViewer() {
   }, [isLoading]);
 
   // Handle basemap changes from the store
-  const basemapType = useSceneStore((state) => state.basemapType);
   useEffect(() => {
     const viewer = viewerRef.current;
     const Cesium = cesiumRef.current;

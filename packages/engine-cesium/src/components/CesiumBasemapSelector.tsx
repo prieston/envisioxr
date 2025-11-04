@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { Select, MenuItem, FormControl } from "@mui/material";
 import { SettingContainer, SettingLabel } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
@@ -127,6 +127,8 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
               // Add the tileset to the scene
               if (cesiumViewer.scene && cesiumViewer.scene.primitives) {
                 cesiumViewer.scene.primitives.add(tileset);
+                // Store reference for cleanup
+                (cesiumViewer.scene.primitives as any)._basemapTileset = tileset;
               }
               // Added Google Photorealistic tileset with assetId: tileset.assetId
             } catch (error) {
@@ -157,6 +159,22 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
     },
     [cesiumViewer, cesiumInstance, onBasemapChange, currentBasemap]
   );
+
+  // Cleanup: Remove basemap primitive when component unmounts
+  useEffect(() => {
+    return () => {
+      if (cesiumViewer?.scene?.primitives) {
+        const primitives = cesiumViewer.scene.primitives;
+        // Remove Google Photorealistic tileset (assetId 2275207) if it exists
+        for (let i = primitives.length - 1; i >= 0; i--) {
+          const primitive = primitives.get(i);
+          if (primitive && primitive.assetId === 2275207) {
+            primitives.remove(primitive);
+          }
+        }
+      }
+    };
+  }, [cesiumViewer]);
 
   if (disabled) {
     return null;
