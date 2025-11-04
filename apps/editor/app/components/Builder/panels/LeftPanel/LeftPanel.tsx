@@ -9,21 +9,33 @@ import SettingRenderer from "../../SettingRenderer";
 import LogoHeader from "@/app/components/AppBar/LogoHeader";
 
 const LeftPanel: React.FC = () => {
-  const previewMode = useSceneStore((state) => state.previewMode);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 9 to 1
+  const sceneState = useSceneStore((state) => ({
+    previewMode: state.previewMode,
+    gridEnabled: state.gridEnabled,
+    setGridEnabled: state.setGridEnabled,
+    skyboxType: state.skyboxType,
+    setSkyboxType: state.setSkyboxType,
+    ambientLightIntensity: state.ambientLightIntensity,
+    setAmbientLightIntensity: state.setAmbientLightIntensity,
+    basemapType: state.basemapType,
+    setBasemapType: state.setBasemapType,
+  }));
+
   const { engine } = useWorldStore();
 
-  const gridEnabled = useSceneStore((state) => state.gridEnabled);
-  const setGridEnabled = useSceneStore((state) => state.setGridEnabled);
-  const skyboxType = useSceneStore((state) => state.skyboxType);
-  const setSkyboxType = useSceneStore((state) => state.setSkyboxType);
-  const ambientLightIntensity = useSceneStore(
-    (state) => state.ambientLightIntensity
-  );
-  const setAmbientLightIntensity = useSceneStore(
-    (state) => state.setAmbientLightIntensity
-  );
-  const basemapType = useSceneStore((state) => state.basemapType);
-  const setBasemapType = useSceneStore((state) => state.setBasemapType);
+  // Destructure for cleaner lookups
+  const {
+    previewMode,
+    gridEnabled,
+    setGridEnabled,
+    skyboxType,
+    setSkyboxType,
+    ambientLightIntensity,
+    setAmbientLightIntensity,
+    basemapType,
+    setBasemapType,
+  } = sceneState;
 
   const config = useMemo(() => {
     return getLeftPanelConfig(

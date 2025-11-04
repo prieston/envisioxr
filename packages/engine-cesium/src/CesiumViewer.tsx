@@ -193,13 +193,26 @@ const applyBasemapType = async (
 export default function CesiumViewer() {
   // All hooks must be called unconditionally at the top level
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 6 to 1
+  const sceneState = useSceneStore((state) => ({
+    setCesiumViewer: state.setCesiumViewer,
+    setCesiumInstance: state.setCesiumInstance,
+    cesiumViewer: state.cesiumViewer,
+    objects: state.objects,
+    basemapType: state.basemapType,
+  }));
+
   const world = useWorldStore((s) => s.activeWorld);
-  const setCesiumViewer = useSceneStore((s) => s.setCesiumViewer);
-  const setCesiumInstance = useSceneStore((s) => s.setCesiumInstance);
-  // const selectedObject = useSceneStore((s) => s.selectedObject); // Unused for now
-  const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
-  const objects = useSceneStore((state) => state.objects);
-  const basemapType = useSceneStore((state) => state.basemapType);
+
+  // Destructure for cleaner lookups
+  const {
+    setCesiumViewer,
+    setCesiumInstance,
+    cesiumViewer,
+    objects,
+    basemapType,
+  } = sceneState;
 
   const viewerRef = useRef<any>(null);
   const cesiumRef = useRef<any>(null);
@@ -367,7 +380,7 @@ export default function CesiumViewer() {
         );
 
         // Set initial skybox configuration based on store state
-        const { skyboxType, basemapType } = useSceneStore.getState();
+        const { skyboxType } = useSceneStore.getState();
         if (skyboxType === "default") {
           // Show both skybox (with stars) and atmosphere
           if (viewerRef.current.scene.skyBox) {
@@ -506,6 +519,8 @@ export default function CesiumViewer() {
       // Stop all IoT services when component unmounts
       iotService.stopAll();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Zustand setters (setCesiumInstance, setCesiumViewer) are stable and don't need to be in dependency array
   }, []);
 
   // Memoize the filtered list of observation objects to prevent re-renders

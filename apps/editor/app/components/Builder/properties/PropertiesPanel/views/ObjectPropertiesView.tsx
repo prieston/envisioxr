@@ -43,20 +43,33 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
     onStartRepositioning,
     onCancelRepositioning,
   }) => {
-    const selectedObject = useSceneStore((s) => s.selectedObject);
-    const transformMode = useSceneStore((s) => s.transformMode);
-    const setTransformMode = useSceneStore((s) => s.setTransformMode);
-    const orbitControlsRef = useSceneStore((s) => s.orbitControlsRef);
-    const isCalculatingVisibility = useSceneStore(
-      (s) => s.isCalculatingVisibility
-    );
-    const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
-    const cesiumIonAssets = useSceneStore((s) => s.cesiumIonAssets);
-    const flyToCesiumIonAsset = useSceneStore((s) => s.flyToCesiumIonAsset);
-    const startVisibilityCalculation = useSceneStore(
-      (s) => s.startVisibilityCalculation
-    );
+    // Combine all scene store subscriptions into a single selector to reduce subscriptions from 9 to 1
+    const sceneState = useSceneStore((s) => ({
+      selectedObject: s.selectedObject,
+      transformMode: s.transformMode,
+      setTransformMode: s.setTransformMode,
+      orbitControlsRef: s.orbitControlsRef,
+      isCalculatingVisibility: s.isCalculatingVisibility,
+      cesiumViewer: s.cesiumViewer,
+      cesiumIonAssets: s.cesiumIonAssets,
+      flyToCesiumIonAsset: s.flyToCesiumIonAsset,
+      startVisibilityCalculation: s.startVisibilityCalculation,
+    }));
+
     const engine = useWorldStore((s) => s.engine);
+
+    // Destructure for cleaner lookups
+    const {
+      selectedObject,
+      transformMode,
+      setTransformMode,
+      orbitControlsRef,
+      isCalculatingVisibility,
+      cesiumViewer,
+      cesiumIonAssets,
+      flyToCesiumIonAsset,
+      startVisibilityCalculation,
+    } = sceneState;
 
     const { handlePropertyChange } = usePropertyChange({
       updateObjectProperty,
@@ -64,19 +77,19 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
 
     const geographicCoords = useGeographicCoords(selectedObject);
 
-    const isCesiumIonAsset = ION_TYPES.has(selectedObject.type);
+    const isCesiumIonAsset = ION_TYPES.has(selectedObject?.type || "");
 
     const handleFlyToObject = useCallback(() => {
       // Cesium Ion asset path
-      if (isCesiumIonAsset && selectedObject.assetId != null) {
+      if (isCesiumIonAsset && selectedObject?.assetId != null) {
         const target = cesiumIonAssets.find(
-          (a) => String(a.assetId) === String(selectedObject.assetId)
+          (a) => String(a.assetId) === String(selectedObject?.assetId)
         );
         if (target) {
           flyToCesiumIonAsset(target.id);
           return;
         }
-        logger.warn("Cesium Ion asset not found:", selectedObject.assetId);
+        logger.warn("Cesium Ion asset not found:", selectedObject?.assetId);
         // Fall through to position if available
       }
 
@@ -88,10 +101,10 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
 
         // Prefer geographicCoords, fallback to object's position (LonLatAlt tuple)
         // position is [lon, lat, alt]
-        const lon = geographicCoords?.longitude ?? selectedObject.position?.[0];
-        const lat = geographicCoords?.latitude ?? selectedObject.position?.[1];
+        const lon = geographicCoords?.longitude ?? selectedObject?.position?.[0];
+        const lat = geographicCoords?.latitude ?? selectedObject?.position?.[1];
         const alt =
-          geographicCoords?.altitude ?? selectedObject.position?.[2] ?? 150;
+          geographicCoords?.altitude ?? selectedObject?.position?.[2] ?? 150;
 
         if ([lon, lat].every(Number.isFinite)) {
           // flyToCesiumPosition expects: (viewer, lon, lat, height)
@@ -110,7 +123,7 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
       // Three.js engine
       const obj = useSceneStore
         .getState()
-        .objects.find((o) => o.id === selectedObject.id);
+        .objects.find((o) => o.id === selectedObject?.id);
       const modelRef = obj?.ref;
       if (modelRef && orbitControlsRef) {
         flyToThreeObject(modelRef, orbitControlsRef);
@@ -119,9 +132,9 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
       }
     }, [
       isCesiumIonAsset,
-      selectedObject.assetId,
-      selectedObject.id,
-      selectedObject.position,
+      selectedObject?.assetId,
+      selectedObject?.id,
+      selectedObject?.position,
       cesiumIonAssets,
       flyToCesiumIonAsset,
       engine,
@@ -139,8 +152,8 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
     }, [onStartRepositioning, selectedObject?.id]);
 
     const handleCalculateViewshed = useCallback(() => {
-      startVisibilityCalculation(selectedObject.id);
-    }, [startVisibilityCalculation, selectedObject.id]);
+      startVisibilityCalculation(selectedObject?.id || "");
+    }, [startVisibilityCalculation, selectedObject?.id]);
 
     // Compute if "Fly To" is possible (for future use or passing to ObjectActionsSection)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -148,7 +161,7 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
       (engine === "cesium" &&
         !!cesiumViewer &&
         (Number.isFinite(geographicCoords?.longitude) ||
-          Number.isFinite(selectedObject.position?.[0]))) ||
+          Number.isFinite(selectedObject?.position?.[0]))) ||
       engine !== "cesium";
 
     return (

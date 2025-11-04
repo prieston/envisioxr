@@ -35,35 +35,42 @@ const RightPanel: React.FC<RightPanelProps> = ({
   onStartRepositioning,
   onCancelRepositioning,
 }) => {
-  const previewMode = useSceneStore((state) => state.previewMode);
+  // Combine all scene store subscriptions into a single selector to reduce subscriptions from 10 to 1
+  const sceneState = useSceneStore((state) => ({
+    previewMode: state.previewMode,
+    selectedObservation: state.selectedObservation,
+    viewMode: state.viewMode,
+    controlSettings: state.controlSettings,
+    updateObjectProperty: state.updateObjectProperty,
+    updateObservationPoint: state.updateObservationPoint,
+    deleteObservationPoint: state.deleteObservationPoint,
+    setCapturingPOV: state.setCapturingPOV,
+    updateControlSettings: state.updateControlSettings,
+    // For selectedObject, exclude weatherData to prevent re-renders when IoT updates
+    selectedObject: state.selectedObject
+      ? (() => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { weatherData, ...rest } = state.selectedObject;
+          return rest;
+        })()
+      : null,
+  }));
+
   const { engine } = useWorldStore();
 
-  const selectedObservation = useSceneStore(
-    (state) => state.selectedObservation
-  );
-  const viewMode = useSceneStore((state) => state.viewMode);
-  const controlSettings = useSceneStore((state) => state.controlSettings);
-  const updateObjectProperty = useSceneStore(
-    (state) => state.updateObjectProperty
-  );
-  const updateObservationPoint = useSceneStore(
-    (state) => state.updateObservationPoint
-  );
-  const deleteObservationPoint = useSceneStore(
-    (state) => state.deleteObservationPoint
-  );
-  const setCapturingPOV = useSceneStore((state) => state.setCapturingPOV);
-  const updateControlSettings = useSceneStore(
-    (state) => state.updateControlSettings
-  );
-
-  // For selectedObject, exclude weatherData to prevent re-renders when IoT updates
-  const selectedObject = useSceneStore((state) => {
-    if (!state.selectedObject) return null;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { weatherData, ...rest } = state.selectedObject;
-    return rest;
-  });
+  // Destructure for cleaner lookups
+  const {
+    previewMode,
+    selectedObservation,
+    viewMode,
+    controlSettings,
+    updateObjectProperty,
+    updateObservationPoint,
+    deleteObservationPoint,
+    setCapturingPOV,
+    updateControlSettings,
+    selectedObject,
+  } = sceneState;
 
   // Memoize only on object ID change, not full object to prevent scroll resets
   const selectedObjectId = selectedObject?.id;
@@ -87,6 +94,8 @@ const RightPanel: React.FC<RightPanelProps> = ({
       }
     );
     // Only depend on object ID, not the full object to prevent unnecessary re-renders
+    // Zustand setters are stable and don't need to be in dependency array
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     engine,
     selectedObjectId,
@@ -133,7 +142,14 @@ const RightPanel: React.FC<RightPanelProps> = ({
       </Box>
 
       {/* Panel Content - Wrapped in Box to enable flex layout */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
         <GenericPanel
           Container={({ children }) => <>{children}</>}
           config={config}
