@@ -24,6 +24,8 @@ export default defineConfig({
     /^react-dom$/,
     /^three$/,
     /^react-toastify$/,
+    /^zustand$/,
+    /^uuid$/,
   ],
   tsconfig: './tsconfig.json',
   esbuildOptions(options) {
