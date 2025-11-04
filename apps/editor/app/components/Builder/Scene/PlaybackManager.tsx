@@ -31,7 +31,7 @@ const PlaybackManager: React.FC = () => {
         intervalRef.current = null;
       }
     };
-  }, [isPlaying, observationPoints, nextObservation]);
+  }, [sceneState.isPlaying, sceneState.observationPoints, sceneState.nextObservation]);
 
   // This component doesn't render anything
   return null;

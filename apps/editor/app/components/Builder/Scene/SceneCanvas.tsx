@@ -33,6 +33,7 @@ const SceneCanvas: React.FC<SceneCanvasProps> = ({
   onSceneDataChange,
   renderObservationPoints = true,
 }) => {
+  // Combine store subscriptions to reduce from 4 to 1
   const engine = useWorldStore((s) => s.engine);
   const selectedObject = useSceneStore((s) => s.selectedObject);
 

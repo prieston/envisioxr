@@ -89,9 +89,11 @@ const ModelPositioningManager: React.FC<ModelPositioningManagerProps> = ({
     // CESIUM BRANCH
     if (engine === "cesium" && sceneState.cesiumViewer) {
       const Cesium = (window as any).Cesium;
+      const { cesiumViewer } = sceneState;
+      const { camera, scene } = cesiumViewer;
 
       const cleanup = setupCesiumClickSelector(
-        sceneState.cesiumViewer,
+        cesiumViewer,
         (screenPosition) => {
           if (!screenPosition) return;
 
@@ -106,24 +108,21 @@ const ModelPositioningManager: React.FC<ModelPositioningManagerProps> = ({
             let cartesian3: any = null;
 
             // First, try to pick a 3D position (terrain, models, etc.)
-            cartesian3 = sceneState.cesiumViewer.scene.pickPosition(position);
+            cartesian3 = scene.pickPosition(position);
 
             // If that fails, try to pick on the ellipsoid (globe surface)
             if (!Cesium.defined(cartesian3)) {
-              const ray = sceneState.cesiumViewer.camera.getPickRay(position);
+              const ray = camera.getPickRay(position);
               if (ray) {
-                cartesian3 = sceneState.cesiumViewer.scene.globe.pick(
-                  ray,
-                  sceneState.cesiumViewer.scene
-                );
+                cartesian3 = scene.globe.pick(ray, scene);
               }
             }
 
             // If still no position, try the ellipsoid directly
             if (!Cesium.defined(cartesian3)) {
-              cartesian3 = sceneState.cesiumViewer.camera.pickEllipsoid(
+              cartesian3 = camera.pickEllipsoid(
                 position,
-                sceneState.cesiumViewer.scene.globe.ellipsoid
+                scene.globe.ellipsoid
               );
             }
 
@@ -186,7 +185,15 @@ const ModelPositioningManager: React.FC<ModelPositioningManagerProps> = ({
       // setupCesiumClickSelector returns a cleanup function, just call it directly
       return cleanup;
     }
-  }, [selectingPosition, sceneState.viewMode, engine, sceneState.cesiumViewer, sceneState.orbitControlsRef, sceneState.scene, onPositionSelected]);
+  }, [
+    selectingPosition,
+    sceneState.viewMode,
+    engine,
+    sceneState.cesiumViewer,
+    sceneState.orbitControlsRef,
+    sceneState.scene,
+    onPositionSelected,
+  ]);
 
   // Show overlay when either placing a new model or repositioning an existing one
   const isActive = selectingPosition && (pendingModel || repositioningObjectId);

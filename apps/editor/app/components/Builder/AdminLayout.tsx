@@ -30,11 +30,12 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
     string | null
   >(null);
 
-  const addModel = useSceneStore((state) => state.addModel);
-  const updateObjectProperty = useSceneStore(
-    (state) => state.updateObjectProperty
-  );
-  const bottomPanelVisible = useSceneStore((state) => state.bottomPanelVisible);
+  // Combine store subscriptions to reduce from 4 to 1
+  const sceneState = useSceneStore((state) => ({
+    addModel: state.addModel,
+    updateObjectProperty: state.updateObjectProperty,
+    bottomPanelVisible: state.bottomPanelVisible,
+  }));
 
   const handlePositionSelected = (position: [number, number, number]) => {
     setSelectedPosition(position);
@@ -42,7 +43,7 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
 
   const handleConfirmPlacement = () => {
     if (pendingModel && selectedPosition) {
-      addModel({
+      sceneState.addModel({
         ...pendingModel,
         position: selectedPosition,
         scale: [1, 1, 1],
@@ -74,7 +75,7 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
 
   const handleConfirmRepositioning = () => {
     if (repositioningObjectId && selectedPosition) {
-      updateObjectProperty(repositioningObjectId, "position", selectedPosition);
+      sceneState.updateObjectProperty(repositioningObjectId, "position", selectedPosition);
       showToast("Object repositioned successfully");
 
       // Reset state
@@ -147,7 +148,7 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
               {/* This will be empty since canvas is now full viewport */}
             </SceneContainer>
             {/* Bottom Panel - now inside center container, conditionally rendered */}
-            {bottomPanelVisible && (
+            {sceneState.bottomPanelVisible && (
               <BottomContainer>
                 <BottomPanel />
               </BottomContainer>
