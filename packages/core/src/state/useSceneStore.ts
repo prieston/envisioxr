@@ -2,6 +2,9 @@ import { Vector3 } from "three";
 import { createWithEqualityFn as create } from "zustand/traditional";
 import * as THREE from "three";
 import { v4 as uuidv4 } from "uuid";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("SceneStore");
 
 interface CesiumIonAsset {
   id: string;
@@ -736,7 +739,7 @@ const useSceneStore = create<SceneState>((set) => ({
     const cesiumViewer = state.cesiumViewer;
     const cesiumInstance = state.cesiumInstance;
     if (!asset || !cesiumViewer || !cesiumInstance) {
-      console.warn(
+      logger.warn(
         "Asset, Cesium viewer, or Cesium instance not available for fly-to"
       );
       return;
@@ -754,7 +757,7 @@ const useSceneStore = create<SceneState>((set) => ({
       }
     }
     if (!targetTileset) {
-      console.warn(
+      logger.warn(
         `[CesiumIon] Could not find tileset for asset: ${(asset as any).name} (${(asset as any).assetId})`
       );
       return;

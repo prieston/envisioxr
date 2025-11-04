@@ -5,7 +5,7 @@ const CLICK_THRESHOLD = 5;
 
 interface UseModelSelectionProps {
   id: string;
-  onSelect: ((id: string, object: THREE.Object3D) => void) | null;
+  onSelect?: ((id: string, object: THREE.Object3D) => void) | null;
   previewMode: boolean;
 }
 

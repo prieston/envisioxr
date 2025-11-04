@@ -23,19 +23,10 @@ const CesiumFeatureProperties: React.FC<CesiumFeaturePropertiesProps> = ({
 }) => {
   const [expanded, setExpanded] = useState<string | false>("General");
 
-  if (!properties || Object.keys(properties).length === 0) {
-    return null;
-  }
-
   // Helper to check if a value is empty
   const isEmpty = (value: any): boolean => {
     return value === undefined || value === null || value === "";
   };
-
-  const handleAccordionChange =
-    (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
-      setExpanded(isExpanded ? panel : false);
-    };
 
   // Format property key for display (human-readable)
   const formatKey = (key: string): string => {
@@ -158,6 +149,16 @@ const CesiumFeatureProperties: React.FC<CesiumFeaturePropertiesProps> = ({
     () => categorizeProperties(properties),
     [properties, showEmptyFields]
   );
+
+  const handleAccordionChange =
+    (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
+      setExpanded(isExpanded ? panel : false);
+    };
+
+  // Early return after all hooks are called
+  if (!properties || Object.keys(properties).length === 0) {
+    return null;
+  }
 
   return (
     <Box

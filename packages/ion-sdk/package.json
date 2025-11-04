@@ -3,14 +3,22 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./*": {
+      "import": "./dist/*.js",
+      "types": "./dist/*.d.ts"
     }
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "react-toastify": "^11.0.3",
     "@types/three": "^0.170.0",
@@ -24,8 +32,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "clean": "cd ../.. && pnpm clean",
-    "build": "pnpm clean && tsc -p tsconfig.json && cp -R src/vendor dist/",
-    "dev": "tsc -w -p tsconfig.json"
+    "clean": "rimraf dist *.tsbuildinfo",
+    "build": "tsup",
+    "dev": "tsup --watch"
   }
 }

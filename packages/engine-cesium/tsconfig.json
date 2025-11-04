@@ -1,33 +1,16 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.lib.base.json",
   "compilerOptions": {
-    "outDir": "./dist",
     "rootDir": "./src",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "emitDeclarationOnly": false,
+    "outDir": "./dist",
+    "noEmit": true,
     "jsx": "react-jsx",
-    "skipLibCheck": true,
-    "allowJs": false,
-    "module": "ESNext",
+    "module": "ES2020",
     "moduleResolution": "Bundler",
-    "target": "ES2020",
-    "types": ["node"],
-    "noImplicitAny": false,
-    "noEmit": false,
-    "baseUrl": ".",
-    "paths": {
-      "@envisio/core": ["../core/dist/index"],
-      "@envisio/core/*": ["../core/dist/*"],
-      "@envisio/ui": ["../ui/dist/index"],
-      "@envisio/ui/*": ["../ui/dist/*"],
-      "@envisio/config": ["../config/dist/index"],
-      "@envisio/config/*": ["../config/dist/*"],
-      "@envisio/ion-sdk": ["../ion-sdk/dist/index"],
-      "@envisio/ion-sdk/*": ["../ion-sdk/dist/*"]
-    }
+    "skipLibCheck": true,
+    "strict": true,
+    "sourceMap": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*", "tests/**/*.typecheck.ts"],
+  "exclude": ["dist", "node_modules", "**/*.test.*", "**/*.spec.*"]
 }

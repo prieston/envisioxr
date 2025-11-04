@@ -3,7 +3,7 @@ import * as Cesium from "cesium";
 import { SimulationMode, SimulationParams } from "../types";
 import { SIMULATION_MODES } from "../constants";
 import { useFirstPersonWalk } from "./useFirstPersonWalk";
-import { createLogger } from "../../utils/logger";
+import { createLogger } from "@envisio/core";
 
 /**
  * Hook for managing simulation state and animation

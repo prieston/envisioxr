@@ -2,8 +2,10 @@
  * Constants for sensor configuration
  */
 
-// Debug flag to gate console logs
-export const DEBUG = false; // Set to true for verbose logging
+// DEBUG_SENSORS is a compile-time constant defined via DefinePlugin
+// In production, this evaluates to false and all sensor debug code is eliminated
+declare const DEBUG_SENSORS: boolean;
+export const DEBUG = typeof DEBUG_SENSORS !== 'undefined' ? DEBUG_SENSORS : false;
 
 // Maximum FOV per cone (Cesium limitation)
 export const MAX_CONE_FOV_DEG = 179.9;

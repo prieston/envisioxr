@@ -6,7 +6,7 @@ import {
   OpenWith,
   RotateRight,
 } from "@mui/icons-material";
-import { SettingContainer, SettingLabel } from "../SettingRenderer.styles";
+import { SettingContainer, SettingLabel } from "@envisio/ui";
 
 interface ObjectActionsSectionProps {
   onFlyToObject: () => void;

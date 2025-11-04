@@ -1,5 +1,5 @@
 import { useRef, useCallback } from "react";
-import { createLogger } from "../../utils/logger";
+import { createLogger } from "@envisio/core";
 
 /**
  * Hook for managing keyboard input state

@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { Divider, IconButton } from "@mui/material";
-import LogoHeader from "./LogoHeader.tsx";
+import LogoHeader from "./LogoHeader";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import { getTopBarConfig } from "@envisio/config/factory";
 import TopBarToolRenderer from "./TopBarToolRenderer";
@@ -11,7 +11,7 @@ import {
   ToolbarContainer,
   LeftSection,
   RightSection,
-} from "./StyledComponents.tsx";
+} from "./StyledComponents";
 import { PublishDialog } from "@envisio/ui";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import UserAccountMenu from "./UserAccountMenu";

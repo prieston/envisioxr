@@ -1,8 +1,11 @@
 import React, { memo, useCallback } from "react";
 import { Alert, Button, Collapse } from "@mui/material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
+import { createLogger } from "@envisio/core";
 import { flyToCesiumPosition } from "@envisio/engine-cesium";
 import { flyToThreeObject } from "@envisio/engine-three/components";
+
+const logger = createLogger("ObjectPropertiesView");
 import { ScrollContainer } from "../components/ScrollContainer";
 import ObjectActionsSection from "../../ObjectActionsSection";
 import ModelInformationSection from "../../ModelInformationSection";
@@ -70,13 +73,13 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
           flyToCesiumIonAsset(target.id);
           return;
         }
-        console.warn("Cesium Ion asset not found:", selectedObject.assetId);
+        logger.warn("Cesium Ion asset not found:", selectedObject.assetId);
         // Fall through to position if available
       }
 
       if (engine === "cesium") {
         if (!cesiumViewer) {
-          console.warn("Cesium viewer not available");
+          logger.warn("Cesium viewer not available");
           return;
         }
 
@@ -96,7 +99,7 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
             alt as number
           );
         } else {
-          console.warn("No valid coordinates to fly to");
+          logger.warn("No valid coordinates to fly to");
         }
         return;
       }
@@ -109,7 +112,7 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
       if (modelRef && orbitControlsRef) {
         flyToThreeObject(modelRef, orbitControlsRef);
       } else {
-        console.warn("Three.js object/ref not available to fly to");
+        logger.warn("Three.js object/ref not available to fly to");
       }
     }, [
       isCesiumIonAsset,

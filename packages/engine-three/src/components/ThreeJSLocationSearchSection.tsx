@@ -3,7 +3,7 @@ import { Typography, FormControlLabel, Switch, Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useSceneStore } from "@envisio/core";
 import { LocationSearch } from "@envisio/ui";
-import { CesiumIonAssetsManager } from "@envisio/engine-cesium/components";
+import { CesiumIonAssetsManager } from "@envisio/engine-cesium";
 
 const Container = styled(Box)(({ theme }) => ({
   "& > *:not(:last-child)": {

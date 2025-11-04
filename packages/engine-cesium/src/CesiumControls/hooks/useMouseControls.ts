@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import * as Cesium from "cesium";
 import { MOUSE_SENSITIVITY } from "../constants";
-import { createLogger } from "../../utils/logger";
+import { createLogger } from "@envisio/core";
 
 /**
  * Hook for managing mouse movement in first-person mode

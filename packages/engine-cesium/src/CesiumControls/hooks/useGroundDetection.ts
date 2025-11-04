@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import * as Cesium from "cesium";
 import { GroundDetectionResult } from "../types";
-import { createLogger } from "../../utils/logger";
+import { createLogger } from "@envisio/core";
 
 /**
  * Hook for ground detection and terrain interaction

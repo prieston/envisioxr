@@ -8,9 +8,10 @@ import PlaybackManager from "./PlaybackManager";
 const Scene = dynamic(() => import("@envisio/engine-three"), {
   ssr: false,
 });
-const CesiumViewer = dynamic(() => import("@envisio/engine-cesium"), {
-  ssr: false,
-});
+const CesiumViewer = dynamic(
+  () => import("@envisio/engine-cesium").then(m => m.CesiumViewer),
+  { ssr: false }
+);
 const CesiumObjectTransformEditor = dynamic(
   () =>
     import("@envisio/engine-cesium").then((m) => ({

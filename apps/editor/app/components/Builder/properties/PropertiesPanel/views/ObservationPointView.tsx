@@ -2,12 +2,15 @@ import React, { memo, useCallback } from "react";
 import { Box, Button, TextField } from "@mui/material";
 import { Camera, FlightTakeoff } from "@mui/icons-material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
+import { createLogger } from "@envisio/core";
 import { flyToCesiumPosition } from "@envisio/engine-cesium";
 import { textFieldStyles } from "@envisio/ui";
+
+const logger = createLogger("ObservationPointView");
 import {
   SettingContainer,
   SettingLabel,
-} from "../../../SettingRenderer.styles";
+} from "@envisio/ui";
 import { ScrollContainer } from "../components/ScrollContainer";
 import { InputLabel, InfoText } from "../components/PropertyComponents";
 import { ObservationPoint } from "../../types";
@@ -50,14 +53,14 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
 
     const handleFlyToObservation = useCallback(() => {
       if (!hasVec3(selectedObservation.position)) {
-        console.warn("Invalid observation position");
+        logger.warn("Invalid observation position");
         return;
       }
 
       if (engine === "cesium" && cesiumViewer) {
         const Cesium = (window as any).Cesium;
         if (!Cesium) {
-          console.warn("Cesium not available");
+          logger.warn("Cesium not available");
           return;
         }
 

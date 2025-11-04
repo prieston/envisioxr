@@ -1,5 +1,5 @@
 import * as Cesium from "cesium";
-import { createLogger } from "../../utils/logger";
+import { createLogger } from "@envisio/core";
 
 /** Interface that all controllers implement */
 export interface IBaseCameraController {

@@ -16,7 +16,7 @@ import {
 import { SimulationMode } from "../CesiumControls/types";
 import { useSceneStore } from "@envisio/core";
 import { useCameraControllerManager } from "../CesiumControls/hooks/useCameraControllerManager";
-import { createLogger } from "../utils/logger";
+import { createLogger } from "@envisio/core";
 
 const logger = createLogger("CesiumViewModeControls");
 import {

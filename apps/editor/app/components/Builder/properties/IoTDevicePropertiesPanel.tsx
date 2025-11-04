@@ -50,10 +50,6 @@ interface WeatherData {
  */
 const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
   ({ selectedObject, onPropertyChange, geographicCoords }) => {
-    if (!selectedObject) {
-      return null;
-    }
-
     // Read iotProperties directly from store to ensure switch updates
     const storeIotProps = useSceneStore((state) => {
       const obj = state.objects.find((o) => o.id === selectedObject?.id);
@@ -72,27 +68,6 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
       showInScene: true,
       displayFormat: "compact",
       autoRefresh: true,
-    };
-
-    const handlePropertyChange = (property: string, value: any) => {
-      // If enabling IoT for the first time, initialize all properties
-      if (
-        property === "enabled" &&
-        value === true &&
-        !selectedObject.iotProperties
-      ) {
-        onPropertyChange("iotProperties", {
-          enabled: true,
-          serviceType: "weather",
-          apiEndpoint: "https://api.open-meteo.com/v1/forecast",
-          updateInterval: 2000,
-          showInScene: true,
-          displayFormat: "compact",
-          autoRefresh: true,
-        });
-      } else {
-        onPropertyChange(`iotProperties.${property}`, value);
-      }
     };
 
     useEffect(() => {
@@ -121,6 +96,32 @@ const IoTDevicePropertiesPanel: React.FC<IoTDevicePropertiesPanelProps> = memo(
       weatherData,
       selectedObject?.id,
     ]);
+
+    // Early return after all hooks are called
+    if (!selectedObject) {
+      return null;
+    }
+
+    const handlePropertyChange = (property: string, value: any) => {
+      // If enabling IoT for the first time, initialize all properties
+      if (
+        property === "enabled" &&
+        value === true &&
+        !selectedObject.iotProperties
+      ) {
+        onPropertyChange("iotProperties", {
+          enabled: true,
+          serviceType: "weather",
+          apiEndpoint: "https://api.open-meteo.com/v1/forecast",
+          updateInterval: 2000,
+          showInScene: true,
+          displayFormat: "compact",
+          autoRefresh: true,
+        });
+      } else {
+        onPropertyChange(`iotProperties.${property}`, value);
+      }
+    };
 
     const getWindDirection = (degrees: number): string => {
       const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];

@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useThree } from "@react-three/fiber";
 import { useSceneStore, useWorldStore } from "@envisio/core";
-import { localToGeographic } from "@envisio/core/utils";
+import { localToGeographic } from "@envisio/core";
 import * as THREE from "three";
 
 type Vector3Tuple = [number, number, number];

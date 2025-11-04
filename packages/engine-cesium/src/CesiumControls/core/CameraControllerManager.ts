@@ -8,7 +8,7 @@ import { CarDriveController } from "../controllers/CarDriveController";
 import { DroneFlightController } from "../controllers/FlightController";
 import { SimulationMode } from "../types";
 import { SIMULATION_MODES } from "../constants";
-import { createLogger } from "../../utils/logger";
+import { createLogger } from "@envisio/core";
 
 /**
  * Camera controller manager for handling different simulation modes

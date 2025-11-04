@@ -14,7 +14,7 @@ import {
   CustomSettingContainer,
   SettingLabel,
   SettingDescription,
-} from "./SettingRenderer.styles";
+} from "@envisio/ui";
 import { PanelSetting } from "@envisio/core/types";
 import { getComponent } from "./ComponentRegistry";
 import { textFieldStyles, selectStyles, menuItemStyles } from "@envisio/ui";

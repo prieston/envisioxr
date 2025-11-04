@@ -1,7 +1,7 @@
 import "@/global.css";
 import "react-toastify/dist/ReactToastify.css";
-import { ThemeModeProvider } from "@envisio/ui";
 import { ToastContainer } from "react-toastify";
+import { ClientProviders } from "./providers";
 
 export const metadata = {
   title: "EnvisioXR | Public Preview",
@@ -32,7 +32,7 @@ export default function PublicLayout({ children }) {
         />
       </head>
       <body>
-        <ThemeModeProvider>{children}</ThemeModeProvider>
+        <ClientProviders>{children}</ClientProviders>
         <ToastContainer
           position="bottom-right"
           autoClose={3000}

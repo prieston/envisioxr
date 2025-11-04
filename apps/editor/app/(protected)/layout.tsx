@@ -2,10 +2,10 @@ import "@/global.css";
 import "react-toastify/dist/ReactToastify.css";
 import { redirect } from "next/navigation";
 import { ToastContainer } from "react-toastify";
-import { ThemeModeProvider } from "@envisio/ui";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { SessionProviderWrapper } from "@/app/components/SessionProviderWrapper";
+import { ClientProviders } from "./providers";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +59,7 @@ export default async function ProtectedLayout({
       </head>
       <body>
         <SessionProviderWrapper session={session}>
-          <ThemeModeProvider>{children}</ThemeModeProvider>
+          <ClientProviders>{children}</ClientProviders>
           <ToastContainer
             position="bottom-right"
             autoClose={3000}

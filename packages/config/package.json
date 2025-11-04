@@ -3,8 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "sideEffects": false,
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -53,8 +56,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "clean": "cd ../.. && pnpm clean",
-    "build": "pnpm clean && tsc",
-    "dev": "tsc --watch"
+    "clean": "rimraf dist *.tsbuildinfo",
+    "build": "tsup",
+    "dev": "tsup --watch"
   }
 }

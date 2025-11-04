@@ -1,10 +1,13 @@
 import React from "react";
 import { showToast } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
+import { createLogger } from "@envisio/core";
 import * as THREE from "three";
-import { localToGeographic } from "@envisio/core/utils";
+import { localToGeographic } from "@envisio/core";
 import { Description as DescriptionIcon } from "@mui/icons-material";
 import { ActionButton } from "@envisio/ui";
+
+const logger = createLogger("ReportGenerator");
 
 interface ReportGeneratorProps {
   onClose?: () => void;
@@ -240,7 +243,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
             const data = await response.json();
             metadata = data.asset?.metadata;
           } catch (error) {
-            console.error("Error fetching metadata:", error);
+            logger.error("Error fetching metadata:", error);
           }
         }
 
@@ -470,7 +473,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
 
       reportWindow.document.close();
     } catch (error) {
-      console.error("Error generating report:", error);
+      logger.error("Error generating report:", error);
       showToast("Error generating report");
     }
   };

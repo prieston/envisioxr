@@ -4,30 +4,38 @@
   "private": true,
   "type": "module",
   "sideEffects": false,
-  "files": ["dist/**", "README.md", "LICENSE"],
+  "files": [
+    "dist/**",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils/index.js"
+      "import": "./dist/utils/index.js",
+      "types": "./dist/utils/index.d.ts"
     },
-    "./state": {
-      "types": "./dist/state/index.d.ts",
-      "import": "./dist/state/index.js"
+    "./utils/*": {
+      "import": "./dist/utils/*.js",
+      "types": "./dist/utils/*.d.ts"
     },
     "./types": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js"
+      "import": "./dist/types/index.js",
+      "types": "./dist/types/index.d.ts"
     },
-    "./services": {
-      "types": "./dist/services/index.d.ts",
-      "import": "./dist/services/index.js"
+    "./types/*": {
+      "import": "./dist/types/*.js",
+      "types": "./dist/types/*.d.ts"
+    },
+    "./*": {
+      "import": "./dist/*.js",
+      "types": "./dist/*.d.ts"
     }
   },
   "dependencies": {
@@ -44,7 +52,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "clean": "cd ../.. && pnpm clean",
-    "build": "pnpm clean && tsc -p tsconfig.json"
+    "clean": "rimraf dist *.tsbuildinfo",
+    "build": "tsup"
   }
 }

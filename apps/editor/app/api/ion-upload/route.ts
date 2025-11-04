@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 
+// Use console directly in API routes (server-side code)
+const logger = {
+  debug: (...args: unknown[]) => console.debug("[IonUpload]", ...args),
+  info: (...args: unknown[]) => console.info("[IonUpload]", ...args),
+  warn: (...args: unknown[]) => console.warn("[IonUpload]", ...args),
+  error: (...args: unknown[]) => console.error("[IonUpload]", ...args),
+};
+
 // Force Node.js runtime (not Edge) for better fetch/FormData support
 export const runtime = "nodejs";
 
@@ -210,22 +218,19 @@ export async function POST(request: NextRequest) {
     // Step 1: Create a new asset on Cesium Ion using user's token
     const createAssetResponse = await fetch(endpoint, requestInit);
 
-    // eslint-disable-next-line no-console
-    console.log("Cesium Ion response status:", createAssetResponse.status);
-    // eslint-disable-next-line no-console
-    console.log("Cesium Ion response URL:", createAssetResponse.url);
-    // eslint-disable-next-line no-console
-    console.log(
+    logger.debug("Cesium Ion response status:", createAssetResponse.status);
+    logger.debug("Cesium Ion response URL:", createAssetResponse.url);
+    logger.debug(
       "Cesium Ion response headers:",
       Object.fromEntries(createAssetResponse.headers.entries())
     );
 
     if (!createAssetResponse.ok) {
       const errorText = await createAssetResponse.text();
-      console.error("Cesium Ion asset creation failed:");
-      console.error("Status:", createAssetResponse.status);
-      console.error("Response:", errorText);
-      console.error("Payload sent:", JSON.stringify(assetPayload, null, 2));
+      logger.error("Cesium Ion asset creation failed:");
+      logger.error("Status:", createAssetResponse.status);
+      logger.error("Response:", errorText);
+      logger.error("Payload sent:", JSON.stringify(assetPayload, null, 2));
 
       return NextResponse.json(
         {
@@ -239,8 +244,7 @@ export async function POST(request: NextRequest) {
 
     // Parse and log the raw Ion response for debugging
     const rawText = await createAssetResponse.text();
-    // eslint-disable-next-line no-console
-    console.log("🔍 ION RAW RESPONSE:", rawText);
+    logger.debug("🔍 ION RAW RESPONSE:", rawText);
 
     const ionResponse: CesiumIonAssetResponse = JSON.parse(rawText);
 
@@ -261,12 +265,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // eslint-disable-next-line no-console
-    console.log("✅ Asset created with ID:", assetId);
+    logger.info("✅ Asset created with ID:", assetId);
 
     // Log the parsed data structure
-    // eslint-disable-next-line no-console
-    console.log("📦 Parsed Ion Response:", {
+    logger.debug("📦 Parsed Ion Response:", {
       assetId,
       hasAssetMetadata: !!ionResponse.assetMetadata,
       uploadLocationKeys: Object.keys(ionResponse.uploadLocation || {}),

@@ -14,6 +14,9 @@ import {
   DEFAULT_VISIBLE_ALPHA,
   DEFAULT_OCCLUDED_COLOR_BYTES,
 } from "./constants";
+import { createLogger } from "@envisio/core";
+
+const logger = createLogger("Sensors");
 
 export interface ConicSensorOptions {
   viewer: any;
@@ -47,12 +50,13 @@ export function createConicSensor(opts: ConicSensorOptions): IonSensor {
     DEFAULT_OCCLUDED_COLOR_BYTES.a
   );
 
-  DEBUG && console.log(`[createConicSensor] FOV: ${opts.fovDeg}°`);
-  DEBUG &&
-    console.log(`[createConicSensor] sensorColor:`, opts.sensorColor.toBytes());
-  DEBUG &&
-    console.log(`[createConicSensor] volume alpha:`, DEFAULT_VOLUME_ALPHA);
-  DEBUG && console.log(`[createConicSensor] volume color:`, volume.toBytes());
+  // Sensor debug logging (only if DEBUG_SENSORS compile-time flag is true)
+  if (DEBUG && logger.sensors) {
+    logger.sensors(`FOV: ${opts.fovDeg}°`);
+    logger.sensors(`sensorColor:`, opts.sensorColor.toBytes());
+    logger.sensors(`volume alpha:`, DEFAULT_VOLUME_ALPHA);
+    logger.sensors(`volume color:`, volume.toBytes());
+  }
 
   // Clamp to 179.9° max
   const clampedFull = Math.max(1, Math.min(MAX_CONE_FOV_DEG, opts.fovDeg));

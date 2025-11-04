@@ -55,10 +55,12 @@
     "@react-three/drei": ">=9.92.0",
     "@react-three/rapier": ">=1",
     "@react-three/xr": ">=6",
-    "three": ">=0.170.0 <1",
-    "@envisio/core": "workspace:*"
+    "three": ">=0.170.0 <1"
   },
   "dependencies": {
+    "@envisio/core": "workspace:*",
+    "@envisio/ui": "workspace:*",
+    "@envisio/engine-cesium": "workspace:*",
     "@types/node": "^20.11.30",
     "@types/three": "^0.170.0",
     "@types/uuid": "^9.0.8",
@@ -66,8 +68,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "clean": "cd ../.. && pnpm clean",
-    "build": "pnpm clean && tsc -p tsconfig.json",
-    "dev": "tsc -w -p tsconfig.json"
+    "clean": "rimraf dist *.tsbuildinfo",
+    "build": "tsup",
+    "dev": "tsup --watch"
   }
 }

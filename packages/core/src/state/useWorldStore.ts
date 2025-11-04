@@ -1,5 +1,5 @@
 import { createWithEqualityFn as create } from "zustand/traditional";
-import type { World, Engine } from "@envisio/core/types";
+import type { World, Engine } from "../types";
 
 interface WorldState {
   activeWorld: World | null;

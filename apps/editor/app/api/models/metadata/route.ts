@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma.ts";
+import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
 
 // PATCH: Update asset (name, description, metadata, thumbnail)

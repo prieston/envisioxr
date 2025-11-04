@@ -5,6 +5,7 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 import withPWA from '@ducanh2912/next-pwa';
 
 const require = createRequire(import.meta.url);
+const webpack = require('webpack');
 
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -35,6 +36,19 @@ const nextConfig = {
     CESIUM_BASE_URL: '/cesium',
   },
   webpack(config, { isServer, webpack: _webpack }) {
+    // Define compile-time constants for dead-code elimination
+    const isDev = process.env.NODE_ENV === 'development';
+    const isProd = process.env.NODE_ENV === 'production';
+
+    config.plugins = config.plugins || [];
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        __DEV__: JSON.stringify(isDev),
+        __LOG_LEVEL__: JSON.stringify(isDev ? 'debug' : 'warn'),
+        DEBUG_SENSORS: JSON.stringify(process.env.DEBUG_SENSORS === 'true'),
+      })
+    );
+
     config.resolve = {
       ...config.resolve,
       alias: {

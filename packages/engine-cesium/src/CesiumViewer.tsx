@@ -252,8 +252,10 @@ export default function CesiumViewer() {
         if (!window.CESIUM_BASE_URL) {
           // CESIUM_BASE_URL not set, using default
           window.CESIUM_BASE_URL = "/cesium/";
-          // Log warning in development if misconfigured
-          if (process.env.NODE_ENV === "development") {
+          // Log warning in development if misconfigured (uses compile-time flag)
+          // @ts-ignore - __DEV__ is defined at compile time via webpack DefinePlugin
+          if (typeof __DEV__ !== 'undefined' && __DEV__) {
+            // eslint-disable-next-line no-console
             console.warn(
               "[CesiumViewer] CESIUM_BASE_URL not set via env, using default '/cesium/'. " +
               "Set NEXT_PUBLIC_CESIUM_BASE_URL or ensure env.CESIUM_BASE_URL is configured."

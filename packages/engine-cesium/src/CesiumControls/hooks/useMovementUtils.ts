@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import * as Cesium from "cesium";
 import { MovementVector, SimulationParams } from "../types";
 import { MOVEMENT_KEYS, ROTATION_KEYS, ANIMATION_TIMING } from "../constants";
-import { createLogger } from "../../utils/logger";
+import { createLogger } from "@envisio/core";
 
 /**
  * Hook for movement utility functions

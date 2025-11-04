@@ -11,22 +11,30 @@ export default function useModelLoader(
   url: string | undefined,
   type: string = "glb"
 ) {
+  // Always call hooks unconditionally - use a dummy URL if none provided
+  const dummyUrl = url || "";
+
+  // Always call both hooks to satisfy React Hooks rules
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const rhinoResult = useLoader(Rhino3dmLoader as any, dummyUrl, (loader: any) => {
+    loader.setLibraryPath("https://cdn.jsdelivr.net/npm/rhino3dm@8.4.0/");
+    if (
+      loader.fileLoader &&
+      typeof loader.fileLoader.setResponseType === "function"
+    ) {
+      loader.fileLoader.setResponseType("arraybuffer");
+    }
+  });
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const gltfResult = useLoader(GLTFLoader as any, dummyUrl);
+
+  // Return null if no URL provided
   if (!url) {
     console.warn("No URL provided to useModelLoader");
     return null;
   }
 
-  if (type === "3dm") {
-    return useLoader(Rhino3dmLoader as any, url, (loader: any) => {
-      loader.setLibraryPath("https://cdn.jsdelivr.net/npm/rhino3dm@8.4.0/");
-      if (
-        loader.fileLoader &&
-        typeof loader.fileLoader.setResponseType === "function"
-      ) {
-        loader.fileLoader.setResponseType("arraybuffer");
-      }
-    });
-  }
-
-  return useLoader(GLTFLoader as any, url);
+  // Return the appropriate result based on type
+  return type === "3dm" ? rhinoResult : gltfResult;
 }

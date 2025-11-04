@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma.ts";
+import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
 import { serverEnv } from "@/lib/env/server";
 

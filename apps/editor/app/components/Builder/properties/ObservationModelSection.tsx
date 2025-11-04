@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from "react";
 import { Box, Switch, FormControlLabel } from "@mui/material";
-import { SettingContainer, SettingLabel } from "../SettingRenderer.styles";
+import { SettingContainer, SettingLabel } from "@envisio/ui";
 import SDKObservationPropertiesPanel from "./SDKObservationPropertiesPanel";
 import { ModelObject } from "./types";
 import { useSceneStore } from "@envisio/core";

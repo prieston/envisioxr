@@ -1,19 +1,16 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.lib.base.json",
   "compilerOptions": {
-    "outDir": "./dist",
     "rootDir": "./src",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    "outDir": "./dist",
+    "noEmit": true,
     "jsx": "react-jsx",
-    "skipLibCheck": true,
-    "module": "ESNext",
+    "module": "ES2020",
     "moduleResolution": "Bundler",
-    "target": "ES2020",
-    "noEmit": false
+    "skipLibCheck": true,
+    "strict": true,
+    "sourceMap": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules", "**/*.test.*"]
 }
-
