@@ -138,10 +138,13 @@ checkTypeSafety();
 const failures = violations.filter((v) => v.severity === "fail");
 const warnings = violations.filter((v) => v.severity === "warn");
 
-// In pre-commit, only fail on Builder components (new code)
-// Existing technical debt in packages is tracked but doesn't block commits
+// In pre-commit/Vercel builds, only fail on Builder components (new code)
+// Existing technical debt in packages is tracked but doesn't block builds
+// In CI, fail on all exported API violations
 const isPreCommit = process.env.HUSKY === "1" || process.env.GIT_HOOK === "1";
-const criticalFailures = isPreCommit
+const isVercel = process.env.VERCEL === "1" || process.env.VERCEL_ENV !== undefined;
+
+const criticalFailures = isPreCommit || isVercel
   ? failures.filter((v) => v.file.includes("apps/editor/app/components/Builder/"))
   : failures;
 
@@ -153,7 +156,7 @@ if (criticalFailures.length > 0 || warnings.length > 0) {
     });
   }
 
-  if (warnings.length > 0 && !isPreCommit) {
+  if (warnings.length > 0 && !isPreCommit && !isVercel) {
     console.log(`\n⚠️  Found ${warnings.length} warning(s):\n`);
     // Show top 20 warnings
     warnings.slice(0, 20).forEach((v) => {
