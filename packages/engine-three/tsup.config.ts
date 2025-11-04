@@ -1,10 +1,17 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: [
+    'src/index.ts',
+    'src/components/index.ts',
+    'src/components/ModelPreview.tsx',
+  ],
   outDir: 'dist',
   format: ['esm'],
-  dts: { entry: 'src/index.ts', resolve: false },
+  dts: {
+    entry: ['src/index.ts', 'src/components/index.ts', 'src/components/ModelPreview.tsx'],
+    resolve: false
+  },
   sourcemap: true,
   treeshake: true,
   minify: true,
