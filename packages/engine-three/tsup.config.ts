@@ -5,11 +5,12 @@ export default defineConfig({
     'src/index.ts',
     'src/components/index.ts',
     'src/components/ModelPreview.tsx',
+    'src/utils/index.ts',
   ],
   outDir: 'dist',
   format: ['esm'],
   dts: {
-    entry: ['src/index.ts', 'src/components/index.ts', 'src/components/ModelPreview.tsx'],
+    entry: ['src/index.ts', 'src/components/index.ts', 'src/components/ModelPreview.tsx', 'src/utils/index.ts'],
     resolve: false
   },
   sourcemap: true,

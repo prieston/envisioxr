@@ -5,7 +5,8 @@ import { Alert, Button, Collapse } from "@mui/material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import { createLogger } from "@envisio/core";
 import { flyToCesiumPosition } from "@envisio/engine-cesium";
-import { flyToThreeObject } from "@envisio/engine-three/components";
+// Import from utils barrel to avoid pulling in 3d-tiles-renderer via components barrel
+import { flyToThreeObject } from "@envisio/engine-three/utils";
 
 const logger = createLogger("ObjectPropertiesView");
 import { ScrollContainer } from "../components/ScrollContainer";
