@@ -233,6 +233,11 @@ export default function CesiumViewer() {
         setIsLoading(true);
         setError(null);
 
+        // Ensure Ion SDK is loaded before creating viewer
+        // This ensures vendor modules are loaded exactly once during viewer initialization
+        const { ensureIonSDKLoaded } = await import("@envisio/ion-sdk");
+        await ensureIonSDKLoaded();
+
         // Dynamic import of Cesium with error handling
         let Cesium;
         try {

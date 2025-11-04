@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { loadIonSDK, getIonSDKModules } from "../../../index";
+import { getIonSDKModules } from "../../../index";
 
+/**
+ * Hook to initialize Ion SDK modules (sensors, geometry) after SDK is loaded.
+ * Note: SDK loading is handled by CesiumViewer initialization, this hook only
+ * initializes the modules that require additional setup.
+ */
 export function useIonSDKInitialization(cesiumViewer: any) {
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -10,10 +15,7 @@ export function useIonSDKInitialization(cesiumViewer: any) {
 
     const initializeIonSDK = async () => {
       try {
-        // Load vendor modules (client-only, SSR-safe)
-        await loadIonSDK();
-
-        // Initialize modules after loading
+        // SDK should already be loaded by CesiumViewer, but get modules safely
         const { IonSensors, IonGeometry } = await getIonSDKModules();
 
         // Initialize sensors module

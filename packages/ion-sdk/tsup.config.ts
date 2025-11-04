@@ -2,10 +2,10 @@ import { defineConfig } from 'tsup';
 import { execSync } from 'child_process';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/loader.ts'],
   outDir: 'dist',
   format: ['esm'],
-  dts: { entry: 'src/index.ts', resolve: false },
+  dts: { entry: ['src/index.ts', 'src/loader.ts'], resolve: false },
   sourcemap: true,
   treeshake: true,
   minify: true,

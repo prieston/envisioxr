@@ -212,6 +212,7 @@ const CesiumObjectTransformEditor: React.FC<
     const boundingSphere = new BoundingSphere(pos, 50.0);
 
     // Load TransformEditor dynamically (client-only)
+    // SDK is already loaded by CesiumViewer initialization
     (async () => {
       try {
         const { getIonSDKModules } = await import("@envisio/ion-sdk");
