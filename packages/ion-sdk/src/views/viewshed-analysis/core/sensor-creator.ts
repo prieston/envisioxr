@@ -21,7 +21,7 @@ interface CreateSensorParams {
   properties: ObservationProperties;
 }
 
-export function createSensor(params: CreateSensorParams) {
+export async function createSensor(params: CreateSensorParams) {
   const { viewer, position, rotation, properties } = params;
 
   const positionArray = normalizePositionArray(position);
@@ -61,7 +61,7 @@ export function createSensor(params: CreateSensorParams) {
   let sensor: any = null;
 
   if (properties.sensorType === "rectangle") {
-    sensor = createRectangularSensor({
+    sensor = await createRectangularSensor({
       viewer,
       modelMatrix,
       fovHdeg: properties.fovH ?? properties.fov ?? 60,
@@ -71,7 +71,7 @@ export function createSensor(params: CreateSensorParams) {
       include3DModels: properties.include3DModels,
     });
   } else {
-    sensor = createConicSensor({
+    sensor = await createConicSensor({
       viewer,
       modelMatrix,
       fovDeg: properties.fov ?? 60,

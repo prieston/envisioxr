@@ -15,7 +15,7 @@ import {
   ConstantProperty,
 } from "@cesium/engine";
 // Note: Viewer is imported from @cesium/widgets but we use the viewer from the store
-import { TransformEditor } from "@envisio/ion-sdk";
+// TransformEditor is now loaded dynamically via getIonSDKModules() to avoid SSR issues
 import { useSceneStore } from "@envisio/core";
 
 interface CesiumObjectTransformEditorProps {
@@ -161,6 +161,9 @@ const CesiumObjectTransformEditor: React.FC<
   useEffect(() => {
     if (!isInitialized || !selectedObject || !cesiumViewer) return;
 
+    let cancelled = false;
+    let animationId: number | null = null;
+
     // cleanup previous
     if (transformEditorRef.current) {
       try {
@@ -208,97 +211,115 @@ const CesiumObjectTransformEditor: React.FC<
     // Create a bounding sphere for the transform editor
     const boundingSphere = new BoundingSphere(pos, 50.0);
 
-    // Create the TransformEditor with proper options
-    const transformEditor: any = new (TransformEditor as any)({
-      container: container,
-      scene: cesiumViewer.scene,
-      transform: transform,
-      boundingSphere: boundingSphere,
-      pixelSize: 100,
-      maximumSizeInMeters: 50.0,
-    });
+    // Load TransformEditor dynamically (client-only)
+    (async () => {
+      try {
+        const { getIonSDKModules } = await import("@envisio/ion-sdk");
+        const { TransformEditor: TransformEditorClass } =
+          await getIonSDKModules();
 
-    // Set up the onChange callback
-    (transformEditor as any).viewModel.position = pos;
-    (transformEditor as any).viewModel.headingPitchRoll = hpr;
+        if (cancelled) return;
 
-    // Set up efficient change detection
-    let lastPosition = pos.clone();
-    let lastHPR = hpr.clone();
-    let lastScale = new Cartesian3(1, 1, 1);
-    let animationId: number | null = null;
+        // Create the TransformEditor with proper options
+        const transformEditor: any = new (TransformEditorClass as any)({
+          container: container,
+          scene: cesiumViewer.scene,
+          transform: transform,
+          boundingSphere: boundingSphere,
+          pixelSize: 100,
+          maximumSizeInMeters: 50.0,
+        });
 
-    const checkForChanges = () => {
-      // Skip one frame of change detection if we just updated the gizmo programmatically
-      if (suppressChangeRef.current) {
-        animationId = requestAnimationFrame(checkForChanges);
-        return;
-      }
-      if ((transformEditor as any).viewModel.active) {
-        const newPosition = (transformEditor as any).viewModel.position;
-        const newHPR = (transformEditor as any).viewModel.headingPitchRoll;
-        const newScale = (transformEditor as any).viewModel.scale;
+        // Set up the onChange callback
+        (transformEditor as any).viewModel.position = pos;
+        (transformEditor as any).viewModel.headingPitchRoll = hpr;
 
-        // Check for position changes
-        if (newPosition && !Cartesian3.equals(newPosition, lastPosition)) {
-          handleTransformChange({
-            translation: newPosition,
-            rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
-            scale: [newScale.x, newScale.y, newScale.z],
-          });
-          lastPosition = newPosition.clone();
-        }
+        // Set up efficient change detection
+        let lastPosition = pos.clone();
+        let lastHPR = hpr.clone();
+        let lastScale = new Cartesian3(1, 1, 1);
 
-        // Check for rotation changes
-        if (newHPR && !HeadingPitchRoll.equals(newHPR, lastHPR)) {
-          handleTransformChange({
-            translation: newPosition || lastPosition,
-            rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
-            scale: [newScale.x, newScale.y, newScale.z],
-          });
-          lastHPR = newHPR.clone();
-        }
+        const checkForChanges = () => {
+          if (cancelled) return;
 
-        // Check for scale changes
-        if (newScale && !Cartesian3.equals(newScale, lastScale)) {
-          handleTransformChange({
-            translation: newPosition || lastPosition,
-            rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
-            scale: [newScale.x, newScale.y, newScale.z],
-          });
-          lastScale = newScale.clone();
-        }
-      }
+          // Skip one frame of change detection if we just updated the gizmo programmatically
+          if (suppressChangeRef.current) {
+            animationId = requestAnimationFrame(checkForChanges);
+            return;
+          }
+          if ((transformEditor as any).viewModel.active) {
+            const newPosition = (transformEditor as any).viewModel.position;
+            const newHPR = (transformEditor as any).viewModel.headingPitchRoll;
+            const newScale = (transformEditor as any).viewModel.scale;
 
-      // Continue checking for changes
-      animationId = requestAnimationFrame(checkForChanges);
-    };
+            // Check for position changes
+            if (newPosition && !Cartesian3.equals(newPosition, lastPosition)) {
+              handleTransformChange({
+                translation: newPosition,
+                rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
+                scale: [newScale.x, newScale.y, newScale.z],
+              });
+              lastPosition = newPosition.clone();
+            }
 
-    // Start checking for changes
-    checkForChanges();
+            // Check for rotation changes
+            if (newHPR && !HeadingPitchRoll.equals(newHPR, lastHPR)) {
+              handleTransformChange({
+                translation: newPosition || lastPosition,
+                rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
+                scale: [newScale.x, newScale.y, newScale.z],
+              });
+              lastHPR = newHPR.clone();
+            }
 
-    // Configure the transform editor
-    (transformEditor as any).viewModel.setModeTranslation();
-    (transformEditor as any).viewModel.enableNonUniformScaling = true;
-    (transformEditor as any).viewModel.activate();
-
-    // Force initial render to show the gizmo
-    cesiumViewer.scene.requestRender();
-
-    // Store container reference for cleanup
-    (transformEditor as any)._container = container;
-
-    transformEditorRef.current = transformEditor;
-
-    return () => {
-      if (transformEditorRef.current) {
-        try {
-          // Cancel animation frame
-          if (animationId !== null) {
-            cancelAnimationFrame(animationId);
-            animationId = null;
+            // Check for scale changes
+            if (newScale && !Cartesian3.equals(newScale, lastScale)) {
+              handleTransformChange({
+                translation: newPosition || lastPosition,
+                rotation: [newHPR.heading, newHPR.pitch, newHPR.roll],
+                scale: [newScale.x, newScale.y, newScale.z],
+              });
+              lastScale = newScale.clone();
+            }
           }
 
+          // Continue checking for changes
+          if (!cancelled) {
+            animationId = requestAnimationFrame(checkForChanges);
+          }
+        };
+
+        // Start checking for changes
+        checkForChanges();
+
+        // Configure the transform editor
+        (transformEditor as any).viewModel.setModeTranslation();
+        (transformEditor as any).viewModel.enableNonUniformScaling = true;
+        (transformEditor as any).viewModel.activate();
+
+        // Force initial render to show the gizmo
+        cesiumViewer.scene.requestRender();
+
+        // Store container reference for cleanup
+        (transformEditor as any)._container = container;
+
+        transformEditorRef.current = transformEditor;
+      } catch (error) {
+        console.error(
+          "[CesiumObjectTransformEditor] Failed to load TransformEditor:",
+          error
+        );
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (animationId !== null) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+      if (transformEditorRef.current) {
+        try {
           // Destroy the transform editor
           transformEditorRef.current.destroy();
           if ((transformEditorRef.current as any)._container) {

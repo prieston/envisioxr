@@ -3,7 +3,7 @@
  */
 
 import * as Cesium from "cesium";
-import * as IonSensors from "../../vendor/cesium-ion-sdk/ion-sdk-sensors";
+import { getIonSDKModules } from "../../index";
 import { IonSensor } from "./types";
 import { requestRender, sanitizeFov } from "./helpers";
 import {
@@ -40,7 +40,10 @@ export interface RectangularSensorOptions {
 /**
  * Create a conic sensor (single cone up to 180°)
  */
-export function createConicSensor(opts: ConicSensorOptions): IonSensor {
+export async function createConicSensor(opts: ConicSensorOptions): Promise<IonSensor> {
+  // Load Ion SDK modules (client-only)
+  const { IonSensors } = await getIonSDKModules();
+
   const volume = opts.sensorColor.withAlpha(DEFAULT_VOLUME_ALPHA);
   const visible = opts.sensorColor.withAlpha(DEFAULT_VISIBLE_ALPHA);
   const occluded = Cesium.Color.fromBytes(
@@ -98,9 +101,12 @@ export function createConicSensor(opts: ConicSensorOptions): IonSensor {
 /**
  * Create a rectangular sensor
  */
-export function createRectangularSensor(
+export async function createRectangularSensor(
   opts: RectangularSensorOptions
-): IonSensor {
+): Promise<IonSensor> {
+  // Load Ion SDK modules (client-only)
+  const { IonSensors } = await getIonSDKModules();
+
   const xHalf = Cesium.Math.toRadians(sanitizeFov(opts.fovHdeg) / 2);
   const yHalf = Cesium.Math.toRadians(sanitizeFov(opts.fovVdeg) / 2);
   const mat = Cesium.Material.fromType("Color", {

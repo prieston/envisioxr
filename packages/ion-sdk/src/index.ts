@@ -2,40 +2,78 @@ export * from "./utils/sensors";
 export { default as ViewshedAnalysis } from "./views/ViewshedAnalysis";
 export * from "./lib/init";
 
-// Vendor modules are loaded lazily to prevent SSR errors
-// The vendor JS files execute code that redefines properties on prototypes
-// This causes "Cannot redefine property" errors during SSR
-// Components importing these should be marked with "use client"
+// Client-only dynamic loader for vendor Ion SDK modules
+// These modules modify global objects and must only load on the client, never during SSR
+let ionSDKLoaded = false;
+let loadingPromise: Promise<void> | null = null;
 
-// Stub exports for SSR - will be replaced at runtime on client
-export const TransformEditor = undefined as any;
-export const IonGeometry = {} as any;
-export const IonSensors = {} as any;
-export const IonMeasurements = {} as any;
+/**
+ * Load Ion SDK vendor modules (client-only).
+ * This function must be called from client components (inside useEffect).
+ * It safely guards against SSR execution and ensures modules only load once.
+ */
+export async function loadIonSDK(): Promise<void> {
+  // SSR guard - never load vendor code during server-side rendering
+  if (typeof window === "undefined") {
+    return;
+  }
 
-// Lazy load vendor modules only on client side
-if (typeof window !== "undefined") {
-  // Use dynamic import to load vendor modules only when needed
-  // This prevents the vendor code from executing during SSR
-  Promise.all([
-    import("./vendor/cesium-ion-sdk/ion-sdk-measurements/Source/TransformEditor/TransformEditor.js").catch(() => null),
-    import("./vendor/cesium-ion-sdk/ion-sdk-geometry/index.js").catch(() => null),
-    import("./vendor/cesium-ion-sdk/ion-sdk-sensors/index.js").catch(() => null),
-    import("./vendor/cesium-ion-sdk/ion-sdk-measurements/index.js").catch(() => null),
-  ]).then(([TransformEditorModule, IonGeometryModule, IonSensorsModule, IonMeasurementsModule]) => {
-    if (TransformEditorModule) {
-      Object.assign(TransformEditor, TransformEditorModule.default || TransformEditorModule);
+  // If already loaded, return immediately
+  if (ionSDKLoaded) {
+    return;
+  }
+
+  // If currently loading, return the existing promise
+  if (loadingPromise) {
+    return loadingPromise;
+  }
+
+  // Start loading vendor modules
+  loadingPromise = (async () => {
+    try {
+      // Dynamically import vendor modules (only on client)
+      await import("./vendor/cesium-ion-sdk/ion-sdk-sensors/index.js");
+      await import("./vendor/cesium-ion-sdk/ion-sdk-geometry/index.js");
+      await import("./vendor/cesium-ion-sdk/ion-sdk-measurements/index.js");
+      ionSDKLoaded = true;
+    } catch (error) {
+      console.error("[IonSDK] Failed to load vendor modules:", error);
+      loadingPromise = null; // Reset on error so it can be retried
+      throw error;
     }
-    if (IonGeometryModule) {
-      Object.assign(IonGeometry, IonGeometryModule);
-    }
-    if (IonSensorsModule) {
-      Object.assign(IonSensors, IonSensorsModule);
-    }
-    if (IonMeasurementsModule) {
-      Object.assign(IonMeasurements, IonMeasurementsModule);
-    }
-  }).catch(() => {
-    // Silently fail if vendor modules can't be loaded
-  });
+  })();
+
+  return loadingPromise;
+}
+
+/**
+ * Get Ion SDK modules (client-only, requires loadIonSDK() to be called first).
+ * These are type-safe wrappers that return the loaded modules.
+ */
+export async function getIonSDKModules() {
+  await loadIonSDK();
+
+  // @ts-ignore - Vendor JS files are not type-checked, only loaded at runtime
+  const TransformEditorModule = await import(
+    "./vendor/cesium-ion-sdk/ion-sdk-measurements/Source/TransformEditor/TransformEditor.js"
+  );
+  // @ts-ignore
+  const IonGeometryModule = await import(
+    "./vendor/cesium-ion-sdk/ion-sdk-geometry/index.js"
+  );
+  // @ts-ignore
+  const IonSensorsModule = await import(
+    "./vendor/cesium-ion-sdk/ion-sdk-sensors/index.js"
+  );
+  // @ts-ignore
+  const IonMeasurementsModule = await import(
+    "./vendor/cesium-ion-sdk/ion-sdk-measurements/index.js"
+  );
+
+  return {
+    TransformEditor: TransformEditorModule.default,
+    IonGeometry: IonGeometryModule,
+    IonSensors: IonSensorsModule,
+    IonMeasurements: IonMeasurementsModule,
+  };
 }

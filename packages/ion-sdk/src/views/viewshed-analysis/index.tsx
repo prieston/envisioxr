@@ -81,7 +81,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     cesiumViewer
   );
 
-  const createIonSDKSensor = useCallback(() => {
+  const createIonSDKSensor = useCallback(async () => {
     if (!isInitialized || !cesiumViewer) return;
 
     const shapeSig = currentShapeSig;
@@ -120,8 +120,8 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       }
       sensorRef.current = null;
 
-      // Create new sensor
-      const { sensor } = createSensor({
+      // Create new sensor (async - loads vendor SDK client-only)
+      const { sensor } = await createSensor({
         viewer: cesiumViewer,
         position,
         rotation,
