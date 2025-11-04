@@ -10,7 +10,7 @@ export interface TopBarTool {
   active?: boolean;
   onClick?: () => void;
   customComponent?: React.ComponentType<any> | string;
-  customProps?: Record<string, any>;
+  customProps?: Record<string, unknown>;
 }
 
 export interface TopBarSection {

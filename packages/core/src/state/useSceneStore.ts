@@ -99,7 +99,7 @@ interface SceneState {
   selectedObject: Model | null;
   selectedObservation: ObservationPoint | null;
   selectedCesiumFeature: {
-    properties: Record<string, any>;
+    properties: Record<string, unknown>;
     worldPosition?: any; // Cesium Cartesian3
     drillPickCount?: number; // Number of overlapping features (Shift+click)
   } | null;
@@ -215,7 +215,7 @@ interface SceneState {
   flyToCesiumIonAsset: (assetId: string) => void;
   setSelectedCesiumFeature: (
     feature: {
-      properties: Record<string, any>;
+      properties: Record<string, unknown>;
       worldPosition?: any;
       drillPickCount?: number;
     } | null

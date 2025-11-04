@@ -7,8 +7,16 @@ import { useSceneStore } from "@envisio/core";
  * to the scene store. This keeps the UI component framework-agnostic.
  */
 const SceneObjectsListWrapper: React.FC = () => {
-  // Use selectors to avoid re-renders when weatherData updates
-  const objects = useSceneStore((state) => state.objects);
+  // Optimize selector: only select minimal data needed for list items
+  // This prevents re-renders when object properties change (e.g., weatherData, position)
+  const objects = useSceneStore((state) =>
+    state.objects.map((obj) => ({
+      id: obj.id,
+      name: obj.name,
+      type: obj.type,
+      ref: obj.ref,
+    }))
+  );
   const selectObject = useSceneStore((state) => state.selectObject);
   const removeObject = useSceneStore((state) => state.removeObject);
   const deselectObject = useSceneStore((state) => state.deselectObject);

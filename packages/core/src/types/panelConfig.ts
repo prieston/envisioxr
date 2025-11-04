@@ -25,7 +25,7 @@ export interface PanelSetting {
   onChange?: (value: any) => void;
   onClick?: () => void;
   customComponent?: React.ComponentType<any> | string;
-  customProps?: Record<string, any>;
+  customProps?: Record<string, unknown>;
 }
 
 export interface PanelTab {
