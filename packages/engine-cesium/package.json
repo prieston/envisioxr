@@ -59,6 +59,7 @@
     "three": ">=0.170.0 <1",
     "@envisio/core": "workspace:*",
     "@envisio/ion-sdk": "workspace:*",
+    "@envisio/ui": "workspace:*",
     "@aws-sdk/client-s3": ">=3.884.0"
   },
   "dependencies": {
@@ -69,7 +70,9 @@
     "@types/three": "^0.170.0",
     "@types/uuid": "^9.0.8"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@envisio/ui": "workspace:*"
+  },
   "scripts": {
     "clean": "rimraf dist *.tsbuildinfo",
     "build": "tsup",

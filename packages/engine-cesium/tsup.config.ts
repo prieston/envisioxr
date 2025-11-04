@@ -21,6 +21,7 @@ export default defineConfig({
   external: [
     /^@envisio\/core$/,
     /^@envisio\/ion-sdk$/,
+    /^@envisio\/ui$/,
     /^react$/,
     /^react-dom$/,
     /^cesium$/,
