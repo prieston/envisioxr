@@ -1,3 +1,5 @@
+"use client";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import {
@@ -13,7 +15,8 @@ import AssetLibraryPanel from "../Builder/assets/AssetLibraryPanel";
 import LogoHeader from "../AppBar/LogoHeader";
 import ReportGenerator from "../Report/ReportGenerator";
 import BuilderActions from "../AppBar/BuilderActions";
-import { ThreeJSLocationSearchSection } from "@envisio/engine-three/components";
+// Import directly from component file to avoid pulling in 3d-tiles-renderer via barrel exports
+import { ThreeJSLocationSearchSection } from "@envisio/engine-three/components/ThreeJSLocationSearchSection";
 import {
   CesiumLocationSearchSection,
   CesiumBasemapSelector,
