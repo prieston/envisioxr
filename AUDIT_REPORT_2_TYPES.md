@@ -38,12 +38,12 @@
 
 ## Summary Table
 
-| Category | Count | Severity | Action |
-|----------|-------|----------|--------|
-| Acceptable (boundary APIs) | ~120 | ✅ Safe | None |
-| Questionable (JSON/dynamic) | ~150 | 🟡 Monitor | Migrate to `unknown` gradually |
-| Dangerous (props/core logic) | ~20 | 🔴 Fix | Fix HIGH priority items |
-| Unsafe casts (`as any`) | ~50 | 🟡 Improve | Replace with proper types |
+| Category                     | Count | Severity   | Action                         |
+| ---------------------------- | ----- | ---------- | ------------------------------ |
+| Acceptable (boundary APIs)   | ~120  | ✅ Safe    | None                           |
+| Questionable (JSON/dynamic)  | ~150  | 🟡 Monitor | Migrate to `unknown` gradually |
+| Dangerous (props/core logic) | ~20   | 🔴 Fix     | Fix HIGH priority items        |
+| Unsafe casts (`as any`)      | ~50   | 🟡 Improve | Replace with proper types      |
 
 ---
 
@@ -52,4 +52,3 @@
 **⚠️ Type system is functional but needs hardening.** The dangerous `any` usage in core editor components (`SceneCanvas`, `CesiumFeatureProperties`) should be fixed before adding new features.
 
 **Estimated Total Fix Time:** 4-6 hours for HIGH + MEDIUM priorities.
-

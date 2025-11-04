@@ -35,12 +35,12 @@
 
 ## Summary Table
 
-| Issue | Severity | Impact | Effort | Priority |
-|-------|----------|--------|--------|----------|
-| IoT weather fetching in component | 🔴 HIGH | High | 2h | Fix now |
-| `IoTDevicePropertiesPanel` too large | 🔴 HIGH | High | 3-4h | Fix now |
-| Inefficient Zustand selectors | 🟡 MEDIUM | Medium | 45m | Next cleanup |
-| `CesiumFeatureProperties` too large | 🟡 MEDIUM | Medium | 1-2h | Next cleanup |
+| Issue                                | Severity  | Impact | Effort | Priority     |
+| ------------------------------------ | --------- | ------ | ------ | ------------ |
+| IoT weather fetching in component    | 🔴 HIGH   | High   | 2h     | Fix now      |
+| `IoTDevicePropertiesPanel` too large | 🔴 HIGH   | High   | 3-4h   | Fix now      |
+| Inefficient Zustand selectors        | 🟡 MEDIUM | Medium | 45m    | Next cleanup |
+| `CesiumFeatureProperties` too large  | 🟡 MEDIUM | Medium | 1-2h   | Next cleanup |
 
 ---
 
@@ -55,4 +55,3 @@
 **Estimated Total Fix Time:** 8-10 hours for HIGH + MEDIUM priorities.
 
 **Critical Path:** Fix `IoTDevicePropertiesPanel` before adding new IoT features - it's already too complex.
-

@@ -166,6 +166,7 @@ export async function POST(request: NextRequest) {
 
     // Ion automatically determines the upload location
     // Do NOT add any query parameters (like assetRegion) - Cesium Ion doesn't support them on this endpoint
+    // Region is specified when requesting upload location, not when creating the asset
     const endpoint = "https://api.cesium.com/v1/assets";
 
     // Safety guard: ensure no assetRegion parameter sneaks in
@@ -189,6 +190,10 @@ export async function POST(request: NextRequest) {
       redirect: "manual", // Don't follow redirects that might add query params
     };
 
+    // Debug logging for sanity check
+    logger.debug("[ion] CREATE URL", endpoint); // must be https://api.cesium.com/v1/assets with NO query
+    logger.debug("[ion] CREATE BODY", JSON.stringify(assetPayload, null, 2)); // as above
+
     // eslint-disable-next-line no-console
     console.log(
       "📤 Outgoing Ion Request:",
@@ -208,12 +213,6 @@ export async function POST(request: NextRequest) {
         2
       )
     );
-    // eslint-disable-next-line no-console
-    console.log("📦 Payload:", JSON.stringify(assetPayload, null, 2));
-    // eslint-disable-next-line no-console
-    console.log("🔍 Request URL (should have NO query params):", endpoint);
-    // eslint-disable-next-line no-console
-    console.log("🔍 Request method:", requestInit.method);
 
     // Step 1: Create a new asset on Cesium Ion using user's token
     const createAssetResponse = await fetch(endpoint, requestInit);

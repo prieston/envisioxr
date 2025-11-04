@@ -8,10 +8,10 @@
 
 ## Summary of Issues
 
-| Severity | Issue | Location | Fix |
-|----------|-------|----------|-----|
-| 🟡 LOW | Direct `three` imports (type-only) | `ReportGenerator.tsx`, `useGeographicCoords.ts` | Use `import type` instead |
-| 🟡 LOW | Runtime `three` import in builder | `ModelPositioningManager.tsx` | Acceptable, but verify tree-shaking |
+| Severity | Issue                              | Location                                        | Fix                                 |
+| -------- | ---------------------------------- | ----------------------------------------------- | ----------------------------------- |
+| 🟡 LOW   | Direct `three` imports (type-only) | `ReportGenerator.tsx`, `useGeographicCoords.ts` | Use `import type` instead           |
+| 🟡 LOW   | Runtime `three` import in builder  | `ModelPositioningManager.tsx`                   | Acceptable, but verify tree-shaking |
 
 ---
 
@@ -23,8 +23,8 @@
 2. **Runtime `three` import** in `ModelPositioningManager.tsx` is acceptable (builder route) but verify it's tree-shaken if unused
 
 **Recommendation:**
+
 1. Fix type-only imports (15 minutes)
 2. Run `pnpm analyze:editor` to verify tree-shaking (10 minutes)
 
 **No blocking issues found.**
-
