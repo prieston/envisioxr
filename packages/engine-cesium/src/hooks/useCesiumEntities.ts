@@ -29,6 +29,7 @@ export function useCesiumEntities(
         rotation?: number[];
         scale?: number[];
         url?: string;
+        name?: string;
       }
     >
   >(new Map());
@@ -46,6 +47,7 @@ export function useCesiumEntities(
           rotation?: number[];
           scale?: number[];
           url?: string;
+          name?: string;
         }
       >();
 

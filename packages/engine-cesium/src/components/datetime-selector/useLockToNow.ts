@@ -13,6 +13,10 @@ export function useLockToNow({
   setIsPlaying,
 }: UseLockToNowOptions): void {
   const lockToNowIntervalRef = useRef<number | null>(null);
+  const setIsPlayingRef = useRef(setIsPlaying);
+
+  // Keep setIsPlaying ref up to date without causing re-renders
+  setIsPlayingRef.current = setIsPlaying;
 
   useEffect(() => {
     if (locked && cesiumViewer?.clock) {
@@ -21,7 +25,7 @@ export function useLockToNow({
       cesiumViewer.clock.currentTime = julianDate;
       cesiumViewer.clock.shouldAnimate = true;
       cesiumViewer.clock.multiplier = 1;
-      setIsPlaying(true);
+      setIsPlayingRef.current(true);
 
       lockToNowIntervalRef.current = window.setInterval(() => {
         if (cesiumViewer?.clock) {
@@ -43,5 +47,6 @@ export function useLockToNow({
         lockToNowIntervalRef.current = null;
       }
     }
-  }, [locked, cesiumViewer, setIsPlaying]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locked, cesiumViewer]);
 }
