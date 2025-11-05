@@ -104,7 +104,10 @@ export function applySensorStyle(
     rafCallbacks.delete(handle);
     timeoutCallbacks.delete(handle);
     // Verify handle is still valid before updating
-    if (!handle || (typeof handle.isDestroyed === "function" && handle.isDestroyed())) {
+    if (
+      !handle ||
+      (typeof handle.isDestroyed === "function" && handle.isDestroyed())
+    ) {
       return;
     }
     applySensorFlags(handle, properties, viewer);
