@@ -108,6 +108,8 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
       case "dropdown":
         return (
           <Select
+            id={setting.id || setting.key || `setting-${setting.type}`}
+            name={setting.id || setting.key || `setting-${setting.type}`}
             value={value ?? setting.defaultValue ?? ""}
             onChange={(e) => handleChange(e.target.value)}
             fullWidth
@@ -159,6 +161,8 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
       case "text":
         return (
           <TextField
+            id={setting.id || setting.key || `setting-${setting.type}`}
+            name={setting.id || setting.key || `setting-${setting.type}`}
             value={value ?? setting.defaultValue ?? ""}
             onChange={(e) => handleChange(e.target.value)}
             fullWidth
@@ -172,6 +176,8 @@ const SettingRenderer: React.FC<SettingRendererProps> = ({
       case "number":
         return (
           <TextField
+            id={setting.id || setting.key || `setting-${setting.type}`}
+            name={setting.id || setting.key || `setting-${setting.type}`}
             type="number"
             value={value ?? setting.defaultValue ?? 0}
             onChange={(e) => handleChange(Number(e.target.value))}

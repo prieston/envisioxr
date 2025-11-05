@@ -169,6 +169,8 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
               >
                 {editable ? (
                   <TextField
+                    id={`metadata-table-label-${index}`}
+                    name={`metadata-table-label-${index}`}
                     value={row.label}
                     onChange={(e) =>
                       handleChange(index, "label", e.target.value)
@@ -193,6 +195,8 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
               >
                 {editable ? (
                   <TextField
+                    id={`metadata-table-value-${index}`}
+                    name={`metadata-table-value-${index}`}
                     value={row.value}
                     onChange={(e) =>
                       handleChange(index, "value", e.target.value)

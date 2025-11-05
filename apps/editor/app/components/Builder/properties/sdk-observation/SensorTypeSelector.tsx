@@ -30,6 +30,8 @@ export const SensorTypeSelector: React.FC<SensorTypeSelectorProps> = ({
         Sensor Type
       </Typography>
       <Select
+        id="sensor-type"
+        name="sensor-type"
         value={value}
         onChange={(e) => {
           const sensorType = e.target.value as "cone" | "rectangle";

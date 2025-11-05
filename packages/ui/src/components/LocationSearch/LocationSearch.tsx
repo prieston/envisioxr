@@ -193,6 +193,8 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
     >
       <Box>
         <Input
+          id="location-search"
+          name="location-search"
           fullWidth
           placeholder="Search for a location..."
           value={searchQuery}

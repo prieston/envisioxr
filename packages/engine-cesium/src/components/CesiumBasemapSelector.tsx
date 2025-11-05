@@ -190,6 +190,8 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
       <SettingLabel>Basemap</SettingLabel>
       <FormControl fullWidth size="small">
         <Select
+          id="basemap-selector"
+          name="basemap-selector"
           value={selectedBasemap}
           onChange={(e) => handleBasemapChange(e.target.value as any)}
           disabled={disabled}

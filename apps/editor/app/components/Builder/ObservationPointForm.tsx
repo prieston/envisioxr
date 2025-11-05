@@ -8,8 +8,10 @@ const ObservationPointForm = () => {
   return (
     <Box sx={{ padding: 2 }}>
       <Typography variant="h6">Add Observation Point</Typography>
-      <TextField label="Name" fullWidth margin="normal" />
+      <TextField id="observation-name" name="observation-name" label="Name" fullWidth margin="normal" />
       <TextField
+        id="observation-description"
+        name="observation-description"
         label="Description"
         multiline
         rows={4}

@@ -175,6 +175,8 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
                   Name
                 </Typography>
                 <TextField
+                  id="asset-detail-name"
+                  name="asset-detail-name"
                   value={editedName}
                   onChange={(e) => onNameChange(e.target.value)}
                   size="small"
@@ -193,6 +195,8 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
                   Description
                 </Typography>
                 <TextField
+                  id="asset-detail-description"
+                  name="asset-detail-description"
                   value={editedDescription}
                   onChange={(e) => onDescriptionChange(e.target.value)}
                   size="small"

@@ -347,6 +347,8 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
             Name
           </Typography>
           <TextField
+            id="upload-model-name"
+            name="upload-model-name"
             value={friendlyName}
             onChange={(e) => setFriendlyName(e.target.value)}
             size="small"
@@ -367,6 +369,8 @@ const UploadModelTab: React.FC<UploadModelTabProps> = ({
             Description (Optional)
           </Typography>
           <TextField
+            id="upload-model-description"
+            name="upload-model-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             size="small"

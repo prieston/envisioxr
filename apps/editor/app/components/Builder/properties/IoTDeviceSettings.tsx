@@ -61,6 +61,8 @@ export const IoTDeviceSettings: React.FC<IoTDeviceSettingsProps> = ({
           Service Type
         </Typography>
         <Select
+          id="iot-service-type"
+          name="iot-service-type"
           value={iotProps.serviceType}
           onChange={(e) => onPropertyChange("serviceType", e.target.value)}
           fullWidth
@@ -94,6 +96,8 @@ export const IoTDeviceSettings: React.FC<IoTDeviceSettingsProps> = ({
           API Endpoint
         </Typography>
         <TextField
+          id="iot-api-endpoint"
+          name="iot-api-endpoint"
           fullWidth
           value={iotProps.apiEndpoint}
           onChange={(e) => onPropertyChange("apiEndpoint", e.target.value)}
@@ -263,6 +267,8 @@ export const IoTDeviceSettings: React.FC<IoTDeviceSettingsProps> = ({
               Display Format
             </Typography>
             <Select
+              id="iot-display-format"
+              name="iot-display-format"
               value={iotProps.displayFormat}
               onChange={(e) =>
                 onPropertyChange("displayFormat", e.target.value)

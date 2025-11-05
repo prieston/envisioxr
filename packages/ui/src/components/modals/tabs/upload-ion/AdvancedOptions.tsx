@@ -153,6 +153,8 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
               Geometric Compression
             </Typography>
             <Select
+              id="geometric-compression"
+              name="geometric-compression"
               fullWidth
               value={geometricCompression}
               onChange={(e) => onGeometricCompressionChange(e.target.value)}
@@ -180,6 +182,8 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
               EPSG Code (Optional)
             </Typography>
             <TextField
+              id="epsg-code"
+              name="epsg-code"
               fullWidth
               size="small"
               value={epsgCode}

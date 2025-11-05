@@ -13,7 +13,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
-import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
+import AdminAppBar from "@/app/components/AppBar/AdminAppBar.tsx";
 import { showToast } from "@envisio/ui";
 import { ToastContainer } from "react-toastify";
 
@@ -100,12 +100,16 @@ const EditProjectPage = () => {
           sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
           <TextField
+            id="project-title"
+            name="project-title"
             label="Project Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             fullWidth
           />
           <TextField
+            id="project-description"
+            name="project-description"
             label="Project Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}

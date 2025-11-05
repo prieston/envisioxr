@@ -74,6 +74,8 @@ export default function CesiumIonAssetsManager() {
         >
           <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
             <TextField
+              id="ion-asset-id"
+              name="ion-asset-id"
               size="small"
               label="Asset ID"
               value={assetIdInput}
@@ -81,6 +83,8 @@ export default function CesiumIonAssetsManager() {
               autoFocus
             />
             <TextField
+              id="ion-asset-name"
+              name="ion-asset-name"
               size="small"
               label="Name (optional)"
               value={assetNameInput}
@@ -88,6 +92,8 @@ export default function CesiumIonAssetsManager() {
             />
           </Box>
           <TextField
+            id="ion-api-key"
+            name="ion-api-key"
             size="small"
             label="Ion API Key (optional)"
             value={apiKeyInput}

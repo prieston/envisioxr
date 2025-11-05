@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, FormControl, TextField, Select, MenuItem } from "@mui/material";
+import { Box, FormControl, TextField, Select, MenuItem, useTheme } from "@mui/material";
 import {
   DateTimeContainer,
   InputSectionTitle,
@@ -29,35 +29,59 @@ export const DateTimeInputs: React.FC<DateTimeInputsProps> = ({
   onTimeChange,
   onTimezoneChange,
 }) => {
+  const theme = useTheme();
+
   return (
     <Box sx={{ mb: 1.5 }}>
       <InputSectionTitle>Set Date & Time</InputSectionTitle>
       <DateTimeContainer>
         <FormControl fullWidth size="small">
           <TextField
+            id="datetime-date"
+            name="datetime-date"
             type="date"
             value={dateValue}
             onChange={(e) => onDateChange(e.target.value)}
             disabled={disabled || locked}
             size="small"
-            sx={textFieldStyles}
+            sx={textFieldStyles(theme)}
+            InputLabelProps={{
+              sx: {
+                color:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.7)"
+                    : "rgba(51, 65, 85, 0.7)",
+              },
+            }}
           />
         </FormControl>
 
         <FormControl fullWidth size="small">
           <TextField
+            id="datetime-time"
+            name="datetime-time"
             type="time"
             value={timeValue}
             onChange={(e) => onTimeChange(e.target.value)}
             disabled={disabled || locked}
             size="small"
-            sx={textFieldStyles}
+            sx={textFieldStyles(theme)}
+            InputLabelProps={{
+              sx: {
+                color:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.7)"
+                    : "rgba(51, 65, 85, 0.7)",
+              },
+            }}
           />
         </FormControl>
       </DateTimeContainer>
 
       <FormControl fullWidth size="small" sx={{ mt: 1 }}>
         <Select
+          id="datetime-timezone"
+          name="datetime-timezone"
           value={useLocalTime ? "local" : "utc"}
           onChange={(e) => onTimezoneChange(e.target.value === "local")}
           disabled={disabled}

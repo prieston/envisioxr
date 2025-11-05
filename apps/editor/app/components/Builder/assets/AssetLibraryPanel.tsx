@@ -331,6 +331,8 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                 />
                 <Box sx={{ mt: 2 }}>
                   <TextField
+                    id="asset-friendly-name"
+                    name="asset-friendly-name"
                     label="Friendly Name"
                     fullWidth
                     value={friendlyName}

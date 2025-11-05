@@ -328,27 +328,87 @@ const JoystickSliderRoot = styled(Slider, {
 export const JoystickSlider =
   JoystickSliderRoot as ComponentType<JoystickSliderProps>;
 
-export const textFieldStyles = {
+export const textFieldStyles = (theme: any) => ({
   "& .MuiOutlinedInput-root": {
     minHeight: "38px",
     borderRadius: 4,
-    backgroundColor: "#14171A",
+    backgroundColor:
+      theme.palette.mode === "dark" ? "#14171A" : "rgba(255, 255, 255, 0.92)",
     fontSize: "0.75rem",
+    color: theme.palette.mode === "dark" ? "#ffffff" : "rgba(51, 65, 85, 0.95)",
     "& input": {
       padding: "8.5px 14px",
+      color: theme.palette.mode === "dark" ? "#ffffff" : "rgba(51, 65, 85, 0.95)",
+      "&::placeholder": {
+        color:
+          theme.palette.mode === "dark"
+            ? "rgba(255, 255, 255, 0.5)"
+            : "rgba(51, 65, 85, 0.5)",
+        opacity: 1,
+      },
+      // Style the native date/time picker icon (calendar/clock icon)
+      "&::-webkit-calendar-picker-indicator": {
+        filter: theme.palette.mode === "dark" ? "invert(1) brightness(0.7)" : "brightness(0.5)",
+        cursor: "pointer",
+        opacity: 0.7,
+        "&:hover": {
+          opacity: 1,
+        },
+      },
+      // For Firefox
+      "&::-moz-calendar-picker-indicator": {
+        filter: theme.palette.mode === "dark" ? "invert(1) brightness(0.7)" : "brightness(0.5)",
+        cursor: "pointer",
+        opacity: 0.7,
+        "&:hover": {
+          opacity: 1,
+        },
+      },
+    },
+    "& .MuiInputAdornment-root": {
+      "& .MuiSvgIcon-root": {
+        color:
+          theme.palette.mode === "dark"
+            ? "rgba(255, 255, 255, 0.7)"
+            : "rgba(51, 65, 85, 0.7)",
+      },
     },
     "& fieldset": {
-      borderColor: "rgba(255, 255, 255, 0.08)",
+      borderColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.08)"
+          : "rgba(226, 232, 240, 0.8)",
     },
     "&:hover fieldset": {
-      borderColor: "rgba(95, 136, 199, 0.4)",
+      borderColor:
+        theme.palette.mode === "dark"
+          ? "rgba(95, 136, 199, 0.4)"
+          : "rgba(95, 136, 199, 0.6)",
     },
     "&.Mui-focused fieldset": {
       borderColor: "var(--color-primary, #6B9CD8)",
       borderWidth: "2px",
     },
+    "&.Mui-disabled": {
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.05)"
+          : "rgba(0, 0, 0, 0.05)",
+      "& input": {
+        color:
+          theme.palette.mode === "dark"
+            ? "rgba(255, 255, 255, 0.3)"
+            : "rgba(51, 65, 85, 0.3)",
+      },
+      "& .MuiInputAdornment-root .MuiSvgIcon-root": {
+        color:
+          theme.palette.mode === "dark"
+            ? "rgba(255, 255, 255, 0.3)"
+            : "rgba(51, 65, 85, 0.3)",
+      },
+    },
   },
-} as const;
+});
 
 export const selectStyles = {
   minHeight: "38px",

@@ -43,6 +43,8 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           Asset Name *
         </Typography>
         <TextField
+          id="ion-asset-name"
+          name="ion-asset-name"
           fullWidth
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
@@ -65,6 +67,8 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           Description
         </Typography>
         <TextField
+          id="ion-asset-description"
+          name="ion-asset-description"
           fullWidth
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
@@ -89,6 +93,8 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           Cesium Ion Access Token *
         </Typography>
         <TextField
+          id="ion-access-token"
+          name="ion-access-token"
           fullWidth
           value={accessToken}
           onChange={(e) => onAccessTokenChange(e.target.value)}
@@ -122,6 +128,8 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           What kind of data is this?
         </Typography>
         <Select
+          id="ion-source-type"
+          name="ion-source-type"
           fullWidth
           value={sourceType}
           onChange={(e) => onSourceTypeChange(e.target.value)}
@@ -162,6 +170,8 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             Tileset JSON path
           </Typography>
           <TextField
+            id="ion-tileset-json"
+            name="ion-tileset-json"
             fullWidth
             value={tilesetJson}
             onChange={(e) => onTilesetJsonChange(e.target.value)}

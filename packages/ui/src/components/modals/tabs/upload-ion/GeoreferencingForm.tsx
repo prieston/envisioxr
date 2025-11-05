@@ -47,6 +47,8 @@ export const GeoreferencingForm: React.FC<GeoreferencingFormProps> = ({
             Longitude
           </Typography>
           <TextField
+            id="georef-longitude"
+            name="georef-longitude"
             fullWidth
             size="small"
             type="number"
@@ -70,6 +72,8 @@ export const GeoreferencingForm: React.FC<GeoreferencingFormProps> = ({
             Latitude
           </Typography>
           <TextField
+            id="georef-latitude"
+            name="georef-latitude"
             fullWidth
             size="small"
             type="number"
@@ -93,6 +97,8 @@ export const GeoreferencingForm: React.FC<GeoreferencingFormProps> = ({
             Height (m)
           </Typography>
           <TextField
+            id="georef-height"
+            name="georef-height"
             fullWidth
             size="small"
             type="number"

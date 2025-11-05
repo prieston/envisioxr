@@ -60,6 +60,8 @@ const ModelInformationSection: React.FC<ModelInformationSectionProps> = ({
             Name
           </Typography>
           <TextField
+            id="model-name"
+            name="model-name"
             value={localName}
             onChange={handleNameChange}
             onBlur={handleNameBlur}

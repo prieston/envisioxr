@@ -76,6 +76,8 @@ const ModelMetadataFields: React.FC<ModelMetadataFieldsProps> = ({
     return metadata.map((field, index) => (
       <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
         <TextField
+          id={`metadata-label-${index}`}
+          name={`metadata-label-${index}`}
           label="Label"
           size="small"
           value={field.label}
@@ -85,6 +87,8 @@ const ModelMetadataFields: React.FC<ModelMetadataFieldsProps> = ({
           sx={{ flex: 1 }}
         />
         <TextField
+          id={`metadata-value-${index}`}
+          name={`metadata-value-${index}`}
           label="Value"
           size="small"
           value={field.value}
