@@ -6,6 +6,12 @@
  * Creates viewer configuration options
  */
 export function createViewerOptions() {
+  // Detect mobile devices for optimization
+  const isMobile = typeof window !== "undefined" && (
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (window.innerWidth <= 768 && window.matchMedia("(max-width: 768px)").matches)
+  );
+
   return {
     // Disable all UI widgets and controls for better performance
     animation: false,
@@ -22,7 +28,8 @@ export function createViewerOptions() {
     // Performance optimizations
     requestRenderMode: true,
     maximumRenderTimeChange: Infinity,
-    targetFrameRate: 60,
+    // Lower target frame rate on mobile to reduce memory pressure
+    targetFrameRate: isMobile ? 30 : 60,
     // IMPORTANT for mobile stability
     contextOptions: {
       webgl: {
@@ -140,8 +147,20 @@ export function setViewerTime(viewer: any, Cesium: any, time: string): void {
 
 /**
  * Sets viewer resolution scale based on device pixel ratio
+ * Mobile devices get lower resolution to prevent memory issues
  */
 export function setViewerResolutionScale(viewer: any): void {
-  viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 1.25);
+  // Detect mobile devices
+  const isMobile = typeof window !== "undefined" && (
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (window.innerWidth <= 768 && window.matchMedia("(max-width: 768px)").matches)
+  );
+
+  if (isMobile) {
+    // On mobile, use lower resolution to prevent memory crashes
+    viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 1.0);
+  } else {
+    viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 1.25);
+  }
 }
 

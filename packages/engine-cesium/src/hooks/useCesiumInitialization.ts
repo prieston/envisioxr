@@ -141,14 +141,22 @@ export function useCesiumInitialization(): UseCesiumInitializationResult {
         }
 
         // Set terrain provider after viewer creation with error handling
+        // On mobile devices, disable memory-intensive features to prevent crashes
+        const isMobile = typeof window !== "undefined" && (
+          /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+          (window.innerWidth <= 768 && window.matchMedia("(max-width: 768px)").matches)
+        );
+
         try {
           const terrainProvider = await Cesium.createWorldTerrainAsync({
-            requestWaterMask: true,
-            requestVertexNormals: true,
+            // Disable memory-intensive features on mobile devices
+            requestWaterMask: !isMobile,
+            requestVertexNormals: !isMobile,
           });
           viewerRef.current.terrainProvider = terrainProvider;
         } catch (terrainError) {
           // Failed to load world terrain - not critical
+          console.warn("Failed to load terrain provider:", terrainError);
         }
 
         // Check viewshed capability for debugging

@@ -13,7 +13,8 @@ import {
   MenuItem,
 } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
-import AdminAppBar from "@/app/components/AppBar/AdminAppBar.tsx";
+// eslint-disable-next-line import/extensions
+import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 import { showToast } from "@envisio/ui";
 import { ToastContainer } from "react-toastify";
 

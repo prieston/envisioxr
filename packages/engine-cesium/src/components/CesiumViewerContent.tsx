@@ -30,10 +30,20 @@ interface CesiumViewerContentProps {
 // real-time ray casting against terrain and 3D models
 const MAX_RECOMMENDED_VIEWSHEDS = 8;
 const WARNING_THRESHOLD_VIEWSHEDS = 10;
+// Mobile devices have stricter limits due to memory constraints
+const MAX_MOBILE_VIEWSHEDS = 3;
+
+// Detect mobile devices
+const isMobileDevice = (): boolean => {
+  if (typeof window === "undefined") return false;
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (window.innerWidth <= 768 && window.matchMedia("(max-width: 768px)").matches);
+};
 
 export function CesiumViewerContent({ viewer }: CesiumViewerContentProps) {
   const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
   const objects = useSceneStore((s) => s.objects);
+  const isMobile = isMobileDevice();
 
   // Memoize the filtered list of observation objects to prevent re-renders
   const observationObjects = useMemo(
@@ -44,22 +54,38 @@ export function CesiumViewerContent({ viewer }: CesiumViewerContentProps) {
     [objects]
   );
 
+  // Limit viewsheds on mobile devices to prevent memory issues
+  const limitedObservationObjects = useMemo(() => {
+    if (!isMobile) return observationObjects;
+
+    // On mobile, only render the first few viewsheds to prevent memory crashes
+    const limited = observationObjects.slice(0, MAX_MOBILE_VIEWSHEDS);
+    if (limited.length < observationObjects.length) {
+      console.warn(
+        `[Mobile Optimization] Limiting viewshed rendering to ${MAX_MOBILE_VIEWSHEDS} out of ${observationObjects.length} observation points to prevent memory issues on mobile devices.`
+      );
+    }
+    return limited;
+  }, [observationObjects, isMobile]);
+
   // Performance warning for too many viewsheds
   useEffect(() => {
     const activeViewsheds = observationObjects.filter(
       (obj) => obj.observationProperties?.showViewshed !== false
     ).length;
 
-    if (activeViewsheds >= WARNING_THRESHOLD_VIEWSHEDS) {
+    const threshold = isMobile ? MAX_MOBILE_VIEWSHEDS : WARNING_THRESHOLD_VIEWSHEDS;
+
+    if (activeViewsheds >= threshold) {
       console.warn(
         `[Performance Warning] ${activeViewsheds} viewshed analyses are active. ` +
         `Cesium Ion SDK sensors are computationally expensive and may cause performance issues. ` +
         `Consider reducing the number of active viewsheds or disabling viewshed rendering (` +
         `showViewshed: false) for some sensors. ` +
-        `Recommended maximum: ${MAX_RECOMMENDED_VIEWSHEDS} active viewsheds.`
+        `Recommended maximum: ${isMobile ? MAX_MOBILE_VIEWSHEDS : MAX_RECOMMENDED_VIEWSHEDS} active viewsheds.`
       );
     }
-  }, [observationObjects]);
+  }, [observationObjects, isMobile]);
 
   return (
     <>
@@ -70,7 +96,8 @@ export function CesiumViewerContent({ viewer }: CesiumViewerContentProps) {
       <CesiumCameraSpringController />
       <CesiumPreviewModeController />
       {/* Render professional Ion SDK viewshed analysis for observation models */}
-      {observationObjects.map((obj) => {
+      {/* On mobile, limit rendering to prevent memory crashes */}
+      {limitedObservationObjects.map((obj) => {
         const position = Array.isArray(obj.position)
           ? obj.position
           : [0, 0, 0];
@@ -88,12 +115,17 @@ export function CesiumViewerContent({ viewer }: CesiumViewerContentProps) {
             obj.observationProperties?.visibilityRadius || 500,
           showSensorGeometry:
             obj.observationProperties?.showSensorGeometry ?? true,
-          showViewshed: obj.observationProperties?.showViewshed ?? false,
+          // On mobile, disable viewshed by default to reduce memory usage
+          showViewshed: isMobile
+            ? false
+            : (obj.observationProperties?.showViewshed ?? false),
           sensorColor: obj.observationProperties?.sensorColor || "#00ff00",
           viewshedColor:
             obj.observationProperties?.viewshedColor || "#0080ff",
-          analysisQuality:
-            obj.observationProperties?.analysisQuality || "medium",
+          // Use lower quality on mobile to reduce memory usage
+          analysisQuality: isMobile
+            ? "low"
+            : (obj.observationProperties?.analysisQuality || "medium"),
           include3DModels: obj.observationProperties?.include3DModels,
           alignWithModelFront:
             obj.observationProperties?.alignWithModelFront,
@@ -136,4 +168,3 @@ export function CesiumViewerContent({ viewer }: CesiumViewerContentProps) {
     </>
   );
 }
-

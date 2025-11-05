@@ -22,19 +22,17 @@ export async function getIonSDKModules() {
   // Vendor JS files are not type-checked, only loaded at runtime
   // Using dynamic imports with type assertions to bypass TypeScript checking
   const TransformEditorModule = (await import(
-    // @ts-expect-error - Vendor JS file
+    // @ts-expect-error - Vendor JS file without type declarations
+    // eslint-disable-next-line import/extensions
     "./vendor/cesium-ion-sdk/ion-sdk-measurements/Source/TransformEditor/TransformEditor.js"
   )) as any;
   const IonGeometryModule = (await import(
-    // @ts-expect-error - Vendor JS file
     "./vendor/cesium-ion-sdk/ion-sdk-geometry/index.js"
   )) as any;
   const IonSensorsModule = (await import(
-    // @ts-expect-error - Vendor JS file
     "./vendor/cesium-ion-sdk/ion-sdk-sensors/index.js"
   )) as any;
   const IonMeasurementsModule = (await import(
-    // @ts-expect-error - Vendor JS file
     "./vendor/cesium-ion-sdk/ion-sdk-measurements/index.js"
   )) as any;
 

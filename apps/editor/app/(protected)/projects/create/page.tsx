@@ -12,7 +12,8 @@ import {
   MenuItem,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import AdminAppBar from "@/app/components/AppBar/AdminAppBar.tsx";
+// eslint-disable-next-line import/extensions
+import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 
 const CreateProjectPage = () => {
   const router = useRouter();

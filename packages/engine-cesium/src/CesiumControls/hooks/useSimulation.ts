@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import * as Cesium from "cesium";
 import { SimulationMode, SimulationParams } from "../types";
 import { SIMULATION_MODES } from "../constants";
@@ -193,6 +193,17 @@ export const useSimulation = (
     }),
     []
   );
+
+  // Cleanup: Ensure animation frame is cancelled on unmount
+  useEffect(() => {
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+        animationFrameId.current = null;
+      }
+      isSimulating.current = false;
+    };
+  }, []);
 
   return {
     startSimulation,

@@ -192,7 +192,14 @@ export class CameraControllerManager {
    * Animation loop
    */
   private animate = (currentTime: number): void => {
-    if (!this.isRunning) return;
+    if (!this.isRunning) {
+      // If stopped, cancel any pending frame
+      if (this.animationFrameId) {
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
+      }
+      return;
+    }
 
     const deltaTime = (currentTime - this.lastTime) / 1000; // Convert to seconds
     this.lastTime = currentTime;
@@ -202,11 +209,17 @@ export class CameraControllerManager {
       this.currentController.update(deltaTime);
     }
 
-    // Continue animation loop - cancel previous RAF before scheduling next
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
+    // Continue animation loop only if still running
+    if (this.isRunning) {
+      // Cancel previous RAF before scheduling next
+      if (this.animationFrameId) {
+        cancelAnimationFrame(this.animationFrameId);
+      }
+      this.animationFrameId = requestAnimationFrame(this.animate);
+    } else {
+      // Clean up if stopped
+      this.animationFrameId = null;
     }
-    this.animationFrameId = requestAnimationFrame(this.animate);
   };
 
   /**

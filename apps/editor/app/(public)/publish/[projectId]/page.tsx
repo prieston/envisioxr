@@ -7,7 +7,9 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import { LoadingScreen } from "@envisio/ui";
+// eslint-disable-next-line import/extensions
 import MobileLayout from "@/app/components/PublishPage/MobileLayout";
+// eslint-disable-next-line import/extensions
 import DesktopLayout from "@/app/components/PublishPage/DesktopLayout";
 
 const PublishedScenePage = () => {
@@ -35,6 +37,11 @@ const PublishedScenePage = () => {
   // Enable preview mode and initialize observation points on mount.
   useEffect(() => {
     setPreviewMode(true);
+
+    // Cleanup on unmount
+    return () => {
+      setPreviewMode(false);
+    };
   }, [setPreviewMode]);
 
   // Fetch project data.
@@ -118,7 +125,34 @@ const PublishedScenePage = () => {
     };
 
     fetchProject();
-    return () => setActiveWorld(null);
+
+    // Cleanup function to prevent memory leaks on mobile devices
+    return () => {
+      setActiveWorld(null);
+      // Clear Cesium viewer reference to allow proper cleanup
+      const cesiumViewer = useSceneStore.getState().cesiumViewer;
+      if (cesiumViewer) {
+        try {
+          // Clear all entities and primitives before destroying
+          cesiumViewer.entities.removeAll();
+          cesiumViewer.scene.primitives.removeAll();
+          // Destroy viewer if it exists
+          if (typeof cesiumViewer.destroy === 'function') {
+            cesiumViewer.destroy();
+          }
+        } catch (cleanupError) {
+          console.warn("Error during Cesium cleanup:", cleanupError);
+        }
+      }
+      // Clear scene store state
+      useSceneStore.setState({
+        cesiumViewer: null,
+        observationPoints: [],
+        previewIndex: 0,
+        objects: [],
+        previewMode: false,
+      });
+    };
   }, [projectId, setObservationPoints, selectObservation, setActiveWorld]);
 
   if (loading) {

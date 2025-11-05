@@ -24,6 +24,12 @@ export default function CesiumPerformanceOptimizer({
     const scene = viewer.scene;
     const globe = scene.globe;
 
+    // Detect mobile devices for optimization
+    const isMobile = typeof window !== "undefined" && (
+      /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+      (window.innerWidth <= 768 && window.matchMedia("(max-width: 768px)").matches)
+    );
+
     const applyOptimizations = () => {
       // Don't override lighting if it's enabled by user
       if (!lightingEnabled) {
@@ -31,8 +37,9 @@ export default function CesiumPerformanceOptimizer({
         scene.sun.show = false;
       }
 
-      globe.maximumScreenSpaceError = 2.0;
-      globe.tileCacheSize = 1000;
+      // Use higher error tolerance and smaller cache on mobile to reduce memory usage
+      globe.maximumScreenSpaceError = isMobile ? 4.0 : 2.0;
+      globe.tileCacheSize = isMobile ? 500 : 1000;
 
       scene.fog.enabled = false;
 
