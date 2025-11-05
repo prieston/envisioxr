@@ -17,6 +17,11 @@ import { glob } from "glob";
 
 const WORKSPACE_ROOT = process.cwd();
 
+// Load allowlist configuration
+const allowlistPath = path.join(WORKSPACE_ROOT, "scripts/audits/ALLOWLIST.json");
+const allowlist = JSON.parse(fs.readFileSync(allowlistPath, "utf8"));
+const sizeIgnorePatterns = allowlist.size?.ignorePatterns || [];
+
 interface Violation {
   file: string;
   line?: number;
@@ -25,6 +30,19 @@ interface Violation {
 }
 
 const violations: Violation[] = [];
+
+// Helper to check if file should be ignored
+function shouldIgnoreFile(file: string): boolean {
+  return sizeIgnorePatterns.some((pattern: string) => {
+    // Convert glob pattern to regex
+    const regexPattern = pattern
+      .replace(/\*\*/g, ".*")
+      .replace(/\*/g, "[^/]*")
+      .replace(/\//g, "\\/");
+    const regex = new RegExp(`^${regexPattern}$`);
+    return regex.test(file);
+  });
+}
 
 // Thresholds (configurable at top)
 const FILE_LINES_WARN = 300;
@@ -135,10 +153,13 @@ function checkFileSize() {
 
   const sourceFiles = glob.sync("**/*.{ts,tsx}", {
     cwd: WORKSPACE_ROOT,
-    ignore: ["**/node_modules/**", "**/.next/**", "**/dist/**", "**/build/**"],
+    ignore: ["**/node_modules/**", "**/.next/**", "**/dist/**", "**/build/**", ...sizeIgnorePatterns],
   });
 
   for (const file of sourceFiles) {
+    // Double-check with allowlist (in case glob didn't catch it)
+    if (shouldIgnoreFile(file)) continue;
+
     const fullPath = path.join(WORKSPACE_ROOT, file);
     const content = fs.readFileSync(fullPath, "utf8");
     const lineCount = countLines(content);
@@ -164,10 +185,13 @@ function checkComponentComplexity() {
 
   const componentFiles = glob.sync("**/*.{tsx,jsx}", {
     cwd: WORKSPACE_ROOT,
-    ignore: ["**/node_modules/**", "**/.next/**", "**/dist/**", "**/build/**"],
+    ignore: ["**/node_modules/**", "**/.next/**", "**/dist/**", "**/build/**", ...sizeIgnorePatterns],
   });
 
   for (const file of componentFiles) {
+    // Double-check with allowlist (in case glob didn't catch it)
+    if (shouldIgnoreFile(file)) continue;
+
     const fullPath = path.join(WORKSPACE_ROOT, file);
     const content = fs.readFileSync(fullPath, "utf8");
 
@@ -267,12 +291,9 @@ if (failures.length > 0 || warnings.length > 0) {
   console.log("   - Reduce props: Group related props into objects, use Context for shared state");
   console.log("   - Reduce complexity: Extract helper functions, use early returns\n");
 
-  // In pre-commit, only fail on critical issues (vendor files excluded)
-  // Full audit runs in CI
+  // Filter out ignored files from failures (vendor files are already excluded above)
   const criticalFailures = failures.filter((v) => {
-    // Don't fail on vendor files in pre-commit
-    if (v.file.includes("/vendor/")) return false;
-    // Don't fail on type definition files
+    // Don't fail on type definition files (vendor types are already excluded)
     if (v.file.endsWith(".d.ts")) return false;
     return true;
   });

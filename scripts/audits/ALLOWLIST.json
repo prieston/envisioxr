@@ -39,7 +39,9 @@
       "**/.next/**",
       "**/dist/**",
       "**/*.test.ts",
-      "**/*.test.tsx"
+      "**/*.test.tsx",
+      "**/vendor/**",
+      "**/cesium-ion-sdk/**"
     ]
   },
   "deadExports": {

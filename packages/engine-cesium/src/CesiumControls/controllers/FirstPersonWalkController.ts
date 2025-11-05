@@ -5,6 +5,20 @@ import {
 } from "../core/BaseCameraController";
 import { MOVEMENT_KEYS } from "../constants";
 import { createLogger } from "@envisio/core";
+import {
+  calculateMovementInput,
+  calculateWorldMovementDirection,
+  updateHorizontalVelocity,
+  clampHorizontalSpeed,
+} from "./first-person/physics-utils";
+import {
+  resolveGround,
+  handleCrouch,
+} from "./first-person/ground-resolution";
+import {
+  applyYawPitchFromMouseDelta,
+  initializeCameraFromCurrent,
+} from "./first-person/camera-orientation";
 
 /**
  * First-person walk controller:
@@ -16,17 +30,15 @@ import { createLogger } from "@envisio/core";
 export class FirstPersonWalkController extends BaseCameraController {
   private isJumping = false;
   private lastGroundHeight = 0;
-  private smoothedGroundHeight = Number.NaN; // handles sea-level init
-
+  private smoothedGroundHeight = Number.NaN;
   private __dbg = {
     frame: 0,
     lastPos: new Cesium.Cartesian3(Number.NaN, Number.NaN, Number.NaN),
     lastGroundDelta: Number.NaN,
     jitterMax: 0,
   };
-
   private wasGrounded = false;
-  private lastTargetHeight: number | null = null; // sticky target height above terrain
+  private lastTargetHeight: number | null = null;
 
   constructor(
     cesiumViewer: Cesium.Viewer | null,
@@ -44,7 +56,6 @@ export class FirstPersonWalkController extends BaseCameraController {
       debugMode: false,
       ...config,
     });
-    // Re-tag logger with controller-specific prefix
     this.logger = createLogger("FPW");
   }
 
@@ -64,14 +75,12 @@ export class FirstPersonWalkController extends BaseCameraController {
       canvasVisibility: this.cesiumViewer.canvas?.style?.visibility,
     });
 
-    // Ensure canvas can receive pointer events
     if (this.cesiumViewer.canvas) {
       this.cesiumViewer.canvas.style.pointerEvents = "auto";
       this.cesiumViewer.canvas.style.cursor = "crosshair";
       this.logger.debug("Set canvas pointer events to auto");
     }
 
-    // Bind & attach DOM listeners
     this.keyDownHandler = (e) => this.handleKeyDown(e);
     this.keyUpHandler = (e) => this.handleKeyUp(e);
     this.mouseMoveHandler = (e) => this.handleMouseMove(e);
@@ -87,21 +96,18 @@ export class FirstPersonWalkController extends BaseCameraController {
       this.pointerLockChangeHandler
     );
 
-    // Mouse events for drag-to-look (backup to pointer lock)
     this.cesiumViewer.canvas.addEventListener(
       "mousedown",
       this.mouseDownHandler!
     );
     this.cesiumViewer.canvas.addEventListener("mouseup", this.mouseUpHandler!);
 
-    // Disable default Cesium camera interactions
     const ctrl = this.cesiumViewer.scene.screenSpaceCameraController;
     ctrl.enableRotate = false;
     ctrl.enableTranslate = false;
     ctrl.enableZoom = false;
     ctrl.enableTilt = false;
 
-    // Clear keys & start on ground at current lon/lat
     this.inputState.keys.clear();
     this.initializeCameraPosition();
 
@@ -114,17 +120,12 @@ export class FirstPersonWalkController extends BaseCameraController {
 
     const clamped = Math.min(deltaTime, 0.05);
 
-    // count how many fixed steps ran
-    // let steps = 0;
     this.fixedUpdate(clamped, 1 / 120, 6, (h) => {
-      // steps++;
       this.stepOnce(h);
     });
 
-    // Apply ENU yaw/pitch once per frame
     this.applyYawPitch();
 
-    // --- diagnostics ---
     if (this.config.debugMode) {
       const p = this.cameraState.position;
       if (
@@ -139,35 +140,11 @@ export class FirstPersonWalkController extends BaseCameraController {
         this.__dbg.jitterMax = Math.max(this.__dbg.jitterMax, dp);
         this.__dbg.lastPos = Cesium.Cartesian3.clone(p);
 
-        // Throttle logs (every ~30 frames)
         if (this.__dbg.frame++ % 30 === 0) {
-          // const horizMag = Math.hypot(
-          //   this.physicsState.velocity.x,
-          //   this.physicsState.velocity.y
-          // );
-          // const setViewCalls = (window as any).__camSetViewCalls ?? 0;
-          // (window as any).__camSetViewCalls = 0; // reset counter
-          // // console.log("[FPW dbg]", {
-          //   inst: (this as any).__instanceId,
-          //   frame: this.__dbg.frame,
-          //   steps,
-          //   dp, // per-frame position delta
-          //   jitterMax: this.__dbg.jitterMax,
-          //   grounded: this.physicsState.isGrounded,
-          //   jumpV: this.physicsState.jumpVelocity.toFixed(3),
-          //   v_h: horizMag.toFixed(3),
-          //   targetH: (this.smoothedGroundHeight + this.config.height).toFixed(
-          //     3
-          //   ),
-          //   yaw: this.cameraState.yaw.toFixed(3),
-          //   pitch: this.cameraState.pitch.toFixed(3),
-          //   setViewCallsThisWindow: setViewCalls,
-          //   pointerLocked: this.inputState.isPointerLocked,
-          // });
+          // Debug logging throttled
         }
       }
     }
-    // -------------------
 
     this.inputState.mouseDelta = { x: 0, y: 0 };
   }
@@ -208,28 +185,9 @@ export class FirstPersonWalkController extends BaseCameraController {
 
   /** One fixed physics step */
   private stepOnce(h: number) {
-    // 1) Horizontal movement relative to camera direction (FPS-style)
-    const moveInput = new Cesium.Cartesian3(
-      this.inputState.keys.has(MOVEMENT_KEYS.LEFT)
-        ? -1
-        : this.inputState.keys.has(MOVEMENT_KEYS.RIGHT)
-          ? 1
-          : 0,
-      0,
-      this.inputState.keys.has(MOVEMENT_KEYS.FORWARD)
-        ? -1
-        : this.inputState.keys.has(MOVEMENT_KEYS.BACKWARD)
-          ? 1
-          : 0
-    );
-    if (Cesium.Cartesian3.magnitude(moveInput) > 0) {
-      Cesium.Cartesian3.normalize(moveInput, moveInput);
-    }
+    const moveInput = calculateMovementInput(this.inputState);
 
-    // --- Local basis
-    const up = this.cameraState.up; // ENU up at current position
-
-    // forward = camera direction projected onto local tangent plane
+    const up = this.cameraState.up;
     const dir = this.cameraState.direction;
     const dirDotUp = Cesium.Cartesian3.dot(dir, up);
     const forward = Cesium.Cartesian3.normalize(
@@ -245,38 +203,12 @@ export class FirstPersonWalkController extends BaseCameraController {
       new Cesium.Cartesian3()
     );
 
-    // right = forward × up (already normalized in applyYawPitch, but recompute for safety)
     const right = Cesium.Cartesian3.normalize(
       Cesium.Cartesian3.cross(forward, up, new Cesium.Cartesian3()),
       new Cesium.Cartesian3()
     );
 
-    const worldMove = new Cesium.Cartesian3(0, 0, 0);
-    if (moveInput.z !== 0) {
-      Cesium.Cartesian3.add(
-        worldMove,
-        Cesium.Cartesian3.multiplyByScalar(
-          forward,
-          -moveInput.z,
-          new Cesium.Cartesian3()
-        ),
-        worldMove
-      );
-    }
-    if (moveInput.x !== 0) {
-      Cesium.Cartesian3.add(
-        worldMove,
-        Cesium.Cartesian3.multiplyByScalar(
-          right,
-          moveInput.x,
-          new Cesium.Cartesian3()
-        ),
-        worldMove
-      );
-    }
-    if (Cesium.Cartesian3.magnitude(worldMove) > 0) {
-      Cesium.Cartesian3.normalize(worldMove, worldMove);
-    }
+    const worldMove = calculateWorldMovementDirection(moveInput, forward, right);
 
     const boost =
       this.inputState.keys.has("ShiftLeft") ||
@@ -284,7 +216,6 @@ export class FirstPersonWalkController extends BaseCameraController {
         ? 2.0
         : 1.0;
 
-    // --- Split velocity into horizontal (tangent) + vertical (along up)
     const v = this.physicsState.velocity;
     const vDotUp = Cesium.Cartesian3.dot(v, up);
     let vHoriz = Cesium.Cartesian3.subtract(
@@ -293,41 +224,18 @@ export class FirstPersonWalkController extends BaseCameraController {
       new Cesium.Cartesian3()
     );
 
-    // --- Accel / friction on horizontal only
-    if (Cesium.Cartesian3.magnitude(worldMove) > 0) {
-      const a = this.config.acceleration * boost * h;
-      Cesium.Cartesian3.add(
-        vHoriz,
-        Cesium.Cartesian3.multiplyByScalar(
-          worldMove,
-          a,
-          new Cesium.Cartesian3()
-        ),
-        vHoriz
-      );
-    } else {
-      vHoriz = Cesium.Cartesian3.multiplyByScalar(
-        vHoriz,
-        this.config.friction,
-        vHoriz
-      );
-      if (Cesium.Cartesian3.magnitude(vHoriz) < 0.01) {
-        vHoriz = new Cesium.Cartesian3(0, 0, 0);
-      }
-    }
+    vHoriz = updateHorizontalVelocity(
+      vHoriz,
+      worldMove,
+      up,
+      this.config,
+      boost,
+      h,
+      this.config.friction
+    );
 
-    // --- Clamp horizontal speed
-    const maxH = this.config.maxSpeed * boost;
-    const vHorizMag = Cesium.Cartesian3.magnitude(vHoriz);
-    if (vHorizMag > maxH) {
-      Cesium.Cartesian3.multiplyByScalar(
-        Cesium.Cartesian3.normalize(vHoriz, new Cesium.Cartesian3()),
-        maxH,
-        vHoriz
-      );
-    }
+    vHoriz = clampHorizontalSpeed(vHoriz, this.config.maxSpeed, boost);
 
-    // --- Vertical (jump/gravity) along 'up'
     if (
       this.inputState.keys.has(MOVEMENT_KEYS.JUMP) &&
       this.physicsState.isGrounded &&
@@ -348,14 +256,12 @@ export class FirstPersonWalkController extends BaseCameraController {
       new Cesium.Cartesian3()
     );
 
-    // --- Compose full velocity and integrate
     this.physicsState.velocity = Cesium.Cartesian3.add(
       vHoriz,
       vVert,
       new Cesium.Cartesian3()
     );
 
-    // 3) Integrate position
     const delta = Cesium.Cartesian3.multiplyByScalar(
       this.physicsState.velocity,
       h,
@@ -371,186 +277,52 @@ export class FirstPersonWalkController extends BaseCameraController {
       !Number.isFinite(proposed.y) ||
       !Number.isFinite(proposed.z)
     ) {
-      return; // guard
+      return;
     }
 
-    // 4) Ground resolve & crouch; write back cameraState.position
-    const resolved = this.resolveGround(proposed);
-    this.handleCrouch(resolved);
-    this.cameraState.position = resolved;
-  }
+    const groundState = {
+      isJumping: this.isJumping,
+      lastGroundHeight: this.lastGroundHeight,
+      smoothedGroundHeight: this.smoothedGroundHeight,
+      wasGrounded: this.wasGrounded,
+      lastTargetHeight: this.lastTargetHeight,
+    };
 
-  /** Terrain landing + smoothing */
-  private resolveGround(proposed: Cesium.Cartesian3): Cesium.Cartesian3 {
-    if (
-      !proposed ||
-      !Number.isFinite(proposed.x) ||
-      !Number.isFinite(proposed.y) ||
-      !Number.isFinite(proposed.z)
-    ) {
-      return this.cameraState.position;
-    }
+    const resolved = resolveGround(
+      proposed,
+      this.cameraState.position,
+      this.cesiumViewer!.scene.globe,
+      groundState,
+      this.physicsState,
+      this.config,
+      this.config.debugMode,
+      this.logger
+    );
 
-    const globe = this.cesiumViewer!.scene.globe;
-    const ellipsoid = globe.ellipsoid;
-    const carto = Cesium.Cartographic.fromCartesian(proposed, ellipsoid);
-    if (!carto) return this.cameraState.position;
+    this.isJumping = groundState.isJumping;
+    this.lastGroundHeight = groundState.lastGroundHeight;
+    this.smoothedGroundHeight = groundState.smoothedGroundHeight;
+    this.wasGrounded = groundState.wasGrounded;
+    this.lastTargetHeight = groundState.lastTargetHeight;
 
-    const hRaw = globe.getHeight(carto);
-    if (hRaw !== undefined) {
-      // gentler smoothing to avoid chasing every tile refinement
-      const a = 0.15; // was 0.30
-      if (!Number.isNaN(this.smoothedGroundHeight)) {
-        this.smoothedGroundHeight =
-          this.smoothedGroundHeight + a * (hRaw - this.smoothedGroundHeight);
-      } else {
-        this.smoothedGroundHeight = hRaw;
-      }
-
-      // target = ground + eye height + safety clearance
-      const CLEAR = 0.25; // 25 cm above ground
-      const targetRaw = this.smoothedGroundHeight + this.config.height + CLEAR;
-
-      // STICKY: only update our target if it moved significantly
-      const TARGET_HOLD_BAND = 0.2; // 20 cm – ignore tiny terrain shifts
-      if (this.lastTargetHeight == null) {
-        this.lastTargetHeight = targetRaw;
-      } else if (
-        Math.abs(targetRaw - this.lastTargetHeight) > TARGET_HOLD_BAND
-      ) {
-        this.lastTargetHeight = targetRaw;
-      }
-      const target = this.lastTargetHeight;
-
-      // Decide how to resolve height
-      const belowBy = target - carto.height; // + means we're below target
-      const SNAP_UP_EPS = 0.1; // snap up if > 10 cm below
-      const FALL_EPS = 0.5; // consider falling if > 50 cm above while jumping
-
-      let groundedNow = this.wasGrounded;
-
-      if (belowBy >= SNAP_UP_EPS || !this.isJumping) {
-        // Land / stay landed at sticky target
-        carto.height = target;
-        const landed = Cesium.Cartesian3.fromRadians(
-          carto.longitude,
-          carto.latitude,
-          carto.height
-        );
-
-        this.physicsState.isGrounded = true;
-        this.isJumping = false;
-        groundedNow = true;
-        this.lastGroundHeight = this.smoothedGroundHeight;
-
-        // Log only on transition
-        if (this.config.debugMode && !this.wasGrounded) {
-          this.logger.debug("LAND", {
-            inst: (this as any).__instanceId,
-            target,
-          });
-        }
-        this.wasGrounded = groundedNow;
-        return landed;
-      }
-
-      // Still above target: only "AIR" if truly above and jumping
-      if (belowBy <= -FALL_EPS && this.isJumping) {
-        this.physicsState.isGrounded = false;
-        groundedNow = false;
-        if (this.config.debugMode && this.wasGrounded) {
-          this.logger.debug("AIR", {
-            inst: (this as any).__instanceId,
-            cartoH: carto.height,
-            target,
-          });
-        }
-        this.wasGrounded = groundedNow;
-        return proposed;
-      }
-
-      // Within deadband: accept proposed, stay grounded (no snap)
-      this.physicsState.isGrounded = true;
-      groundedNow = true;
-      this.wasGrounded = groundedNow;
-      return proposed;
-    }
-
-    // No terrain yet — keep altitude, neutralize vertical
-    this.physicsState.isGrounded = true;
-    this.physicsState.jumpVelocity = 0;
-    this.physicsState.velocity.z = 0;
-    this.wasGrounded = true;
-    return proposed;
-  }
-
-  /** Crouch lowers eye height while grounded */
-  private handleCrouch(currentPos: Cesium.Cartesian3) {
-    if (!this.physicsState.isGrounded) return;
-    if (!this.inputState.keys.has(MOVEMENT_KEYS.CROUCH)) return;
-
-    const carto = Cesium.Cartographic.fromCartesian(currentPos);
-    carto.height = this.lastGroundHeight + this.config.height * 0.6;
-    const crouched = Cesium.Cartesian3.fromRadians(
-      carto.longitude,
-      carto.latitude,
-      carto.height
+    const crouched = handleCrouch(
+      resolved,
+      this.physicsState,
+      this.inputState,
+      groundState,
+      this.config
     );
     this.cameraState.position = crouched;
   }
 
-  /** Apply ENU yaw/pitch based on accumulated mouseDelta (pointer-locked only) */
+  /** Apply ENU yaw/pitch based on accumulated mouseDelta */
   private applyYawPitch() {
-    const dx = this.inputState.mouseDelta.x;
-    const dy = this.inputState.mouseDelta.y;
-
-    if (dx !== 0 || dy !== 0) {
-      const yawDelta = dx * this.config.sensitivity;
-      const pitchDelta = -dy * this.config.sensitivity;
-
-      this.cameraState.yaw = Cesium.Math.negativePiToPi(
-        this.cameraState.yaw + yawDelta
-      );
-      this.cameraState.pitch = Cesium.Math.clamp(
-        this.cameraState.pitch + pitchDelta,
-        -Cesium.Math.PI_OVER_TWO + 0.1,
-        Cesium.Math.PI_OVER_TWO - 0.1
-      );
-    }
-
-    // Compute world orientation from ENU at the *authoritative* position
-    const { east, north, up } = this.enuBasisAt(this.cameraState.position);
-
-    // Direction in ENU (x=east, y=north, z=up)
-    const dirLocal = new Cesium.Cartesian3(
-      Math.cos(this.cameraState.pitch) * Math.sin(this.cameraState.yaw),
-      Math.cos(this.cameraState.pitch) * Math.cos(this.cameraState.yaw),
-      Math.sin(this.cameraState.pitch)
+    applyYawPitchFromMouseDelta(
+      this.cameraState,
+      this.inputState.mouseDelta,
+      this.config.sensitivity,
+      (pos) => this.enuBasisAt(pos)
     );
-
-    // Convert to world
-    const dirWorld = new Cesium.Cartesian3(
-      east.x * dirLocal.x + north.x * dirLocal.y + up.x * dirLocal.z,
-      east.y * dirLocal.x + north.y * dirLocal.y + up.y * dirLocal.z,
-      east.z * dirLocal.x + north.z * dirLocal.y + up.z * dirLocal.z
-    );
-    Cesium.Cartesian3.normalize(dirWorld, dirWorld);
-
-    // Update cameraState (authoritative)
-    this.cameraState.direction = dirWorld;
-    this.cameraState.up = up;
-
-    // NEW: keep right orthonormal to (direction, up)
-    this.cameraState.right = Cesium.Cartesian3.normalize(
-      Cesium.Cartesian3.cross(
-        this.cameraState.direction,
-        this.cameraState.up,
-        new Cesium.Cartesian3()
-      ),
-      new Cesium.Cartesian3()
-    );
-
-    // Now apply exactly once per frame
     this.applyCameraState();
   }
 
@@ -558,67 +330,28 @@ export class FirstPersonWalkController extends BaseCameraController {
   private initializeCameraPosition() {
     if (!this.camera || !this.cesiumViewer) return;
 
-    this.physicsState.isGrounded = true;
-    this.physicsState.velocity = new Cesium.Cartesian3(0, 0, 0);
-    this.physicsState.jumpVelocity = 0;
+    const groundState = {
+      lastGroundHeight: this.lastGroundHeight,
+      smoothedGroundHeight: this.smoothedGroundHeight,
+    };
 
-    // Use current lon/lat and snap to ground + eye height
-    const pos = Cesium.Cartesian3.clone(this.camera.position);
-    const globe = this.cesiumViewer.scene.globe;
-    const c = Cesium.Cartographic.fromCartesian(pos, globe.ellipsoid);
-    if (!c) return;
-
-    const h = globe.getHeight(c) ?? c.height - this.config.height;
-    this.lastGroundHeight = h;
-    this.smoothedGroundHeight = h;
-
-    c.height = h + this.config.height;
-    this.cameraState.position = Cesium.Cartesian3.fromRadians(
-      c.longitude,
-      c.latitude,
-      c.height
+    initializeCameraFromCurrent(
+      this.camera,
+      this.cesiumViewer.scene.globe,
+      this.config,
+      this.cameraState,
+      this.physicsState,
+      groundState,
+      (pos) => this.enuBasisAt(pos),
+      (pos, yaw, pitch) => this.applyYawPitchWorldFromENU(pos, yaw, pitch)
     );
 
-    // Initialize yaw/pitch from current direction projected into ENU
-    const { east, north, up } = this.enuBasisAt(this.cameraState.position);
-    const dirWorld = Cesium.Cartesian3.normalize(
-      Cesium.Cartesian3.clone(this.camera.direction),
-      new Cesium.Cartesian3()
-    );
-    const ex = Cesium.Cartesian3.dot(dirWorld, east);
-    const ny = Cesium.Cartesian3.dot(dirWorld, north);
-    const uz = Cesium.Cartesian3.dot(dirWorld, up);
-
-    this.cameraState.yaw = Math.atan2(ex, ny); // 0=North, +→East
-    this.cameraState.pitch = Cesium.Math.clamp(
-      Math.asin(uz),
-      -Cesium.Math.PI_OVER_TWO + 0.1,
-      Cesium.Math.PI_OVER_TWO - 0.1
-    );
-
-    // Apply initial orientation
-    this.applyYawPitchWorldFromENU(
-      this.cameraState.position,
-      this.cameraState.yaw,
-      this.cameraState.pitch
-    );
-
-    // Set right vector after initial orientation
-    this.cameraState.right = Cesium.Cartesian3.normalize(
-      Cesium.Cartesian3.cross(
-        this.cameraState.direction,
-        this.cameraState.up,
-        new Cesium.Cartesian3()
-      ),
-      new Cesium.Cartesian3()
-    );
+    this.lastGroundHeight = groundState.lastGroundHeight;
+    this.smoothedGroundHeight = groundState.smoothedGroundHeight;
   }
-
-  // ====== Hooks overriding Base behavior where needed ======
 
   protected onMouseDown = (e: MouseEvent) => {
     if (e.button === 0) {
-      // Only request pointer lock if not already locked (backup for drag-to-look)
       if (!this.inputState.isPointerLocked) {
         this.logger.debug("Requesting pointer lock (backup)...");
         this.requestPointerLock();
@@ -631,7 +364,6 @@ export class FirstPersonWalkController extends BaseCameraController {
   };
 
   protected onKeyDown = (e: KeyboardEvent) => {
-    // Prevent page scroll/shortcuts for movement keys
     const codes = new Set(Object.values(MOVEMENT_KEYS) as string[]);
     if (codes.has(e.code)) e.preventDefault();
   };

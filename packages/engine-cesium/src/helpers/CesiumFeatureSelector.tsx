@@ -75,6 +75,26 @@ const CesiumFeatureSelector: React.FC = () => {
       return;
     }
 
+    const scene = cesiumViewer.scene;
+    const canvas = scene?.canvas;
+    if (!canvas) return;
+
+    // Check if repositioning is active by checking if cursor is crosshair
+    // (setupCesiumClickSelector sets cursor to crosshair during repositioning)
+    const isRepositioning = canvas.style.cursor === "crosshair";
+    if (isRepositioning) {
+      // Cleanup handler if it exists
+      if (handlerRef.current) {
+        try {
+          handlerRef.current.destroy();
+        } catch {
+          // Ignore cleanup errors
+        }
+        handlerRef.current = null;
+      }
+      return;
+    }
+
     // cleanup old handler
     if (handlerRef.current) {
       try {
@@ -84,10 +104,6 @@ const CesiumFeatureSelector: React.FC = () => {
       }
       handlerRef.current = null;
     }
-
-    const scene = cesiumViewer.scene;
-    const canvas = scene?.canvas;
-    if (!canvas) return;
 
     const handler = new cesiumInstance.ScreenSpaceEventHandler(canvas);
 
@@ -161,6 +177,11 @@ const CesiumFeatureSelector: React.FC = () => {
 
     // Primary click: pick topmost feature
     handler.setInputAction((movement: any) => {
+      // Skip if repositioning is active (cursor is crosshair)
+      if (canvas.style.cursor === "crosshair") {
+        return;
+      }
+
       try {
         const picked = scene.pick(movement.position);
 
@@ -193,6 +214,11 @@ const CesiumFeatureSelector: React.FC = () => {
     // Shift+click: drill pick (all features under cursor)
     handler.setInputAction(
       (movement: any) => {
+        // Skip if repositioning is active (cursor is crosshair)
+        if (canvas.style.cursor === "crosshair") {
+          return;
+        }
+
         try {
           const pickedArray = scene.drillPick(movement.position) || [];
           const featureLikes = pickedArray.filter(isFeatureLike);
