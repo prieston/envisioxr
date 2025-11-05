@@ -2,6 +2,13 @@ export * from "./utils/sensors";
 export { default as ViewshedAnalysis } from "./views/ViewshedAnalysis";
 export * from "./lib/init";
 export { ensureIonSDKLoaded } from "./loader";
+export {
+  getThrottleConfig,
+  updateThrottleConfig,
+  resetThrottleConfig,
+  DEFAULT_THROTTLE_CONFIG,
+  type ViewshedThrottleConfig,
+} from "./views/viewshed-analysis/config/throttle-config";
 
 /**
  * Get Ion SDK modules (client-only, requires ensureIonSDKLoaded() to be called first).
@@ -15,19 +22,19 @@ export async function getIonSDKModules() {
   // Vendor JS files are not type-checked, only loaded at runtime
   // Using dynamic imports with type assertions to bypass TypeScript checking
   const TransformEditorModule = (await import(
-    // @ts-ignore - Vendor JS file
+    // @ts-expect-error - Vendor JS file
     "./vendor/cesium-ion-sdk/ion-sdk-measurements/Source/TransformEditor/TransformEditor.js"
   )) as any;
   const IonGeometryModule = (await import(
-    // @ts-ignore - Vendor JS file
+    // @ts-expect-error - Vendor JS file
     "./vendor/cesium-ion-sdk/ion-sdk-geometry/index.js"
   )) as any;
   const IonSensorsModule = (await import(
-    // @ts-ignore - Vendor JS file
+    // @ts-expect-error - Vendor JS file
     "./vendor/cesium-ion-sdk/ion-sdk-sensors/index.js"
   )) as any;
   const IonMeasurementsModule = (await import(
-    // @ts-ignore - Vendor JS file
+    // @ts-expect-error - Vendor JS file
     "./vendor/cesium-ion-sdk/ion-sdk-measurements/index.js"
   )) as any;
 

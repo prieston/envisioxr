@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
+import { useSceneStore } from "@envisio/core";
 import type { ViewshedAnalysisProps, SensorRefs } from "./types";
 import {
   useIonSDKInitialization,
@@ -14,7 +15,7 @@ import {
   createPreviewHandler,
   initializePreviewGlobals,
 } from "./core";
-import { applySensorStyle } from "./core/sensor-updater";
+import { applySensorStyle, cancelPendingSensorStyleUpdates } from "./core/sensor-updater";
 import { removeSensor } from "./utils";
 
 const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
@@ -26,6 +27,13 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
 }) => {
   const cesiumViewer = providedViewer || (window as any).cesiumViewer;
   const isInitialized = useIonSDKInitialization(cesiumViewer);
+
+  // Check if this viewshed is active (selected object)
+  const selectedObject = useSceneStore((s) => s.selectedObject);
+  const isActive = useMemo(
+    () => selectedObject?.id === objectId && selectedObject?.isObservationModel === true,
+    [selectedObject?.id, objectId, selectedObject?.isObservationModel]
+  );
 
   const sensorRef = useRef<any>(null);
   const viewshedRef = useRef<any>(null);
@@ -79,7 +87,8 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       modelFrontAxis: observationProperties.modelFrontAxis ?? "Z+",
       tiltDeg: observationProperties.tiltDeg ?? 0,
     },
-    cesiumViewer
+    cesiumViewer,
+    isActive
   );
 
   // Keep observationProperties, position, and rotation in refs to avoid unnecessary callback recreation
@@ -169,15 +178,21 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
   }, [isInitialized, createIonSDKSensor]);
 
   // Update sensor visibility flags when showSensorGeometry or showViewshed changes
+  // Also update immediately when isActive changes to ensure correct visibility state
   useEffect(() => {
     if (!isInitialized || !cesiumViewer || !sensorRef.current) return;
 
     // Skip if sensor is being created or transitioned
     if (isTransitioningRef.current || isCreatingRef.current) return;
 
-    // Update sensor flags and colors directly without recreating the sensor
+    // When isActive changes, force immediate update to ensure visibility flags are correct
+    // This prevents stale throttled updates from applying incorrect visibility
     try {
-      applySensorStyle(sensorRef.current, observationProperties, cesiumViewer);
+      // Cancel any pending throttled updates to ensure we apply correct state immediately
+      cancelPendingSensorStyleUpdates(sensorRef.current);
+
+      // Apply style update immediately (will respect throttling for inactive viewsheds)
+      applySensorStyle(sensorRef.current, observationProperties, cesiumViewer, isActive);
     } catch (err) {
       // Failed to update - sensor might be destroyed
     }
@@ -187,6 +202,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     observationProperties.showSensorGeometry,
     observationProperties.showViewshed,
     observationProperties.sensorColor,
+    isActive,
   ]);
 
   // Register preview handler for live updates
@@ -194,7 +210,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     if (!isInitialized) return;
     initializePreviewGlobals();
 
-    const handlePreview = createPreviewHandler({
+    const { handler, cleanup } = createPreviewHandler({
       objectId,
       sensorRef,
       isTransitioningRef,
@@ -202,9 +218,10 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       viewer: cesiumViewer,
     });
 
-    window.addEventListener("cesium-observation-preview", handlePreview);
+    window.addEventListener("cesium-observation-preview", handler);
     return () => {
-      window.removeEventListener("cesium-observation-preview", handlePreview);
+      window.removeEventListener("cesium-observation-preview", handler);
+      cleanup(); // Cancel any pending RAF callbacks
     };
   }, [isInitialized, objectId, cesiumViewer]);
 

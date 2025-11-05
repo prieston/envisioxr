@@ -2,7 +2,7 @@
  * Content component that renders all child components for Cesium viewer
  */
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useSceneStore } from "@envisio/core";
 import dynamic from "next/dynamic";
 import {
@@ -25,6 +25,12 @@ interface CesiumViewerContentProps {
   viewer: any;
 }
 
+// Performance limit: Too many active viewsheds can cause performance issues
+// Cesium Ion SDK sensors are computationally expensive - each one performs
+// real-time ray casting against terrain and 3D models
+const MAX_RECOMMENDED_VIEWSHEDS = 8;
+const WARNING_THRESHOLD_VIEWSHEDS = 10;
+
 export function CesiumViewerContent({ viewer }: CesiumViewerContentProps) {
   const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
   const objects = useSceneStore((s) => s.objects);
@@ -37,6 +43,23 @@ export function CesiumViewerContent({ viewer }: CesiumViewerContentProps) {
       ),
     [objects]
   );
+
+  // Performance warning for too many viewsheds
+  useEffect(() => {
+    const activeViewsheds = observationObjects.filter(
+      (obj) => obj.observationProperties?.showViewshed !== false
+    ).length;
+
+    if (activeViewsheds >= WARNING_THRESHOLD_VIEWSHEDS) {
+      console.warn(
+        `[Performance Warning] ${activeViewsheds} viewshed analyses are active. ` +
+        `Cesium Ion SDK sensors are computationally expensive and may cause performance issues. ` +
+        `Consider reducing the number of active viewsheds or disabling viewshed rendering (` +
+        `showViewshed: false) for some sensors. ` +
+        `Recommended maximum: ${MAX_RECOMMENDED_VIEWSHEDS} active viewsheds.`
+      );
+    }
+  }, [observationObjects]);
 
   return (
     <>

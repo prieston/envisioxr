@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import type { SensorRefs } from "../types";
 import { safeRemovePrimitive } from "../utils";
+import { cancelPendingSensorStyleUpdates } from "../core/sensor-updater";
 
 export function useSensorCleanup(
   refs: SensorRefs,
@@ -14,9 +15,15 @@ export function useSensorCleanup(
     const viewshedRef = refs.viewshedRef;
 
     return () => {
+      // Cancel any pending RAF callbacks for sensor style updates
+      if (sensorRef.current) {
+        cancelPendingSensorStyleUpdates(sensorRef.current);
+      }
+
       // Clean up composite sensor
       if (sensorCompositeRef.current?.parts) {
         sensorCompositeRef.current.parts.forEach((p: any) => {
+          cancelPendingSensorStyleUpdates(p);
           safeRemovePrimitive(cesiumViewer, p);
         });
         sensorCompositeRef.current.parts.length = 0;
@@ -25,6 +32,7 @@ export function useSensorCleanup(
 
       // Clean up single sensor
       if (sensorRef.current) {
+        cancelPendingSensorStyleUpdates(sensorRef.current);
         safeRemovePrimitive(cesiumViewer, sensorRef.current);
       }
       sensorRef.current = null;

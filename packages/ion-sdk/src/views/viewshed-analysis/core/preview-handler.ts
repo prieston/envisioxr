@@ -21,15 +21,28 @@ interface PreviewHandlerConfig {
   viewer: any;
 }
 
-export function createPreviewHandler(config: PreviewHandlerConfig) {
+export interface PreviewHandlerReturn {
+  handler: (event: Event) => void;
+  cleanup: () => void;
+}
+
+export function createPreviewHandler(config: PreviewHandlerConfig): PreviewHandlerReturn {
   const { objectId, sensorRef, propertiesRef, viewer } = config;
 
   // RAF-based throttle: queue latest update and process on next frame
   let rafId: number | null = null;
   let pendingPatch: any = null;
+  let isDestroyed = false;
 
   const processUpdate = () => {
     rafId = null;
+
+    // Skip if handler was destroyed
+    if (isDestroyed) {
+      pendingPatch = null;
+      return;
+    }
+
     if (!pendingPatch) return;
 
     const patch = pendingPatch;
@@ -133,7 +146,9 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
     }
   };
 
-  return (event: Event) => {
+  const handler = (event: Event) => {
+    if (isDestroyed) return;
+
     const {
       objectId: previewObjectId,
       patch,
@@ -156,6 +171,21 @@ export function createPreviewHandler(config: PreviewHandlerConfig) {
       rafId = requestAnimationFrame(processUpdate);
     }
   };
+
+  const cleanup = () => {
+    isDestroyed = true;
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    pendingPatch = null;
+    // Clean up global tick tracking for this object
+    if (window.__obsPreviewLastTick) {
+      delete window.__obsPreviewLastTick[objectId];
+    }
+  };
+
+  return { handler, cleanup };
 }
 
 export function initializePreviewGlobals() {
