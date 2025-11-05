@@ -14,6 +14,7 @@ import {
   createPreviewHandler,
   initializePreviewGlobals,
 } from "./core";
+import { applySensorStyle } from "./core/sensor-updater";
 import { removeSensor } from "./utils";
 
 const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
@@ -81,8 +82,23 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     cesiumViewer
   );
 
+  // Keep observationProperties, position, and rotation in refs to avoid unnecessary callback recreation
+  // Position/rotation updates are handled by useSensorPoseUpdate, so we only need to recreate
+  // the sensor when the shape signature changes
+  const observationPropertiesRef = useRef(observationProperties);
+  const positionRef = useRef(position);
+  const rotationRef = useRef(rotation);
+
+  useEffect(() => {
+    observationPropertiesRef.current = observationProperties;
+    positionRef.current = position;
+    rotationRef.current = rotation;
+  }, [observationProperties, position, rotation]);
+
   const createIonSDKSensor = useCallback(async () => {
-    if (!isInitialized || !cesiumViewer) return;
+    if (!isInitialized || !cesiumViewer) {
+      return;
+    }
 
     const shapeSig = currentShapeSig;
 
@@ -121,11 +137,12 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       sensorRef.current = null;
 
       // Create new sensor (async - loads vendor SDK client-only)
+      // Use refs to get latest values without causing callback recreation
       const { sensor } = await createSensor({
         viewer: cesiumViewer,
-        position,
-        rotation,
-        properties: observationProperties,
+        position: positionRef.current,
+        rotation: rotationRef.current,
+        properties: observationPropertiesRef.current,
       });
 
       sensorRef.current = sensor;
@@ -144,26 +161,35 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
       isTransitioningRef.current = false;
       creatingShapeSigRef.current = "";
     }
-  }, [
-    isInitialized,
-    cesiumViewer,
-    currentShapeSig,
-    position,
-    rotation,
-    observationProperties,
-  ]);
+  }, [isInitialized, cesiumViewer, currentShapeSig, objectId]);
 
   useEffect(() => {
     if (!isInitialized) return;
     createIonSDKSensor();
   }, [isInitialized, createIonSDKSensor]);
 
-  // Register preview handler for live updates
-  const observationPropertiesRef = useRef(observationProperties);
+  // Update sensor visibility flags when showSensorGeometry or showViewshed changes
   useEffect(() => {
-    observationPropertiesRef.current = observationProperties;
-  }, [observationProperties]);
+    if (!isInitialized || !cesiumViewer || !sensorRef.current) return;
 
+    // Skip if sensor is being created or transitioned
+    if (isTransitioningRef.current || isCreatingRef.current) return;
+
+    // Update sensor flags and colors directly without recreating the sensor
+    try {
+      applySensorStyle(sensorRef.current, observationProperties, cesiumViewer);
+    } catch (err) {
+      // Failed to update - sensor might be destroyed
+    }
+  }, [
+    isInitialized,
+    cesiumViewer,
+    observationProperties.showSensorGeometry,
+    observationProperties.showViewshed,
+    observationProperties.sensorColor,
+  ]);
+
+  // Register preview handler for live updates
   useEffect(() => {
     if (!isInitialized) return;
     initializePreviewGlobals();

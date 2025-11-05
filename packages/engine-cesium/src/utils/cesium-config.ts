@@ -23,7 +23,8 @@ export function ensureCesiumBaseUrl(): void {
   if (!window.CESIUM_BASE_URL) {
     window.CESIUM_BASE_URL = "/cesium/";
     // Log warning in development if misconfigured (uses compile-time flag)
-    // @ts-expect-error - __DEV__ is defined at compile time via webpack DefinePlugin
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - __DEV__ is defined at compile time via webpack DefinePlugin
     if (typeof __DEV__ !== "undefined" && __DEV__) {
       // eslint-disable-next-line no-console
       console.warn(

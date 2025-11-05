@@ -38,6 +38,7 @@ export function CesiumViewerContent({ viewer }: CesiumViewerContentProps) {
     [objects]
   );
 
+
   return (
     <>
       <CesiumPerformanceOptimizer viewer={viewer} />
