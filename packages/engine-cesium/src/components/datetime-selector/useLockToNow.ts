@@ -15,7 +15,7 @@ export function useLockToNow({
   const lockToNowIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (lockToNow && cesiumViewer?.clock) {
+    if (locked && cesiumViewer?.clock) {
       const now = new Date();
       const julianDate = Cesium.JulianDate.fromDate(now);
       cesiumViewer.clock.currentTime = julianDate;
@@ -45,4 +45,3 @@ export function useLockToNow({
     }
   }, [locked, cesiumViewer, setIsPlaying]);
 }
-

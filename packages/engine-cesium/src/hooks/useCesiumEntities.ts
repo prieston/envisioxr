@@ -74,6 +74,7 @@ export function useCesiumEntities(
             rotation: obj.rotation,
             scale: obj.scale,
             url: obj.url,
+            name: obj.name,
           };
 
           // Compare values precisely to avoid false positives from floating point precision
@@ -93,7 +94,8 @@ export function useCesiumEntities(
             !arraysEqual(prevObj.position, objData.position) ||
             !arraysEqual(prevObj.rotation, objData.rotation) ||
             !arraysEqual(prevObj.scale, objData.scale) ||
-            prevObj.url !== objData.url;
+            prevObj.url !== objData.url ||
+            prevObj.name !== objData.name;
 
           currentObjects.set(obj.id, objData);
 

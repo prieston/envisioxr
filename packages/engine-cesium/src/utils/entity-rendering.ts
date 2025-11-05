@@ -156,6 +156,15 @@ export function createModelEntity(
       }
       (entity.model as any).disableDepthTestDistance = Number.POSITIVE_INFINITY;
     }
+
+    // Update label text if name changed
+    if (entity.label) {
+      const currentLabelText = (entity.label as any).text?.getValue?.(now) ?? (entity.label as any).text;
+      const newLabelText = obj.name || "Model";
+      if (currentLabelText !== newLabelText) {
+        (entity.label as any).text = newLabelText;
+      }
+    }
     // Note: Cesium automatically requests render when entity properties change,
     // so we don't need to call requestRender() manually
   }
@@ -206,6 +215,15 @@ export function createPointEntity(
     const currentPos = entity.position?.getValue?.(now);
     if (!currentPos || !Cesium.Cartesian3.equals(currentPos, pos, Cesium.Math.EPSILON10)) {
       entity.position = pos;
+    }
+
+    // Update label text if name changed
+    if (entity.label) {
+      const currentLabelText = (entity.label as any).text?.getValue?.(now) ?? (entity.label as any).text;
+      const newLabelText = obj.name || "Object";
+      if (currentLabelText !== newLabelText) {
+        (entity.label as any).text = newLabelText;
+      }
     }
     // Note: Cesium automatically requests render when entity properties change
   }
