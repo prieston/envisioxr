@@ -25,7 +25,7 @@ export const LockToNowToggle: React.FC<LockToNowToggleProps> = ({
       onClick={() => !disabled && onChange(!locked)}
     >
       <Box>
-        <LockToNowLabel locked={locked}>
+        <LockToNowLabel locked={locked} component="div">
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <LockClock fontSize="small" />
             Lock to Real Time

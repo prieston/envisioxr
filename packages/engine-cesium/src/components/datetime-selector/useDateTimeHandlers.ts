@@ -74,12 +74,30 @@ export function useDateTimeHandlers({
           jsDate = new Date(`${date}T${time}:00Z`);
         }
 
+        // Validate date
+        if (isNaN(jsDate.getTime())) {
+          console.warn("Invalid date/time:", date, time);
+          return;
+        }
+
         const julianDate = Cesium.JulianDate.fromDate(jsDate);
 
         if (cesiumViewer.clock) {
-          cesiumViewer.clock.currentTime = julianDate;
-          cesiumViewer.clock.shouldAnimate = false;
-          setIsPlaying(false);
+          // Only update if the time actually changed to prevent unnecessary updates
+          const currentJulian = cesiumViewer.clock.currentTime;
+          const timeDiff = Math.abs(
+            Cesium.JulianDate.secondsDifference(julianDate, currentJulian)
+          );
+
+          // Only update if difference is more than 1 second to prevent micro-updates
+          if (timeDiff > 1) {
+            cesiumViewer.clock.currentTime = julianDate;
+            // Only stop animation if it's a manual date/time input change, not during joystick scrubbing
+            // The joystick scrubbing already handles animation state
+            if (!cesiumViewer.clock.shouldAnimate) {
+              setIsPlaying(false);
+            }
+          }
         }
 
         if (cesiumViewer.scene?.requestRender) {

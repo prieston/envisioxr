@@ -100,6 +100,7 @@ const CesiumDateTimeSelector: React.FC<CesiumDateTimeSelectorProps> = ({
     useLocalTime,
     updateCesiumTime,
     setCesiumCurrentTime,
+    isJoystickActive: joystickValue !== 0,
   });
 
   const handleJoystickChange = useCallback((value: number) => {

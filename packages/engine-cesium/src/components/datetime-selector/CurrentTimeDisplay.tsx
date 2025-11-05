@@ -41,7 +41,7 @@ export const CurrentTimeDisplay: React.FC<CurrentTimeDisplayProps> = ({
         >
           {isPlaying ? <Pause fontSize="small" /> : <PlayArrow fontSize="small" />}
         </IconButton>
-        <CurrentTimeText locked={locked}>
+        <CurrentTimeText locked={locked} component="div">
           {displayTime || "Loading..."}
         </CurrentTimeText>
       </Box>

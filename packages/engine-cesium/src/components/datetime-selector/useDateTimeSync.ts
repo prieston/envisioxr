@@ -6,6 +6,7 @@ interface UseDateTimeSyncOptions {
   useLocalTime: boolean;
   updateCesiumTime: (date: string, time: string) => void;
   setCesiumCurrentTime: (time: string) => void;
+  isJoystickActive?: boolean; // Prevent sync when joystick is scrubbing
 }
 
 export function useDateTimeSync({
@@ -14,9 +15,12 @@ export function useDateTimeSync({
   useLocalTime,
   updateCesiumTime,
   setCesiumCurrentTime,
+  isJoystickActive = false,
 }: UseDateTimeSyncOptions): void {
   const isInitialMount = useRef(true);
   const prevUseLocalTime = useRef(useLocalTime);
+  const prevDateValue = useRef(dateValue);
+  const prevTimeValue = useRef(timeValue);
   const updateCesiumTimeRef = useRef(updateCesiumTime);
   const setCesiumCurrentTimeRef = useRef(setCesiumCurrentTime);
 
@@ -25,12 +29,35 @@ export function useDateTimeSync({
   setCesiumCurrentTimeRef.current = setCesiumCurrentTime;
 
   useEffect(() => {
+    // Always skip on initial mount to prevent loops
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      prevDateValue.current = dateValue;
+      prevTimeValue.current = timeValue;
+      prevUseLocalTime.current = useLocalTime;
+      return;
+    }
+
+    // Skip sync when joystick is actively scrubbing (it's already updating Cesium directly)
+    if (isJoystickActive) {
+      return;
+    }
+
+    // Skip if only timezone changed (handled separately)
     if (prevUseLocalTime.current !== useLocalTime) {
       prevUseLocalTime.current = useLocalTime;
       return;
     }
 
-    if (dateValue && timeValue && !isInitialMount.current) {
+    // Only sync if dateValue or timeValue actually changed
+    const dateChanged = prevDateValue.current !== dateValue;
+    const timeChanged = prevTimeValue.current !== timeValue;
+
+    if (!dateChanged && !timeChanged) {
+      return;
+    }
+
+    if (dateValue && timeValue) {
       updateCesiumTimeRef.current(dateValue, timeValue);
       const isoString = useLocalTime
         ? new Date(`${dateValue}T${timeValue}:00`).toISOString()
@@ -38,8 +65,10 @@ export function useDateTimeSync({
       setCesiumCurrentTimeRef.current(isoString);
     }
 
-    isInitialMount.current = false;
+    // Update previous values
+    prevDateValue.current = dateValue;
+    prevTimeValue.current = timeValue;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateValue, timeValue, useLocalTime]);
+  }, [dateValue, timeValue, useLocalTime, isJoystickActive]);
 }
 

@@ -92,43 +92,44 @@ export const SwitchLabel: ComponentType<SwitchLabelProps> = SwitchLabelRoot;
 export interface LockToNowContainerProps extends BoxProps {
   locked: boolean;
 }
-const LockToNowContainerRoot = styled(Box)<LockToNowContainerProps>(
-  ({ locked, theme }) => ({
-    backgroundColor: locked
-      ? alpha("#10b981", theme.palette.mode === "dark" ? 0.18 : 0.12)
-      : theme.palette.mode === "dark"
-        ? "#14171A"
-        : "rgba(255, 255, 255, 0.92)",
-    border: locked
-      ? `1px solid ${alpha("#10b981", 0.45)}`
-      : theme.palette.mode === "dark"
-        ? "1px solid rgba(255, 255, 255, 0.05)"
-        : "1px solid rgba(226, 232, 240, 0.8)",
-    borderRadius: 4,
-    padding: "8.5px 14px",
-    marginBottom: theme.spacing(1.5),
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  })
-);
+const LockToNowContainerRoot = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "locked",
+})<LockToNowContainerProps>(({ locked, theme }) => ({
+  backgroundColor: locked
+    ? alpha("#10b981", theme.palette.mode === "dark" ? 0.18 : 0.12)
+    : theme.palette.mode === "dark"
+      ? "#14171A"
+      : "rgba(255, 255, 255, 0.92)",
+  border: locked
+    ? `1px solid ${alpha("#10b981", 0.45)}`
+    : theme.palette.mode === "dark"
+      ? "1px solid rgba(255, 255, 255, 0.05)"
+      : "1px solid rgba(226, 232, 240, 0.8)",
+  borderRadius: 4,
+  padding: "8.5px 14px",
+  marginBottom: theme.spacing(1.5),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+}));
 export const LockToNowContainer: ComponentType<LockToNowContainerProps> =
   LockToNowContainerRoot;
 
 export interface LockToNowLabelProps extends TypographyProps {
   locked: boolean;
 }
-const LockToNowLabelRoot = styled(Typography)<LockToNowLabelProps>(
-  ({ locked, theme }) => ({
-    fontSize: "0.75rem",
-    fontWeight: 400,
-    color: locked
-      ? "#10b981"
-      : theme.palette.mode === "dark"
-        ? "rgba(255, 255, 255, 0.78)"
-        : "rgba(51, 65, 85, 0.95)",
-  })
-);
+const LockToNowLabelRoot = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== "locked",
+})<LockToNowLabelProps>(({ locked, theme }) => ({
+  fontSize: "0.75rem",
+  fontWeight: 400,
+  color: locked
+    ? "#10b981"
+    : theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.78)"
+      : "rgba(51, 65, 85, 0.95)",
+  display: "block",
+}));
 export const LockToNowLabel: ComponentType<LockToNowLabelProps> =
   LockToNowLabelRoot;
 
@@ -151,22 +152,22 @@ export const LockToNowDescription: ComponentType<LockToNowDescriptionProps> =
 export interface CurrentTimeBoxProps extends BoxProps {
   locked: boolean;
 }
-const CurrentTimeBoxRoot = styled(Box)<CurrentTimeBoxProps>(
-  ({ locked, theme }) => ({
-    marginBottom: theme.spacing(1.5),
-    padding: theme.spacing(1.5),
-    backgroundColor: locked
-      ? "rgba(16, 185, 129, 0.08)"
-      : alpha(
-          theme.palette.primary.main,
-          theme.palette.mode === "dark" ? 0.12 : 0.08
-        ),
-    borderRadius: 4,
-    border: locked
-      ? "1px solid rgba(16, 185, 129, 0.2)"
-      : `1px solid ${alpha(theme.palette.primary.main, 0.28)}`,
-  })
-);
+const CurrentTimeBoxRoot = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "locked",
+})<CurrentTimeBoxProps>(({ locked, theme }) => ({
+  marginBottom: theme.spacing(1.5),
+  padding: theme.spacing(1.5),
+  backgroundColor: locked
+    ? "rgba(16, 185, 129, 0.08)"
+    : alpha(
+        theme.palette.primary.main,
+        theme.palette.mode === "dark" ? 0.12 : 0.08
+      ),
+  borderRadius: 4,
+  border: locked
+    ? "1px solid rgba(16, 185, 129, 0.2)"
+    : `1px solid ${alpha(theme.palette.primary.main, 0.28)}`,
+}));
 export const CurrentTimeBox: ComponentType<CurrentTimeBoxProps> =
   CurrentTimeBoxRoot;
 
@@ -199,15 +200,15 @@ export const LiveBadge = LiveBadgeRoot as ComponentType<LiveBadgeProps>;
 export interface CurrentTimeTextProps extends TypographyProps {
   locked: boolean;
 }
-const CurrentTimeTextRoot = styled(Typography)<CurrentTimeTextProps>(
-  ({ locked, theme }) => ({
-    fontSize: "0.75rem",
-    fontWeight: 600,
-    color: locked ? "#10b981" : theme.palette.primary.dark,
-    fontFamily: "monospace",
-    flex: 1,
-  })
-);
+const CurrentTimeTextRoot = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== "locked",
+})<CurrentTimeTextProps>(({ locked, theme }) => ({
+  fontSize: "0.75rem",
+  fontWeight: 600,
+  color: locked ? "#10b981" : theme.palette.primary.dark,
+  fontFamily: "monospace",
+  flex: 1,
+}));
 export const CurrentTimeText: ComponentType<CurrentTimeTextProps> =
   CurrentTimeTextRoot;
 
@@ -278,52 +279,52 @@ export const JoystickStatus: ComponentType<JoystickStatusProps> =
 export interface JoystickSliderProps extends SliderProps {
   joystickValue: number;
 }
-const JoystickSliderRoot = styled(Slider)<JoystickSliderProps>(
-  ({ joystickValue, theme }) => ({
-    color:
+const JoystickSliderRoot = styled(Slider, {
+  shouldForwardProp: (prop) => prop !== "joystickValue",
+})<JoystickSliderProps>(({ joystickValue, theme }) => ({
+  color:
+    joystickValue === 0
+      ? theme.palette.mode === "dark"
+        ? "rgba(148, 163, 184, 0.7)"
+        : "#64748b"
+      : joystickValue > 0
+        ? theme.palette.primary.dark
+        : "#ef4444",
+  height: 6,
+  "& .MuiSlider-thumb": {
+    width: 20,
+    height: 20,
+    transition: "all 0.15s ease",
+    backgroundColor:
       joystickValue === 0
-        ? theme.palette.mode === "dark"
-          ? "rgba(148, 163, 184, 0.7)"
-          : "#64748b"
+        ? "#94a3b8"
         : joystickValue > 0
-          ? theme.palette.primary.dark
+          ? "var(--color-primary-600, #4B6FAF)"
           : "#ef4444",
-    height: 6,
-    "& .MuiSlider-thumb": {
-      width: 20,
-      height: 20,
-      transition: "all 0.15s ease",
-      backgroundColor:
-        joystickValue === 0
-          ? "#94a3b8"
-          : joystickValue > 0
-            ? "var(--color-primary-600, #4B6FAF)"
-            : "#ef4444",
-      "&:hover, &.Mui-focusVisible": {
-        boxShadow: `0 0 0 8px ${joystickValue > 0 ? "rgba(95, 136, 199, 0.16)" : "rgba(239, 68, 68, 0.16)"}`,
-      },
+    "&:hover, &.Mui-focusVisible": {
+      boxShadow: `0 0 0 8px ${joystickValue > 0 ? "rgba(95, 136, 199, 0.16)" : "rgba(239, 68, 68, 0.16)"}`,
     },
-    "& .MuiSlider-track": {
-      border: "none",
-      backgroundColor:
-        joystickValue > 0 ? "var(--color-primary-600, #4B6FAF)" : "#ef4444",
-    },
-    "& .MuiSlider-rail": {
-      opacity: 0.3,
-      backgroundColor: "rgba(100, 116, 139, 0.3)",
-    },
-    "& .MuiSlider-mark": {
-      backgroundColor: "rgba(100, 116, 139, 0.4)",
-      height: 8,
-      width: 2,
-    },
-    "& .MuiSlider-markLabel": {
-      fontSize: "0.7rem",
-      color: "rgba(100, 116, 139, 0.85)",
-      fontWeight: 600,
-    },
-  })
-);
+  },
+  "& .MuiSlider-track": {
+    border: "none",
+    backgroundColor:
+      joystickValue > 0 ? "var(--color-primary-600, #4B6FAF)" : "#ef4444",
+  },
+  "& .MuiSlider-rail": {
+    opacity: 0.3,
+    backgroundColor: "rgba(100, 116, 139, 0.3)",
+  },
+  "& .MuiSlider-mark": {
+    backgroundColor: "rgba(100, 116, 139, 0.4)",
+    height: 8,
+    width: 2,
+  },
+  "& .MuiSlider-markLabel": {
+    fontSize: "0.7rem",
+    color: "rgba(100, 116, 139, 0.85)",
+    fontWeight: 600,
+  },
+}));
 export const JoystickSlider =
   JoystickSliderRoot as ComponentType<JoystickSliderProps>;
 
