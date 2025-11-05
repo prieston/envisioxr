@@ -17,6 +17,14 @@ export function useJoystickScrubbing({
   onTimeChange,
 }: UseJoystickScrubbingOptions): void {
   const joystickIntervalRef = useRef<number | null>(null);
+  const onDateChangeRef = useRef(onDateChange);
+  const onTimeChangeRef = useRef(onTimeChange);
+  const useLocalTimeRef = useRef(useLocalTime);
+
+  // Keep refs up to date without causing re-renders
+  onDateChangeRef.current = onDateChange;
+  onTimeChangeRef.current = onTimeChange;
+  useLocalTimeRef.current = useLocalTime;
 
   useEffect(() => {
     if (joystickIntervalRef.current) {
@@ -48,17 +56,17 @@ export function useJoystickScrubbing({
       cesiumViewer.clock.currentTime = newTime;
 
       const jsDate = Cesium.JulianDate.toDate(newTime);
-      if (useLocalTime) {
+      if (useLocalTimeRef.current) {
         const year = jsDate.getFullYear();
         const month = String(jsDate.getMonth() + 1).padStart(2, "0");
         const day = String(jsDate.getDate()).padStart(2, "0");
         const hours = String(jsDate.getHours()).padStart(2, "0");
         const minutes = String(jsDate.getMinutes()).padStart(2, "0");
-        onDateChange(`${year}-${month}-${day}`);
-        onTimeChange(`${hours}:${minutes}`);
+        onDateChangeRef.current(`${year}-${month}-${day}`);
+        onTimeChangeRef.current(`${hours}:${minutes}`);
       } else {
-        onDateChange(jsDate.toISOString().split("T")[0]);
-        onTimeChange(jsDate.toISOString().substring(11, 16));
+        onDateChangeRef.current(jsDate.toISOString().split("T")[0]);
+        onTimeChangeRef.current(jsDate.toISOString().substring(11, 16));
       }
     }, 100);
 
@@ -68,6 +76,6 @@ export function useJoystickScrubbing({
         joystickIntervalRef.current = null;
       }
     };
-  }, [joystickValue, cesiumViewer, useLocalTime, onDateChange, onTimeChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [joystickValue, cesiumViewer]);
 }
-

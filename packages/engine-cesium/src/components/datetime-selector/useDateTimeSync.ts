@@ -17,6 +17,12 @@ export function useDateTimeSync({
 }: UseDateTimeSyncOptions): void {
   const isInitialMount = useRef(true);
   const prevUseLocalTime = useRef(useLocalTime);
+  const updateCesiumTimeRef = useRef(updateCesiumTime);
+  const setCesiumCurrentTimeRef = useRef(setCesiumCurrentTime);
+
+  // Keep refs up to date without causing re-renders
+  updateCesiumTimeRef.current = updateCesiumTime;
+  setCesiumCurrentTimeRef.current = setCesiumCurrentTime;
 
   useEffect(() => {
     if (prevUseLocalTime.current !== useLocalTime) {
@@ -25,20 +31,15 @@ export function useDateTimeSync({
     }
 
     if (dateValue && timeValue && !isInitialMount.current) {
-      updateCesiumTime(dateValue, timeValue);
+      updateCesiumTimeRef.current(dateValue, timeValue);
       const isoString = useLocalTime
         ? new Date(`${dateValue}T${timeValue}:00`).toISOString()
         : new Date(`${dateValue}T${timeValue}:00Z`).toISOString();
-      setCesiumCurrentTime(isoString);
+      setCesiumCurrentTimeRef.current(isoString);
     }
 
     isInitialMount.current = false;
-  }, [
-    dateValue,
-    timeValue,
-    updateCesiumTime,
-    useLocalTime,
-    setCesiumCurrentTime,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateValue, timeValue, useLocalTime]);
 }
 
