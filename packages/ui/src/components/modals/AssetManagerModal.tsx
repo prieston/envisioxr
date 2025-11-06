@@ -10,7 +10,7 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import { Close, CloudUpload, Folder, Public } from "@mui/icons-material";
+import { Close, CloudUpload, Folder, Public, Add } from "@mui/icons-material";
 import {
   modalPaperStyles,
   modalTitleStyles,
@@ -21,6 +21,7 @@ import {
   MyLibraryTab,
   UploadModelTab,
   UploadToIonTab,
+  AddIonAssetTab,
   type LibraryAsset,
 } from "./tabs";
 
@@ -62,6 +63,13 @@ export interface AssetManagerModalProps {
   }) => Promise<{ assetId: string }>;
   ionUploading?: boolean;
   ionUploadProgress?: number;
+  // Add Ion Asset props
+  onCesiumAssetAdd?: (data: {
+    assetId: string;
+    name: string;
+    apiKey?: string;
+  }) => Promise<unknown>;
+  onIonAssetAdded?: () => void;
 }
 
 const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
@@ -80,6 +88,9 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
   onCesiumIonUpload,
   ionUploading = false,
   ionUploadProgress = 0,
+  // Add Ion Asset
+  onCesiumAssetAdd,
+  onIonAssetAdded,
 }) => {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -161,6 +172,7 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
         <Tab icon={<Folder />} iconPosition="start" label="My Library" />
         <Tab icon={<CloudUpload />} iconPosition="start" label="Upload Model" />
         <Tab icon={<Public />} iconPosition="start" label="Upload to Ion" />
+        <Tab icon={<Add />} iconPosition="start" label="Add Ion Asset" />
       </Tabs>
 
       {/* Content */}
@@ -201,6 +213,14 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
             onUpload={onCesiumIonUpload}
             uploading={ionUploading}
             uploadProgress={ionUploadProgress}
+          />
+        )}
+
+        {/* Add Ion Asset Tab */}
+        {activeTab === 3 && onCesiumAssetAdd && (
+          <AddIonAssetTab
+            onAdd={onCesiumAssetAdd}
+            onSuccess={onIonAssetAdded}
           />
         )}
       </DialogContent>

@@ -8,12 +8,20 @@ import {
   Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { useSceneStore } from "@envisio/core";
-import { showToast } from "@envisio/ui";
+import { showToast, type LibraryAsset } from "@envisio/ui";
 import { ActionButton, AssetManagerModal } from "@envisio/ui";
 import ReportGenerator from "../../Report/ReportGenerator";
 import ProjectSettingsModal from "../../Builder/ProjectSettingsModal";
 import { useAssetManager } from "./hooks/useAssetManager";
 import { useCesiumIon } from "./hooks/useCesiumIon";
+
+interface PendingModel {
+  name: string;
+  url?: string;
+  type?: string;
+  fileType?: string;
+  assetId?: string;
+}
 
 interface BuilderActionsProps {
   onSave?: () => Promise<void>;
@@ -23,8 +31,8 @@ interface BuilderActionsProps {
   setSelectingPosition?: (selecting: boolean) => void;
   selectedPosition?: [number, number, number] | null;
   setSelectedPosition?: (position: [number, number, number] | null) => void;
-  pendingModel?: any;
-  setPendingModel?: (model: any) => void;
+  pendingModel?: PendingModel | null;
+  setPendingModel?: (model: PendingModel | null) => void;
 }
 
 const BuilderActions: React.FC<BuilderActionsProps> = ({
@@ -54,10 +62,15 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
     setPendingModel,
   });
 
-  const { ionUploading, ionUploadProgress, handleUploadToIon } = useCesiumIon();
+  const {
+    ionUploading,
+    ionUploadProgress,
+    handleUploadToIon,
+    handleCesiumAssetAdd,
+  } = useCesiumIon();
 
   // Close asset manager when model is selected
-  const handleModelSelectAndClose = (model: any) => {
+  const handleModelSelectAndClose = (model: LibraryAsset) => {
     handleModelSelect(model);
     setAssetManagerOpen(false);
   };
@@ -113,6 +126,9 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
         onCesiumIonUpload={(data) => handleUploadToIon(data, fetchUserAssets)}
         ionUploading={ionUploading}
         ionUploadProgress={ionUploadProgress}
+        // Add Ion Asset
+        onCesiumAssetAdd={handleCesiumAssetAdd}
+        onIonAssetAdded={fetchUserAssets}
       />
 
       <ActionButton

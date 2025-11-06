@@ -85,6 +85,13 @@ interface AssetLibraryPanelProps {
     showVisibleArea: boolean;
     visibilityRadius: number;
   }) => void;
+  // Add Ion Asset props
+  handleCesiumAssetAdd?: (data: {
+    assetId: string;
+    name: string;
+    apiKey?: string;
+  }) => Promise<unknown>;
+  onIonAssetAdded?: () => void;
 }
 
 const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
@@ -116,6 +123,8 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
   onObservationModelChange,
   observationProperties,
   onObservationPropertiesChange,
+  handleCesiumAssetAdd,
+  onIonAssetAdded,
 }) => {
   return (
     <Box display="flex" flexDirection="column" height="100%">
@@ -154,6 +163,7 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
       >
         <Tab label="Your Models" />
         <Tab label="Upload Model" />
+        <Tab label="Add Ion Asset" />
       </Tabs>
 
       {selectingPosition && (
@@ -422,7 +432,156 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
             )}
           </Box>
         )}
+
+        {tabIndex === 2 && handleCesiumAssetAdd && (
+          <AddIonAssetTab
+            onAdd={handleCesiumAssetAdd}
+            onSuccess={onIonAssetAdded}
+          />
+        )}
       </Box>
+    </Box>
+  );
+};
+
+// Add Ion Asset Tab Component
+interface AddIonAssetTabProps {
+  onAdd: (data: {
+    assetId: string;
+    name: string;
+    apiKey?: string;
+  }) => Promise<unknown>;
+  onSuccess?: () => void;
+}
+
+const AddIonAssetTab: React.FC<AddIonAssetTabProps> = ({ onAdd, onSuccess }) => {
+  const [name, setName] = React.useState("");
+  const [assetId, setAssetId] = React.useState("");
+  const [assetToken, setAssetToken] = React.useState("");
+  const [adding, setAdding] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!assetId.trim()) {
+      setError("Asset ID is required");
+      return;
+    }
+
+    if (!name.trim()) {
+      setError("Name is required");
+      return;
+    }
+
+    setAdding(true);
+    try {
+      await onAdd({
+        assetId: assetId.trim(),
+        name: name.trim(),
+        apiKey: assetToken.trim() || undefined,
+      });
+      // Reset form on success
+      setName("");
+      setAssetId("");
+      setAssetToken("");
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to add Ion asset"
+      );
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        p: 2,
+      }}
+    >
+      <Typography variant="h6" gutterBottom>
+        Add Cesium Ion Asset
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Enter the details of an existing Cesium Ion asset to add it to your
+        library.
+      </Typography>
+
+      <form onSubmit={handleSubmit}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <TextField
+            id="ion-asset-name"
+            name="ion-asset-name"
+            label="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            fullWidth
+            size="small"
+            disabled={adding}
+            placeholder="e.g., My 3D Tileset"
+          />
+
+          <TextField
+            id="ion-asset-id"
+            name="ion-asset-id"
+            label="Asset ID"
+            value={assetId}
+            onChange={(e) => setAssetId(e.target.value)}
+            required
+            fullWidth
+            size="small"
+            disabled={adding}
+            placeholder="e.g., 123456"
+            helperText="The numeric ID of the asset in Cesium Ion"
+          />
+
+          <TextField
+            id="ion-asset-token"
+            name="ion-asset-token"
+            label="Asset Token (optional)"
+            value={assetToken}
+            onChange={(e) => setAssetToken(e.target.value)}
+            fullWidth
+            size="small"
+            disabled={adding}
+            type="password"
+            placeholder="Your Cesium Ion access token"
+            helperText="Required if the asset is private or requires authentication"
+          />
+
+          {error && (
+            <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+              {error}
+            </Typography>
+          )}
+
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            disabled={adding || !assetId.trim() || !name.trim()}
+            sx={{ mt: 2 }}
+          >
+            {adding ? (
+              <>
+                <CircularProgress size={16} sx={{ mr: 1 }} />
+                Adding...
+              </>
+            ) : (
+              "Add to Library"
+            )}
+          </Button>
+        </Box>
+      </form>
     </Box>
   );
 };

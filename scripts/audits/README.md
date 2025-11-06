@@ -103,6 +103,139 @@ This directory contains automated audit scripts to prevent common code quality a
 
 **Usage**: `pnpm audit:env`
 
+## Tier C — Performance Audits (Cesium-Specific)
+
+### 10. Render Loop & Scheduling (`renderloop.ts`)
+**Goal**: Prevent unnecessary renders and per-frame allocations
+
+**Checks**:
+- `viewer.scene.requestRenderMode` not set to `true`
+- Unnecessary `viewer.render()` or `requestRender()` calls
+- Stray `setInterval`/`setTimeout`/`rAF` driving continuous renders
+- Per-frame allocations in animation callbacks (`preUpdate`, `postRender`, etc.)
+- `requestRender()` calls without proper guards
+
+**Usage**: `pnpm audit:renderloop`
+
+### 11. WebGL Resource Lifecycle (`webgl.ts`)
+**Goal**: Prevent WebGL memory leaks
+
+**Checks**:
+- Textures, framebuffers, materials not destroyed
+- `PrimitiveCollections` and `PostProcessStage` chains not cleaned up
+- `ImageryLayers` removed but not destroyed
+- `DataSources` removed without `destroy=true`
+- Geometry buffers not released
+- `ImageryProvider`/`TerrainProvider` changes without cleanup
+
+**Usage**: `pnpm audit:webgl`
+
+### 12. 3D Tiles Configuration (`tiles.ts`)
+**Goal**: Optimize tileset performance and prevent leaks
+
+**Checks**:
+- Missing tileset configuration (`maximumScreenSpaceError`, `baseScreenSpaceError`, `skipLevelOfDetail`, `maximumMemoryUsage`)
+- Tilesets left attached but hidden
+- Multiple overlapping tilesets (duplicates)
+- Tilesets without explicit `destroy()` on unmount
+- Pathological per-frame style/feature property writes
+- Missing event unsubscriptions (`ready`, `tileLoad`, etc.)
+
+**Usage**: `pnpm audit:tiles`
+
+### 13. Viewer/Scene Configuration (`viewer.ts`)
+**Goal**: Ensure optimal viewer settings
+
+**Checks**:
+- Missing `targetFrameRate` or `maximumRenderTimeChange`
+- FXAA enabled at high DPI without check
+- Unnecessary global shadows/`depthTestAgainstTerrain`
+- Duplicate `ScreenSpaceEventHandlers`
+- Resolution scale > 1.0 (unnecessary upscaling)
+- `logarithmicDepthBuffer` toggled every frame
+
+**Usage**: `pnpm audit:viewer`
+
+### 14. Hydration & SSR/CSR Mismatch (`hydration.ts`)
+**Goal**: Prevent Next.js hydration errors and double mounts
+
+**Checks**:
+- Cesium components rendered on server (missing `"use client"`)
+- `window`/`document` usage in RSC
+- Cesium imports in server components
+- `useEffect` creating Cesium resources without mount guard (double mount)
+- Dynamic imports without `ssr: false` for Cesium
+- Metadata exports in client components
+
+**Usage**: `pnpm audit:hydration`
+
+### 15. Virtualization & List Rendering (`lists.ts`)
+**Goal**: Optimize list rendering performance
+
+**Checks**:
+- Large arrays (>50 items) mapped directly into JSX without virtualization
+- Objects/arrays passed inline in props (breaks `React.memo`)
+- Missing pagination for large data sets
+- Filter/map chains without `useMemo`
+
+**Usage**: `pnpm audit:lists`
+
+### 16. Network & Tiling (`network.ts`)
+**Goal**: Optimize network requests and prevent API spam
+
+**Checks**:
+- HTTP cache headers for imagery/terrain endpoints
+- Throttling/backoff on tile errors
+- Spamming metadata endpoints
+- Multiple `CreditDisplays`
+- Duplicate Ion initializations
+- Network calls in `requestAnimationFrame`
+- Missing retry/backoff logic for failed tiles
+
+**Usage**: `pnpm audit:network`
+
+### 17. CPU Hotspots (`cpu.ts`)
+**Goal**: Identify CPU-intensive operations for Web Worker offloading
+
+**Checks**:
+- Synchronous heavy math on main thread
+- Nested loops in render callbacks
+- Viewshed/sensor computations on main thread
+- Geometry builders in render loop
+- Large array operations without performance tracking
+- Web Worker `postMessage` with large data (cloning overhead)
+- Styling passes on large feature sets
+
+**Usage**: `pnpm audit:cpu`
+
+### 18. Image/Texture Pipeline (`textures.ts`)
+**Goal**: Optimize texture loading and prevent memory waste
+
+**Checks**:
+- Full-res UI thumbnails bound as textures
+- Base64 images bound as textures
+- Missing max texture size enforcement
+- `ImageMaterialProperty` recreated every render
+- `TextureUniforms` recreated every render
+- Missing texture reuse/caching
+- Texture created in `useEffect` without cleanup
+
+**Usage**: `pnpm audit:textures`
+
+### 19. RSC Boundaries & Bundle (`rsc-boundaries.ts`)
+**Goal**: Optimize Next.js bundle size and RSC boundaries
+
+**Checks**:
+- Client components that could be server components
+- Large Cesium/ion SDK chunks leaking into non-Cesium routes
+- Missing `dynamic(() => import(...), { ssr: false })` for viewer-only modules
+- Dead code not tree-shaken (barrel imports)
+- Missing fetch caching config (RSC)
+- Accidental `no-store` killing ISR/edge caching
+- Large components not code-split
+
+**Usage**: `pnpm audit:rsc`
+
 ## Quick Commands
 
 ```bash
@@ -112,8 +245,23 @@ pnpm audit:light
 # Run all heavy audits (Tier B)
 pnpm audit:heavy
 
+# Run all performance audits (Tier C)
+pnpm audit:performance
+
 # Run everything (CI)
 pnpm audit:ci
+
+# Run individual performance audits
+pnpm audit:renderloop  # Render loop optimization
+pnpm audit:webgl      # WebGL resource lifecycle
+pnpm audit:tiles      # 3D Tiles configuration
+pnpm audit:viewer     # Viewer/Scene config
+pnpm audit:hydration  # SSR/CSR boundaries
+pnpm audit:lists      # List virtualization
+pnpm audit:network    # Network & tiling optimization
+pnpm audit:cpu        # CPU hotspot detection
+pnpm audit:textures   # Image/texture pipeline
+pnpm audit:rsc        # RSC boundaries & bundle size
 ```
 
 ## Integration

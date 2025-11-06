@@ -6,3 +6,6 @@ export type { UploadModelTabProps } from "./UploadModelTab";
 
 export { default as UploadToIonTab } from "./UploadToIonTab";
 export type { UploadToIonTabProps } from "./UploadToIonTab";
+
+export { default as AddIonAssetTab } from "./AddIonAssetTab";
+export type { AddIonAssetTabProps } from "./AddIonAssetTab";
