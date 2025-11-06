@@ -4,7 +4,7 @@ import { ToastContainer } from "react-toastify";
 import { ClientProviders } from "./providers";
 
 export const metadata = {
-  title: "EnvisioXR | Public Preview",
+  title: "Klorad | Public View",
   description: "Preview published worlds.",
   icons: { icon: "/klorad-favicon.png" },
 };
