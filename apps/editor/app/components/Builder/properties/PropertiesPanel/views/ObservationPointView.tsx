@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useState, useEffect } from "react";
 import { Box, Button, TextField } from "@mui/material";
 import { Camera, FlightTakeoff } from "@mui/icons-material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
@@ -39,6 +39,18 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
   ({ selectedObservation, updateObservationPoint, setCapturingPOV }) => {
     const engine = useWorldStore((s) => s.engine);
     const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
+
+    // Local state for inputs to prevent focus loss on re-renders
+    const [title, setTitle] = useState(selectedObservation.title || "");
+    const [description, setDescription] = useState(
+      (selectedObservation.description as string) || ""
+    );
+
+    // Sync local state when observation changes (e.g., switching observations)
+    useEffect(() => {
+      setTitle(selectedObservation.title || "");
+      setDescription((selectedObservation.description as string) || "");
+    }, [selectedObservation.id]);
 
     // Type-safe property updates
     type ObsKey = "title" | "description" | "position" | "target";
@@ -190,8 +202,12 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
               fullWidth
               size="small"
               placeholder="Enter title"
-              value={selectedObservation.title || ""}
-              onChange={(e) => handleObservationChange("title", e.target.value)}
+              value={title}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setTitle(newValue);
+                handleObservationChange("title", newValue);
+              }}
               sx={textFieldStyles}
             />
           </Box>
@@ -207,10 +223,12 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
               placeholder="Enter description"
               multiline
               rows={4}
-              value={(selectedObservation.description as string) || ""}
-              onChange={(e) =>
-                handleObservationChange("description", e.target.value)
-              }
+              value={description}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setDescription(newValue);
+                handleObservationChange("description", newValue);
+              }}
               sx={textFieldStyles}
             />
           </Box>
