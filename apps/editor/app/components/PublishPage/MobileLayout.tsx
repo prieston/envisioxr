@@ -8,6 +8,7 @@ import {
   Switch,
   Typography,
   Toolbar,
+  useTheme,
 } from "@mui/material";
 import {
   MobileAppBar,
@@ -65,6 +66,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
   drawerOpen,
   setDrawerOpen,
 }) => {
+  const theme = useTheme();
   const sceneContainerHeight = `calc(100vh - ${
     TOP_APPBAR_HEIGHT + BOTTOM_BAR_HEIGHT
   }px)`;
@@ -113,7 +115,8 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
           sx: {
             boxShadow: "none",
             marginBottom: `${BOTTOM_BAR_HEIGHT}px`,
-            backgroundColor: "white",
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
           },
         }}
         ModalProps={{

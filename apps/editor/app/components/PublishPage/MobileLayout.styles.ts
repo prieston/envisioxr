@@ -28,6 +28,7 @@ export const MobileBottomNav = styled("div")(({ theme }) => ({
   right: 0,
   height: BOTTOM_BAR_HEIGHT,
   backgroundColor: theme.palette.background.paper,
+  color: theme.palette.text.primary,
   display: "flex",
   justifyContent: "space-around",
   alignItems: "center",
