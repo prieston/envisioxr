@@ -203,11 +203,8 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
               size="small"
               placeholder="Enter title"
               value={title}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                setTitle(newValue);
-                handleObservationChange("title", newValue);
-              }}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => handleObservationChange("title", title)}
               sx={textFieldStyles}
             />
           </Box>
@@ -224,11 +221,8 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
               multiline
               rows={4}
               value={description}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                setDescription(newValue);
-                handleObservationChange("description", newValue);
-              }}
+              onChange={(e) => setDescription(e.target.value)}
+              onBlur={() => handleObservationChange("description", description)}
               sx={textFieldStyles}
             />
           </Box>
