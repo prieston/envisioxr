@@ -7,10 +7,11 @@
  */
 export function createViewerOptions() {
   // Detect mobile devices for optimization
-  const isMobile = typeof window !== "undefined" && (
-    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-    (window.innerWidth <= 768 && window.matchMedia("(max-width: 768px)").matches)
-  );
+  const isMobile =
+    typeof window !== "undefined" &&
+    (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+      (window.innerWidth <= 768 &&
+        window.matchMedia("(max-width: 768px)").matches));
 
   return {
     // Disable all UI widgets and controls for better performance
@@ -50,23 +51,26 @@ export function createViewerOptions() {
 }
 
 /**
- * Configures scene defaults for mobile GPUs and calmer earth presentation
+ * Configures scene defaults for mobile GPUs and realistic earth presentation
  */
-export function configureSceneDefaults(scene: any, Cesium: any): void {
+export function configureSceneDefaults(scene: any, _Cesium: any): void {
   scene.highDynamicRange = false;
   scene.logarithmicDepthBuffer = false; // avoid precision issues with custom materials
 
   if (scene?.globe) {
     const globe = scene.globe;
-    globe.baseColor = Cesium.Color.fromCssColorString("#1a1a1c");
+    // Use default base color for more realistic Earth appearance
+    // globe.baseColor = Cesium.Color.fromCssColorString("#1a1a1c");
     globe.dynamicAtmosphereLighting = true;
   }
 
   if (scene?.skyAtmosphere) {
     const atmosphere = scene.skyAtmosphere;
-    atmosphere.hueShift = -0.08;
-    atmosphere.saturationShift = -0.22;
-    atmosphere.brightnessShift = -0.18;
+    // Use more realistic atmosphere settings (closer to default)
+    // Reduced shifts for clearer, more vibrant atmosphere
+    atmosphere.hueShift = 0.0;
+    atmosphere.saturationShift = 0.0;
+    atmosphere.brightnessShift = 0.0;
   }
 }
 
@@ -151,10 +155,11 @@ export function setViewerTime(viewer: any, Cesium: any, time: string): void {
  */
 export function setViewerResolutionScale(viewer: any): void {
   // Detect mobile devices
-  const isMobile = typeof window !== "undefined" && (
-    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-    (window.innerWidth <= 768 && window.matchMedia("(max-width: 768px)").matches)
-  );
+  const isMobile =
+    typeof window !== "undefined" &&
+    (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+      (window.innerWidth <= 768 &&
+        window.matchMedia("(max-width: 768px)").matches));
 
   if (isMobile) {
     // On mobile, use lower resolution to prevent memory crashes
@@ -163,4 +168,3 @@ export function setViewerResolutionScale(viewer: any): void {
     viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 1.25);
   }
 }
-
