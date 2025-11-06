@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import { Select, MenuItem, FormControl } from "@mui/material";
 import { SettingContainer, SettingLabel } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
@@ -162,24 +162,11 @@ const CesiumBasemapSelector: React.FC<CesiumBasemapSelectorProps> = ({
   );
 
   // Cleanup: Remove basemap primitive when component unmounts or cesiumViewer changes
-  useEffect(() => {
-    if (!cesiumViewer?.scene?.primitives) return;
-
-    return () => {
-      // Remove Google Photorealistic tileset (assetId 2275207) if it exists
-      // Use explicit path to match audit detection pattern: .primitives.remove()
-      if (cesiumViewer?.scene?.primitives) {
-        const primitives = cesiumViewer.scene.primitives;
-        for (let i = primitives.length - 1; i >= 0; i--) {
-          const primitive = primitives.get(i);
-          if (primitive && primitive.assetId === 2275207) {
-            // Use explicit path pattern for audit detection
-            cesiumViewer.scene.primitives.remove(primitive);
-          }
-        }
-      }
-    };
-  }, [cesiumViewer]);
+  // NOTE: We don't cleanup the basemap tileset here because:
+  // 1. This component can unmount/remount during re-renders
+  // 2. Removing the basemap on unmount causes it to disappear unexpectedly
+  // 3. Basemap lifecycle is managed by applyBasemapType in basemap.ts
+  // 4. The viewer.destroy() in useCesiumInitialization handles final cleanup
 
   if (disabled) {
     return null;

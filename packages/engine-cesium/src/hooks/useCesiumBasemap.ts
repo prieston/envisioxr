@@ -6,11 +6,7 @@ import { useEffect, useRef } from "react";
 import { useSceneStore } from "@envisio/core";
 import { applyBasemapType } from "../utils/basemap";
 
-export function useCesiumBasemap(
-  viewer: any,
-  cesium: any,
-  isLoading: boolean
-) {
+export function useCesiumBasemap(viewer: any, cesium: any, isLoading: boolean) {
   const basemapType = useSceneStore((s) => s.basemapType);
   const viewerRef = useRef(viewer);
   const cesiumRef = useRef(cesium);
@@ -29,7 +25,8 @@ export function useCesiumBasemap(
 
     // Skip if basemapType hasn't changed (but allow initial application when viewer becomes ready)
     const isInitialApplication = !hasAppliedBasemapRef.current;
-    if (!isInitialApplication && lastBasemapTypeRef.current === basemapType) return;
+    if (!isInitialApplication && lastBasemapTypeRef.current === basemapType)
+      return;
 
     // Apply basemap change when basemapType changes or on initial load
     if (basemapType) {
@@ -39,4 +36,3 @@ export function useCesiumBasemap(
     }
   }, [basemapType, isLoading]);
 }
-
