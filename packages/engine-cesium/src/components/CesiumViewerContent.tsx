@@ -146,7 +146,8 @@ export function CesiumViewerContent({ viewer }: CesiumViewerContentProps) {
           showViewshed: isMobile
             ? false
             : (obj.observationProperties?.showViewshed ?? false),
-          sensorColor: obj.observationProperties?.sensorColor || "#00ff00",
+          // Use theme success color (softer green) instead of pure green
+          sensorColor: obj.observationProperties?.sensorColor || "#22c55e",
           viewshedColor:
             obj.observationProperties?.viewshedColor || "#0080ff",
           // Use lower quality on mobile to reduce memory usage

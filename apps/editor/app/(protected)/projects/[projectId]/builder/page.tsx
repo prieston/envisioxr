@@ -74,7 +74,8 @@ const sanitizeSceneData = (
             rest.observationProperties.showViewshed !== undefined
               ? rest.observationProperties.showViewshed
               : false,
-          sensorColor: rest.observationProperties.sensorColor || "#00ff00",
+          // Use theme success color (softer green) instead of pure green
+          sensorColor: rest.observationProperties.sensorColor || "#22c55e",
           viewshedColor: rest.observationProperties.viewshedColor || "#0080ff",
 
           // Analysis Options

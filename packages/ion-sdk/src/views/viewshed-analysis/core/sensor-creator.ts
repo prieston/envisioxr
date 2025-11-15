@@ -85,10 +85,18 @@ export async function createSensor(params: CreateSensorParams) {
     throw new Error("Failed to create sensor");
   }
 
+  // Use viewshedOpacity from properties, default to 0.35 if not specified
+  const opacity = properties.viewshedOpacity ?? 0.35;
+  // Use theme error color for occluded areas (softer than pure red)
+  const THEME_ERROR_RED = "#ef4444"; // Light mode error color
+  // Occluded areas use slightly higher opacity for better visibility
+  const occludedOpacity = Math.min(opacity * 1.23, 1.0); // ~43% when opacity is 35%
+  const occludedColor = Cesium.Color.fromCssColorString(THEME_ERROR_RED).withAlpha(occludedOpacity);
+
   updateColors(sensor, {
-    volume: sensorColor.withAlpha(0.25),
-    visible: sensorColor.withAlpha(0.35),
-    occluded: Cesium.Color.fromBytes(255, 0, 0, 110),
+    volume: sensorColor.withAlpha(opacity * 0.71), // ~25% when opacity is 35%
+    visible: sensorColor.withAlpha(opacity), // Use the user-defined opacity
+    occluded: occludedColor,
   });
 
   updateFlags(sensor, {

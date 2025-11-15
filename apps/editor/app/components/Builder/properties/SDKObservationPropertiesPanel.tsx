@@ -10,6 +10,7 @@ import { SensorTypeSelector } from "./sdk-observation/SensorTypeSelector";
 import { FOVSlider } from "./sdk-observation/FOVSlider";
 import { VisibilityRadiusSlider } from "./sdk-observation/VisibilityRadiusSlider";
 import { VisualizationSwitch } from "./sdk-observation/VisualizationSwitch";
+import { TransparencySlider } from "./sdk-observation/TransparencySlider";
 
 interface SDKObservationPropertiesPanelProps {
   selectedObject: ModelObject | null;
@@ -27,8 +28,10 @@ const defaultObservationProps = {
   showSensorGeometry: true,
   showViewshed: false,
   analysisQuality: "medium" as "low" | "medium" | "high",
-  sensorColor: "#00ff00",
+  // Use theme success color (softer green) instead of pure green
+  sensorColor: "#22c55e",
   viewshedColor: "#0080ff",
+  viewshedOpacity: 0.35, // Default opacity for viewshed colors (0-1)
   clearance: 2.0,
   raysElevation: 8,
   stepCount: 64,
@@ -58,6 +61,7 @@ const SDKObservationPropertiesPanel: React.FC<
     visibilityRadius: obs.visibilityRadius,
     showSensorGeometry: obs.showSensorGeometry,
     showViewshed: obs.showViewshed,
+    viewshedOpacity: obs.viewshedOpacity ?? 0.35,
     clearance: obs.clearance ?? 2.0,
     raysElevation: obs.raysElevation ?? 8,
     stepCount: obs.stepCount ?? 64,
@@ -74,6 +78,7 @@ const SDKObservationPropertiesPanel: React.FC<
       visibilityRadius: obs.visibilityRadius,
       showSensorGeometry: obs.showSensorGeometry,
       showViewshed: obs.showViewshed,
+      viewshedOpacity: obs.viewshedOpacity ?? 0.35,
       clearance: obs.clearance ?? 2.0,
       raysElevation: obs.raysElevation ?? 8,
       stepCount: obs.stepCount ?? 64,
@@ -88,6 +93,7 @@ const SDKObservationPropertiesPanel: React.FC<
     obs.visibilityRadius,
     obs.showSensorGeometry,
     obs.showViewshed,
+    obs.viewshedOpacity,
     obs.clearance,
     obs.raysElevation,
     obs.stepCount,
@@ -251,6 +257,21 @@ const SDKObservationPropertiesPanel: React.FC<
               handlePropertyChange("showViewshed", checked);
             }}
           />
+
+          {local.showViewshed && (
+            <TransparencySlider
+              value={local.viewshedOpacity}
+              onDragStart={startDrag}
+              onDragEnd={endDrag}
+              onChange={(next) => {
+                setLocal((s) => ({ ...s, viewshedOpacity: next }));
+                schedulePreview({ viewshedOpacity: next });
+              }}
+              onCommit={(next) => {
+                handlePropertyChange("viewshedOpacity", next);
+              }}
+            />
+          )}
         </Box>
       </Box>
     </Box>

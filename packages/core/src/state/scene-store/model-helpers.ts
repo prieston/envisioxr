@@ -13,8 +13,10 @@ export function createDefaultObservationProperties() {
     analysisQuality: "medium" as "low" | "medium" | "high",
     enableTransformEditor: true,
     alignWithModelFront: true,
-    sensorColor: "#00ff00",
+    // Use theme colors: success green (#22c55e) and primary blue (#0080ff)
+    sensorColor: "#22c55e",
     viewshedColor: "#0080ff",
+    viewshedOpacity: 0.35, // Default opacity for viewshed colors (0-1)
     clearance: 2.0,
     raysAzimuth: 120,
     raysElevation: 8,

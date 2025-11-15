@@ -202,6 +202,7 @@ const ViewshedAnalysis: React.FC<ViewshedAnalysisProps> = ({
     observationProperties.showSensorGeometry,
     observationProperties.showViewshed,
     observationProperties.sensorColor,
+    observationProperties.viewshedOpacity,
     isActive,
   ]);
 

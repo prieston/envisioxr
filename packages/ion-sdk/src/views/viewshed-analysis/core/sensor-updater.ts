@@ -51,6 +51,9 @@ export function applySensorFlags(
   }
 }
 
+// Theme colors matching app design system
+const THEME_ERROR_RED = "#ef4444"; // Light mode error color
+
 export function applySensorColors(
   handle: any,
   properties: ObservationProperties,
@@ -60,10 +63,17 @@ export function applySensorColors(
 
   try {
     const color = Cesium.Color.fromCssColorString(properties.sensorColor);
+    // Use viewshedOpacity from properties, default to 0.35 if not specified
+    const opacity = properties.viewshedOpacity ?? 0.35;
+    // Use theme error color for occluded areas (softer than pure red)
+    // Default to light mode color, can be enhanced to detect dark mode if needed
+    // Occluded areas use slightly higher opacity for better visibility
+    const occludedOpacity = Math.min(opacity * 1.23, 1.0); // ~43% when opacity is 35%
+    const occludedColor = Cesium.Color.fromCssColorString(THEME_ERROR_RED).withAlpha(occludedOpacity);
     updateColors(handle, {
-      volume: color.withAlpha(0.25),
-      visible: color.withAlpha(0.35),
-      occluded: Cesium.Color.fromBytes(255, 0, 0, 110),
+      volume: color.withAlpha(opacity * 0.71), // ~25% when opacity is 35%
+      visible: color.withAlpha(opacity), // Use the user-defined opacity
+      occluded: occludedColor,
     });
     viewer?.scene?.requestRender();
   } catch (err) {

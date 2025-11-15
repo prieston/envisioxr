@@ -35,6 +35,7 @@ export interface Model {
     showViewshed: boolean;
     sensorColor?: string;
     viewshedColor?: string;
+    viewshedOpacity?: number; // 0-1 opacity for viewshed colors (default: 0.35)
     analysisQuality: "low" | "medium" | "high";
     raysAzimuth?: number;
     raysElevation?: number;

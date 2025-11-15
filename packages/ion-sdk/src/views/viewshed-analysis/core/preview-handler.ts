@@ -66,7 +66,8 @@ export function createPreviewHandler(config: PreviewHandlerConfig): PreviewHandl
         patch.showSensorGeometry !== undefined ||
         patch.showViewshed !== undefined ||
         patch.sensorColor !== undefined ||
-        patch.viewshedColor !== undefined;
+        patch.viewshedColor !== undefined ||
+        patch.viewshedOpacity !== undefined;
 
       if (!needsUpdate) return;
 
@@ -85,6 +86,10 @@ export function createPreviewHandler(config: PreviewHandlerConfig): PreviewHandl
           patch.showViewshed !== undefined
             ? patch.showViewshed
             : properties.showViewshed,
+        viewshedOpacity:
+          patch.viewshedOpacity !== undefined
+            ? patch.viewshedOpacity
+            : properties.viewshedOpacity,
       };
 
       // Update visibility flags
@@ -130,15 +135,22 @@ export function createPreviewHandler(config: PreviewHandlerConfig): PreviewHandl
         });
       }
 
-      // Update colors
-      if (patch.sensorColor && nextProperties.sensorColor) {
+      // Update colors if sensorColor or viewshedOpacity changed
+      if ((patch.sensorColor || patch.viewshedOpacity !== undefined) && nextProperties.sensorColor) {
         const color = Cesium.Color.fromCssColorString(
           nextProperties.sensorColor
         );
+        // Use viewshedOpacity from properties, default to 0.35 if not specified
+        const opacity = nextProperties.viewshedOpacity ?? 0.35;
+        // Use theme error color for occluded areas (softer than pure red)
+        const THEME_ERROR_RED = "#ef4444"; // Light mode error color
+        // Occluded areas use slightly higher opacity for better visibility
+        const occludedOpacity = Math.min(opacity * 1.23, 1.0); // ~43% when opacity is 35%
+        const occludedColor = Cesium.Color.fromCssColorString(THEME_ERROR_RED).withAlpha(occludedOpacity);
         updateColors(handle, {
-          volume: color.withAlpha(0.25),
-          visible: color.withAlpha(0.35),
-          occluded: Cesium.Color.fromBytes(255, 0, 0, 110),
+          volume: color.withAlpha(opacity * 0.71), // ~25% when opacity is 35%
+          visible: color.withAlpha(opacity), // Use the user-defined opacity
+          occluded: occludedColor,
         });
       }
     } catch (err) {

@@ -35,6 +35,7 @@ export interface ObservationProperties {
   showViewshed: boolean;
   sensorColor?: string;
   viewshedColor?: string;
+  viewshedOpacity?: number; // 0-1 opacity for viewshed colors (default: 0.35)
   [key: string]: unknown;
 }
 
