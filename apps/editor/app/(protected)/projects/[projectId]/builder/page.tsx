@@ -130,10 +130,8 @@ const sanitizeSceneData = (
         };
       }
 
-      // Include weather data if present
-      if (rest.weatherData) {
-        cleanObj.weatherData = rest.weatherData;
-      }
+      // Note: weatherData is transient IoT data and should not be saved to projects
+      // It will be fetched fresh when IoT is enabled
 
       return cleanObj;
     })

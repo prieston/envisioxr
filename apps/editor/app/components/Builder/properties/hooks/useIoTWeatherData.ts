@@ -1,16 +1,9 @@
-import { useState, useEffect } from "react";
-import { useSceneStore } from "@envisio/core";
+import { useState, useEffect, useMemo } from "react";
+import { useIoTStore } from "@envisio/core";
 import iotService from "../../../../services/IoTService";
 
-export interface WeatherData {
-  temperature: number;
-  windSpeed: number;
-  windDirection: number;
-  humidity: number;
-  pressure: number;
-  description: string;
-  lastUpdated: Date;
-}
+// Re-export WeatherData for backward compatibility
+export type { WeatherData } from "@envisio/core";
 
 interface IoTProperties {
   enabled: boolean;
@@ -37,30 +30,18 @@ export function useIoTWeatherData(
   geographicCoords: GeographicCoords | null,
   iotProps: IoTProperties
 ) {
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get selected object from store to read weatherData
-  const selectedObject = useSceneStore((state) => {
-    if (!selectedObjectId) return null;
-    return state.objects.find((o) => o.id === selectedObjectId);
-  });
-
-  // Sync weatherData from selectedObject
-  useEffect(() => {
-    if (selectedObject?.weatherData) {
-      // Normalize lastUpdated to Date if it's a string
-      const normalizedWeatherData: WeatherData = {
-        ...selectedObject.weatherData,
-        lastUpdated:
-          selectedObject.weatherData.lastUpdated instanceof Date
-            ? selectedObject.weatherData.lastUpdated
-            : new Date(selectedObject.weatherData.lastUpdated),
-      };
-      setWeatherData(normalizedWeatherData);
-    }
-  }, [selectedObject?.weatherData]);
+  // Subscribe to IoT store for weather data (separate from scene objects)
+  // Subscribe to the entire weatherData object - Zustand tracks object reference changes
+  // Then extract the specific objectId's data using useMemo
+  // Don't use shallow here - we want to detect when the object reference changes
+  const weatherDataMap = useIoTStore((state) => state.weatherData);
+  const weatherData = useMemo(
+    () => (selectedObjectId ? weatherDataMap[selectedObjectId] : null),
+    [weatherDataMap, selectedObjectId]
+  );
 
   // Fetch weather data when conditions are met
   useEffect(() => {
@@ -80,7 +61,9 @@ export function useIoTWeatherData(
           setLoading(false);
         })
         .catch((err) => {
-          setError(err instanceof Error ? err.message : "Failed to fetch weather data");
+          setError(
+            err instanceof Error ? err.message : "Failed to fetch weather data"
+          );
           setLoading(false);
         });
     }
@@ -98,4 +81,3 @@ export function useIoTWeatherData(
     error,
   };
 }
-

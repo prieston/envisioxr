@@ -1,14 +1,5 @@
-import { useSceneStore } from "@envisio/core";
-
-interface WeatherData {
-  temperature: number;
-  windSpeed: number;
-  windDirection: number;
-  humidity: number;
-  pressure: number;
-  description: string;
-  lastUpdated: Date;
-}
+import { useSceneStore, useIoTStore } from "@envisio/core";
+import type { WeatherData } from "@envisio/core";
 
 interface IoTServiceConfig {
   enabled: boolean;
@@ -198,8 +189,8 @@ class IoTService {
         lastUpdated: new Date(),
       };
 
-      // Update the store with the new weather data
-      useSceneStore.getState().updateWeatherData(objectId, weatherInfo);
+      // Update the IoT store with the new weather data (separate from scene objects)
+      useIoTStore.getState().updateWeatherData(objectId, weatherInfo);
     } catch (error) {
       // Error fetching weather data
     }

@@ -3,7 +3,7 @@
  */
 
 import { useMemo, useEffect } from "react";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore, useIoTStore } from "@envisio/core";
 import dynamic from "next/dynamic";
 import {
   CesiumPerformanceOptimizer,
@@ -39,6 +39,33 @@ const isMobileDevice = (): boolean => {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
     (window.innerWidth <= 768 && window.matchMedia("(max-width: 768px)").matches);
 };
+
+// Wrapper component that subscribes to IoT store for weather data
+function IoTWeatherDisplayWrapper({
+  objectId,
+  position,
+  displayFormat,
+  showInScene,
+}: {
+  objectId: string;
+  position: [number, number, number];
+  displayFormat: "compact" | "detailed" | "minimal";
+  showInScene: boolean;
+}) {
+  // Subscribe directly to the specific objectId's weatherData
+  // Zustand will track changes to the weatherData object and re-render when it changes
+  const weatherData = useIoTStore((state) => state.weatherData[objectId]);
+
+  return (
+    <WeatherData3DDisplay
+      objectId={objectId}
+      position={position}
+      weatherData={weatherData || null}
+      displayFormat={displayFormat}
+      showInScene={showInScene}
+    />
+  );
+}
 
 export function CesiumViewerContent({ viewer }: CesiumViewerContentProps) {
   const cesiumViewer = useSceneStore((s) => s.cesiumViewer);
@@ -153,13 +180,12 @@ export function CesiumViewerContent({ viewer }: CesiumViewerContentProps) {
             obj.iotProperties?.enabled && obj.iotProperties?.showInScene
         )
         .map((obj) => (
-          <WeatherData3DDisplay
+          <IoTWeatherDisplayWrapper
             key={`weather-display-${obj.id}`}
             objectId={obj.id}
             position={obj.position as [number, number, number]}
-            weatherData={obj.weatherData || null}
             displayFormat={obj.iotProperties?.displayFormat || "compact"}
-            showInScene={obj.iotProperties?.showInScene}
+            showInScene={obj.iotProperties?.showInScene ?? true}
           />
         ))}
 

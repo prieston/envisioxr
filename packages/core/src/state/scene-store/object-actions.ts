@@ -110,16 +110,6 @@ export function createObjectActions(set: any, _get: any) {
         ),
       })),
 
-    updateWeatherData: (objectId: string, weatherData: any) =>
-      set((state: any) => ({
-        objects: state.objects.map((obj: Model) =>
-          obj.id === objectId ? { ...obj, weatherData } : obj
-        ),
-        selectedObject:
-          state.selectedObject?.id === objectId
-            ? { ...state.selectedObject, weatherData }
-            : state.selectedObject,
-      })),
   };
 }
 

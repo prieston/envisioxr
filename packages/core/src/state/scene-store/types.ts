@@ -57,15 +57,8 @@ export interface Model {
     displayFormat: "compact" | "detailed" | "minimal";
     autoRefresh: boolean;
   };
-  weatherData?: {
-    temperature: number;
-    windSpeed: number;
-    windDirection: number;
-    humidity: number;
-    pressure: number;
-    description: string;
-    lastUpdated: Date | string;
-  } | null;
+  // Note: weatherData is now stored separately in IoT store (useIoTStore)
+  // This prevents IoT updates from causing re-renders of scene objects
   [key: string]: any;
 }
 
@@ -196,10 +189,6 @@ export interface SceneState {
   lastVisibilityCalculation: { objectId: string; timestamp: number } | null;
   startVisibilityCalculation: (objectId: string) => void;
   finishVisibilityCalculation: (objectId: string) => void;
-  updateWeatherData: (
-    objectId: string,
-    weatherData: Model["weatherData"]
-  ) => void;
   addCesiumIonAsset: (asset: Omit<CesiumIonAsset, "id">) => void;
   removeCesiumIonAsset: (id: string) => void;
   updateCesiumIonAsset: (id: string, updates: Partial<CesiumIonAsset>) => void;
