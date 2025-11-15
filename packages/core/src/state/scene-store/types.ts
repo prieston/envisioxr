@@ -204,4 +204,3 @@ export interface SceneState {
     } | null
   ) => void;
 }
-
