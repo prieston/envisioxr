@@ -10,6 +10,7 @@
  * - Multiple CreditDisplays
  * - Duplicate Ion initializations
  * - Missing request throttling
+ * - Git commit/push operations in loops or animation frames
  */
 
 import fs from "fs";
@@ -18,7 +19,7 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const workspaceRoot = path.resolve(__dirname, "..");
+const workspaceRoot = path.resolve(__dirname, "../..");
 
 const issues = {
   critical: [],
@@ -217,6 +218,25 @@ function analyzeFile(filePath: string, content: string) {
       });
     }
   }
+
+  // Check 10: Git commit/push operations that could spam network
+  const gitCommitPushPattern =
+    /(github\.com.*\/commits|github\.com.*\/pulls|api\.github\.com.*commits|api\.github\.com.*pulls|git.*commit|git.*push|simple-git|nodegit|isomorphic-git)/gi;
+  const gitMatches = [...content.matchAll(gitCommitPushPattern)];
+
+  for (const match of gitMatches) {
+    const context = extractContext(content, match.index!);
+    // Check if it's in a loop or frequently called function
+    if (context?.match(/for\s*\(|while\s*\(|\.map\s*\(|useEffect.*\[\]|requestAnimationFrame/)) {
+      issues.high.push({
+        file: relativePath,
+        issue: "HIGH: Git commit/push operation in loop or animation frame",
+        description: "Git operations in loops or animation frames can spam network requests",
+        line: findLineNumber(content, match[0]),
+        fix: "Move git operations outside loops, add debouncing, or use webhooks instead",
+      });
+    }
+  }
 }
 
 function extractContext(content: string, index: number): string | null {
@@ -353,6 +373,8 @@ if (issues.high.length > 0) {
 
 console.log("✅ Audit passed");
 process.exit(0);
+
+
 
 
 
