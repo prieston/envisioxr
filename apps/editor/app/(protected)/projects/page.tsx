@@ -327,11 +327,18 @@ const ProjectsPage = () => {
         anchor="right"
         open={drawerOpen}
         onClose={handleCloseDrawer}
+        sx={{
+          zIndex: 1500, // Higher than sidebar (1400)
+          "& .MuiBackdrop-root": {
+            zIndex: 1499, // Backdrop should be just below drawer
+          },
+        }}
         PaperProps={{
           sx: (theme) => ({
             width: { xs: "100%", sm: "420px" },
             backgroundColor: theme.palette.background.paper,
             borderLeft: "1px solid rgba(255, 255, 255, 0.05)",
+            zIndex: 1500,
           }),
         }}
       >
