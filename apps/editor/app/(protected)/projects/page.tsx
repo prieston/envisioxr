@@ -10,8 +10,6 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import SwapVertIcon from "@mui/icons-material/SwapVert";
 import { useRouter } from "next/navigation";
 import useProjects from "../../hooks/useProjects";
 import {
@@ -154,10 +152,10 @@ const ProjectsPage = () => {
                 placeholder="Search projects..."
                 size="small"
                 fullWidth
-                sx={{
+                sx={(theme) => ({
                   maxWidth: "400px",
-                  ...textFieldStyles,
-                }}
+                  ...((typeof textFieldStyles === 'function' ? textFieldStyles(theme) : textFieldStyles) as Record<string, any>),
+                })}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -170,20 +168,6 @@ const ProjectsPage = () => {
                   ),
                 }}
               />
-              <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                size="small"
-              >
-                Filters
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<SwapVertIcon />}
-                size="small"
-              >
-                Sort
-              </Button>
             </Box>
             <Button
               variant="contained"
