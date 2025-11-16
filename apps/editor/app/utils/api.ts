@@ -523,14 +523,16 @@ export const modelsFetcher = (
   url: string,
   assetType?: "model" | "cesiumIonAsset"
 ): Promise<ModelsResponse> => {
-  // Extract assetType from URL if present, otherwise use parameter
+  // If URL already has assetType query param, use it as-is
+  // Otherwise, add it from the parameter
   const urlObj = new URL(url, "http://localhost");
-  const urlAssetType = urlObj.searchParams.get("assetType") as
-    | "model"
-    | "cesiumIonAsset"
-    | null;
-  const finalAssetType = urlAssetType || assetType;
-  const params = finalAssetType ? { assetType: finalAssetType } : undefined;
+  const hasAssetTypeInUrl = urlObj.searchParams.has("assetType");
+  
+  // Only add params if URL doesn't already have assetType
+  const params = !hasAssetTypeInUrl && assetType 
+    ? { assetType } 
+    : undefined;
+  
   return apiRequest<ModelsResponse>(url, { params });
 };
 
