@@ -48,9 +48,17 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
 
     // Sync local state when observation changes (e.g., switching observations)
     useEffect(() => {
-      setTitle(selectedObservation.title || "");
-      setDescription((selectedObservation.description as string) || "");
-    }, [selectedObservation.id]);
+      // Guard: Only update state if values actually changed to prevent unnecessary re-renders
+      const newTitle = selectedObservation.title || "";
+      const newDescription = (selectedObservation.description as string) || "";
+      
+      if (title !== newTitle) {
+        setTitle(newTitle);
+      }
+      if (description !== newDescription) {
+        setDescription(newDescription);
+      }
+    }, [selectedObservation.id, selectedObservation.title, selectedObservation.description, title, description]);
 
     // Type-safe property updates
     type ObsKey = "title" | "description" | "position" | "target";

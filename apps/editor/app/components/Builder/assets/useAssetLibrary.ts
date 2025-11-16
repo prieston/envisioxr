@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { showToast } from "@envisio/ui";
 
@@ -48,6 +48,8 @@ export const useAssetLibrary = () => {
   const [stockModels, setStockModels] = useState<StockModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingAssetId, setDeletingAssetId] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
 
   // Upload state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -84,6 +86,18 @@ export const useAssetLibrary = () => {
   useEffect(() => {
     fetchAssets();
   }, [fetchAssets]);
+
+  // Cleanup: Abort XHR request and mark component as unmounted
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (xhrRef.current) {
+        xhrRef.current.abort();
+        xhrRef.current = null;
+      }
+    };
+  }, []);
 
   const handleDelete = useCallback(async (assetId: string) => {
     if (!confirm("Are you sure you want to delete this asset?")) return;
@@ -180,25 +194,46 @@ export const useAssetLibrary = () => {
       // Step 2: Upload model file directly to S3 using presigned URL
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        xhrRef.current = xhr;
 
-        xhr.upload.addEventListener("progress", (event) => {
+        const handleProgress = (event: ProgressEvent<XMLHttpRequestEventTarget>) => {
+          if (!isMountedRef.current) return;
           if (event.lengthComputable) {
             const percentComplete = Math.round(
               (event.loaded / event.total) * 100
             );
             setUploadProgress(percentComplete);
           }
-        });
+        };
 
-        xhr.addEventListener("load", () => {
+        const handleLoad = () => {
+          if (!isMountedRef.current) return;
+          // Cleanup event listeners
+          xhr.upload.removeEventListener("progress", handleProgress);
+          xhr.removeEventListener("load", handleLoad);
+          xhr.removeEventListener("error", handleError);
+          xhrRef.current = null;
+          
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve();
           } else {
             reject(new Error(`Upload failed with status ${xhr.status}`));
           }
-        });
+        };
 
-        xhr.addEventListener("error", () => reject(new Error("Upload failed")));
+        const handleError = () => {
+          if (!isMountedRef.current) return;
+          // Cleanup event listeners
+          xhr.upload.removeEventListener("progress", handleProgress);
+          xhr.removeEventListener("load", handleLoad);
+          xhr.removeEventListener("error", handleError);
+          xhrRef.current = null;
+          reject(new Error("Upload failed"));
+        };
+
+        xhr.upload.addEventListener("progress", handleProgress);
+        xhr.addEventListener("load", handleLoad);
+        xhr.addEventListener("error", handleError);
         xhr.open("PUT", signedUrl);
         xhr.setRequestHeader("Content-Type", previewFile.type);
         if (acl) {

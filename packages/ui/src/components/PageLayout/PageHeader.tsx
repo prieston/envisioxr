@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Box, Typography, Breadcrumbs, Link } from "@mui/material";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
@@ -23,9 +23,31 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   breadcrumbs,
   className,
 }) => {
+  // Memoize breadcrumb items to prevent unnecessary re-renders
+  const breadcrumbItems = useMemo(() => {
+    if (!breadcrumbs || breadcrumbs.length === 0) return null;
+    return breadcrumbs.map((crumb, index) => {
+      const isLast = index === breadcrumbs.length - 1;
+      return isLast ? (
+        <Typography key={index} color="text.primary">
+          {crumb.label}
+        </Typography>
+      ) : (
+        <Link
+          key={index}
+          href={crumb.href}
+          color="text.secondary"
+          underline="hover"
+        >
+          {crumb.label}
+        </Link>
+      );
+    });
+  }, [breadcrumbs]);
+
   return (
     <Box className={className}>
-      {breadcrumbs && breadcrumbs.length > 0 && (
+      {breadcrumbItems && (
         <Breadcrumbs
           separator={<NavigateNextIcon fontSize="small" />}
           sx={{
@@ -49,23 +71,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             },
           }}
         >
-          {breadcrumbs.map((crumb, index) => {
-            const isLast = index === breadcrumbs.length - 1;
-            return isLast ? (
-              <Typography key={index} color="text.primary">
-                {crumb.label}
-              </Typography>
-            ) : (
-              <Link
-                key={index}
-                href={crumb.href}
-                color="text.secondary"
-                underline="hover"
-              >
-                {crumb.label}
-              </Link>
-            );
-          })}
+          {breadcrumbItems}
         </Breadcrumbs>
       )}
       <Typography
