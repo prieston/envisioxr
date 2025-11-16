@@ -397,7 +397,8 @@ const DashboardPage = () => {
             {/* Left Column */}
             <Grid item xs={12} md={5}>
               {/* Recent Activity */}
-              <PageCard sx={{ mb: 3 }}>
+              <Box sx={{ mb: 3 }}>
+                <PageCard>
                 <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                   Recent Activity
                 </Typography>
@@ -436,7 +437,8 @@ const DashboardPage = () => {
                     />
                   ))}
                 </Box>
-              </PageCard>
+                </PageCard>
+              </Box>
 
               {/* Usage Summary */}
               <Box sx={{ mt: 3 }}>
@@ -500,7 +502,8 @@ const DashboardPage = () => {
             {/* Right Column */}
             <Grid item xs={12} md={7}>
               {/* Recent Projects */}
-              <PageCard sx={{ mb: 3 }}>
+              <Box sx={{ mb: 3 }}>
+                <PageCard>
                 <Box
                   sx={{
                     display: "flex",
@@ -605,7 +608,8 @@ const DashboardPage = () => {
                     ))}
                   </Grid>
                 )}
-              </PageCard>
+                </PageCard>
+              </Box>
 
               {/* Changelog */}
               <Box sx={{ mt: 3 }}>

@@ -253,17 +253,25 @@ const ProjectsPage = () => {
           anchorEl={anchorEl}
           open={openMenu}
           onClose={handleMenuClose}
+          onEdit={() => {
+            if (menuProjectId) {
+              handleGoToBuilder(menuProjectId);
+            }
+            handleMenuClose();
+          }}
           onDelete={() => handleDeleteClick(menuProjectId)}
-          projectId={menuProjectId}
         />
 
         {/* Delete Confirmation Dialog */}
         <DeleteConfirmationDialog
           open={deleteDialogOpen}
-          onClose={handleDeleteCancel}
+          onCancel={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
-          projectName={
-            projects.find((p) => p.id === projectToDelete)?.name || ""
+          title="Delete Project"
+          message={
+            `Are you sure you want to delete "${
+              projects.find((p) => p.id === projectToDelete)?.name || "this project"
+            }"? This action cannot be undone.`
           }
         />
       </Page>
