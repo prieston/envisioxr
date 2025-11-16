@@ -1,5 +1,5 @@
 import React from "react";
-import { Paper } from "@mui/material";
+import { Box } from "@mui/material";
 
 export interface PageCardProps {
   children: React.ReactNode;
@@ -18,26 +18,22 @@ export const PageCard: React.FC<PageCardProps> = ({
   padding = 3,
 }) => {
   return (
-    <Paper
+    <Box
       className={className}
-      style={{
-        backgroundColor: "rgba(20, 23, 26, 0.92)",
-      }}
       sx={(theme) => ({
         p: padding,
-        border: "1px solid rgba(255, 255, 255, 0.05) !important",
-        borderRadius: `${theme.shape.borderRadius}px !important`,
-        boxShadow: "none !important",
-        // Override MUI Paper default background with higher specificity
-        backgroundColor: "rgba(20, 23, 26, 0.92) !important",
-        "&.MuiPaper-root": {
-          backgroundColor: "rgba(20, 23, 26, 0.92) !important",
-          borderRadius: `${theme.shape.borderRadius}px !important`,
+        backgroundColor: "#161B20",
+        border: "1px solid rgba(255, 255, 255, 0.05)",
+        borderRadius: `${theme.shape.borderRadius}px`,
+        boxShadow: "none",
+        color: theme.palette.text.primary, // Ensure text color is set from theme
+        "&:hover": {
+          borderColor: "rgba(255, 255, 255, 0.04)",
         },
       })}
     >
       {children}
-    </Paper>
+    </Box>
   );
 };
 

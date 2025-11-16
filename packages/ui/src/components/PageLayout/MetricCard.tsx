@@ -1,5 +1,5 @@
 import React from "react";
-import { Paper, Typography, Box } from "@mui/material";
+import { Typography, Box } from "@mui/material";
 
 export interface MetricCardProps {
   label: string;
@@ -25,37 +25,29 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   className,
 }) => {
   return (
-    <Paper
+    <Box
       className={className}
       sx={(theme) => ({
         p: 2,
-        border: "1px solid rgba(255, 255, 255, 0.05) !important",
-        borderRadius: `${theme.shape.borderRadius}px !important`,
+        backgroundColor: "#161B20",
+        border: "1px solid rgba(255, 255, 255, 0.04)",
+        borderRadius: `${theme.shape.borderRadius}px`,
         display: "flex",
         flexDirection: "column",
         gap: 1,
         minHeight: "100px",
-        boxShadow: "none !important",
+        boxShadow: "none",
         transition: "all 0.2s ease",
-        // Override MUI Paper default background with higher specificity
-        backgroundColor: "rgba(20, 23, 26, 0.92) !important",
-        "&.MuiPaper-root": {
-          backgroundColor: "rgba(20, 23, 26, 0.92) !important",
-          borderRadius: `${theme.shape.borderRadius}px !important`,
-        },
         "&:hover": {
-          borderColor: "rgba(255, 255, 255, 0.1) !important",
+          borderColor: "rgba(255, 255, 255, 0.04)",
         },
       })}
-      style={{
-        backgroundColor: "rgba(20, 23, 26, 0.92)",
-      }}
     >
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         {icon && (
           <Box
             sx={{
-              color: "rgba(255, 255, 255, 0.6)",
+              color: "rgba(255, 255, 255, 0.55)",
               display: "flex",
               alignItems: "center",
             }}
@@ -98,7 +90,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       >
         {label}
       </Typography>
-    </Paper>
+    </Box>
   );
 };
 

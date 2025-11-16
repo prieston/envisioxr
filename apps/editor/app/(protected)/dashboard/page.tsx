@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Grid,
-  Button,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Typography, Grid, Button, CircularProgress } from "@mui/material";
 import {
   Page,
   PageHeader,
@@ -59,7 +53,9 @@ const DashboardPage = () => {
     const fetchMetrics = async () => {
       try {
         // Fetch models count
-        const modelsRes = await fetch("/api/models", { credentials: "include" });
+        const modelsRes = await fetch("/api/models", {
+          credentials: "include",
+        });
         const modelsData = await modelsRes.json();
         const modelsCount = (modelsData.assets || []).length;
 
@@ -209,109 +205,188 @@ const DashboardPage = () => {
             </Grid>
           </Grid>
 
-          {/* Row 2: Quick Actions - Large Square Buttons */}
+          {/* Row 2: Quick Actions - Dashboard-scaled Builder Style */}
           <Box sx={{ mb: 3 }}>
             <PageCard padding={3}>
-              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  mb: 2,
+                  fontWeight: 600,
+                  color: "#FFFFFF",
+                  fontSize: "18px",
+                }}
+              >
                 Quick Actions
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={6} sm={3}>
-                  <Button
+                  <Box
                     component={Link}
                     href="/projects/create"
-                    variant="contained"
-                    fullWidth
                     sx={{
-                      height: "120px",
+                      height: "76px",
+                      width: "100%",
+                      border: "1px solid #6b9cd84a",
+                      backgroundColor: "#161B20",
+                      borderRadius: "4px",
+                      display: "flex",
                       flexDirection: "column",
-                      gap: 1,
-                      backgroundColor: "rgba(107, 156, 216, 0.1)",
-                      border: "1px solid rgba(107, 156, 216, 0.3)",
-                      color: "text.primary",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "6px",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      textDecoration: "none",
+                      color: "#6B9CD8",
                       "&:hover": {
-                        backgroundColor: "rgba(107, 156, 216, 0.2)",
-                        borderColor: "rgba(107, 156, 216, 0.5)",
+                        backgroundColor: "rgba(95, 136, 199, 0.08)",
+                        borderColor: "#6B9CD8",
+                      },
+                      "& *": {
+                        color: "inherit",
                       },
                     }}
                   >
-                    <AddIcon sx={{ fontSize: 32 }} />
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    <AddIcon
+                      sx={{ fontSize: 20, color: "#6B9CD8 !important" }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        color: "#6B9CD8 !important",
+                      }}
+                    >
                       New Project
                     </Typography>
-                  </Button>
+                  </Box>
                 </Grid>
                 <Grid item xs={6} sm={3}>
-                  <Button
+                  <Box
                     component={Link}
                     href="/library/models"
-                    variant="outlined"
-                    fullWidth
                     sx={{
-                      height: "120px",
+                      height: "76px",
+                      width: "100%",
+                      border: "1px solid #6B9CD8",
+                      backgroundColor: "#161B20",
+                      borderRadius: "4px",
+                      display: "flex",
                       flexDirection: "column",
-                      gap: 1,
-                      borderColor: "rgba(255, 255, 255, 0.1)",
-                      color: "text.primary",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "6px",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      textDecoration: "none",
+                      color: "#6B9CD8",
                       "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.05)",
-                        borderColor: "rgba(255, 255, 255, 0.2)",
+                        backgroundColor: "rgba(95, 136, 199, 0.08)",
+                        borderColor: "#6B9CD8",
+                      },
+                      "& *": {
+                        color: "inherit",
                       },
                     }}
                   >
-                    <UploadFileIcon sx={{ fontSize: 32 }} />
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    <UploadFileIcon
+                      sx={{ fontSize: 20, color: "#6B9CD8 !important" }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        color: "#6B9CD8 !important",
+                      }}
+                    >
                       Upload Asset
                     </Typography>
-                  </Button>
+                  </Box>
                 </Grid>
                 <Grid item xs={6} sm={3}>
-                  <Button
+                  <Box
                     component={Link}
                     href="/library/sensors"
-                    variant="outlined"
-                    fullWidth
                     sx={{
-                      height: "120px",
+                      height: "76px",
+                      width: "100%",
+                      border: "1px solid #6B9CD8",
+                      backgroundColor: "#161B20",
+                      borderRadius: "4px",
+                      display: "flex",
                       flexDirection: "column",
-                      gap: 1,
-                      borderColor: "rgba(255, 255, 255, 0.1)",
-                      color: "text.primary",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "6px",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      textDecoration: "none",
+                      color: "#6B9CD8",
                       "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.05)",
-                        borderColor: "rgba(255, 255, 255, 0.2)",
+                        backgroundColor: "rgba(95, 136, 199, 0.08)",
+                        borderColor: "#6B9CD8",
+                      },
+                      "& *": {
+                        color: "inherit",
                       },
                     }}
                   >
-                    <SensorsIcon sx={{ fontSize: 32 }} />
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    <SensorsIcon
+                      sx={{ fontSize: 20, color: "#6B9CD8 !important" }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        color: "#6B9CD8 !important",
+                      }}
+                    >
                       Add Sensor
                     </Typography>
-                  </Button>
+                  </Box>
                 </Grid>
                 <Grid item xs={6} sm={3}>
-                  <Button
+                  <Box
                     component={Link}
                     href="/library"
-                    variant="outlined"
-                    fullWidth
                     sx={{
-                      height: "120px",
+                      height: "76px",
+                      width: "100%",
+                      border: "1px solid #6B9CD8",
+                      backgroundColor: "#161B20",
+                      borderRadius: "4px",
+                      display: "flex",
                       flexDirection: "column",
-                      gap: 1,
-                      borderColor: "rgba(255, 255, 255, 0.1)",
-                      color: "text.primary",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "6px",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      textDecoration: "none",
+                      color: "#6B9CD8",
                       "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.05)",
-                        borderColor: "rgba(255, 255, 255, 0.2)",
+                        backgroundColor: "rgba(95, 136, 199, 0.08)",
+                        borderColor: "#6B9CD8",
+                      },
+                      "& *": {
+                        color: "inherit",
                       },
                     }}
                   >
-                    <LibraryBooksIcon sx={{ fontSize: 32 }} />
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    <LibraryBooksIcon
+                      sx={{ fontSize: 20, color: "#6B9CD8 !important" }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        color: "#6B9CD8 !important",
+                      }}
+                    >
                       Open Library
                     </Typography>
-                  </Button>
+                  </Box>
                 </Grid>
               </Grid>
             </PageCard>
@@ -366,56 +441,58 @@ const DashboardPage = () => {
               {/* Usage Summary */}
               <Box sx={{ mt: 3 }}>
                 <PageCard>
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                  Usage Summary
-                </Typography>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: "4px",
-                        height: "20px",
-                        backgroundColor: "#6B9CD8",
-                        borderRadius: "2px",
-                      }}
-                    />
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        Storage: {metrics.storageUsed} / 100 GB
-                      </Typography>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    Usage Summary
+                  </Typography>
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Box
+                        sx={{
+                          width: "4px",
+                          height: "20px",
+                          backgroundColor: "#6B9CD8",
+                          borderRadius: "2px",
+                        }}
+                      />
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          Storage: {metrics.storageUsed} / 100 GB
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Box
+                        sx={{
+                          width: "4px",
+                          height: "20px",
+                          backgroundColor: "#6B9CD8",
+                          borderRadius: "2px",
+                        }}
+                      />
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          API Calls: 12.4K this month
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Box
+                        sx={{
+                          width: "4px",
+                          height: "20px",
+                          backgroundColor: "#6B9CD8",
+                          borderRadius: "2px",
+                        }}
+                      />
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          Renders: 847 this month
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: "4px",
-                        height: "20px",
-                        backgroundColor: "#6B9CD8",
-                        borderRadius: "2px",
-                      }}
-                    />
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        API Calls: 12.4K this month
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: "4px",
-                        height: "20px",
-                        backgroundColor: "#6B9CD8",
-                        borderRadius: "2px",
-                      }}
-                    />
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        Renders: 847 this month
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
                 </PageCard>
               </Box>
             </Grid>
@@ -424,7 +501,14 @@ const DashboardPage = () => {
             <Grid item xs={12} md={7}>
               {/* Recent Projects */}
               <PageCard sx={{ mb: 3 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2,
+                  }}
+                >
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     Recent Projects
                   </Typography>
@@ -438,12 +522,18 @@ const DashboardPage = () => {
                   </Button>
                 </Box>
                 {loadingProjects ? (
-                  <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "center", py: 4 }}
+                  >
                     <CircularProgress size={24} />
                   </Box>
                 ) : recentProjects.length === 0 ? (
                   <Box sx={{ py: 4, textAlign: "center" }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mb: 2 }}
+                    >
                       No projects yet
                     </Typography>
                     <Button
@@ -466,7 +556,7 @@ const DashboardPage = () => {
                           sx={{
                             display: "block",
                             p: 2,
-                            borderRadius: "8px",
+                            borderRadius: "4px",
                             backgroundColor: "rgba(255, 255, 255, 0.02)",
                             border: "1px solid rgba(255, 255, 255, 0.05)",
                             cursor: "pointer",
@@ -483,7 +573,7 @@ const DashboardPage = () => {
                             sx={{
                               width: "100%",
                               height: "120px",
-                              borderRadius: "8px",
+                              borderRadius: "4px",
                               backgroundColor: "rgba(107, 156, 216, 0.1)",
                               display: "flex",
                               alignItems: "center",
@@ -491,12 +581,23 @@ const DashboardPage = () => {
                               mb: 1.5,
                             }}
                           >
-                            <FolderIcon sx={{ fontSize: 48, color: "#6B9CD8" }} />
+                            <FolderIcon
+                              sx={{ fontSize: 48, color: "#6B9CD8" }}
+                            />
                           </Box>
-                          <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{ fontWeight: 500, mb: 0.5 }}
+                          >
                             {project.name}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.5)", fontSize: "0.75rem" }}>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "rgba(255, 255, 255, 0.5)",
+                              fontSize: "0.75rem",
+                            }}
+                          >
                             {new Date(project.createdAt).toLocaleDateString()}
                           </Typography>
                         </Box>
@@ -512,9 +613,18 @@ const DashboardPage = () => {
                   <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                     Changelog
                   </Typography>
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+                  >
                     {announcements.map((announcement, index) => (
-                      <Box key={index} sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 1.5,
+                        }}
+                      >
                         <Box
                           sx={{
                             width: "6px",

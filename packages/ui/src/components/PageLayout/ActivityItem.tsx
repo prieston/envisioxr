@@ -35,7 +35,7 @@ export const ActivityItem: React.FC<ActivityItemProps> = ({
     >
       <Box
         sx={{
-          color: "rgba(255, 255, 255, 0.6)",
+          color: "rgba(255, 255, 255, 0.55)",
           display: "flex",
           alignItems: "flex-start",
           pt: 0.5,
