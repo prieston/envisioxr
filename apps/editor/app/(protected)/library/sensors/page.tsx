@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Chip, alpha } from "@mui/material";
 import {
   AnimatedBackground,
   GlowingContainer,
@@ -43,12 +43,30 @@ const LibrarySensorsPage = () => {
           minHeight: "100vh",
           position: "relative",
           zIndex: 1,
+          pointerEvents: "none",
+          opacity: 0.5,
         }}
       >
         <Box sx={{ paddingBottom: 3 }}>
-          <Typography variant="h5" sx={{ color: "text.primary", fontWeight: 600 }}>
-            Sensors (Types)
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Typography variant="h5" sx={{ color: "text.primary", fontWeight: 600 }}>
+              Sensors (Types)
+            </Typography>
+            <Chip
+              label="Coming Soon"
+              size="small"
+              sx={{
+                backgroundColor: alpha("#6366f1", 0.15),
+                color: "#6366f1",
+                border: "1px solid",
+                borderColor: alpha("#6366f1", 0.4),
+                fontSize: "0.75rem",
+                height: 24,
+                fontWeight: 500,
+                "& .MuiChip-label": { px: 1.5 },
+              }}
+            />
+          </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             Manage reusable sensor profiles: camera types, PTZ, LIDAR, IoT definitions, FOV presets
           </Typography>

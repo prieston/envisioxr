@@ -34,22 +34,37 @@ const stockModels: StockModel[] = [
 ];
 
 // GET: List both stock models and user's uploaded assets.
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   const session = (await getServerSession(authOptions)) as Session;
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const userId = session.user.id;
   try {
+    // Get query parameters for filtering
+    const { searchParams } = new URL(request.url);
+    const assetType = searchParams.get("assetType"); // Optional: "model" | "cesiumIonAsset"
+
     // Get all organization IDs the user is a member of
     const userOrgIds = await getUserOrganizationIds(userId);
 
-    const assets = await prisma.asset.findMany({
-      where: {
-        organizationId: {
-          in: userOrgIds,
-        },
+    // Build where clause
+    const whereClause: {
+      organizationId: { in: string[] };
+      assetType?: "model" | "cesiumIonAsset";
+    } = {
+      organizationId: {
+        in: userOrgIds,
       },
+    };
+
+    // Add assetType filter if provided
+    if (assetType === "model" || assetType === "cesiumIonAsset") {
+      whereClause.assetType = assetType;
+    }
+
+    const assets = await prisma.asset.findMany({
+      where: whereClause,
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({ stockModels, assets });

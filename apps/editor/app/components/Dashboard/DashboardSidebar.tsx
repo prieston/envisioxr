@@ -11,6 +11,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Chip,
   alpha,
   useTheme,
 } from "@mui/material";
@@ -28,6 +29,7 @@ import UserAccountMenu from "@/app/components/AppBar/UserAccountMenu";
 interface SubMenuItem {
   label: string;
   path: string;
+  comingSoon?: boolean;
 }
 
 interface MenuItem {
@@ -55,8 +57,12 @@ const menuItems: MenuItem[] = [
     subItems: [
       { label: "Models", path: "/library/models" },
       { label: "Geospatial Assets", path: "/library/geospatial" },
-      { label: "Sensors", path: "/library/sensors" },
-      { label: "Data Sources", path: "/library/data-sources" },
+      { label: "Sensors", path: "/library/sensors", comingSoon: true },
+      {
+        label: "Data Sources",
+        path: "/library/data-sources",
+        comingSoon: true,
+      },
     ],
   },
   {
@@ -66,9 +72,9 @@ const menuItems: MenuItem[] = [
     subItems: [
       { label: "General", path: "/settings/general" },
       { label: "Members", path: "/settings/members" },
-      { label: "Billing", path: "/settings/billing" },
-      { label: "Usage", path: "/settings/usage" },
-      { label: "API Keys", path: "/settings/api-keys" },
+      { label: "Billing", path: "/settings/billing", comingSoon: true },
+      { label: "Usage", path: "/settings/usage", comingSoon: true },
+      { label: "API Keys", path: "/settings/api-keys", comingSoon: true },
     ],
   },
 ];
@@ -303,13 +309,20 @@ const DashboardSidebar: React.FC = () => {
                           return (
                             <ListItem key={subItem.path} disablePadding>
                               <ListItemButton
-                                component={Link}
-                                href={subItem.path}
+                                component={subItem.comingSoon ? Box : Link}
+                                href={
+                                  subItem.comingSoon ? undefined : subItem.path
+                                }
                                 selected={isSubActive}
                                 disableRipple
+                                disabled={subItem.comingSoon}
                                 onClick={(e) => {
                                   // Stop propagation to prevent Accordion from toggling
                                   e.stopPropagation();
+                                  // Prevent navigation if coming soon
+                                  if (subItem.comingSoon) {
+                                    e.preventDefault();
+                                  }
                                 }}
                                 sx={(theme) => ({
                                   pl: 6,
@@ -326,6 +339,10 @@ const DashboardSidebar: React.FC = () => {
                                     : theme.palette.mode === "dark"
                                       ? theme.palette.text.primary
                                       : "rgba(51, 65, 85, 0.95)",
+                                  opacity: subItem.comingSoon ? 0.5 : 1,
+                                  cursor: subItem.comingSoon
+                                    ? "not-allowed"
+                                    : "pointer",
                                   transition:
                                     "background-color 0.15s ease, color 0.15s ease",
                                   "&.Mui-selected": {
@@ -342,12 +359,25 @@ const DashboardSidebar: React.FC = () => {
                                     },
                                   },
                                   "&:hover": {
-                                    backgroundColor: isSubActive
-                                      ? alpha(theme.palette.primary.main, 0.24)
-                                      : theme.palette.mode === "dark"
-                                        ? alpha(theme.palette.primary.main, 0.1)
-                                        : "rgba(248, 250, 252, 0.9)",
-                                    color: theme.palette.primary.main,
+                                    backgroundColor: subItem.comingSoon
+                                      ? undefined
+                                      : isSubActive
+                                        ? alpha(
+                                            theme.palette.primary.main,
+                                            0.24
+                                          )
+                                        : theme.palette.mode === "dark"
+                                          ? alpha(
+                                              theme.palette.primary.main,
+                                              0.1
+                                            )
+                                          : "rgba(248, 250, 252, 0.9)",
+                                    color: subItem.comingSoon
+                                      ? undefined
+                                      : theme.palette.primary.main,
+                                  },
+                                  "&.Mui-disabled": {
+                                    opacity: 0.5,
                                   },
                                 })}
                               >
@@ -359,6 +389,23 @@ const DashboardSidebar: React.FC = () => {
                                     letterSpacing: "0.01em",
                                   }}
                                 />
+                                {subItem.comingSoon && (
+                                  <Chip
+                                    label="Coming Soon"
+                                    size="small"
+                                    sx={{
+                                      ml: 1,
+                                      backgroundColor: alpha("#6366f1", 0.15),
+                                      color: "#6366f1",
+                                      border: "1px solid",
+                                      borderColor: alpha("#6366f1", 0.4),
+                                      fontSize: "0.7rem",
+                                      height: 20,
+                                      fontWeight: 500,
+                                      "& .MuiChip-label": { px: 1 },
+                                    }}
+                                  />
+                                )}
                               </ListItemButton>
                             </ListItem>
                           );

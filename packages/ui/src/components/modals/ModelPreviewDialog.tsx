@@ -67,8 +67,24 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
       open={open}
       onClose={onClose}
       maxWidth="md"
+      slotProps={{
+        backdrop: {
+          sx: {
+            zIndex: 1599,
+          },
+        },
+      }}
+      sx={{
+        zIndex: 1600,
+      }}
       PaperProps={{
-        sx: modalPaperStyles,
+        sx: (theme) => ({
+          ...((typeof modalPaperStyles === "function"
+            ? modalPaperStyles(theme)
+            : modalPaperStyles) as Record<string, any>),
+          position: "relative",
+          zIndex: 1601, // Higher than backdrop to ensure content is on top
+        }),
       }}
     >
       <DialogTitle sx={modalTitleStyles}>
@@ -94,8 +110,8 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
             mb: 2,
           })}
         >
-          Rotate the model to your desired angle, then click "Capture
-          Screenshot"
+          Rotate the model to your desired angle, then click &quot;Capture
+          Screenshot&quot;
         </Typography>
 
         <Box
