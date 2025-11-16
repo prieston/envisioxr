@@ -70,13 +70,13 @@ export async function GET(request: NextRequest) {
       where: whereClause,
       orderBy: { createdAt: "desc" },
     });
-    
+
     // Convert BigInt fileSize to number for JSON serialization
     const serializedAssets = assets.map((asset) => ({
       ...asset,
       fileSize: asset.fileSize ? Number(asset.fileSize) : null,
     }));
-    
+
     return NextResponse.json({ stockModels, assets: serializedAssets });
   } catch (error) {
     console.error("Error fetching models:", error);
