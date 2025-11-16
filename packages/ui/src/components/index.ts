@@ -33,3 +33,5 @@ export type {
 export { default as LocationSearch } from "./LocationSearch/LocationSearch";
 // BuilderActions
 export * from "./BuilderActions";
+// PageLayout
+export * from "./PageLayout";

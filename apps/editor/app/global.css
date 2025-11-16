@@ -16,7 +16,9 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    /* Allow window scrolling for dashboard pages */
+    overflow-x: hidden;
+    overflow-y: auto;
     font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -194,7 +196,7 @@ html.dark {
 html.dark {
   /* Dark (night) overrides */
   --color-bg: #0e0f10;
-  --color-surface-1: #16181a;
+  --color-surface-1: #14171a;
   --color-surface-2: #1c1f22;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-text-primary: #ffffff;
@@ -887,4 +889,248 @@ html.dark .glass-panel {
 /* Exit animations */
 .Toastify__toast--closing {
   animation: toastFadeOut 0.3s ease-in forwards;
+}
+
+/* Global Custom Scrollbar Styles */
+/* Window scrollbar (html/body) - highest priority */
+/* Note: html element is the one that controls the window scrollbar in most browsers */
+html {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(95, 136, 199, 0.2) rgba(95, 136, 199, 0.05) !important;
+  overflow-y: auto !important;
+}
+
+html::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+  -webkit-appearance: none !important;
+}
+
+html::-webkit-scrollbar-track {
+  background: rgba(95, 136, 199, 0.05) !important;
+  border-radius: 4px !important;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: rgba(95, 136, 199, 0.2) !important;
+  border-radius: 4px !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
+  transition: background 0.2s ease !important;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: rgba(95, 136, 199, 0.35) !important;
+  background-clip: padding-box !important;
+}
+
+body {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(95, 136, 199, 0.2) rgba(95, 136, 199, 0.05) !important;
+}
+
+body::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+  -webkit-appearance: none !important;
+}
+
+body::-webkit-scrollbar-track {
+  background: rgba(95, 136, 199, 0.05) !important;
+  border-radius: 4px !important;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: rgba(95, 136, 199, 0.2) !important;
+  border-radius: 4px !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
+  transition: background 0.2s ease !important;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: rgba(95, 136, 199, 0.35) !important;
+  background-clip: padding-box !important;
+}
+
+/* Dark mode window scrollbar */
+html.dark {
+  scrollbar-color: rgba(107, 156, 216, 0.24) rgba(107, 156, 216, 0.08) !important;
+}
+
+html.dark::-webkit-scrollbar-track {
+  background: rgba(107, 156, 216, 0.08) !important;
+}
+
+html.dark::-webkit-scrollbar-thumb {
+  background: rgba(107, 156, 216, 0.24) !important;
+}
+
+html.dark::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 156, 216, 0.38) !important;
+}
+
+html.dark body {
+  scrollbar-color: rgba(107, 156, 216, 0.24) rgba(107, 156, 216, 0.08) !important;
+}
+
+html.dark body::-webkit-scrollbar-track {
+  background: rgba(107, 156, 216, 0.08) !important;
+}
+
+html.dark body::-webkit-scrollbar-thumb {
+  background: rgba(107, 156, 216, 0.24) !important;
+}
+
+html.dark body::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 156, 216, 0.38) !important;
+}
+
+/* Apply to all scrollable elements - using !important to override MUI styles */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(95, 136, 199, 0.2) rgba(95, 136, 199, 0.05) !important;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(95, 136, 199, 0.05) !important;
+  border-radius: 4px !important;
+  margin: 4px 0 !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(95, 136, 199, 0.2) !important;
+  border-radius: 4px !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
+  transition: background 0.2s ease !important;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(95, 136, 199, 0.35) !important;
+  background-clip: padding-box !important;
+}
+
+/* Dark mode scrollbar styles */
+html.dark * {
+  scrollbar-color: rgba(107, 156, 216, 0.24) rgba(107, 156, 216, 0.08) !important;
+}
+
+html.dark *::-webkit-scrollbar-track {
+  background: rgba(107, 156, 216, 0.08) !important;
+}
+
+html.dark *::-webkit-scrollbar-thumb {
+  background: rgba(107, 156, 216, 0.24) !important;
+}
+
+html.dark *::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 156, 216, 0.38) !important;
+}
+
+/* Ensure scrollbars work on common scrollable containers */
+body,
+html,
+#__next,
+[class*="MuiBox-root"],
+[class*="MuiPaper-root"],
+[class*="MuiList-root"],
+div[style*="overflow"] {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(95, 136, 199, 0.2) rgba(95, 136, 199, 0.05) !important;
+}
+
+body::-webkit-scrollbar,
+html::-webkit-scrollbar,
+#__next::-webkit-scrollbar,
+[class*="MuiBox-root"]::-webkit-scrollbar,
+[class*="MuiPaper-root"]::-webkit-scrollbar,
+[class*="MuiList-root"]::-webkit-scrollbar,
+div[style*="overflow"]::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+body::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track,
+#__next::-webkit-scrollbar-track,
+[class*="MuiBox-root"]::-webkit-scrollbar-track,
+[class*="MuiPaper-root"]::-webkit-scrollbar-track,
+[class*="MuiList-root"]::-webkit-scrollbar-track,
+div[style*="overflow"]::-webkit-scrollbar-track {
+  background: rgba(95, 136, 199, 0.05) !important;
+  border-radius: 4px !important;
+  margin: 4px 0 !important;
+}
+
+body::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb,
+#__next::-webkit-scrollbar-thumb,
+[class*="MuiBox-root"]::-webkit-scrollbar-thumb,
+[class*="MuiPaper-root"]::-webkit-scrollbar-thumb,
+[class*="MuiList-root"]::-webkit-scrollbar-thumb,
+div[style*="overflow"]::-webkit-scrollbar-thumb {
+  background: rgba(95, 136, 199, 0.2) !important;
+  border-radius: 4px !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
+  transition: background 0.2s ease !important;
+}
+
+body::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:hover,
+#__next::-webkit-scrollbar-thumb:hover,
+[class*="MuiBox-root"]::-webkit-scrollbar-thumb:hover,
+[class*="MuiPaper-root"]::-webkit-scrollbar-thumb:hover,
+[class*="MuiList-root"]::-webkit-scrollbar-thumb:hover,
+div[style*="overflow"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(95, 136, 199, 0.35) !important;
+  background-clip: padding-box !important;
+}
+
+/* Dark mode for specific selectors */
+html.dark body,
+html.dark html,
+html.dark #__next,
+html.dark [class*="MuiBox-root"],
+html.dark [class*="MuiPaper-root"],
+html.dark [class*="MuiList-root"],
+html.dark div[style*="overflow"] {
+  scrollbar-color: rgba(107, 156, 216, 0.24) rgba(107, 156, 216, 0.08) !important;
+}
+
+html.dark body::-webkit-scrollbar-track,
+html.dark html::-webkit-scrollbar-track,
+html.dark #__next::-webkit-scrollbar-track,
+html.dark [class*="MuiBox-root"]::-webkit-scrollbar-track,
+html.dark [class*="MuiPaper-root"]::-webkit-scrollbar-track,
+html.dark [class*="MuiList-root"]::-webkit-scrollbar-track,
+html.dark div[style*="overflow"]::-webkit-scrollbar-track {
+  background: rgba(107, 156, 216, 0.08) !important;
+}
+
+html.dark body::-webkit-scrollbar-thumb,
+html.dark html::-webkit-scrollbar-thumb,
+html.dark #__next::-webkit-scrollbar-thumb,
+html.dark [class*="MuiBox-root"]::-webkit-scrollbar-thumb,
+html.dark [class*="MuiPaper-root"]::-webkit-scrollbar-thumb,
+html.dark [class*="MuiList-root"]::-webkit-scrollbar-thumb,
+html.dark div[style*="overflow"]::-webkit-scrollbar-thumb {
+  background: rgba(107, 156, 216, 0.24) !important;
+}
+
+html.dark body::-webkit-scrollbar-thumb:hover,
+html.dark html::-webkit-scrollbar-thumb:hover,
+html.dark #__next::-webkit-scrollbar-thumb:hover,
+html.dark [class*="MuiBox-root"]::-webkit-scrollbar-thumb:hover,
+html.dark [class*="MuiPaper-root"]::-webkit-scrollbar-thumb:hover,
+html.dark [class*="MuiList-root"]::-webkit-scrollbar-thumb:hover,
+html.dark div[style*="overflow"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 156, 216, 0.38) !important;
 }

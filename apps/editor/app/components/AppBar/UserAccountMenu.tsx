@@ -4,20 +4,23 @@ import React, { useMemo, useState } from "react";
 import {
   Avatar,
   Box,
-  IconButton,
-  Menu,
-  MenuItem,
-  Divider,
-  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  List,
+  ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
+  alpha,
+  useTheme,
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
-import SettingsIcon from "@mui/icons-material/Settings";
-import EditIcon from "@mui/icons-material/Edit";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 
 interface UserAccountMenuProps {
   onLogout?: () => void;
@@ -25,167 +28,18 @@ interface UserAccountMenuProps {
   className?: string;
 }
 
-// Helper component for profile section
-const ProfileSection: React.FC<{
-  userInitial: string;
-  userName: string | null | undefined;
-  userEmail: string | null | undefined;
-  userImage: string | null | undefined;
-  onProfileClick: () => void;
-}> = ({ userInitial, userName, userEmail, userImage, onProfileClick }) => {
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onProfileClick();
-  };
-
-  return (
-    <Box
-      sx={{
-        p: 2,
-        backgroundColor: (theme) =>
-          theme.palette.mode === "dark"
-            ? "rgba(255, 255, 255, 0.05)"
-            : "rgba(0, 0, 0, 0.02)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 1,
-      }}
-    >
-      <Box sx={{ position: "relative" }}>
-        <Avatar
-          src={userImage ?? undefined}
-          alt={userName ?? userEmail ?? "account"}
-          sx={{ width: 64, height: 64 }}
-        >
-          {userInitial}
-        </Avatar>
-        <IconButton
-          size="small"
-          sx={{
-            position: "absolute",
-            bottom: 0,
-            right: 0,
-            backgroundColor: (theme) =>
-              theme.palette.mode === "dark"
-                ? "rgba(255, 255, 255, 0.2)"
-                : "rgba(0, 0, 0, 0.1)",
-            width: 24,
-            height: 24,
-            "&:hover": {
-              backgroundColor: (theme) =>
-                theme.palette.mode === "dark"
-                  ? "rgba(255, 255, 255, 0.3)"
-                  : "rgba(0, 0, 0, 0.2)",
-            },
-          }}
-          onClick={handleEditClick}
-        >
-          <EditIcon sx={{ fontSize: 14 }} />
-        </IconButton>
-      </Box>
-      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-        {userName || "User"}
-      </Typography>
-      {userEmail && (
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ fontSize: "0.75rem" }}
-        >
-          {userEmail}
-        </Typography>
-      )}
-      <MenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          onProfileClick();
-        }}
-        sx={{
-          py: 0.5,
-          px: 1,
-          minHeight: "auto",
-          borderRadius: 1,
-          mt: 0.5,
-          pointerEvents: "auto",
-          "&:hover": {
-            backgroundColor: (theme) =>
-              theme.palette.mode === "dark"
-                ? "rgba(255, 255, 255, 0.08)"
-                : "rgba(0, 0, 0, 0.04)",
-          },
-        }}
-      >
-        <Typography variant="body2" color="text.secondary">
-          Edit profile
-        </Typography>
-      </MenuItem>
-    </Box>
-  );
-};
-
-// Helper component for menu items
-const MenuItemsSection: React.FC<{
-  onProfile: () => void;
-  onSettings: () => void;
-}> = ({ onProfile, onSettings }) => {
-  const handleProfileClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onProfile();
-  };
-
-  const handleSettingsClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSettings();
-  };
-
-  return (
-    <Box sx={{ py: 1, pointerEvents: "auto" }}>
-      <MenuItem onClick={handleProfileClick} sx={{ pointerEvents: "auto" }}>
-        <ListItemIcon>
-          <PersonIcon fontSize="small" />
-        </ListItemIcon>
-        <ListItemText primary="Profile" />
-      </MenuItem>
-      <MenuItem onClick={handleSettingsClick} sx={{ pointerEvents: "auto" }}>
-        <ListItemIcon>
-          <SettingsIcon fontSize="small" />
-        </ListItemIcon>
-        <ListItemText primary="Settings" />
-      </MenuItem>
-    </Box>
-  );
-};
-
-// Helper component for logout section
-const LogoutSection: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
-  const handleLogoutClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onLogout();
-  };
-
-  return (
-    <Box sx={{ py: 1, pointerEvents: "auto" }}>
-      <MenuItem onClick={handleLogoutClick} sx={{ pointerEvents: "auto" }}>
-        <ListItemIcon>
-          <LogoutIcon fontSize="small" />
-        </ListItemIcon>
-        <ListItemText primary="Logout" />
-      </MenuItem>
-    </Box>
-  );
-};
-
 export function UserAccountMenu({
   onLogout,
-  menuId = "account-menu",
+  menuId: _menuId = "account-menu",
   className,
 }: UserAccountMenuProps) {
   const { data: session } = useSession();
   const router = useRouter();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const pathname = usePathname();
+  const theme = useTheme();
+  const [expanded, setExpanded] = useState(false);
 
-  const tooltipTitle = session?.user?.email || session?.user?.name || "Account";
+  const isProfileActive = pathname === "/profile";
 
   const userInitial = useMemo(() => {
     return (
@@ -195,126 +49,236 @@ export function UserAccountMenu({
     );
   }, [session?.user?.email, session?.user?.name]);
 
-  const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = (
-    event?: React.SyntheticEvent | Event,
-    reason?: "backdropClick" | "escapeKeyDown" | "tabKeyDown"
-  ) => {
-    if (reason === "backdropClick" || reason === "escapeKeyDown") {
-      setAnchorEl(null);
-    }
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
   const handleProfile = () => {
-    handleMenuClose();
     router.push("/profile");
   };
 
-  const handleSettings = () => {
-    handleMenuClose();
-    router.push("/settings");
-  };
-
   const handleLogout = async () => {
-    handleMenuClose();
     if (onLogout) {
       onLogout();
     }
     await signOut({ callbackUrl: "/auth/signin" });
   };
 
+  const userName = session?.user?.name || session?.user?.email || "User";
+
   return (
-    <Box display="flex" alignItems="center" className={className}>
-      <IconButton
-        onClick={handleOpen}
-        size="small"
-        sx={{ ml: 1 }}
-        aria-controls={anchorEl ? menuId : undefined}
-        aria-haspopup="true"
-        aria-expanded={anchorEl ? "true" : undefined}
-        title={tooltipTitle}
-      >
-        <Avatar
-          src={session?.user?.image ?? undefined}
-          alt={session?.user?.name ?? session?.user?.email ?? "account"}
-          sx={{ width: 32, height: 32 }}
-        >
-          {userInitial}
-        </Avatar>
-      </IconButton>
-      <Menu
-        anchorEl={anchorEl}
-        id={menuId}
-        open={Boolean(anchorEl)}
-        onClose={handleClose}
-        MenuListProps={{
-          "aria-labelledby": menuId,
-          sx: { py: 0, pointerEvents: "auto" },
-        }}
-        PaperProps={{
-          elevation: 3,
-          sx: {
-            mt: 1.5,
-            minWidth: 280,
-            maxWidth: 320,
-            borderRadius: 2,
-            overflow: "hidden",
-            pointerEvents: "auto",
-            "& .MuiMenuItem-root": {
-              pointerEvents: "auto",
-            },
-          },
-        }}
-        transformOrigin={{ horizontal: "right", vertical: "bottom" }}
-        anchorOrigin={{ horizontal: "right", vertical: "top" }}
-        disablePortal={true}
-        slotProps={{
-          root: {
-            sx: {
-              zIndex: 1501,
-            },
-          },
+    <Box className={className} sx={{ width: "100%" }}>
+      <Accordion
+        expanded={expanded}
+        onChange={(_event, newExpanded) => {
+          setExpanded(newExpanded);
         }}
         sx={{
-          zIndex: 1501,
-          "& .MuiPopover-root": {
-            zIndex: "1501 !important",
+          marginBottom: 0,
+          boxShadow: "none",
+          "&:before": {
+            display: "none",
           },
-          "& .MuiPaper-root": {
-            pointerEvents: "auto",
-            zIndex: "1501 !important",
-            position: "relative",
+          "&.Mui-expanded": {
+            margin: 0,
           },
+          backgroundColor: "transparent",
         }}
       >
-        <ProfileSection
-          userInitial={userInitial}
-          userName={session?.user?.name}
-          userEmail={session?.user?.email}
-          userImage={session?.user?.image}
-          onProfileClick={handleProfile}
-        />
-
-        <Divider />
-
-        <MenuItemsSection
-          onProfile={handleProfile}
-          onSettings={handleSettings}
-        />
-
-        <Divider />
-
-        <LogoutSection onLogout={handleLogout} />
-      </Menu>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          sx={{
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? theme.palette.background.paper
+                : "rgba(248, 250, 252, 0.6)",
+            borderRadius: 0,
+            minHeight: "48px",
+            padding: theme.spacing(1.5, 2),
+            "&.Mui-expanded": {
+              minHeight: "48px",
+            },
+            "&:hover": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.primary.main, 0.1)
+                  : "rgba(248, 250, 252, 0.9)",
+              color: theme.palette.primary.main,
+            },
+            "& .MuiAccordionSummary-content": {
+              margin: 0,
+              "&.Mui-expanded": {
+                margin: 0,
+              },
+            },
+            transition: "background-color 0.15s ease, color 0.15s ease",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <Avatar
+              src={session?.user?.image ?? undefined}
+              alt={userName}
+              sx={{
+                width: 32,
+                height: 32,
+                mr: 1.5,
+              }}
+            >
+              {userInitial}
+            </Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Box
+                sx={{
+                  fontSize: "0.875rem",
+                  fontWeight: 400,
+                  letterSpacing: "0.01em",
+                  color: "inherit",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {userName}
+              </Box>
+              {session?.user?.email && session?.user?.name && (
+                <Box
+                  sx={{
+                    fontSize: "0.75rem",
+                    color: "text.secondary",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {session.user.email}
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails
+          sx={{
+            padding: 0,
+            backgroundColor: "transparent",
+            borderBottom: "1px solid",
+            borderColor: "rgba(255, 255, 255, 0.08)",
+          }}
+        >
+          <List component="div" disablePadding>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={Link}
+                href="/profile"
+                disableRipple
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleProfile();
+                }}
+                selected={isProfileActive}
+                sx={(theme) => ({
+                  pl: 6,
+                  borderRadius: 0,
+                  marginBottom: 0,
+                  padding: theme.spacing(1.5, 2),
+                  backgroundColor: isProfileActive
+                    ? alpha(theme.palette.primary.main, 0.18)
+                    : theme.palette.mode === "dark"
+                      ? theme.palette.background.paper
+                      : "rgba(248, 250, 252, 0.6)",
+                  color: isProfileActive
+                    ? theme.palette.primary.main
+                    : theme.palette.mode === "dark"
+                      ? theme.palette.text.primary
+                      : "rgba(51, 65, 85, 0.95)",
+                  transition: "background-color 0.15s ease, color 0.15s ease",
+                  "&.Mui-selected": {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.18),
+                    color: theme.palette.primary.main,
+                    "&:hover": {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.24),
+                    },
+                  },
+                  "&:hover": {
+                    backgroundColor: isProfileActive
+                      ? alpha(theme.palette.primary.main, 0.24)
+                      : theme.palette.mode === "dark"
+                        ? alpha(theme.palette.primary.main, 0.1)
+                        : "rgba(248, 250, 252, 0.9)",
+                    color: theme.palette.primary.main,
+                  },
+                })}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 40,
+                    color: "inherit",
+                  }}
+                >
+                  <PersonIcon />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Profile"
+                  primaryTypographyProps={{
+                    fontSize: "0.875rem",
+                    fontWeight: isProfileActive ? 600 : 400,
+                    letterSpacing: "0.01em",
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton
+                disableRipple
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLogout();
+                }}
+                sx={(theme) => ({
+                  pl: 6,
+                  borderRadius: 0,
+                  marginBottom: 0,
+                  padding: theme.spacing(1.5, 2),
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.background.paper
+                      : "rgba(248, 250, 252, 0.6)",
+                  color:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.text.primary
+                      : "rgba(51, 65, 85, 0.95)",
+                  transition: "background-color 0.15s ease, color 0.15s ease",
+                  "&:hover": {
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? alpha(theme.palette.primary.main, 0.1)
+                        : "rgba(248, 250, 252, 0.9)",
+                    color: theme.palette.primary.main,
+                  },
+                })}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 40,
+                    color: "inherit",
+                  }}
+                >
+                  <LogoutIcon />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Logout"
+                  primaryTypographyProps={{
+                    fontSize: "0.875rem",
+                    fontWeight: 400,
+                    letterSpacing: "0.01em",
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          </List>
+        </AccordionDetails>
+      </Accordion>
     </Box>
   );
 }

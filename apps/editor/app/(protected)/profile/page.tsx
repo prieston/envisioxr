@@ -16,7 +16,6 @@ import {
   GlowingContainer,
   GlowingSpan,
 } from "@/app/components/Builder/AdminLayout.styles";
-import DashboardSidebar from "@/app/components/Dashboard/DashboardSidebar";
 import EmailIcon from "@mui/icons-material/Email";
 import PersonIcon from "@mui/icons-material/Person";
 import BusinessIcon from "@mui/icons-material/Business";
@@ -127,19 +126,15 @@ const ProfilePage = () => {
         </GlowingContainer>
       </AnimatedBackground>
 
-      {/* Sidebar */}
-      <DashboardSidebar />
-
       {/* Main Content Area */}
       <Box
-        sx={(theme) => ({
+        sx={{
           marginLeft: "392px",
           padding: "24px",
           minHeight: "100vh",
           position: "relative",
           zIndex: 1,
-          backgroundColor: theme.palette.background.default,
-        })}
+        }}
       >
         <Box sx={{ paddingBottom: 3 }}>
           <Typography variant="h5" sx={{ color: "text.primary", fontWeight: 600 }}>
@@ -177,7 +172,7 @@ const ProfilePage = () => {
               p: 4,
               backgroundColor:
                 theme.palette.mode === "dark"
-                  ? "rgba(22, 24, 26, 0.85)"
+                  ? "rgba(20, 23, 26, 0.85)"
                   : "#14171A",
               backdropFilter: "blur(20px) saturate(130%)",
               WebkitBackdropFilter: "blur(20px) saturate(130%)",

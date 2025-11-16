@@ -24,7 +24,7 @@ export const createAppTheme = (mode: ThemeMode): Theme =>
       secondary: { main: mode === "dark" ? "#94a3b8" : "#646464" },
       background: {
         default: mode === "dark" ? "#0E0F10" : "#ffffff",
-        paper: mode === "dark" ? "#16181A" : "#f8fafc",
+        paper: mode === "dark" ? "#14171A" : "#f8fafc",
       },
       text: {
         primary: mode === "dark" ? "#FFFFFF" : "#0f172a",
