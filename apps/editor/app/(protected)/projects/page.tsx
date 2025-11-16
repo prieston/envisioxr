@@ -340,14 +340,27 @@ const ProjectsPage = () => {
             width: { xs: "100%", sm: "420px" },
             backgroundColor:
               theme.palette.mode === "dark"
-                ? "#14171A"
+                ? "#14171A !important"
                 : theme.palette.background.paper,
             borderLeft: "1px solid rgba(255, 255, 255, 0.05)",
             zIndex: 1500,
+            "&.MuiPaper-root": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "#14171A !important"
+                  : theme.palette.background.paper,
+            },
           }),
         }}
       >
-        <Box sx={{ p: 3 }}>
+        <Box
+          sx={(theme) => ({
+            p: 3,
+            backgroundColor:
+              theme.palette.mode === "dark" ? "#14171A" : theme.palette.background.paper,
+            minHeight: "100%",
+          })}
+        >
           {/* Header */}
           <Box
             sx={{
