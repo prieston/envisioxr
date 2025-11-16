@@ -9,8 +9,6 @@ import {
   InputAdornment,
   Drawer,
   Typography,
-  FormControl,
-  InputLabel,
   Select,
   MenuItem,
   IconButton,
@@ -30,6 +28,10 @@ import {
   PageDescription,
   PageContent,
   textFieldStyles,
+  selectStyles,
+  menuItemStyles,
+  SettingContainer,
+  SettingLabel,
 } from "@envisio/ui";
 import {
   AnimatedBackground,
@@ -372,49 +374,50 @@ const ProjectsPage = () => {
           <Divider sx={{ mb: 3 }} />
 
           {/* Form */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <TextField
-              label="Project Title"
-              value={newProjectTitle}
-              onChange={(e) => setNewProjectTitle(e.target.value)}
-              fullWidth
-              required
-              sx={(theme) => ({
-                ...((typeof textFieldStyles === "function"
-                  ? textFieldStyles(theme)
-                  : textFieldStyles) as Record<string, any>),
-              })}
-            />
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <SettingContainer>
+              <SettingLabel>Project Title</SettingLabel>
+              <TextField
+                id="project-title"
+                name="project-title"
+                value={newProjectTitle}
+                onChange={(e) => setNewProjectTitle(e.target.value)}
+                placeholder="Enter project title"
+                fullWidth
+                size="small"
+                variant="outlined"
+                sx={textFieldStyles}
+              />
+            </SettingContainer>
 
-            <TextField
-              label="Project Description"
-              value={newProjectDescription}
-              onChange={(e) => setNewProjectDescription(e.target.value)}
-              fullWidth
-              multiline
-              rows={4}
-              sx={(theme) => ({
-                ...((typeof textFieldStyles === "function"
-                  ? textFieldStyles(theme)
-                  : textFieldStyles) as Record<string, any>),
-              })}
-            />
+            <SettingContainer>
+              <SettingLabel>Project Description</SettingLabel>
+              <TextField
+                id="project-description"
+                name="project-description"
+                value={newProjectDescription}
+                onChange={(e) => setNewProjectDescription(e.target.value)}
+                placeholder="Enter project description"
+                fullWidth
+                multiline
+                rows={4}
+                size="small"
+                variant="outlined"
+                sx={textFieldStyles}
+              />
+            </SettingContainer>
 
-            <FormControl fullWidth>
-              <InputLabel id="engine-select-label">Rendering Engine</InputLabel>
+            <SettingContainer>
+              <SettingLabel>Rendering Engine</SettingLabel>
               <Select
-                labelId="engine-select-label"
                 id="engine-select"
                 value={newProjectEngine}
-                label="Rendering Engine"
                 onChange={(e) => setNewProjectEngine(e.target.value)}
-                sx={(theme) => ({
-                  ...((typeof textFieldStyles === "function"
-                    ? textFieldStyles(theme)
-                    : textFieldStyles) as Record<string, any>),
-                })}
+                fullWidth
+                size="small"
+                sx={selectStyles}
               >
-                <MenuItem value="three">
+                <MenuItem value="three" sx={menuItemStyles}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Typography>Three.js</Typography>
                     <Typography variant="caption" color="text.secondary">
@@ -422,7 +425,7 @@ const ProjectsPage = () => {
                     </Typography>
                   </Box>
                 </MenuItem>
-                <MenuItem value="cesium">
+                <MenuItem value="cesium" sx={menuItemStyles}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Typography>Cesium</Typography>
                     <Typography variant="caption" color="text.secondary">
@@ -431,7 +434,7 @@ const ProjectsPage = () => {
                   </Box>
                 </MenuItem>
               </Select>
-            </FormControl>
+            </SettingContainer>
 
             {/* Actions */}
             <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
