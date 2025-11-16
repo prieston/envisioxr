@@ -41,7 +41,7 @@ const ProjectsPage = () => {
   const router = useRouter();
   const { projects, setProjects, loadingProjects } = useProjects();
   const [selectedProjectId, setSelectedProjectId] = useState(null);
-  
+
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [newProjectTitle, setNewProjectTitle] = useState("");
@@ -75,19 +75,19 @@ const ProjectsPage = () => {
           engine: newProjectEngine,
         }),
       });
-      
+
       if (!res.ok) {
         throw new Error("Failed to create project");
       }
-      
+
       const newProject = await res.json();
-      
+
       // Add the new project to the list
       setProjects((prev) => [newProject, ...prev]);
-      
+
       // Close drawer and reset form
       handleCloseDrawer();
-      
+
       // Navigate to the builder
       router.push(`/projects/${newProject.id}/builder`);
     } catch (error) {
@@ -324,14 +324,14 @@ const ProjectsPage = () => {
 
       {/* Create Project Drawer */}
       <Drawer
-        anchor="left"
+        anchor="right"
         open={drawerOpen}
         onClose={handleCloseDrawer}
         PaperProps={{
           sx: (theme) => ({
             width: { xs: "100%", sm: "420px" },
             backgroundColor: theme.palette.background.paper,
-            borderRight: "1px solid rgba(255, 255, 255, 0.05)",
+            borderLeft: "1px solid rgba(255, 255, 255, 0.05)",
           }),
         }}
       >
