@@ -51,7 +51,7 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
       // Guard: Only update state if values actually changed to prevent unnecessary re-renders
       const newTitle = selectedObservation.title || "";
       const newDescription = (selectedObservation.description as string) || "";
-      
+
       if (title !== newTitle) {
         setTitle(newTitle);
       }

@@ -213,7 +213,7 @@ export const useAssetLibrary = () => {
           xhr.removeEventListener("load", handleLoad);
           xhr.removeEventListener("error", handleError);
           xhrRef.current = null;
-          
+
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve();
           } else {
