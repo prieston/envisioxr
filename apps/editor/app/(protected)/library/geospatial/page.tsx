@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Box,
   Button,
@@ -38,6 +38,7 @@ const LibraryGeospatialPage = () => {
   const {
     models: fetchedAssets,
     loadingModels,
+    error: assetsError,
     mutate,
   } = useModels({
     assetType: "cesiumIonAsset",
@@ -54,10 +55,9 @@ const LibraryGeospatialPage = () => {
   const [uploadToIonDrawerOpen, setUploadToIonDrawerOpen] = useState(false);
   const [addIonAssetDrawerOpen, setAddIonAssetDrawerOpen] = useState(false);
 
-  // Sync fetched assets to local state
-  // Filter out regular model types as a safety measure (should be filtered by API, but double-check)
-  useEffect(() => {
-    const mappedAssets: LibraryAsset[] = fetchedAssets
+  // Memoize mapped assets to prevent unnecessary re-renders
+  const mappedAssets = useMemo(() => {
+    return fetchedAssets
       .filter((asset) => asset.assetType === "cesiumIonAsset") // Only show Cesium Ion assets
       .map((asset) => ({
         id: asset.id,
@@ -72,27 +72,77 @@ const LibraryGeospatialPage = () => {
         cesiumAssetId: asset.cesiumAssetId,
         cesiumApiKey: asset.cesiumApiKey,
       }));
-    setAssets(mappedAssets);
   }, [fetchedAssets]);
+
+  // Use ref to track previous mapped assets to avoid unnecessary state updates
+  const prevMappedAssetsRef = useRef<string>("");
+
+  // Sync fetched assets to local state only when content actually changes
+  useEffect(() => {
+    const currentAssetsStr = JSON.stringify(mappedAssets);
+    if (prevMappedAssetsRef.current !== currentAssetsStr) {
+      prevMappedAssetsRef.current = currentAssetsStr;
+      setAssets(mappedAssets);
+    }
+  }, [mappedAssets]);
+
+  // Use ref to track previous selectedAsset to prevent infinite loops
+  const prevSelectedAssetRef = useRef<LibraryAsset | null>(null);
 
   // Sync selectedAsset with updated data
   useEffect(() => {
-    if (selectedAsset) {
-      const updatedAsset = assets.find((a) => a.id === selectedAsset.id);
-      if (updatedAsset) {
-        setSelectedAsset(updatedAsset);
-        if (!isEditing) {
-          setEditedName(
-            updatedAsset.name || updatedAsset.originalFilename || ""
-          );
-          setEditedDescription(updatedAsset.description || "");
-          if (updatedAsset.metadata) {
-            const metadataArray: MetadataRow[] = Object.entries(
-              updatedAsset.metadata
-            ).map(([label, value]) => ({ label, value }));
-            setEditedMetadata(metadataArray);
-          }
-        }
+    if (!selectedAsset) {
+      prevSelectedAssetRef.current = null;
+      return;
+    }
+
+    const updatedAsset = assets.find((a) => a.id === selectedAsset.id);
+    if (!updatedAsset) {
+      return;
+    }
+
+    // Only update if the asset data actually changed to prevent infinite loops
+    const hasChanged =
+      updatedAsset.name !== selectedAsset.name ||
+      updatedAsset.description !== selectedAsset.description ||
+      JSON.stringify(updatedAsset.metadata) !== JSON.stringify(selectedAsset.metadata) ||
+      updatedAsset.thumbnail !== selectedAsset.thumbnail ||
+      updatedAsset.fileUrl !== selectedAsset.fileUrl ||
+      updatedAsset.cesiumAssetId !== selectedAsset.cesiumAssetId ||
+      updatedAsset.cesiumApiKey !== selectedAsset.cesiumApiKey;
+
+    // Also check if this is the same update we just did (prevent loop)
+    const prevAsset = prevSelectedAssetRef.current;
+    const isSameUpdate =
+      prevAsset &&
+      prevAsset.id === updatedAsset.id &&
+      prevAsset.name === updatedAsset.name &&
+      prevAsset.description === updatedAsset.description &&
+      JSON.stringify(prevAsset.metadata) === JSON.stringify(updatedAsset.metadata);
+
+    if (hasChanged && !isSameUpdate) {
+      prevSelectedAssetRef.current = updatedAsset;
+      setSelectedAsset(updatedAsset);
+    }
+
+    if (!isEditing) {
+      const newName = updatedAsset.name || updatedAsset.originalFilename || "";
+      const newDescription = updatedAsset.description || "";
+      const newMetadata: MetadataRow[] = updatedAsset.metadata
+        ? Object.entries(updatedAsset.metadata).map(([label, value]) => ({ label, value }))
+        : [];
+
+      // Only update if values actually changed
+      if (editedName !== newName) {
+        setEditedName(newName);
+      }
+      if (editedDescription !== newDescription) {
+        setEditedDescription(newDescription);
+      }
+      const currentMetadataStr = JSON.stringify(editedMetadata);
+      const newMetadataStr = JSON.stringify(newMetadata);
+      if (currentMetadataStr !== newMetadataStr) {
+        setEditedMetadata(newMetadata);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -111,6 +161,7 @@ const LibraryGeospatialPage = () => {
 
   // Handle asset selection
   const handleAssetClick = (asset: LibraryAsset) => {
+    prevSelectedAssetRef.current = asset;
     setSelectedAsset(asset);
     setIsEditing(false);
     setEditedName(asset.name || asset.originalFilename || "");
@@ -184,6 +235,7 @@ const LibraryGeospatialPage = () => {
       await deleteModel(selectedAsset.id);
       showToast("Geospatial asset deleted successfully", "success");
       mutate(); // Refresh assets from SWR
+      prevSelectedAssetRef.current = null;
       setSelectedAsset(null);
     } catch (error) {
       console.error("Delete error:", error);
@@ -266,7 +318,7 @@ const LibraryGeospatialPage = () => {
                   maxWidth: "400px",
                   ...((typeof textFieldStyles === "function"
                     ? textFieldStyles(theme)
-                    : textFieldStyles) as Record<string, any>),
+                    : textFieldStyles) as Record<string, unknown>),
                 })}
                 InputProps={{
                   startAdornment: (
@@ -353,6 +405,31 @@ const LibraryGeospatialPage = () => {
               }}
             >
               <CircularProgress />
+            </Box>
+          ) : assetsError ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: "400px",
+                color: "error.main",
+              }}
+            >
+              <Box sx={{ fontSize: "0.875rem", mb: 1 }}>
+                Error loading geospatial assets
+              </Box>
+              <Box sx={{ fontSize: "0.75rem", color: "text.secondary" }}>
+                {assetsError instanceof Error ? assetsError.message : "Unknown error"}
+              </Box>
+              <Button
+                variant="outlined"
+                onClick={() => mutate()}
+                sx={{ mt: 2 }}
+              >
+                Retry
+              </Button>
             </Box>
           ) : (
             <Box

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Box,
   Button,
@@ -40,6 +40,7 @@ const LibraryModelsPage = () => {
   const {
     models: fetchedModels,
     loadingModels,
+    error: modelsError,
     mutate,
   } = useModels({
     assetType: "model",
@@ -56,10 +57,9 @@ const LibraryModelsPage = () => {
   const [retakePhotoOpen, setRetakePhotoOpen] = useState(false);
   const [uploadDrawerOpen, setUploadDrawerOpen] = useState(false);
 
-  // Sync fetched models to local state
-  // Filter out cesiumIonAsset types as a safety measure (should be filtered by API, but double-check)
-  useEffect(() => {
-    const mappedModels: LibraryAsset[] = fetchedModels
+  // Memoize mapped models to prevent unnecessary re-renders
+  const mappedModels = useMemo(() => {
+    return fetchedModels
       .filter((model) => model.assetType === "model" || model.assetType === null) // Include null for backwards compatibility
       .map((model) => ({
         id: model.id,
@@ -72,27 +72,75 @@ const LibraryModelsPage = () => {
         metadata: model.metadata as Record<string, string> | undefined,
         assetType: model.assetType || "model", // Default to "model" if null
       }));
-    setModels(mappedModels);
   }, [fetchedModels]);
+
+  // Use ref to track previous mapped models to avoid unnecessary state updates
+  const prevMappedModelsRef = useRef<string>("");
+
+  // Sync fetched models to local state only when content actually changes
+  useEffect(() => {
+    const currentModelsStr = JSON.stringify(mappedModels);
+    if (prevMappedModelsRef.current !== currentModelsStr) {
+      prevMappedModelsRef.current = currentModelsStr;
+      setModels(mappedModels);
+    }
+  }, [mappedModels]);
+
+  // Use ref to track previous selectedModel to prevent infinite loops
+  const prevSelectedModelRef = useRef<LibraryAsset | null>(null);
 
   // Sync selectedModel with updated data
   useEffect(() => {
-    if (selectedModel) {
-      const updatedModel = models.find((m) => m.id === selectedModel.id);
-      if (updatedModel) {
-        setSelectedModel(updatedModel);
-        if (!isEditing) {
-          setEditedName(
-            updatedModel.name || updatedModel.originalFilename || ""
-          );
-          setEditedDescription(updatedModel.description || "");
-          if (updatedModel.metadata) {
-            const metadataArray: MetadataRow[] = Object.entries(
-              updatedModel.metadata
-            ).map(([label, value]) => ({ label, value }));
-            setEditedMetadata(metadataArray);
-          }
-        }
+    if (!selectedModel) {
+      prevSelectedModelRef.current = null;
+      return;
+    }
+
+    const updatedModel = models.find((m) => m.id === selectedModel.id);
+    if (!updatedModel) {
+      return;
+    }
+
+    // Only update if the model data actually changed to prevent infinite loops
+    const hasChanged =
+      updatedModel.name !== selectedModel.name ||
+      updatedModel.description !== selectedModel.description ||
+      JSON.stringify(updatedModel.metadata) !== JSON.stringify(selectedModel.metadata) ||
+      updatedModel.thumbnail !== selectedModel.thumbnail ||
+      updatedModel.fileUrl !== selectedModel.fileUrl;
+
+    // Also check if this is the same update we just did (prevent loop)
+    const prevModel = prevSelectedModelRef.current;
+    const isSameUpdate =
+      prevModel &&
+      prevModel.id === updatedModel.id &&
+      prevModel.name === updatedModel.name &&
+      prevModel.description === updatedModel.description &&
+      JSON.stringify(prevModel.metadata) === JSON.stringify(updatedModel.metadata);
+
+    if (hasChanged && !isSameUpdate) {
+      prevSelectedModelRef.current = updatedModel;
+      setSelectedModel(updatedModel);
+    }
+
+    if (!isEditing) {
+      const newName = updatedModel.name || updatedModel.originalFilename || "";
+      const newDescription = updatedModel.description || "";
+      const newMetadata: MetadataRow[] = updatedModel.metadata
+        ? Object.entries(updatedModel.metadata).map(([label, value]) => ({ label, value }))
+        : [];
+
+      // Only update if values actually changed
+      if (editedName !== newName) {
+        setEditedName(newName);
+      }
+      if (editedDescription !== newDescription) {
+        setEditedDescription(newDescription);
+      }
+      const currentMetadataStr = JSON.stringify(editedMetadata);
+      const newMetadataStr = JSON.stringify(newMetadata);
+      if (currentMetadataStr !== newMetadataStr) {
+        setEditedMetadata(newMetadata);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -111,6 +159,7 @@ const LibraryModelsPage = () => {
 
   // Handle model selection
   const handleModelClick = (model: LibraryAsset) => {
+    prevSelectedModelRef.current = model;
     setSelectedModel(model);
     setIsEditing(false);
     setEditedName(model.name || model.originalFilename || "");
@@ -184,6 +233,7 @@ const LibraryModelsPage = () => {
       await deleteModel(selectedModel.id);
       showToast("Model deleted successfully", "success");
       mutate(); // Refresh models from SWR
+      prevSelectedModelRef.current = null;
       setSelectedModel(null);
     } catch (error) {
       console.error("Delete error:", error);
@@ -280,7 +330,7 @@ const LibraryModelsPage = () => {
                   maxWidth: "400px",
                   ...((typeof textFieldStyles === "function"
                     ? textFieldStyles(theme)
-                    : textFieldStyles) as Record<string, any>),
+                    : textFieldStyles) as Record<string, unknown>),
                 })}
                 InputProps={{
                   startAdornment: (
@@ -335,6 +385,31 @@ const LibraryModelsPage = () => {
               }}
             >
               <CircularProgress />
+            </Box>
+          ) : modelsError ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: "400px",
+                color: "error.main",
+              }}
+            >
+              <Box sx={{ fontSize: "0.875rem", mb: 1 }}>
+                Error loading models
+              </Box>
+              <Box sx={{ fontSize: "0.75rem", color: "text.secondary" }}>
+                {modelsError instanceof Error ? modelsError.message : "Unknown error"}
+              </Box>
+              <Button
+                variant="outlined"
+                onClick={() => mutate()}
+                sx={{ mt: 2 }}
+              >
+                Retry
+              </Button>
             </Box>
           ) : (
             <Box
