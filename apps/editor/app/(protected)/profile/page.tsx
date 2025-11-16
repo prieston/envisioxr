@@ -5,12 +5,17 @@ import {
   Box,
   Typography,
   CircularProgress,
-  Paper,
   Avatar,
-  Divider,
   Chip,
   Alert,
 } from "@mui/material";
+import {
+  Page,
+  PageHeader,
+  PageDescription,
+  PageContent,
+  PageCard,
+} from "@envisio/ui";
 import {
   AnimatedBackground,
   GlowingContainer,
@@ -88,7 +93,6 @@ const ProfilePage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionStatus, session?.user?.id]);
 
-
   const getProviderLabel = (provider: string) => {
     const labels: Record<string, string> = {
       google: "Google",
@@ -97,8 +101,6 @@ const ProfilePage = () => {
     };
     return labels[provider] || provider;
   };
-
-
 
   return (
     <>
@@ -126,219 +128,263 @@ const ProfilePage = () => {
         </GlowingContainer>
       </AnimatedBackground>
 
-      {/* Main Content Area */}
-      <Box
-        sx={{
-          marginLeft: "392px",
-          padding: "24px",
-          minHeight: "100vh",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        <Box sx={{ paddingBottom: 3 }}>
-          <Typography variant="h5" sx={{ color: "text.primary", fontWeight: 600 }}>
-            Profile
-          </Typography>
-        </Box>
+      <Page>
+        <PageHeader title="Profile" />
+        <PageDescription>
+          View your account information, organization details, and connected
+          accounts
+        </PageDescription>
 
-        {loading ? (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: "400px",
-            }}
-          >
-            <CircularProgress />
-          </Box>
-        ) : error || !userData ? (
-          <Box sx={{ maxWidth: 800 }}>
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error || "User not found"}
-            </Alert>
-            {error && (
-              <Typography variant="body2" color="text.secondary">
-                Please try refreshing the page or contact support if the problem
-                persists.
-              </Typography>
-            )}
-          </Box>
-        ) : userData ? (
-          <Box sx={{ maxWidth: 800 }}>
-          <Paper
-            sx={(theme) => ({
-              p: 4,
-              backgroundColor:
-                theme.palette.mode === "dark"
-                  ? "rgba(20, 23, 26, 0.85)"
-                  : "#14171A",
-              backdropFilter: "blur(20px) saturate(130%)",
-              WebkitBackdropFilter: "blur(20px) saturate(130%)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: 1,
-            })}
-          >
-            {/* Profile Header */}
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 3,
-                mb: 4,
-              }}
-            >
-              <Avatar
-                src={userData.image || undefined}
-                alt={userData.name || userData.email || "User"}
-                sx={{ width: 80, height: 80, fontSize: "2rem" }}
+        <Box sx={{ "& > div": { mt: "24px !important" } }}>
+          <PageContent maxWidth="5xl">
+            {loading ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: "400px",
+                }}
               >
-                {userData.name?.charAt(0)?.toUpperCase() ||
-                  userData.email?.charAt(0)?.toUpperCase() ||
-                  "U"}
-              </Avatar>
-              <Box>
-                <Typography variant="h4" sx={{ mb: 1, fontWeight: 600 }}>
-                  {userData.name || "No name set"}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  {userData.email}
-                </Typography>
-                {userData.emailVerified && (
-                  <Chip
-                    icon={<VerifiedUserIcon />}
-                    label="Email Verified"
-                    size="small"
-                    color="success"
-                    sx={{ mt: 1 }}
-                  />
+                <CircularProgress />
+              </Box>
+            ) : error || !userData ? (
+              <PageCard>
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {error || "User not found"}
+                </Alert>
+                {error && (
+                  <Typography variant="body2" color="text.secondary">
+                    Please try refreshing the page or contact support if the
+                    problem persists.
+                  </Typography>
                 )}
-              </Box>
-            </Box>
-
-            <Divider sx={{ my: 3 }} />
-
-            {/* User Information */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1 }}
-                >
-                  <PersonIcon fontSize="small" /> Name
-                </Typography>
-                <Typography variant="body1">
-                  {userData.name || "Not set"}
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1 }}
-                >
-                  <EmailIcon fontSize="small" /> Email
-                </Typography>
-                <Typography variant="body1">{userData.email}</Typography>
-              </Box>
-
-              {userData.organization && (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      color="text.secondary"
-                      sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1 }}
+              </PageCard>
+            ) : userData ? (
+              <>
+                {/* Profile Header Card */}
+                <Box sx={{ mb: 3 }}>
+                  <PageCard padding={2}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                      }}
                     >
-                      <BusinessIcon fontSize="small" /> Organization
-                    </Typography>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                      <Typography variant="body1">
-                        {userData.organization.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Slug: {userData.organization.slug}
-                      </Typography>
-                      <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                        <Chip
-                          label={
-                            userData.organization.isPersonal
-                              ? "Personal"
-                              : "Team"
-                          }
-                          size="small"
-                          variant="outlined"
-                        />
-                        {userData.organization.userRole && (
+                      <Avatar
+                        src={userData.image || undefined}
+                        alt={userData.name || userData.email || "User"}
+                        sx={{ width: 80, height: 80, fontSize: "2rem" }}
+                      >
+                        {userData.name?.charAt(0)?.toUpperCase() ||
+                          userData.email?.charAt(0)?.toUpperCase() ||
+                          "U"}
+                      </Avatar>
+                      <Box>
+                        <Typography
+                          variant="h6"
+                          sx={{ mb: 0.5, fontWeight: 600 }}
+                        >
+                          {userData.name || "No name set"}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {userData.email}
+                        </Typography>
+                        {userData.emailVerified && (
                           <Chip
-                            label={userData.organization.userRole}
+                            icon={<VerifiedUserIcon />}
+                            label="Email Verified"
                             size="small"
-                            color="primary"
-                            variant="outlined"
+                            color="success"
+                            sx={{ mt: 1 }}
                           />
                         )}
                       </Box>
                     </Box>
-                  </Box>
-                </>
-              )}
+                  </PageCard>
+                </Box>
 
-              {userData.accounts.length > 0 && (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      color="text.secondary"
-                      sx={{ mb: 1 }}
-                    >
-                      Connected Accounts
-                    </Typography>
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                      {userData.accounts.map((account, index) => (
-                        <Chip
-                          key={index}
-                          label={getProviderLabel(account.provider)}
-                          size="small"
-                          variant="outlined"
+                {/* User Information Card */}
+                <PageCard padding={2}>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    Account Information
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      gap: 3,
+                    }}
+                  >
+                    <Box sx={{ minWidth: "200px", flex: "1 1 auto" }}>
+                      <Typography
+                        sx={(theme) => ({
+                          fontSize: "0.75rem",
+                          fontWeight: 600,
+                          color: theme.palette.text.secondary,
+                          mb: 0.5,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        })}
+                      >
+                        Name
+                      </Typography>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <PersonIcon
+                          fontSize="small"
+                          sx={{ color: "text.secondary" }}
                         />
-                      ))}
+                        <Typography variant="body2" color="text.primary">
+                          {userData.name || "Not set"}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ minWidth: "200px", flex: "1 1 auto" }}>
+                      <Typography
+                        sx={(theme) => ({
+                          fontSize: "0.75rem",
+                          fontWeight: 600,
+                          color: theme.palette.text.secondary,
+                          mb: 0.5,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        })}
+                      >
+                        Email
+                      </Typography>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <EmailIcon
+                          fontSize="small"
+                          sx={{ color: "text.secondary" }}
+                        />
+                        <Typography variant="body2" color="text.primary">
+                          {userData.email}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {userData.organization && (
+                      <Box sx={{ minWidth: "200px", flex: "1 1 auto" }}>
+                        <Typography
+                          sx={(theme) => ({
+                            fontSize: "0.75rem",
+                            fontWeight: 600,
+                            color: theme.palette.text.secondary,
+                            mb: 0.5,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                          })}
+                        >
+                          Organization
+                        </Typography>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <BusinessIcon
+                            fontSize="small"
+                            sx={{ color: "text.secondary" }}
+                          />
+                          <Typography variant="body2" color="text.primary">
+                            {userData.organization.name}
+                          </Typography>
+                        </Box>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mt: 0.5 }}
+                        >
+                          Slug: {userData.organization.slug}
+                        </Typography>
+                        <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                          <Chip
+                            label={
+                              userData.organization.isPersonal
+                                ? "Personal"
+                                : "Team"
+                            }
+                            size="small"
+                            variant="outlined"
+                          />
+                          {userData.organization.userRole && (
+                            <Chip
+                              label={userData.organization.userRole}
+                              size="small"
+                              color="primary"
+                              variant="outlined"
+                            />
+                          )}
+                        </Box>
+                      </Box>
+                    )}
+
+                    {userData.accounts.length > 0 && (
+                      <Box sx={{ minWidth: "200px", flex: "1 1 auto" }}>
+                        <Typography
+                          sx={(theme) => ({
+                            fontSize: "0.75rem",
+                            fontWeight: 600,
+                            color: theme.palette.text.secondary,
+                            mb: 0.5,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                          })}
+                        >
+                          Connected Accounts
+                        </Typography>
+                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                          {userData.accounts.map((account, index) => (
+                            <Chip
+                              key={index}
+                              label={getProviderLabel(account.provider)}
+                              size="small"
+                              variant="outlined"
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+
+                    <Box sx={{ minWidth: "200px", flex: "1 1 auto" }}>
+                      <Typography
+                        sx={(theme) => ({
+                          fontSize: "0.75rem",
+                          fontWeight: 600,
+                          color: theme.palette.text.secondary,
+                          mb: 0.5,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        })}
+                      >
+                        User ID
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontFamily: "monospace",
+                          color: "text.secondary",
+                          fontSize: "0.75rem",
+                        }}
+                      >
+                        {userData.id}
+                      </Typography>
                     </Box>
                   </Box>
-                </>
-              )}
-
-              <Box sx={{ mt: 2 }}>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  sx={{ mb: 1 }}
-                >
-                  User ID
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontFamily: "monospace",
-                    color: "text.secondary",
-                    fontSize: "0.75rem",
-                  }}
-                >
-                  {userData.id}
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
-          </Box>
-        ) : null}
-      </Box>
+                </PageCard>
+              </>
+            ) : null}
+          </PageContent>
+        </Box>
+      </Page>
     </>
   );
 };
 
 export default ProfilePage;
-

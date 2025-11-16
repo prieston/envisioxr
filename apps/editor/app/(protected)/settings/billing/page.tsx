@@ -50,7 +50,7 @@ const SettingsBillingPage = () => {
         <Box sx={{ paddingBottom: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Typography variant="h5" sx={{ color: "text.primary", fontWeight: 600 }}>
-              Billing
+              License
             </Typography>
             <Chip
               label="Coming Soon"
@@ -68,14 +68,14 @@ const SettingsBillingPage = () => {
             />
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Manage your subscription plan, invoices, and payment methods
+            Manage your license, subscription plan, and usage limits
           </Typography>
         </Box>
 
-        {/* TODO: Add billing management */}
+        {/* TODO: Add license management */}
         <Box sx={{ mt: 3 }}>
           <Typography variant="body1" color="text.secondary">
-            Billing management coming soon...
+            License management coming soon...
           </Typography>
         </Box>
       </Box>
