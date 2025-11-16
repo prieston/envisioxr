@@ -600,6 +600,20 @@ a {
   box-shadow: 0 0 0 1px var(--glass-border);
 }
 
+/* Remove padding from all textareas */
+.MuiOutlinedInput-root textarea {
+  padding: 0 !important;
+}
+
+/* Ensure Select menus appear above Drawer */
+.MuiPopover-root[role="presentation"] {
+  z-index: 1600 !important;
+}
+
+.MuiMenu-paper {
+  z-index: 1600 !important;
+}
+
 /* Tab micro-interactions */
 .glass-panel .MuiTab-root {
   transition: color 0.2s ease, opacity 0.2s ease;

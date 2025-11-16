@@ -74,9 +74,8 @@ export default function ProjectCard({
         flexDirection: "column",
         transition: "all 0.2s ease",
         "&:hover": {
-          transform: "translateY(-2px)",
-          borderColor: "rgba(255, 255, 255, 0.12)",
-          backgroundColor: "#15161a",
+          borderColor: alpha(theme.palette.primary.main, 0.5),
+          backgroundColor: alpha(theme.palette.primary.main, 0.04),
         },
         "&.selected": {
           borderColor: theme.palette.primary.main,

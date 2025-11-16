@@ -46,17 +46,34 @@ const ProjectsPage = () => {
 
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState(null);
   const [newProjectTitle, setNewProjectTitle] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [newProjectEngine, setNewProjectEngine] = useState("three");
-  const [creatingProject, setCreatingProject] = useState(false);
+  const [savingProject, setSavingProject] = useState(false);
 
   const handleCreateProject = () => {
+    setEditingProjectId(null);
+    setNewProjectTitle("");
+    setNewProjectDescription("");
+    setNewProjectEngine("three");
     setDrawerOpen(true);
+  };
+
+  const handleEditProject = (projectId) => {
+    const project = projects.find((p) => p.id === projectId);
+    if (project) {
+      setEditingProjectId(projectId);
+      setNewProjectTitle(project.title || "");
+      setNewProjectDescription(project.description || "");
+      setNewProjectEngine(project.engine || "three");
+      setDrawerOpen(true);
+    }
   };
 
   const handleCloseDrawer = () => {
     setDrawerOpen(false);
+    setEditingProjectId(null);
     setNewProjectTitle("");
     setNewProjectDescription("");
     setNewProjectEngine("three");
@@ -65,11 +82,17 @@ const ProjectsPage = () => {
   const handleSaveProject = async () => {
     if (!newProjectTitle.trim()) return;
 
-    setCreatingProject(true);
+    setSavingProject(true);
     try {
-      const res = await fetch("/api/projects", {
+      const isEditing = !!editingProjectId;
+      const url = isEditing
+        ? `/api/projects/${editingProjectId}`
+        : "/api/projects";
+      const method = isEditing ? "PUT" : "POST";
+
+      const res = await fetch(url, {
         credentials: "include",
-        method: "POST",
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: newProjectTitle.trim(),
@@ -79,24 +102,33 @@ const ProjectsPage = () => {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to create project");
+        throw new Error(
+          isEditing ? "Failed to update project" : "Failed to create project"
+        );
       }
 
-      const newProject = await res.json();
+      const data = await res.json();
+      const project = data.project || data;
 
-      // Add the new project to the list
-      setProjects((prev) => [newProject, ...prev]);
+      if (isEditing) {
+        // Update the project in the list
+        setProjects((prev) =>
+          prev.map((p) => (p.id === editingProjectId ? project : p))
+        );
+      } else {
+        // Add the new project to the list
+        setProjects((prev) => [project, ...prev]);
+        // Navigate to the builder for new projects
+        router.push(`/projects/${project.id}/builder`);
+      }
 
       // Close drawer and reset form
       handleCloseDrawer();
-
-      // Navigate to the builder
-      router.push(`/projects/${newProject.id}/builder`);
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error("Error saving project:", error);
       // TODO: Show error toast
     } finally {
-      setCreatingProject(false);
+      setSavingProject(false);
     }
   };
 
@@ -304,7 +336,7 @@ const ProjectsPage = () => {
           onClose={handleMenuClose}
           onEdit={() => {
             if (menuProjectId) {
-              handleGoToBuilder(menuProjectId);
+              handleEditProject(menuProjectId);
             }
             handleMenuClose();
           }}
@@ -335,6 +367,10 @@ const ProjectsPage = () => {
             zIndex: 1499, // Backdrop should be just below drawer
           },
         }}
+        ModalProps={{
+          keepMounted: false,
+          disableScrollLock: true,
+        }}
         PaperProps={{
           sx: (theme) => ({
             width: { xs: "100%", sm: "420px" },
@@ -357,7 +393,9 @@ const ProjectsPage = () => {
           sx={(theme) => ({
             p: 3,
             backgroundColor:
-              theme.palette.mode === "dark" ? "#14171A" : theme.palette.background.paper,
+              theme.palette.mode === "dark"
+                ? "#14171A"
+                : theme.palette.background.paper,
             minHeight: "100%",
           })}
         >
@@ -371,7 +409,7 @@ const ProjectsPage = () => {
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Create New Project
+              {editingProjectId ? "Edit Project" : "Create New Project"}
             </Typography>
             <IconButton
               size="small"
@@ -391,7 +429,7 @@ const ProjectsPage = () => {
 
           {/* Form */}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <SettingContainer>
+            <SettingContainer sx={{ borderBottom: "none", padding: 0 }}>
               <SettingLabel>Project Title</SettingLabel>
               <TextField
                 id="project-title"
@@ -406,7 +444,7 @@ const ProjectsPage = () => {
               />
             </SettingContainer>
 
-            <SettingContainer>
+            <SettingContainer sx={{ borderBottom: "none", padding: 0 }}>
               <SettingLabel>Project Description</SettingLabel>
               <TextField
                 id="project-description"
@@ -423,7 +461,7 @@ const ProjectsPage = () => {
               />
             </SettingContainer>
 
-            <SettingContainer>
+            <SettingContainer sx={{ borderBottom: "none", padding: 0 }}>
               <SettingLabel>Rendering Engine</SettingLabel>
               <Select
                 id="engine-select"
@@ -431,7 +469,54 @@ const ProjectsPage = () => {
                 onChange={(e) => setNewProjectEngine(e.target.value)}
                 fullWidth
                 size="small"
-                sx={selectStyles}
+                variant="outlined"
+                sx={(theme) => ({
+                  ...((typeof selectStyles === "function"
+                    ? selectStyles(theme)
+                    : selectStyles) as Record<string, any>),
+                  "& .MuiSelect-select": {
+                    cursor: "pointer",
+                  },
+                  "& input": {
+                    cursor: "pointer",
+                  },
+                })}
+                MenuProps={{
+                  disablePortal: true,
+                  disableScrollLock: true,
+                  disableAutoFocus: true,
+                  disableEnforceFocus: true,
+                  disableRestoreFocus: true,
+                  BackdropProps: {
+                    invisible: true,
+                    sx: {
+                      pointerEvents: "auto",
+                      cursor: "default",
+                    },
+                  },
+                  PaperProps: {
+                    sx: (theme) => ({
+                      maxHeight: 300,
+                      zIndex: 1600, // Higher than drawer (1500)
+                      backgroundColor:
+                        theme.palette.mode === "dark"
+                          ? "#14171A"
+                          : theme.palette.background.paper,
+                      border: "1px solid rgba(255, 255, 255, 0.08)",
+                      borderRadius: "4px",
+                      mt: 0.5,
+                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                    }),
+                  },
+                  anchorOrigin: {
+                    vertical: "bottom",
+                    horizontal: "left",
+                  },
+                  transformOrigin: {
+                    vertical: "top",
+                    horizontal: "left",
+                  },
+                }}
               >
                 <MenuItem value="three" sx={menuItemStyles}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -458,7 +543,7 @@ const ProjectsPage = () => {
                 variant="outlined"
                 onClick={handleCloseDrawer}
                 fullWidth
-                disabled={creatingProject}
+                disabled={savingProject}
                 sx={(theme) => ({
                   borderRadius: `${theme.shape.borderRadius}px`,
                   textTransform: "none",
@@ -470,7 +555,7 @@ const ProjectsPage = () => {
                 variant="contained"
                 onClick={handleSaveProject}
                 fullWidth
-                disabled={!newProjectTitle.trim() || creatingProject}
+                disabled={!newProjectTitle.trim() || savingProject}
                 sx={(theme) => ({
                   borderRadius: `${theme.shape.borderRadius}px`,
                   textTransform: "none",
@@ -493,7 +578,13 @@ const ProjectsPage = () => {
                   },
                 })}
               >
-                {creatingProject ? "Creating..." : "Create Project"}
+                {savingProject
+                  ? editingProjectId
+                    ? "Saving..."
+                    : "Creating..."
+                  : editingProjectId
+                    ? "Save Changes"
+                    : "Create Project"}
               </Button>
             </Box>
           </Box>
