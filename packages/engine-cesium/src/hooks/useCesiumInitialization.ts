@@ -136,6 +136,7 @@ export function useCesiumInitialization(): UseCesiumInitializationResult {
         configureSkybox(viewerRef.current, skyboxType);
 
         // Apply saved basemap type if it's not the default
+        // Note: Tileset cleanup is handled by useCesiumBasemap hook
         if (basemapType && basemapType !== "cesium") {
           await applyBasemapType(viewerRef.current, Cesium, basemapType);
         }
