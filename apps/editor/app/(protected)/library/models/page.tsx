@@ -57,18 +57,21 @@ const LibraryModelsPage = () => {
   const [uploadDrawerOpen, setUploadDrawerOpen] = useState(false);
 
   // Sync fetched models to local state
+  // Filter out cesiumIonAsset types as a safety measure (should be filtered by API, but double-check)
   useEffect(() => {
-    const mappedModels: LibraryAsset[] = fetchedModels.map((model) => ({
-      id: model.id,
-      name: model.name || model.originalFilename || "",
-      originalFilename: model.originalFilename,
-      fileUrl: model.fileUrl,
-      fileType: model.fileType,
-      thumbnail: model.thumbnail,
-      description: model.description,
-      metadata: model.metadata as Record<string, string> | undefined,
-      assetType: model.assetType,
-    }));
+    const mappedModels: LibraryAsset[] = fetchedModels
+      .filter((model) => model.assetType === "model" || model.assetType === null) // Include null for backwards compatibility
+      .map((model) => ({
+        id: model.id,
+        name: model.name || model.originalFilename || "",
+        originalFilename: model.originalFilename,
+        fileUrl: model.fileUrl,
+        fileType: model.fileType,
+        thumbnail: model.thumbnail,
+        description: model.description,
+        metadata: model.metadata as Record<string, string> | undefined,
+        assetType: model.assetType || "model", // Default to "model" if null
+      }));
     setModels(mappedModels);
   }, [fetchedModels]);
 

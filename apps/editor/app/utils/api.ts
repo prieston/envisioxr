@@ -230,10 +230,34 @@ export interface Asset {
   description?: string | null;
   thumbnail?: string | null;
   metadata?: Record<string, unknown> | null;
+  fileSize?: bigint | number | null;
   cesiumAssetId?: string | null;
   cesiumApiKey?: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface Activity {
+  id: string;
+  organizationId: string;
+  projectId?: string | null;
+  actorId: string;
+  entityType: string;
+  entityId: string;
+  action: string;
+  message?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
+  actor: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    image: string | null;
+  };
+  project?: {
+    id: string;
+    title: string;
+  } | null;
 }
 
 export interface StockModel {
@@ -375,6 +399,7 @@ export async function createModelAsset(data: {
   metadata?: Record<string, unknown>;
   description?: string;
   organizationId?: string;
+  fileSize?: number; // File size in bytes
 }): Promise<{ asset: Asset }> {
   return apiRequest<{ asset: Asset }>("/api/models", {
     method: "POST",
@@ -398,6 +423,27 @@ export async function createCesiumIonAsset(data: {
     body: JSON.stringify(data),
   });
 }
+
+// ============================================================================
+// Activity API
+// ============================================================================
+
+export interface ActivitiesResponse {
+  activities: Activity[];
+}
+
+export async function getActivities(params?: {
+  limit?: number;
+  organizationId?: string;
+}): Promise<ActivitiesResponse> {
+  return apiRequest<ActivitiesResponse>("/api/activity", { params });
+}
+
+export const activitiesFetcher = (
+  url: string
+): Promise<ActivitiesResponse> => {
+  return apiRequest<ActivitiesResponse>(url);
+};
 
 // ============================================================================
 // Ion Upload API

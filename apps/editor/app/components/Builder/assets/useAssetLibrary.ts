@@ -279,6 +279,7 @@ export const useAssetLibrary = () => {
           : previewFile.type,
         thumbnail: thumbnailUrl,
         metadata: metadataWithObservation,
+        fileSize: previewFile.size,
       });
 
       showToast("Model uploaded successfully", "success");

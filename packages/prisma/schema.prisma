@@ -51,6 +51,7 @@ model User {
   sessions              Session[]
   subscription          Subscription? // One-to-one relation with Subscription
   organizationMembers   OrganizationMember[]
+  activities            Activity[] // Activities performed by this user (as actor)
 }
 
 model VerificationToken {
@@ -71,9 +72,10 @@ model Organization {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  members  OrganizationMember[]
-  projects Project[]
-  assets   Asset[]
+  members    OrganizationMember[]
+  projects   Project[]
+  assets     Asset[]
+  activities Activity[]
 }
 
 enum OrganizationRole {
@@ -116,6 +118,8 @@ model Project {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   // Optional relation to assets (if you attach models to a project).
   assets       Asset[]
+  // Activities related to this project
+  activities   Activity[]
 }
 
 enum Engine {
@@ -135,10 +139,12 @@ model Asset {
   description      String? // User-defined description of the asset
   thumbnail        String? // URL for the captured thumbnail image
   metadata         Json? // Stores descriptive information about the model
+  fileSize         BigInt?   @default(0) // File size in bytes (for storage calculation)
   // Cesium Ion specific fields
   cesiumAssetId    String? // Cesium Ion asset ID (only for cesiumIonAsset type)
   cesiumApiKey     String? // Cesium Ion API key (only for cesiumIonAsset type)
   createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   // Relations:
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -160,4 +166,54 @@ model Subscription {
   endDate   DateTime?
   userId    String    @unique
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Activity log to track user actions across the platform
+// Append-only, flexible enough for any event (models, sensors, tilesets, org settings, etc.)
+model Activity {
+  id             String             @id @default(cuid())
+  // Scoping
+  organizationId String
+  projectId      String? // null = org-level activity (billing, members, etc.)
+  // Who did it
+  actorId        String // User.id
+  // What object was touched
+  entityType     ActivityEntityType
+  entityId       String // Project.id, Asset.id, Sensor.id, etc.
+  // What happened
+  action         ActivityActionType
+  message        String? // optional pre-rendered message for logs
+  metadata       Json? // details for rendering rich UI
+  createdAt      DateTime           @default(now())
+
+  // Relations:
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actor        User         @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([entityType, entityId, createdAt])
+  @@index([actorId, createdAt])
+}
+
+enum ActivityEntityType {
+  PROJECT
+  MODEL
+  GEOSPATIAL_ASSET
+  SENSOR
+  DATA_SOURCE
+  ORGANIZATION
+  USER
+}
+
+enum ActivityActionType {
+  CREATED
+  UPDATED
+  DELETED
+  RENAMED
+  PUBLISHED
+  ARCHIVED
+  ADDED // e.g. "Model added to project"
+  REMOVED
 }

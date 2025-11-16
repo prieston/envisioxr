@@ -124,6 +124,7 @@ export const UploadModelDrawer: React.FC<UploadModelDrawerProps> = ({
         thumbnail: thumbnailUrl,
         metadata: metadataObject,
         description: data.description,
+        fileSize: data.file.size,
       });
 
       showToast("Model uploaded successfully!", "success");

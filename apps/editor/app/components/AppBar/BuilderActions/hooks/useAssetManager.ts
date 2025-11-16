@@ -153,6 +153,7 @@ export const useAssetManager = ({
         fileType: data.file.type,
         thumbnail: thumbnailUrl,
         metadata: metadataObject,
+        fileSize: data.file.size,
       });
       showToast("Model uploaded and added to library!");
       // Convert Asset to LibraryAsset

@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
 import { serverEnv } from "@/lib/env/server";
 import { getUserDefaultOrganization, getUserOrganizationIds, isUserMemberOfOrganization } from "@/lib/organizations";
+import { logActivity } from "@/lib/activity";
 
 interface StockModel {
   name: string;
@@ -49,19 +50,20 @@ export async function GET(request: NextRequest) {
     const userOrgIds = await getUserOrganizationIds(userId);
 
     // Build where clause
-    const whereClause: {
-      organizationId: { in: string[] };
-      assetType?: "model" | "cesiumIonAsset";
-    } = {
+    const whereClause: any = {
       organizationId: {
         in: userOrgIds,
       },
     };
 
     // Add assetType filter if provided
-    if (assetType === "model" || assetType === "cesiumIonAsset") {
-      whereClause.assetType = assetType;
+    // Explicitly filter to ensure only the requested type is returned
+    if (assetType === "model") {
+      whereClause.assetType = "model";
+    } else if (assetType === "cesiumIonAsset") {
+      whereClause.assetType = "cesiumIonAsset";
     }
+    // If no assetType specified, don't filter (show all)
 
     const assets = await prisma.asset.findMany({
       where: whereClause,
@@ -148,6 +150,7 @@ export async function POST(request: NextRequest) {
       cesiumApiKey,
       description,
       organizationId, // Optional: allow specifying organization
+      fileSize, // File size in bytes
     } = body;
 
     // Use provided organizationId or default to user's personal org
@@ -190,8 +193,22 @@ export async function POST(request: NextRequest) {
           cesiumAssetId,
           cesiumApiKey: cesiumApiKey || null,
           metadata: metadata || {},
+          fileSize: fileSize ? BigInt(fileSize) : null,
         },
       });
+
+      // Log activity
+      await logActivity({
+        organizationId: targetOrgId,
+        projectId: null, // Org-level activity
+        actorId: userId,
+        entityType: "GEOSPATIAL_ASSET",
+        entityId: asset.id,
+        action: "CREATED",
+        message: `Geospatial tileset "${name}" uploaded`,
+        metadata: { assetName: name, assetType: "cesiumIonAsset" },
+      });
+
       return NextResponse.json({ asset });
     }
 
@@ -238,8 +255,22 @@ export async function POST(request: NextRequest) {
         fileType,
         thumbnail: thumbnail || null,
         metadata: metadataObject,
+        fileSize: fileSize ? BigInt(fileSize) : null,
       },
     });
+
+    // Log activity
+    await logActivity({
+      organizationId: targetOrgId,
+      projectId: null, // Org-level activity (could be linked to project later)
+      actorId: userId,
+      entityType: "MODEL",
+      entityId: asset.id,
+      action: "CREATED",
+      message: `Model "${name || originalFilename}" uploaded`,
+      metadata: { assetName: name || originalFilename, assetType: "model" },
+    });
+
     return NextResponse.json({ asset });
   } catch (error) {
     console.error(error);
@@ -298,6 +329,21 @@ export async function DELETE(request: NextRequest) {
       Key: key,
     });
     await s3.send(deleteCommand);
+
+    // Log activity before deleting
+    const entityType =
+      asset.assetType === "cesiumIonAsset" ? "GEOSPATIAL_ASSET" : "MODEL";
+    await logActivity({
+      organizationId: asset.organizationId,
+      projectId: asset.projectId || null,
+      actorId: userId,
+      entityType,
+      entityId: assetId,
+      action: "DELETED",
+      message: `Asset "${asset.name || asset.originalFilename}" deleted`,
+      metadata: { assetName: asset.name || asset.originalFilename },
+    });
+
     // Delete the asset record from the database.
     await prisma.asset.delete({
       where: { id: assetId },

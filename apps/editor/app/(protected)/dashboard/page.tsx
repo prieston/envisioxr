@@ -15,6 +15,7 @@ import {
 } from "@/app/components/Builder/AdminLayout.styles";
 import useProjects from "@/app/hooks/useProjects";
 import useModels from "@/app/hooks/useModels";
+import useActivity from "@/app/hooks/useActivity";
 import SensorsIcon from "@mui/icons-material/Sensors";
 import MapIcon from "@mui/icons-material/Map";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -34,9 +35,29 @@ interface DashboardMetrics {
   storageUsed: string;
 }
 
+// Simple time formatting function
+const formatTimeAgo = (date: Date): string => {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSecs < 60) return "just now";
+  if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+  return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? "s" : ""} ago`;
+};
+
 const DashboardPage = () => {
   const { projects, loadingProjects } = useProjects();
-  const { models, loadingModels } = useModels();
+  const { models, loadingModels } = useModels({ assetType: "model" });
+  const { models: tilesets, loadingModels: loadingTilesets } = useModels({
+    assetType: "cesiumIonAsset",
+  });
+  const { activities, loadingActivity } = useActivity({ limit: 10 });
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     projects: 0,
     models: 0,
@@ -47,48 +68,107 @@ const DashboardPage = () => {
   const [loadingMetrics, setLoadingMetrics] = useState(true);
 
   useEffect(() => {
-    if (!loadingProjects && !loadingModels) {
-      // Calculate storage (mock for now - would need actual storage calculation)
-      const storageUsed = "4.2 GB"; // TODO: Calculate from actual assets
+    if (!loadingProjects && !loadingModels && !loadingTilesets) {
+      // Count sensors from observation models in all projects
+      let sensorCount = 0;
+      projects.forEach((project) => {
+        if (project.sceneData && typeof project.sceneData === "object") {
+          const sceneData = project.sceneData as {
+            objects?: Array<{ isObservationModel?: boolean }>;
+          };
+          if (Array.isArray(sceneData.objects)) {
+            sensorCount += sceneData.objects.filter(
+              (obj) => obj.isObservationModel === true
+            ).length;
+          }
+        }
+      });
+
+      // Calculate storage from assets
+      let totalBytes = 0;
+      [...models, ...tilesets].forEach((asset) => {
+        // For regular models: use fileSize column
+        if (asset.fileSize) {
+          const size =
+            typeof asset.fileSize === "bigint"
+              ? Number(asset.fileSize)
+              : asset.fileSize;
+          totalBytes += size;
+        }
+        // For Cesium Ion assets: check metadata.bytes
+        else if (
+          asset.assetType === "cesiumIonAsset" &&
+          asset.metadata &&
+          typeof asset.metadata === "object"
+        ) {
+          const metadata = asset.metadata as Record<string, unknown>;
+          if (typeof metadata.bytes === "number") {
+            totalBytes += metadata.bytes;
+          }
+        }
+      });
+
+      // Format storage
+      const formatStorage = (bytes: number): string => {
+        if (bytes === 0) return "0 B";
+        const k = 1024;
+        const sizes = ["B", "KB", "MB", "GB", "TB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
+      };
+
+      const storageUsed = formatStorage(totalBytes);
 
       setMetrics({
         projects: projects.length,
         models: models.length,
-        sensors: 14, // TODO: Fetch from sensors API
-        tilesets: 3, // TODO: Fetch from geospatial API
+        sensors: sensorCount,
+        tilesets: tilesets.length,
         storageUsed,
       });
       setLoadingMetrics(false);
     }
-  }, [projects, models, loadingProjects, loadingModels]);
+  }, [projects, models, tilesets, loadingProjects, loadingModels, loadingTilesets]);
 
-  // Mock recent activity - in production, fetch from activity API
-  const recentActivity = [
-    {
-      icon: <CloudUploadIcon />,
-      title: "3 models uploaded",
-      description: "Added to Project 'Downtown Development'",
-      timestamp: "2 hours ago",
-    },
-    {
-      icon: <SensorsIcon />,
-      title: "Sensor PTZ-4 updated",
-      description: "FOV parameter changed to 120°",
-      timestamp: "5 hours ago",
-    },
-    {
-      icon: <MapIcon />,
-      title: "Geospatial tileset uploaded",
-      description: "Downtown area terrain data",
-      timestamp: "1 day ago",
-    },
-    {
-      icon: <PersonAddIcon />,
-      title: "New team member",
-      description: "Alex joined the organization",
-      timestamp: "2 days ago",
-    },
-  ];
+  // Format activities for RecentActivity component
+  const recentActivity = activities.map((activity) => {
+    // Map entity types and actions to icons
+    let icon: React.ReactNode;
+    if (activity.entityType === "MODEL" || activity.entityType === "GEOSPATIAL_ASSET") {
+      icon = <CloudUploadIcon />;
+    } else if (activity.entityType === "SENSOR") {
+      icon = <SensorsIcon />;
+    } else if (activity.entityType === "PROJECT") {
+      icon = <MapIcon />;
+    } else if (activity.entityType === "USER") {
+      icon = <PersonAddIcon />;
+    } else {
+      icon = <CloudUploadIcon />;
+    }
+
+    // Use message if available, otherwise construct from entityType + action
+    const title =
+      activity.message ||
+      `${activity.entityType} ${activity.action.toLowerCase()}`;
+
+    // Extract description from metadata or project title
+    const description =
+      activity.project?.title ||
+      (activity.metadata && typeof activity.metadata === "object"
+        ? (activity.metadata as { assetName?: string; projectTitle?: string })
+            .assetName ||
+          (activity.metadata as { assetName?: string; projectTitle?: string })
+            .projectTitle ||
+          ""
+        : "");
+
+    return {
+      icon,
+      title,
+      description,
+      timestamp: formatTimeAgo(new Date(activity.createdAt)),
+    };
+  });
 
   // Mock announcements
   const announcements = [
@@ -148,7 +228,10 @@ const DashboardPage = () => {
           <Grid container spacing={3}>
             {/* Left Column */}
             <Grid item xs={12} md={5}>
-              <RecentActivity activities={recentActivity} />
+              <RecentActivity
+                activities={recentActivity}
+                loading={loadingActivity}
+              />
               <UsageSummary storageUsed={metrics.storageUsed} />
             </Grid>
 

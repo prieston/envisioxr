@@ -13,9 +13,54 @@ interface Activity {
 
 interface RecentActivityProps {
   activities: Activity[];
+  loading?: boolean;
 }
 
-export const RecentActivity: React.FC<RecentActivityProps> = ({ activities }) => {
+export const RecentActivity: React.FC<RecentActivityProps> = ({
+  activities,
+  loading = false,
+}) => {
+  if (loading) {
+    return (
+      <Box sx={{ mb: 3 }}>
+        <PageCard>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Recent Activity
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: "0.875rem",
+              color: "rgba(100, 116, 139, 0.7)",
+              fontStyle: "italic",
+            }}
+          >
+            Loading...
+          </Typography>
+        </PageCard>
+      </Box>
+    );
+  }
+
+  if (activities.length === 0) {
+    return (
+      <Box sx={{ mb: 3 }}>
+        <PageCard>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Recent Activity
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: "0.875rem",
+              color: "rgba(100, 116, 139, 0.7)",
+              fontStyle: "italic",
+            }}
+          >
+            No recent activity
+          </Typography>
+        </PageCard>
+      </Box>
+    );
+  }
   return (
     <Box sx={{ mb: 3 }}>
       <PageCard>

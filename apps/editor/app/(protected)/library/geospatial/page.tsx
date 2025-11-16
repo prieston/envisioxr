@@ -55,20 +55,23 @@ const LibraryGeospatialPage = () => {
   const [addIonAssetDrawerOpen, setAddIonAssetDrawerOpen] = useState(false);
 
   // Sync fetched assets to local state
+  // Filter out regular model types as a safety measure (should be filtered by API, but double-check)
   useEffect(() => {
-    const mappedAssets: LibraryAsset[] = fetchedAssets.map((asset) => ({
-      id: asset.id,
-      name: asset.name || asset.originalFilename || "",
-      originalFilename: asset.originalFilename,
-      fileUrl: asset.fileUrl,
-      fileType: asset.fileType,
-      thumbnail: asset.thumbnail,
-      description: asset.description,
-      metadata: asset.metadata as Record<string, string> | undefined,
-      assetType: asset.assetType,
-      cesiumAssetId: asset.cesiumAssetId,
-      cesiumApiKey: asset.cesiumApiKey,
-    }));
+    const mappedAssets: LibraryAsset[] = fetchedAssets
+      .filter((asset) => asset.assetType === "cesiumIonAsset") // Only show Cesium Ion assets
+      .map((asset) => ({
+        id: asset.id,
+        name: asset.name || asset.originalFilename || "",
+        originalFilename: asset.originalFilename,
+        fileUrl: asset.fileUrl,
+        fileType: asset.fileType,
+        thumbnail: asset.thumbnail,
+        description: asset.description,
+        metadata: asset.metadata as Record<string, string> | undefined,
+        assetType: asset.assetType,
+        cesiumAssetId: asset.cesiumAssetId,
+        cesiumApiKey: asset.cesiumApiKey,
+      }));
     setAssets(mappedAssets);
   }, [fetchedAssets]);
 

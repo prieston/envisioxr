@@ -5,6 +5,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
 import { isUserMemberOfOrganization } from "@/lib/organizations";
+import { logActivity } from "@/lib/activity";
 
 // PATCH: Update asset (name, description, metadata, thumbnail)
 export async function PATCH(request: NextRequest) {
@@ -54,6 +55,25 @@ export async function PATCH(request: NextRequest) {
     const updatedAsset = await prisma.asset.update({
       where: { id: assetId },
       data: updateData,
+    });
+
+    // Log activity
+    const entityType =
+      existingAsset.assetType === "cesiumIonAsset"
+        ? "GEOSPATIAL_ASSET"
+        : "MODEL";
+    await logActivity({
+      organizationId: existingAsset.organizationId,
+      projectId: existingAsset.projectId || null,
+      actorId: userId,
+      entityType,
+      entityId: assetId,
+      action: "UPDATED",
+      message: `Asset "${updatedAsset.name || updatedAsset.originalFilename}" updated`,
+      metadata: {
+        assetName: updatedAsset.name || updatedAsset.originalFilename,
+        changedFields: Object.keys(updateData),
+      },
     });
 
     return NextResponse.json({ asset: updatedAsset });
