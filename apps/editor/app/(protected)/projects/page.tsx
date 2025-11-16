@@ -338,7 +338,8 @@ const ProjectsPage = () => {
         PaperProps={{
           sx: (theme) => ({
             width: { xs: "100%", sm: "420px" },
-            backgroundColor: theme.palette.background.paper,
+            backgroundColor:
+              theme.palette.mode === "dark" ? "#14171A" : theme.palette.background.paper,
             borderLeft: "1px solid rgba(255, 255, 255, 0.05)",
             zIndex: 1500,
           }),
