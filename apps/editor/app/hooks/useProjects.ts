@@ -1,28 +1,33 @@
-import { useState, useEffect } from "react";
+import useSWR from "swr";
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url, {
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const error = new Error("Failed to fetch projects");
+    throw error;
+  }
+  const data = await res.json();
+  return data.projects;
+};
 
 const useProjects = () => {
-  const [projects, setProjects] = useState([]);
-  const [loadingProjects, setLoadingProjects] = useState(true);
+  const { data: projects = [], error, isLoading: loadingProjects, mutate } = useSWR(
+    "/api/projects",
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+    }
+  );
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await fetch(`/api/projects`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch projects");
-        const data = await res.json();
-        setProjects(data.projects);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      } finally {
-        setLoadingProjects(false);
-      }
-    };
-    fetchProjects();
-  }, []);
-
-  return { projects, setProjects, loadingProjects };
+  return {
+    projects,
+    setProjects: mutate,
+    loadingProjects,
+    error,
+  };
 };
 
 export default useProjects;

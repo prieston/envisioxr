@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { Box, Typography, CircularProgress, Tabs, Tab } from "@mui/material";
+import { Box, Typography, Tabs, Tab } from "@mui/material";
 import { Folder, CloudUpload, Public, Add } from "@mui/icons-material";
 import {
   AnimatedBackground,
@@ -39,18 +39,6 @@ const LibraryPage = () => {
     handleCesiumAssetAdd,
   } = useCesiumIon();
 
-  // Loading state: show loading initially (we'll hide it once assets are loaded or if there are no assets)
-  // Since useAssetManager already fetches on mount, we just need to wait a bit for the first render
-  const [loading, setLoading] = useState(true);
-
-  React.useEffect(() => {
-    // Give the hook time to fetch assets
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
@@ -74,26 +62,6 @@ const LibraryPage = () => {
   const handleIonAssetAdded = useCallback(() => {
     fetchUserAssets();
   }, [fetchUserAssets]);
-
-  if (loading) {
-    return (
-      <>
-        <DashboardSidebar />
-        <Box
-          sx={{
-            marginLeft: "392px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100vh",
-            backgroundColor: (theme) => theme.palette.background.default,
-          }}
-        >
-          <CircularProgress />
-        </Box>
-      </>
-    );
-  }
 
   return (
     <>

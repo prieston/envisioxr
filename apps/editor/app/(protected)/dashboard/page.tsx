@@ -72,6 +72,7 @@ const DashboardPage = () => {
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to delete project");
+      // Use SWR's mutate to update the cache
       setProjects((prevProjects) =>
         prevProjects.filter((project) => project.id !== menuProjectId)
       );
@@ -80,22 +81,6 @@ const DashboardPage = () => {
       console.error("Error deleting project:", error);
     }
   };
-
-  // Render a loader until projects are loaded.
-  if (loadingProjects) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <>
@@ -147,23 +132,36 @@ const DashboardPage = () => {
           </Typography>
         </Box>
 
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-          {projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onGoToBuilder={handleGoToBuilder}
-              onMenuOpen={handleMenuOpen}
-              selected={selectedProjectId === project.id}
-              onSelect={handleProjectSelect}
+        {loadingProjects ? (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "400px",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onGoToBuilder={handleGoToBuilder}
+                onMenuOpen={handleMenuOpen}
+                selected={selectedProjectId === project.id}
+                onSelect={handleProjectSelect}
+              />
+            ))}
+            <CreateProjectCard
+              onClick={handleCreateProject}
+              selected={selectedProjectId === "create"}
+              onSelect={() => handleProjectSelect("create")}
             />
-          ))}
-          <CreateProjectCard
-            onClick={handleCreateProject}
-            selected={selectedProjectId === "create"}
-            onSelect={() => handleProjectSelect("create")}
-          />
-        </Box>
+          </Box>
+        )}
       </Box>
 
       <OptionsMenu

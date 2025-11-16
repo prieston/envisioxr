@@ -25,6 +25,157 @@ interface UserAccountMenuProps {
   className?: string;
 }
 
+// Helper component for profile section
+const ProfileSection: React.FC<{
+  userInitial: string;
+  userName: string | null | undefined;
+  userEmail: string | null | undefined;
+  userImage: string | null | undefined;
+  onProfileClick: () => void;
+}> = ({ userInitial, userName, userEmail, userImage, onProfileClick }) => {
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onProfileClick();
+  };
+
+  return (
+    <Box
+      sx={{
+        p: 2,
+        backgroundColor: (theme) =>
+          theme.palette.mode === "dark"
+            ? "rgba(255, 255, 255, 0.05)"
+            : "rgba(0, 0, 0, 0.02)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 1,
+      }}
+    >
+      <Box sx={{ position: "relative" }}>
+        <Avatar
+          src={userImage ?? undefined}
+          alt={userName ?? userEmail ?? "account"}
+          sx={{ width: 64, height: 64 }}
+        >
+          {userInitial}
+        </Avatar>
+        <IconButton
+          size="small"
+          sx={{
+            position: "absolute",
+            bottom: 0,
+            right: 0,
+            backgroundColor: (theme) =>
+              theme.palette.mode === "dark"
+                ? "rgba(255, 255, 255, 0.2)"
+                : "rgba(0, 0, 0, 0.1)",
+            width: 24,
+            height: 24,
+            "&:hover": {
+              backgroundColor: (theme) =>
+                theme.palette.mode === "dark"
+                  ? "rgba(255, 255, 255, 0.3)"
+                  : "rgba(0, 0, 0, 0.2)",
+            },
+          }}
+          onClick={handleEditClick}
+        >
+          <EditIcon sx={{ fontSize: 14 }} />
+        </IconButton>
+      </Box>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+        {userName || "User"}
+      </Typography>
+      {userEmail && (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ fontSize: "0.75rem" }}
+        >
+          {userEmail}
+        </Typography>
+      )}
+      <MenuItem
+        onClick={(e) => {
+          e.stopPropagation();
+          onProfileClick();
+        }}
+        sx={{
+          py: 0.5,
+          px: 1,
+          minHeight: "auto",
+          borderRadius: 1,
+          mt: 0.5,
+          pointerEvents: "auto",
+          "&:hover": {
+            backgroundColor: (theme) =>
+              theme.palette.mode === "dark"
+                ? "rgba(255, 255, 255, 0.08)"
+                : "rgba(0, 0, 0, 0.04)",
+          },
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          Edit profile
+        </Typography>
+      </MenuItem>
+    </Box>
+  );
+};
+
+// Helper component for menu items
+const MenuItemsSection: React.FC<{
+  onProfile: () => void;
+  onSettings: () => void;
+}> = ({ onProfile, onSettings }) => {
+  const handleProfileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onProfile();
+  };
+
+  const handleSettingsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSettings();
+  };
+
+  return (
+    <Box sx={{ py: 1, pointerEvents: "auto" }}>
+      <MenuItem onClick={handleProfileClick} sx={{ pointerEvents: "auto" }}>
+        <ListItemIcon>
+          <PersonIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText primary="Profile" />
+      </MenuItem>
+      <MenuItem onClick={handleSettingsClick} sx={{ pointerEvents: "auto" }}>
+        <ListItemIcon>
+          <SettingsIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText primary="Settings" />
+      </MenuItem>
+    </Box>
+  );
+};
+
+// Helper component for logout section
+const LogoutSection: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
+  const handleLogoutClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onLogout();
+  };
+
+  return (
+    <Box sx={{ py: 1, pointerEvents: "auto" }}>
+      <MenuItem onClick={handleLogoutClick} sx={{ pointerEvents: "auto" }}>
+        <ListItemIcon>
+          <LogoutIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText primary="Logout" />
+      </MenuItem>
+    </Box>
+  );
+};
+
 export function UserAccountMenu({
   onLogout,
   menuId = "account-menu",
@@ -54,7 +205,6 @@ export function UserAccountMenu({
     event?: React.SyntheticEvent | Event,
     reason?: "backdropClick" | "escapeKeyDown" | "tabKeyDown"
   ) => {
-    // Only close on backdrop click or escape key
     if (reason === "backdropClick" || reason === "escapeKeyDown") {
       setAnchorEl(null);
     }
@@ -146,140 +296,24 @@ export function UserAccountMenu({
           },
         }}
       >
-        {/* Profile Section */}
-        <Box
-          sx={{
-            p: 2,
-            backgroundColor: (theme) =>
-              theme.palette.mode === "dark"
-                ? "rgba(255, 255, 255, 0.05)"
-                : "rgba(0, 0, 0, 0.02)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 1,
-          }}
-        >
-          <Box sx={{ position: "relative" }}>
-            <Avatar
-              src={session?.user?.image ?? undefined}
-              alt={session?.user?.name ?? session?.user?.email ?? "account"}
-              sx={{ width: 64, height: 64 }}
-            >
-              {userInitial}
-            </Avatar>
-            <IconButton
-              size="small"
-              sx={{
-                position: "absolute",
-                bottom: 0,
-                right: 0,
-                backgroundColor: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? "rgba(255, 255, 255, 0.2)"
-                    : "rgba(0, 0, 0, 0.1)",
-                width: 24,
-                height: 24,
-                "&:hover": {
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? "rgba(255, 255, 255, 0.3)"
-                      : "rgba(0, 0, 0, 0.2)",
-                },
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleProfile();
-              }}
-            >
-              <EditIcon sx={{ fontSize: 14 }} />
-            </IconButton>
-          </Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-            {session?.user?.name || "User"}
-          </Typography>
-          {session?.user?.email && (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ fontSize: "0.75rem" }}
-            >
-              {session.user.email}
-            </Typography>
-          )}
-          <MenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              handleProfile();
-            }}
-            sx={{
-              py: 0.5,
-              px: 1,
-              minHeight: "auto",
-              borderRadius: 1,
-              mt: 0.5,
-              pointerEvents: "auto",
-              "&:hover": {
-                backgroundColor: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? "rgba(255, 255, 255, 0.08)"
-                    : "rgba(0, 0, 0, 0.04)",
-              },
-            }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              Edit profile
-            </Typography>
-          </MenuItem>
-        </Box>
+        <ProfileSection
+          userInitial={userInitial}
+          userName={session?.user?.name}
+          userEmail={session?.user?.email}
+          userImage={session?.user?.image}
+          onProfileClick={handleProfile}
+        />
 
         <Divider />
 
-        {/* Menu Items */}
-        <Box sx={{ py: 1, pointerEvents: "auto" }}>
-          <MenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              handleProfile();
-            }}
-            sx={{ pointerEvents: "auto" }}
-          >
-            <ListItemIcon>
-              <PersonIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Profile" />
-          </MenuItem>
-          <MenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSettings();
-            }}
-            sx={{ pointerEvents: "auto" }}
-          >
-            <ListItemIcon>
-              <SettingsIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Settings" />
-          </MenuItem>
-        </Box>
+        <MenuItemsSection
+          onProfile={handleProfile}
+          onSettings={handleSettings}
+        />
 
         <Divider />
 
-        {/* Logout */}
-        <Box sx={{ py: 1, pointerEvents: "auto" }}>
-          <MenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              handleLogout();
-            }}
-            sx={{ pointerEvents: "auto" }}
-          >
-            <ListItemIcon>
-              <LogoutIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Logout" />
-          </MenuItem>
-        </Box>
+        <LogoutSection onLogout={handleLogout} />
       </Menu>
     </Box>
   );

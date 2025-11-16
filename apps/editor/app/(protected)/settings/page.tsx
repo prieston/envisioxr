@@ -27,7 +27,6 @@ interface Organization {
 }
 
 const SettingsPage = () => {
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [formData, setFormData] = useState({
@@ -55,8 +54,6 @@ const SettingsPage = () => {
     } catch (error) {
       console.error("Error fetching organization:", error);
       setError("Failed to load organization data");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -101,25 +98,6 @@ const SettingsPage = () => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  if (loading) {
-    return (
-      <>
-        <DashboardSidebar />
-        <Box
-          sx={{
-            marginLeft: "392px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100vh",
-            backgroundColor: (theme) => theme.palette.background.default,
-          }}
-        >
-          <CircularProgress />
-        </Box>
-      </>
-    );
-  }
 
   if (!organization) {
     return (

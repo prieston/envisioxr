@@ -9,7 +9,8 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import FolderIcon from "@mui/icons-material/Folder";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -42,12 +43,7 @@ const menuItems: MenuItem[] = [
 ];
 
 const DashboardSidebar: React.FC = () => {
-  const router = useRouter();
   const pathname = usePathname();
-
-  const handleMenuClick = (path: string) => {
-    router.push(path);
-  };
 
   return (
     <LeftPanelContainer
@@ -96,7 +92,8 @@ const DashboardSidebar: React.FC = () => {
             return (
               <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
                 <ListItemButton
-                  onClick={() => handleMenuClick(item.path)}
+                  component={Link}
+                  href={item.path}
                   selected={isActive}
                   sx={{
                     mx: 1,

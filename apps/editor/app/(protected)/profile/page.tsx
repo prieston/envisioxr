@@ -99,56 +99,7 @@ const ProfilePage = () => {
     return labels[provider] || provider;
   };
 
-  if (loading) {
-    return (
-      <>
-        <DashboardSidebar />
-        <Box
-          sx={{
-            marginLeft: "392px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100vh",
-            backgroundColor: (theme) => theme.palette.background.default,
-          }}
-        >
-          <CircularProgress />
-        </Box>
-      </>
-    );
-  }
 
-  if (error || (!loading && !userData)) {
-    return (
-      <>
-        <DashboardSidebar />
-        <Box
-          sx={{
-            marginLeft: "392px",
-            padding: "24px",
-            backgroundColor: (theme) => theme.palette.background.default,
-            minHeight: "100vh",
-          }}
-        >
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error || "User not found"}
-          </Alert>
-          {error && (
-            <Typography variant="body2" color="text.secondary">
-              Please try refreshing the page or contact support if the problem
-              persists.
-            </Typography>
-          )}
-        </Box>
-      </>
-    );
-  }
-
-  const userInitial =
-    userData.name?.charAt(0)?.toUpperCase() ||
-    userData.email?.charAt(0)?.toUpperCase() ||
-    "U";
 
   return (
     <>
@@ -196,7 +147,31 @@ const ProfilePage = () => {
           </Typography>
         </Box>
 
-        <Box sx={{ maxWidth: 800 }}>
+        {loading ? (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "400px",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : error || !userData ? (
+          <Box sx={{ maxWidth: 800 }}>
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error || "User not found"}
+            </Alert>
+            {error && (
+              <Typography variant="body2" color="text.secondary">
+                Please try refreshing the page or contact support if the problem
+                persists.
+              </Typography>
+            )}
+          </Box>
+        ) : userData ? (
+          <Box sx={{ maxWidth: 800 }}>
           <Paper
             sx={(theme) => ({
               p: 4,
@@ -224,7 +199,9 @@ const ProfilePage = () => {
                 alt={userData.name || userData.email || "User"}
                 sx={{ width: 80, height: 80, fontSize: "2rem" }}
               >
-                {userInitial}
+                {userData.name?.charAt(0)?.toUpperCase() ||
+                  userData.email?.charAt(0)?.toUpperCase() ||
+                  "U"}
               </Avatar>
               <Box>
                 <Typography variant="h4" sx={{ mb: 1, fontWeight: 600 }}>
@@ -361,7 +338,8 @@ const ProfilePage = () => {
               </Box>
             </Box>
           </Paper>
-        </Box>
+          </Box>
+        ) : null}
       </Box>
     </>
   );
