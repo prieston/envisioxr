@@ -527,12 +527,12 @@ export const modelsFetcher = (
   // Otherwise, add it from the parameter
   const urlObj = new URL(url, "http://localhost");
   const hasAssetTypeInUrl = urlObj.searchParams.has("assetType");
-  
+
   // Only add params if URL doesn't already have assetType
-  const params = !hasAssetTypeInUrl && assetType 
-    ? { assetType } 
+  const params = !hasAssetTypeInUrl && assetType
+    ? { assetType }
     : undefined;
-  
+
   return apiRequest<ModelsResponse>(url, { params });
 };
 
