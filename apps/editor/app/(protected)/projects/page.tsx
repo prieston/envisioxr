@@ -268,11 +268,10 @@ const ProjectsPage = () => {
           onCancel={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
           title="Delete Project"
-          message={
-            `Are you sure you want to delete "${
-              projects.find((p) => p.id === projectToDelete)?.name || "this project"
-            }"? This action cannot be undone.`
-          }
+          message={`Are you sure you want to delete "${
+            projects.find((p) => p.id === projectToDelete)?.name ||
+            "this project"
+          }"? This action cannot be undone.`}
         />
       </Page>
     </>
