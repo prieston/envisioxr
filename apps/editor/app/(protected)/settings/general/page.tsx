@@ -25,91 +25,63 @@ import {
   GlowingContainer,
   GlowingSpan,
 } from "@/app/components/Builder/AdminLayout.styles";
-
-interface Organization {
-  id: string;
-  name: string;
-  slug: string;
-  isPersonal: boolean;
-  userRole: string | null;
-}
+import { updateOrganization } from "@/app/utils/api";
+import useOrganization from "@/app/hooks/useOrganization";
 
 const SettingsGeneralPage = () => {
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [organization, setOrganization] = useState<Organization | null>(null);
+  const {
+    organization,
+    loadingOrganization,
+    error: orgError,
+    mutate,
+  } = useOrganization();
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
   });
-  const [error, setError] = useState<string | null>(null);
 
+  // Sync organization data to form when it loads
   useEffect(() => {
-    fetchOrganization();
-  }, []);
-
-  const fetchOrganization = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/organizations", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch organization");
-      const data = await res.json();
-      setOrganization(data.organization);
+    if (organization) {
       setFormData({
-        name: data.organization.name || "",
-        slug: data.organization.slug || "",
+        name: organization.name || "",
+        slug: organization.slug || "",
       });
-    } catch (error) {
-      console.error("Error fetching organization:", error);
-      setError("Failed to load organization data");
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [organization]);
+
+  const loading = loadingOrganization;
+  const error = orgError ? "Failed to load organization data" : null;
 
   const handleSave = async () => {
     if (!organization) return;
 
     setSaving(true);
-    setError(null);
 
     try {
-      const res = await fetch("/api/organizations", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          name: formData.name,
-          slug: formData.slug,
-        }),
+      await updateOrganization({
+        name: formData.name,
+        slug: formData.slug,
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to update organization");
-      }
-
-      const data = await res.json();
-      setOrganization(data.organization);
+      mutate(); // Refresh organization from SWR
       showToast("Organization updated successfully", "success");
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to update organization";
-      setError(errorMessage);
+        error instanceof Error
+          ? error.message
+          : "Failed to update organization";
       showToast(errorMessage, "error");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleChange = (field: "name" | "slug") => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-  };
+  const handleChange =
+    (field: "name" | "slug") => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    };
 
   if (loading) {
     return (
@@ -198,7 +170,8 @@ const SettingsGeneralPage = () => {
 
   const hasChanges =
     formData.name !== organization.name || formData.slug !== organization.slug;
-  const canEdit = organization.userRole === "owner" || organization.userRole === "admin";
+  const canEdit =
+    organization.userRole === "owner" || organization.userRole === "admin";
 
   return (
     <>
@@ -381,10 +354,18 @@ const SettingsGeneralPage = () => {
               </Box>
 
               <PageSection title="Organization Information" spacing="tight">
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 1 }}
+                >
                   Organization ID: {organization.id}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 1 }}
+                >
                   Type: {organization.isPersonal ? "Personal" : "Team"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -400,4 +381,3 @@ const SettingsGeneralPage = () => {
 };
 
 export default SettingsGeneralPage;
-

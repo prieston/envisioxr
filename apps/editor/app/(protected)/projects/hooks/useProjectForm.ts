@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { createProject, updateProject } from "@/app/utils/api";
+import useProjects from "@/app/hooks/useProjects";
 
 interface UseProjectFormProps {
   projects: Array<{ id: string; title: string; description?: string; engine?: string }>;
@@ -10,8 +12,9 @@ interface UseProjectFormProps {
   >;
 }
 
-export const useProjectForm = ({ projects, setProjects }: UseProjectFormProps) => {
+export const useProjectForm = ({ projects, setProjects: _setProjects }: UseProjectFormProps) => {
   const router = useRouter();
+  const { mutate } = useProjects();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -55,39 +58,26 @@ export const useProjectForm = ({ projects, setProjects }: UseProjectFormProps) =
     setSaving(true);
     try {
       const isEditing = !!editingProjectId;
-      const url = isEditing ? `/api/projects/${editingProjectId}` : "/api/projects";
-      const method = isEditing ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        credentials: "include",
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim(),
-          engine,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error(
-          isEditing ? "Failed to update project" : "Failed to create project"
-        );
-      }
-
-      const data = await res.json();
-      const project = data.project || data;
 
       if (isEditing) {
-        // Update the project in the list
-        setProjects((prev) =>
-          prev.map((p) => (p.id === editingProjectId ? project : p))
-        );
+        await updateProject(editingProjectId, {
+          title: title.trim(),
+          description: description.trim(),
+          engine: engine as "three" | "cesium",
+        });
+        // Refresh projects list from SWR
+        mutate();
       } else {
-        // Add the new project to the list
-        setProjects((prev) => [project, ...prev]);
+        // Create new project
+        const response = await createProject({
+          title: title.trim(),
+          description: description.trim(),
+          engine: engine as "three" | "cesium",
+        });
+        // Refresh projects list from SWR
+        mutate();
         // Navigate to the builder for new projects
-        router.push(`/projects/${project.id}/builder`);
+        router.push(`/projects/${response.project.id}/builder`);
       }
 
       // Close drawer and reset form
@@ -98,7 +88,7 @@ export const useProjectForm = ({ projects, setProjects }: UseProjectFormProps) =
     } finally {
       setSaving(false);
     }
-  }, [title, description, engine, editingProjectId, setProjects, router, handleCloseDrawer]);
+  }, [title, description, engine, editingProjectId, mutate, router, handleCloseDrawer]);
 
   return {
     drawerOpen,

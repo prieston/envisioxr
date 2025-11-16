@@ -5,10 +5,11 @@ import { LoadingScreen } from "@envisio/ui";
 import { Box, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import useProject from "@/app/hooks/useProject";
 
 export default function Scene() {
   const { projectId } = useParams();
-  const [loading, setLoading] = useState(true);
+  const { project: fetchedProject, loadingProject } = useProject(projectId as string);
   const [project, setProject] = useState(null);
 
   // Destructure necessary state and actions from the store.
@@ -19,32 +20,27 @@ export default function Scene() {
     setPreviewMode(true);
   }, [setPreviewMode]);
 
-  // Fetch project data.
+  // Initialize project when it loads
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const res = await fetch(`/api/projects/${projectId}`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch project data");
-        const data = await res.json();
-        if (!data.project || !data.project.isPublished) {
-          throw new Error("Project not published");
-        }
-        setProject(data.project);
+    if (!fetchedProject) return;
 
-        // Initialize objects, selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
-        if (data.project.sceneData) {
-          const {
-            objects,
-            selectedAssetId,
-            selectedLocation,
-            basemapType,
-            cesiumIonAssets,
-            cesiumLightingEnabled,
-            cesiumShadowsEnabled,
-            cesiumCurrentTime,
-          } = data.project.sceneData;
+    if (!fetchedProject.isPublished) {
+      throw new Error("Project not published");
+    }
+    setProject(fetchedProject);
+
+    // Initialize objects, selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
+    if (fetchedProject.sceneData) {
+      const {
+        objects,
+        selectedAssetId,
+        selectedLocation,
+        basemapType,
+        cesiumIonAssets,
+        cesiumLightingEnabled,
+        cesiumShadowsEnabled,
+        cesiumCurrentTime,
+      } = fetchedProject.sceneData;
 
           // Initialize objects (GLB models, etc.)
           if (Array.isArray(objects)) {
@@ -72,19 +68,11 @@ export default function Scene() {
           }
           if (cesiumCurrentTime !== undefined) {
             useSceneStore.setState({ cesiumCurrentTime });
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching project:", error);
-      } finally {
-        setLoading(false);
       }
-    };
+    }
+  }, [fetchedProject]);
 
-    fetchProject();
-  }, [projectId]);
-
-  if (loading) {
+  if (loadingProject || !project) {
     return <LoadingScreen message="Loading XR scene..." />;
   }
 

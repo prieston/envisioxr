@@ -17,6 +17,8 @@ import { useParams, useRouter } from "next/navigation";
 import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
 import { showToast } from "@envisio/ui";
 import { ToastContainer } from "react-toastify";
+import useProject from "@/app/hooks/useProject";
+import { updateProject } from "@/app/utils/api";
 
 const EditProjectPage = () => {
   const { projectId } = useParams();
@@ -24,48 +26,23 @@ const EditProjectPage = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [engine, setEngine] = useState("three");
-  const [loading, setLoading] = useState(true);
+  const { project, loadingProject } = useProject(projectId as string);
 
-  // Fetch project details on mount
+  // Sync project data to form when it loads
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const res = await fetch(`/api/projects/${projectId}`, {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          throw new Error("Failed to fetch project");
-        }
-        const data = await res.json();
-        const project = data.project;
-        setTitle(project.title);
-        setDescription(project.description || "");
-        setEngine(project.engine || "three");
-      } catch (error) {
-        console.error("Error fetching project:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (project) {
+      setTitle(project.title);
+      setDescription(project.description || "");
+      setEngine(project.engine || "three");
+    }
+  }, [project]);
 
-    fetchProject();
-  }, [projectId]);
+  const loading = loadingProject;
 
   // Handler to save updated project details
   const handleSave = async () => {
     try {
-      const res = await fetch(`/api/projects/${projectId}`, {
-        credentials: "include",
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, engine }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to update project");
-      }
-
+      await updateProject(projectId, { title, description, engine: engine as "three" | "cesium" });
       showToast("Project saved successfully!");
       router.push("/dashboard");
     } catch (error) {

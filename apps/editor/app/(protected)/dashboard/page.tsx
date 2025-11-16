@@ -13,7 +13,8 @@ import {
   GlowingContainer,
   GlowingSpan,
 } from "@/app/components/Builder/AdminLayout.styles";
-import useProjects from "../../hooks/useProjects";
+import useProjects from "@/app/hooks/useProjects";
+import useModels from "@/app/hooks/useModels";
 import SensorsIcon from "@mui/icons-material/Sensors";
 import MapIcon from "@mui/icons-material/Map";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -35,6 +36,7 @@ interface DashboardMetrics {
 
 const DashboardPage = () => {
   const { projects, loadingProjects } = useProjects();
+  const { models, loadingModels } = useModels();
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     projects: 0,
     models: 0,
@@ -45,36 +47,20 @@ const DashboardPage = () => {
   const [loadingMetrics, setLoadingMetrics] = useState(true);
 
   useEffect(() => {
-    const fetchMetrics = async () => {
-      try {
-        // Fetch models count
-        const modelsRes = await fetch("/api/models", {
-          credentials: "include",
-        });
-        const modelsData = await modelsRes.json();
-        const modelsCount = (modelsData.assets || []).length;
+    if (!loadingProjects && !loadingModels) {
+      // Calculate storage (mock for now - would need actual storage calculation)
+      const storageUsed = "4.2 GB"; // TODO: Calculate from actual assets
 
-        // Calculate storage (mock for now - would need actual storage calculation)
-        const storageUsed = "4.2 GB"; // TODO: Calculate from actual assets
-
-        setMetrics({
-          projects: projects.length,
-          models: modelsCount,
-          sensors: 14, // TODO: Fetch from sensors API
-          tilesets: 3, // TODO: Fetch from geospatial API
-          storageUsed,
-        });
-      } catch (error) {
-        console.error("Error fetching metrics:", error);
-      } finally {
-        setLoadingMetrics(false);
-      }
-    };
-
-    if (!loadingProjects) {
-      fetchMetrics();
+      setMetrics({
+        projects: projects.length,
+        models: models.length,
+        sensors: 14, // TODO: Fetch from sensors API
+        tilesets: 3, // TODO: Fetch from geospatial API
+        storageUsed,
+      });
+      setLoadingMetrics(false);
     }
-  }, [projects, loadingProjects]);
+  }, [projects, models, loadingProjects, loadingModels]);
 
   // Mock recent activity - in production, fetch from activity API
   const recentActivity = [

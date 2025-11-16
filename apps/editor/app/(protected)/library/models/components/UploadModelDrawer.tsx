@@ -38,20 +38,10 @@ export const UploadModelDrawer: React.FC<UploadModelDrawerProps> = ({
 
     try {
       // Step 1: Get presigned URL for model file
-      const signedUrlResponse = await fetch("/api/models", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileName: data.file.name,
-          fileType: data.file.type,
-        }),
+      const { signedUrl, key, acl } = await getModelUploadUrl({
+        fileName: data.file.name,
+        fileType: data.file.type,
       });
-
-      if (!signedUrlResponse.ok) {
-        throw new Error("Failed to get signed URL");
-      }
-
-      const { signedUrl, key, acl } = await signedUrlResponse.json();
 
       // Step 2: Upload model file directly to S3 using presigned URL
       await new Promise<void>((resolve, reject) => {
@@ -90,59 +80,34 @@ export const UploadModelDrawer: React.FC<UploadModelDrawerProps> = ({
         const thumbnailFileName = `${data.friendlyName}-thumbnail.png`;
 
         // Get presigned URL for thumbnail
-        const thumbSignedUrlResponse = await fetch("/api/models", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fileName: thumbnailFileName,
-            fileType: "image/png",
-          }),
+        const {
+          signedUrl: thumbSignedUrl,
+          acl: thumbAcl,
+        } = await getThumbnailUploadUrl({
+          fileName: thumbnailFileName,
+          fileType: "image/png",
         });
 
-        if (thumbSignedUrlResponse.ok) {
-          const {
-            signedUrl: thumbSignedUrl,
-            acl: thumbAcl,
-          } = await thumbSignedUrlResponse.json();
+        // Upload thumbnail directly to S3
+        await uploadToSignedUrl(thumbSignedUrl, thumbnailBlob, {
+          contentType: "image/png",
+          acl: thumbAcl,
+        });
 
-          // Upload thumbnail directly to S3
-          const headers: Record<string, string> = {
-            "Content-Type": "image/png",
-          };
-          if (thumbAcl) {
-            headers["x-amz-acl"] = thumbAcl;
-          }
-
-          await fetch(thumbSignedUrl, {
-            method: "PUT",
-            headers,
-            body: thumbnailBlob,
-          });
-
-          // Extract thumbnail URL from signed URL (remove query parameters)
-          thumbnailUrl = thumbSignedUrl.split("?")[0];
-        }
+        // Extract thumbnail URL from signed URL (remove query parameters)
+        thumbnailUrl = thumbSignedUrl.split("?")[0];
       }
 
       // Step 3: Save model metadata to database
-      const res = await fetch("/api/models", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          key: key,
-          originalFilename: data.file.name,
-          name: data.friendlyName,
-          fileType: data.file.type,
-          thumbnail: thumbnailUrl,
-          metadata: data.metadata, // Send as array - API will convert to object
-          description: data.description,
-        }),
+      await createModelAsset({
+        key: key,
+        originalFilename: data.file.name,
+        name: data.friendlyName,
+        fileType: data.file.type,
+        thumbnail: thumbnailUrl,
+        metadata: data.metadata, // Send as array - API will convert to object
+        description: data.description,
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to create model record");
-      }
 
       showToast("Model uploaded successfully!", "success");
       onSuccess();

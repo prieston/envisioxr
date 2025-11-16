@@ -11,7 +11,8 @@ import {
 import { alpha } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 import { useRouter } from "next/navigation";
-import useProjects from "../../hooks/useProjects";
+import useProjects from "@/app/hooks/useProjects";
+import { deleteProject } from "@/app/utils/api";
 import {
   DashboardProjectCard as ProjectCard,
   DashboardOptionsMenu as OptionsMenu,
@@ -92,14 +93,7 @@ const ProjectsPage = () => {
     if (!projectToDelete) return;
 
     try {
-      const response = await fetch(`/api/projects/${projectToDelete}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete project");
-      }
+      await deleteProject(projectToDelete);
 
       // Optimistically update the projects list
       setProjects((prevProjects) =>

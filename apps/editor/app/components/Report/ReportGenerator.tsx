@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { getModel } from "@/app/utils/api";
 import { showToast } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
 import { createLogger } from "@envisio/core";
@@ -241,8 +242,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ disabled }) => {
         // Fetch metadata if assetId exists
         if (obj.assetId) {
           try {
-            const response = await fetch(`/api/models/${obj.assetId}`);
-            const data = await response.json();
+            const data = await getModel(obj.assetId);
             metadata = data.asset?.metadata;
           } catch (error) {
             logger.error("Error fetching metadata:", error);

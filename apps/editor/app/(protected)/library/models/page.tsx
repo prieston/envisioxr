@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -33,10 +33,17 @@ import {
   ModelPreviewDialog,
 } from "@envisio/ui";
 import { UploadModelDrawer } from "./components/UploadModelDrawer";
+import { deleteModel, updateModelMetadata } from "@/app/utils/api";
+import useModels from "@/app/hooks/useModels";
 
 const LibraryModelsPage = () => {
+  const {
+    models: fetchedModels,
+    mutate,
+  } = useModels({
+    assetType: "model",
+  });
   const [models, setModels] = useState<LibraryAsset[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedModel, setSelectedModel] = useState<LibraryAsset | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -47,28 +54,10 @@ const LibraryModelsPage = () => {
   const [retakePhotoOpen, setRetakePhotoOpen] = useState(false);
   const [uploadDrawerOpen, setUploadDrawerOpen] = useState(false);
 
-  // Fetch models
-  const fetchModels = useCallback(async () => {
-    try {
-      setLoading(true);
-      // Only fetch regular 3D models, exclude Cesium Ion georeferenced models
-      const res = await fetch("/api/models?assetType=model", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch models");
-      const data = await res.json();
-      setModels(data.assets || []);
-    } catch (error) {
-      console.error("Error fetching models:", error);
-      showToast("Failed to load models", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  // Sync fetched models to local state
   useEffect(() => {
-    fetchModels();
-  }, [fetchModels]);
+    setModels(fetchedModels as LibraryAsset[]);
+  }, [fetchedModels]);
 
   // Sync selectedModel with updated data
   useEffect(() => {
@@ -77,7 +66,9 @@ const LibraryModelsPage = () => {
       if (updatedModel) {
         setSelectedModel(updatedModel);
         if (!isEditing) {
-          setEditedName(updatedModel.name || updatedModel.originalFilename || "");
+          setEditedName(
+            updatedModel.name || updatedModel.originalFilename || ""
+          );
           setEditedDescription(updatedModel.description || "");
           if (updatedModel.metadata) {
             const metadataArray: MetadataRow[] = Object.entries(
@@ -88,6 +79,7 @@ const LibraryModelsPage = () => {
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [models, selectedModel?.id, isEditing]);
 
   // Filter models based on search query
@@ -150,31 +142,14 @@ const LibraryModelsPage = () => {
         {} as Record<string, string>
       );
 
-      const res = await fetch("/api/models/metadata", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          assetId: selectedModel.id,
-          name: editedName,
-          description: editedDescription,
-          metadata: metadataObject,
-        }),
+      await updateModelMetadata(selectedModel.id, {
+        name: editedName,
+        description: editedDescription,
+        metadata: metadataObject,
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        showToast("Model updated successfully", "success");
-        setModels((prev) =>
-          prev.map((m) => (m.id === selectedModel.id ? { ...m, ...data.asset } : m))
-        );
-        setIsEditing(false);
-      } else {
-        const errorData = await res.json();
-        showToast(
-          `Failed to update model: ${errorData.error || "Unknown error"}`,
-          "error"
-        );
-      }
+      showToast("Model updated successfully", "success");
+      mutate(); // Refresh models from SWR
+      setIsEditing(false);
     } catch (error) {
       console.error("Update error:", error);
       showToast("An error occurred while updating model", "error");
@@ -190,19 +165,10 @@ const LibraryModelsPage = () => {
     if (!selectedModel) return;
 
     try {
-      const res = await fetch("/api/models", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assetId: selectedModel.id }),
-      });
-
-      if (res.ok) {
-        showToast("Model deleted successfully", "success");
-        setModels((prev) => prev.filter((m) => m.id !== selectedModel.id));
-        setSelectedModel(null);
-      } else {
-        showToast("Failed to delete model", "error");
-      }
+      await deleteModel(selectedModel.id);
+      showToast("Model deleted successfully", "success");
+      mutate(); // Refresh models from SWR
+      setSelectedModel(null);
     } catch (error) {
       console.error("Delete error:", error);
       showToast("An error occurred during deletion", "error");
@@ -223,24 +189,15 @@ const LibraryModelsPage = () => {
     if (!selectedModel) return;
 
     try {
-      const res = await fetch("/api/models/metadata", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          assetId: selectedModel.id,
-          thumbnail: screenshot,
-        }),
+      const data = await updateModelMetadata(selectedModel.id, {
+        thumbnail: screenshot,
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        showToast("Thumbnail updated successfully", "success");
-        setModels((prev) =>
-          prev.map((m) => (m.id === selectedModel.id ? { ...m, ...data.asset } : m))
-        );
-      } else {
-        showToast("Failed to update thumbnail", "error");
-      }
+      showToast("Thumbnail updated successfully", "success");
+      setModels((prev) =>
+        prev.map((m) =>
+          m.id === selectedModel.id ? { ...m, ...data.asset } : m
+        )
+      );
     } catch (error) {
       console.error("Thumbnail update error:", error);
       showToast("An error occurred while updating thumbnail", "error");
@@ -368,7 +325,9 @@ const LibraryModelsPage = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <Box sx={{ display: "flex", gap: 3, height: "calc(100vh - 300px)" }}>
+            <Box
+              sx={{ display: "flex", gap: 3, height: "calc(100vh - 300px)" }}
+            >
               {/* Left Column - Model Cards */}
               <Box
                 sx={(theme) => ({

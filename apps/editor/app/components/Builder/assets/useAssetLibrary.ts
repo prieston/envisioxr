@@ -3,6 +3,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { showToast } from "@envisio/ui";
+import {
+  getModels,
+  deleteModel,
+  getModelUploadUrl,
+  getThumbnailUploadUrl,
+  uploadToSignedUrl,
+  createModelAsset,
+  createCesiumIonAsset,
+} from "@/app/utils/api";
 
 interface AssetModel {
   id: string;
@@ -68,11 +77,7 @@ export const useAssetLibrary = () => {
 
   const fetchAssets = useCallback(async () => {
     try {
-      const res = await fetch(`/api/models`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch assets");
-      const data = await res.json();
+      const data = await getModels();
       setAssets(data.assets || []);
       setStockModels(data.stockModels || []);
     } catch (error) {
@@ -104,13 +109,7 @@ export const useAssetLibrary = () => {
 
     setDeletingAssetId(assetId);
     try {
-      const res = await fetch(`/api/models`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ assetId }),
-      });
-      if (!res.ok) throw new Error("Failed to delete asset");
+      await deleteModel(assetId);
       setAssets((prev) => prev.filter((asset) => asset.id !== assetId));
       showToast("Asset deleted successfully", "success");
     } catch (error) {
@@ -176,27 +175,19 @@ export const useAssetLibrary = () => {
 
     try {
       // Step 1: Get presigned URL for model file
-      const signedUrlResponse = await fetch("/api/models", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileName: previewFile.name,
-          fileType: previewFile.type,
-        }),
+      const { signedUrl, key, acl } = await getModelUploadUrl({
+        fileName: previewFile.name,
+        fileType: previewFile.type,
       });
-
-      if (!signedUrlResponse.ok) {
-        throw new Error("Failed to get signed URL");
-      }
-
-      const { signedUrl, key, acl } = await signedUrlResponse.json();
 
       // Step 2: Upload model file directly to S3 using presigned URL
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhrRef.current = xhr;
 
-        const handleProgress = (event: ProgressEvent<XMLHttpRequestEventTarget>) => {
+        const handleProgress = (
+          event: ProgressEvent<XMLHttpRequestEventTarget>
+        ) => {
           if (!isMountedRef.current) return;
           if (event.lengthComputable) {
             const percentComplete = Math.round(
@@ -245,29 +236,19 @@ export const useAssetLibrary = () => {
       // Upload thumbnail if available
       let thumbnailUrl = null;
       if (screenshot) {
-        const blob = await fetch(screenshot).then((r) => r.blob());
-        const thumbnailSignedUrlResponse = await fetch("/api/models", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        // Fetch screenshot blob - this is an external URL fetch, but we'll keep it simple
+        const response = await fetch(screenshot);
+        const blob = await response.blob();
+        const { signedUrl: thumbnailSignedUrl, acl: thumbnailAcl } =
+          await getThumbnailUploadUrl({
             fileName: `thumbnails/${key.replace(/\.(glb|gltf)$/, ".jpg")}`,
             fileType: "image/jpeg",
-          }),
-        });
-
-        if (thumbnailSignedUrlResponse.ok) {
-          const { signedUrl: thumbnailSignedUrl, acl: thumbnailAcl } =
-            await thumbnailSignedUrlResponse.json();
-          await fetch(thumbnailSignedUrl, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "image/jpeg",
-              ...(thumbnailAcl ? { "x-amz-acl": thumbnailAcl } : {}),
-            },
-            body: blob,
           });
-          thumbnailUrl = thumbnailSignedUrl.split("?")[0];
-        }
+        await uploadToSignedUrl(thumbnailSignedUrl, blob, {
+          contentType: "image/jpeg",
+          acl: thumbnailAcl,
+        });
+        thumbnailUrl = thumbnailSignedUrl.split("?")[0];
       }
 
       // Step 3: Create asset record in database
@@ -282,31 +263,23 @@ export const useAssetLibrary = () => {
           {}
         ) || {};
 
-      const fileUrl = signedUrl.split("?")[0];
+      const metadataWithObservation = {
+        ...metadataObject,
+        ...(isObservationModel ? { observationProperties } : {}),
+      };
 
-      const createResponse = await fetch("/api/models", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          fileUrl,
-          originalFilename: previewFile.name,
-          name: friendlyName,
-          fileType: previewFile.type.includes("gltf")
-            ? previewFile.type.includes("json")
-              ? "gltf"
-              : "glb"
-            : previewFile.type,
-          thumbnail: thumbnailUrl,
-          metadata: metadataObject,
-          isObservationModel,
-          observationProperties: isObservationModel ? observationProperties : undefined,
-        }),
+      await createModelAsset({
+        key,
+        originalFilename: previewFile.name,
+        name: friendlyName,
+        fileType: previewFile.type.includes("gltf")
+          ? previewFile.type.includes("json")
+            ? "gltf"
+            : "glb"
+          : previewFile.type,
+        thumbnail: thumbnailUrl,
+        metadata: metadataWithObservation,
       });
-
-      if (!createResponse.ok) {
-        throw new Error("Failed to create asset record");
-      }
 
       showToast("Model uploaded successfully", "success");
       handleCancelUpload();
@@ -333,67 +306,57 @@ export const useAssetLibrary = () => {
     fetchAssets,
   ]);
 
-  const handleCesiumAssetAdd = useCallback(async (data: {
-    assetId: string;
-    name: string;
-    apiKey?: string;
-  }) => {
-    try {
-      const response = await fetch("/api/models", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
+  const handleCesiumAssetAdd = useCallback(
+    async (data: { assetId: string; name: string; apiKey?: string }) => {
+      try {
+        await createCesiumIonAsset({
           assetType: "cesiumIonAsset",
           cesiumAssetId: data.assetId,
           cesiumApiKey: data.apiKey,
           name: data.name,
-          fileUrl: "", // Ion assets don't have a direct file URL
-          fileType: "cesium-ion-tileset",
-          originalFilename: data.name,
-        }),
-      });
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to add Ion asset");
+        showToast("Ion asset added successfully", "success");
+        fetchAssets();
+        setTabIndex(0); // Switch to "Your Models" tab
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to add Ion asset";
+        showToast(errorMessage, "error");
+        throw error;
       }
-
-      showToast("Ion asset added successfully", "success");
-      fetchAssets();
-      setTabIndex(0); // Switch to "Your Models" tab
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to add Ion asset";
-      showToast(errorMessage, "error");
-      throw error;
-    }
-  }, [fetchAssets]);
+    },
+    [fetchAssets]
+  );
 
   // Combine stock models and assets for display
   const allAssets: AssetModel[] = [
-    ...stockModels.map((model): AssetModel => ({
-      id: `stock-${model.name}`,
-      name: model.name,
-      url: model.url,
-      originalFilename: model.name,
-      fileUrl: model.url,
-      fileType: model.type,
-      type: model.type,
-      assetType: "stock",
-    })),
-    ...assets.map((asset): AssetModel => ({
-      id: asset.id,
-      name: asset.name || asset.originalFilename,
-      url: asset.fileUrl,
-      originalFilename: asset.originalFilename,
-      fileUrl: asset.fileUrl,
-      fileType: asset.fileType,
-      type: asset.fileType,
-      assetId: asset.id,
-      thumbnail: asset.thumbnail,
-      metadata: asset.metadata,
-    })),
+    ...stockModels.map(
+      (model): AssetModel => ({
+        id: `stock-${model.name}`,
+        name: model.name,
+        url: model.url,
+        originalFilename: model.name,
+        fileUrl: model.url,
+        fileType: model.type,
+        type: model.type,
+        assetType: "stock",
+      })
+    ),
+    ...assets.map(
+      (asset): AssetModel => ({
+        id: asset.id,
+        name: asset.name || asset.originalFilename,
+        url: asset.fileUrl,
+        originalFilename: asset.originalFilename,
+        fileUrl: asset.fileUrl,
+        fileType: asset.fileType,
+        type: asset.fileType,
+        assetId: asset.id,
+        thumbnail: asset.thumbnail,
+        metadata: asset.metadata,
+      })
+    ),
   ];
 
   return {
@@ -431,4 +394,3 @@ export const useAssetLibrary = () => {
     fetchAssets,
   };
 };
-

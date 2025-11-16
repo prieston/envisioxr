@@ -7,6 +7,7 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import { LoadingScreen } from "@envisio/ui";
+import useProject from "@/app/hooks/useProject";
 // eslint-disable-next-line import/extensions
 import MobileLayout from "@/app/components/PublishPage/MobileLayout";
 // eslint-disable-next-line import/extensions
@@ -14,8 +15,8 @@ import DesktopLayout from "@/app/components/PublishPage/DesktopLayout";
 
 const PublishedScenePage = () => {
   const { projectId } = useParams();
+  const { project: fetchedProject, loadingProject } = useProject(projectId as string);
   const [project, setProject] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const setActiveWorld = useWorldStore((s) => s.setActiveWorld);
 
@@ -44,47 +45,42 @@ const PublishedScenePage = () => {
     };
   }, [setPreviewMode]);
 
-  // Fetch project data.
+  // Initialize project when it loads
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const res = await fetch(`/api/projects/${projectId}`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch project data");
-        const data = await res.json();
-        if (!data.project || !data.project.isPublished) {
-          throw new Error("Project not published");
-        }
-        setProject(data.project);
-        setActiveWorld(data.project);
+    if (!fetchedProject) return;
 
-        // Initialize observation points from project data
-        if (
-          data.project.sceneData &&
-          data.project.sceneData.observationPoints
-        ) {
-          setObservationPoints(data.project.sceneData.observationPoints);
-          // Select the first observation point if available
-          if (data.project.sceneData.observationPoints.length > 0) {
-            selectObservation(data.project.sceneData.observationPoints[0].id);
-            useSceneStore.setState({ previewIndex: 0 });
-          }
-        }
+    if (!fetchedProject.isPublished) {
+      throw new Error("Project not published");
+    }
+    setProject(fetchedProject);
+    setActiveWorld(fetchedProject);
 
-        // Initialize objects, selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
-        if (data.project.sceneData) {
-          const {
-            objects,
-            selectedAssetId,
-            selectedLocation,
-            showTiles,
-            basemapType,
-            cesiumIonAssets,
-            cesiumLightingEnabled,
-            cesiumShadowsEnabled,
-            cesiumCurrentTime,
-          } = data.project.sceneData;
+    // Initialize observation points from project data
+    if (
+      fetchedProject.sceneData &&
+      fetchedProject.sceneData.observationPoints
+    ) {
+      setObservationPoints(fetchedProject.sceneData.observationPoints);
+      // Select the first observation point if available
+      if (fetchedProject.sceneData.observationPoints.length > 0) {
+        selectObservation(fetchedProject.sceneData.observationPoints[0].id);
+        useSceneStore.setState({ previewIndex: 0 });
+      }
+    }
+
+    // Initialize objects, selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
+    if (fetchedProject.sceneData) {
+      const {
+        objects,
+        selectedAssetId,
+        selectedLocation,
+        showTiles,
+        basemapType,
+        cesiumIonAssets,
+        cesiumLightingEnabled,
+        cesiumShadowsEnabled,
+        cesiumCurrentTime,
+      } = fetchedProject.sceneData;
 
           // Initialize objects (GLB models, etc.)
           if (Array.isArray(objects)) {
@@ -115,18 +111,12 @@ const PublishedScenePage = () => {
           }
           if (cesiumCurrentTime !== undefined) {
             useSceneStore.setState({ cesiumCurrentTime });
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching project:", error);
-      } finally {
-        setLoading(false);
       }
-    };
+    }
+  }, [fetchedProject, setActiveWorld, setObservationPoints, selectObservation]);
 
-    fetchProject();
-
-    // Cleanup function to prevent memory leaks on mobile devices
+  // Cleanup function to prevent memory leaks on mobile devices
+  useEffect(() => {
     return () => {
       setActiveWorld(null);
       // Clear Cesium viewer reference to allow proper cleanup
@@ -155,7 +145,7 @@ const PublishedScenePage = () => {
     };
   }, [projectId, setObservationPoints, selectObservation, setActiveWorld]);
 
-  if (loading) {
+  if (loadingProject || !project) {
     return <LoadingScreen message="Loading project..." />;
   }
 

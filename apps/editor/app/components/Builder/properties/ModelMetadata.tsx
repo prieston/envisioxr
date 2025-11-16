@@ -1,8 +1,7 @@
 import React from "react";
 import { Box, Typography, CircularProgress, Alert } from "@mui/material";
 import useSWR from "swr";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { modelFetcher } from "@/app/utils/api";
 
 interface ModelMetadataProps {
   assetId?: string;
@@ -11,7 +10,7 @@ interface ModelMetadataProps {
 const ModelMetadata: React.FC<ModelMetadataProps> = ({ assetId }) => {
   const { data, error, isLoading } = useSWR(
     assetId ? `/api/models/${assetId}` : null,
-    fetcher
+    modelFetcher
   );
 
   if (!assetId) {

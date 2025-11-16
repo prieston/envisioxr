@@ -12,6 +12,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { UploadToIonTab } from "@envisio/ui";
 import { showToast } from "@envisio/ui";
 import { useCesiumIonUpload } from "@envisio/engine-cesium";
+import { createIonAsset, completeIonUpload, createCesiumIonAsset } from "@/app/utils/api";
 
 interface UploadToIonDrawerProps {
   open: boolean;
@@ -111,42 +112,15 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
         ionOptions.textureFormat = "KTX2";
       }
 
-      const createAssetResponse = await fetch("/api/ion-upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          description,
-          type: ionType,
-          accessToken,
-          options: ionOptions,
-        }),
+      const createAssetResponse = await createIonAsset({
+        name,
+        description,
+        type: ionType,
+        accessToken,
+        options: ionOptions,
       });
 
-      if (!createAssetResponse.ok) {
-        const errorData = await createAssetResponse.json();
-        let errorMessage =
-          errorData.error || "Failed to create asset on Cesium Ion";
-        if (errorData.details) {
-          try {
-            const details =
-              typeof errorData.details === "string"
-                ? JSON.parse(errorData.details)
-                : errorData.details;
-            if (details.message) {
-              errorMessage = details.message;
-            }
-          } catch (e) {
-            errorMessage = errorData.details;
-          }
-        }
-        throw new Error(errorMessage);
-      }
-
-      const { assetId, assetMetadata, uploadLocation, onComplete } =
-        await createAssetResponse.json();
+      const { assetId, assetMetadata, uploadLocation, onComplete } = createAssetResponse;
 
       // Prefer assetMetadata.id over assetId or regex parsing
       const inferredId =
@@ -169,18 +143,7 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
       await uploadToS3(file, uploadLocation, setIonUploadProgress);
 
       // Step 3: Notify Cesium Ion that upload is complete
-      const completeResponse = await fetch("/api/ion-upload", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ onComplete, accessToken }),
-      });
-
-      if (!completeResponse.ok) {
-        const errorData = await completeResponse.json();
-        throw new Error(errorData.error || "Failed to complete upload");
-      }
+      await completeIonUpload({ onComplete, accessToken });
 
       setIonUploadProgress(100);
 
@@ -192,31 +155,19 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
       })
         .then(async (assetInfo) => {
           // Save to database
-          const response = await fetch("/api/models", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
+          await createCesiumIonAsset({
+            assetType: "cesiumIonAsset",
+            cesiumAssetId: String(inferredId),
+            cesiumApiKey: accessToken,
+            name: assetInfo.name || `Ion Asset ${inferredId}`,
+            description: assetInfo.description || "",
+            metadata: {
+              ionAssetId: String(inferredId),
+              type: assetInfo.type,
+              status: assetInfo.status,
+              bytes: assetInfo.bytes,
             },
-            body: JSON.stringify({
-              name: assetInfo.name || `Ion Asset ${inferredId}`,
-              originalFilename: assetInfo.name,
-              description: assetInfo.description || "",
-              fileType: "cesium-ion",
-              assetType: "cesiumIonAsset",
-              cesiumAssetId: String(inferredId),
-              cesiumApiKey: accessToken,
-              metadata: {
-                ionAssetId: String(inferredId),
-                type: assetInfo.type,
-                status: assetInfo.status,
-                bytes: assetInfo.bytes,
-              },
-            }),
           });
-
-          if (!response.ok) {
-            throw new Error(`Failed to save: ${response.status}`);
-          }
 
           showToast("Ion asset added to your library!");
           onSuccess();

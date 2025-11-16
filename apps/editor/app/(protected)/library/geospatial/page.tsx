@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -28,17 +28,20 @@ import {
   GlowingSpan,
 } from "@/app/components/Builder/AdminLayout.styles";
 import type { LibraryAsset, MetadataRow } from "@envisio/ui";
-import {
-  AssetCard,
-  AssetDetailView,
-  DeleteConfirmDialog,
-} from "@envisio/ui";
+import { AssetCard, AssetDetailView, DeleteConfirmDialog } from "@envisio/ui";
 import { UploadToIonDrawer } from "./components/UploadToIonDrawer";
+import { deleteModel, updateModelMetadata } from "@/app/utils/api";
 import { AddIonAssetDrawer } from "./components/AddIonAssetDrawer";
+import useModels from "@/app/hooks/useModels";
 
 const LibraryGeospatialPage = () => {
+  const {
+    models: fetchedAssets,
+    mutate,
+  } = useModels({
+    assetType: "cesiumIonAsset",
+  });
   const [assets, setAssets] = useState<LibraryAsset[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAsset, setSelectedAsset] = useState<LibraryAsset | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -49,28 +52,10 @@ const LibraryGeospatialPage = () => {
   const [uploadToIonDrawerOpen, setUploadToIonDrawerOpen] = useState(false);
   const [addIonAssetDrawerOpen, setAddIonAssetDrawerOpen] = useState(false);
 
-  // Fetch geospatial assets
-  const fetchAssets = useCallback(async () => {
-    try {
-      setLoading(true);
-      // Only fetch Cesium Ion georeferenced assets
-      const res = await fetch("/api/models?assetType=cesiumIonAsset", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch geospatial assets");
-      const data = await res.json();
-      setAssets(data.assets || []);
-    } catch (error) {
-      console.error("Error fetching geospatial assets:", error);
-      showToast("Failed to load geospatial assets", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  // Sync fetched assets to local state
   useEffect(() => {
-    fetchAssets();
-  }, [fetchAssets]);
+    setAssets(fetchedAssets as LibraryAsset[]);
+  }, [fetchedAssets]);
 
   // Sync selectedAsset with updated data
   useEffect(() => {
@@ -79,7 +64,9 @@ const LibraryGeospatialPage = () => {
       if (updatedAsset) {
         setSelectedAsset(updatedAsset);
         if (!isEditing) {
-          setEditedName(updatedAsset.name || updatedAsset.originalFilename || "");
+          setEditedName(
+            updatedAsset.name || updatedAsset.originalFilename || ""
+          );
           setEditedDescription(updatedAsset.description || "");
           if (updatedAsset.metadata) {
             const metadataArray: MetadataRow[] = Object.entries(
@@ -90,6 +77,7 @@ const LibraryGeospatialPage = () => {
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assets, selectedAsset?.id, isEditing]);
 
   // Filter assets based on search query
@@ -152,31 +140,14 @@ const LibraryGeospatialPage = () => {
         {} as Record<string, string>
       );
 
-      const res = await fetch("/api/models/metadata", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          assetId: selectedAsset.id,
-          name: editedName,
-          description: editedDescription,
-          metadata: metadataObject,
-        }),
+      await updateModelMetadata(selectedAsset.id, {
+        name: editedName,
+        description: editedDescription,
+        metadata: metadataObject,
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        showToast("Geospatial asset updated successfully", "success");
-        setAssets((prev) =>
-          prev.map((a) => (a.id === selectedAsset.id ? { ...a, ...data.asset } : a))
-        );
-        setIsEditing(false);
-      } else {
-        const errorData = await res.json();
-        showToast(
-          `Failed to update asset: ${errorData.error || "Unknown error"}`,
-          "error"
-        );
-      }
+      showToast("Geospatial asset updated successfully", "success");
+      mutate(); // Refresh assets from SWR
+      setIsEditing(false);
     } catch (error) {
       console.error("Update error:", error);
       showToast("An error occurred while updating asset", "error");
@@ -192,19 +163,10 @@ const LibraryGeospatialPage = () => {
     if (!selectedAsset) return;
 
     try {
-      const res = await fetch("/api/models", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assetId: selectedAsset.id }),
-      });
-
-      if (res.ok) {
-        showToast("Geospatial asset deleted successfully", "success");
-        setAssets((prev) => prev.filter((a) => a.id !== selectedAsset.id));
-        setSelectedAsset(null);
-      } else {
-        showToast("Failed to delete asset", "error");
-      }
+      await deleteModel(selectedAsset.id);
+      showToast("Geospatial asset deleted successfully", "success");
+      mutate(); // Refresh assets from SWR
+      setSelectedAsset(null);
     } catch (error) {
       console.error("Delete error:", error);
       showToast("An error occurred during deletion", "error");
@@ -256,7 +218,8 @@ const LibraryGeospatialPage = () => {
       <Page>
         <PageHeader title="Geospatial Assets" />
         <PageDescription>
-          Manage your Cesium Ion georeferenced assets, 3D Tiles, DEMs, and photogrammetry.
+          Manage your Cesium Ion georeferenced assets, 3D Tiles, DEMs, and
+          photogrammetry.
         </PageDescription>
 
         <PageContent maxWidth="6xl">
@@ -374,7 +337,9 @@ const LibraryGeospatialPage = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <Box sx={{ display: "flex", gap: 3, height: "calc(100vh - 300px)" }}>
+            <Box
+              sx={{ display: "flex", gap: 3, height: "calc(100vh - 300px)" }}
+            >
               {/* Left Column - Asset Cards */}
               <Box
                 sx={(theme) => ({
@@ -426,7 +391,8 @@ const LibraryGeospatialPage = () => {
                       {searchQuery ? (
                         <>
                           <Box sx={{ fontSize: "0.875rem", mb: 1 }}>
-                            No geospatial assets found matching &quot;{searchQuery}&quot;
+                            No geospatial assets found matching &quot;
+                            {searchQuery}&quot;
                           </Box>
                           <Box sx={{ fontSize: "0.75rem" }}>
                             Try a different search term
@@ -438,7 +404,8 @@ const LibraryGeospatialPage = () => {
                             Your geospatial library is empty.
                           </Box>
                           <Box sx={{ fontSize: "0.75rem" }}>
-                            Add Cesium Ion assets from the builder to get started!
+                            Add Cesium Ion assets from the builder to get
+                            started!
                           </Box>
                         </>
                       )}

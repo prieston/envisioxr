@@ -1,16 +1,11 @@
 "use client";
 
 import React from "react";
-import {
-  Box,
-  Drawer,
-  Typography,
-  IconButton,
-  Divider,
-} from "@mui/material";
+import { Box, Drawer, Typography, IconButton, Divider } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { AddIonAssetTab } from "@envisio/ui";
 import { showToast } from "@envisio/ui";
+import { createCesiumIonAsset } from "@/app/utils/api";
 
 interface AddIonAssetDrawerProps {
   open: boolean;
@@ -30,21 +25,12 @@ export const AddIonAssetDrawer: React.FC<AddIonAssetDrawerProps> = ({
   }) => {
     try {
       // Save to database
-      const res = await fetch("/api/models", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          assetType: "cesiumIonAsset",
-          cesiumAssetId: data.assetId,
-          cesiumApiKey: data.apiKey,
-          name: data.name,
-        }),
+      await createCesiumIonAsset({
+        assetType: "cesiumIonAsset",
+        cesiumAssetId: data.assetId,
+        cesiumApiKey: data.apiKey,
+        name: data.name,
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to save Cesium Ion asset");
-      }
 
       showToast(`Cesium Ion asset added: ${data.name}`);
       onSuccess();
@@ -147,4 +133,3 @@ export const AddIonAssetDrawer: React.FC<AddIonAssetDrawerProps> = ({
     </Drawer>
   );
 };
-

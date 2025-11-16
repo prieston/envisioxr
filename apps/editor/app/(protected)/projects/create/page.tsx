@@ -14,6 +14,7 @@ import {
 import { useRouter } from "next/navigation";
 // eslint-disable-next-line import/extensions
 import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
+import { createProject } from "@/app/utils/api";
 
 const CreateProjectPage = () => {
   const router = useRouter();
@@ -23,19 +24,11 @@ const CreateProjectPage = () => {
 
   const handleSave = async () => {
     try {
-      const res = await fetch("/api/projects", {
-        credentials: "include",
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description,
-          engine,
-        }),
+      await createProject({
+        title,
+        description,
+        engine: engine as "three" | "cesium",
       });
-      if (!res.ok) {
-        throw new Error("Failed to create project");
-      }
       router.push("/dashboard");
     } catch (error) {
       console.error("Error saving project:", error);

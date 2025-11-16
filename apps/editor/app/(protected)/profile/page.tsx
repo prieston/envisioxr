@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Box,
   Typography,
@@ -26,72 +26,20 @@ import PersonIcon from "@mui/icons-material/Person";
 import BusinessIcon from "@mui/icons-material/Business";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import { useSession } from "next-auth/react";
-
-interface UserData {
-  id: string;
-  name: string | null;
-  email: string | null;
-  emailVerified: Date | null;
-  image: string | null;
-  organization: {
-    id: string;
-    name: string;
-    slug: string;
-    isPersonal: boolean;
-    userRole: string | null;
-  } | null;
-  accounts: Array<{
-    provider: string;
-    type: string;
-  }>;
-}
+import useUser from "@/app/hooks/useUser";
 
 const ProfilePage = () => {
-  const { data: session, status: sessionStatus } = useSession();
-  const [loading, setLoading] = useState(true);
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { status: sessionStatus } = useSession();
+  const { user: userData, loadingUser, error: userError } = useUser();
 
-  const fetchUserData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await fetch("/api/user", {
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to fetch user data");
-      }
-      if (!data.user) {
-        throw new Error("User data not found in response");
-      }
-      setUserData(data.user);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      setError(
-        error instanceof Error ? error.message : "Failed to load user data"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    // Wait for session to be loaded before fetching user data
-    if (sessionStatus === "loading") {
-      return;
-    }
-    if (sessionStatus === "unauthenticated") {
-      setError("Please sign in to view your profile");
-      setLoading(false);
-      return;
-    }
-    if (sessionStatus === "authenticated" && session?.user?.id) {
-      fetchUserData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionStatus, session?.user?.id]);
+  // Determine loading and error states
+  const loading = sessionStatus === "loading" || loadingUser;
+  const error =
+    sessionStatus === "unauthenticated"
+      ? "Please sign in to view your profile"
+      : userError
+        ? userError.message || "Failed to load user data"
+        : null;
 
   const getProviderLabel = (provider: string) => {
     const labels: Record<string, string> = {
@@ -160,7 +108,7 @@ const ProfilePage = () => {
                   </Typography>
                 )}
               </PageCard>
-            ) : userData ? (
+            ) : (
               <>
                 {/* Profile Header Card */}
                 <Box sx={{ mb: 3 }}>
@@ -379,7 +327,7 @@ const ProfilePage = () => {
                   </Box>
                 </PageCard>
               </>
-            ) : null}
+            )}
           </PageContent>
         </Box>
       </Page>
