@@ -56,20 +56,35 @@ const PublishedScenePage = () => {
     setActiveWorld(fetchedProject);
 
     // Initialize observation points from project data
-    if (
-      fetchedProject.sceneData &&
-      fetchedProject.sceneData.observationPoints
-    ) {
-      setObservationPoints(fetchedProject.sceneData.observationPoints);
+    const sceneData = fetchedProject.sceneData as {
+      observationPoints?: Array<{ id: string; [key: string]: unknown }>;
+      [key: string]: unknown;
+    } | null;
+    if (sceneData && Array.isArray(sceneData.observationPoints)) {
+      setObservationPoints(sceneData.observationPoints as unknown as Parameters<typeof setObservationPoints>[0]);
       // Select the first observation point if available
-      if (fetchedProject.sceneData.observationPoints.length > 0) {
-        selectObservation(fetchedProject.sceneData.observationPoints[0].id);
-        useSceneStore.setState({ previewIndex: 0 });
+      if (sceneData.observationPoints.length > 0) {
+        const firstPoint = sceneData.observationPoints[0];
+        if (firstPoint && typeof firstPoint === 'object' && 'id' in firstPoint) {
+          selectObservation(Number(firstPoint.id));
+          useSceneStore.setState({ previewIndex: 0 });
+        }
       }
     }
 
     // Initialize objects, selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
-    if (fetchedProject.sceneData) {
+    if (fetchedProject.sceneData && typeof fetchedProject.sceneData === 'object') {
+      const sceneData = fetchedProject.sceneData as {
+        objects?: unknown[];
+        selectedAssetId?: string;
+        selectedLocation?: unknown;
+        showTiles?: boolean;
+        basemapType?: string;
+        cesiumIonAssets?: unknown[];
+        cesiumLightingEnabled?: boolean;
+        cesiumShadowsEnabled?: boolean;
+        cesiumCurrentTime?: unknown;
+      };
       const {
         objects,
         selectedAssetId,
@@ -80,37 +95,42 @@ const PublishedScenePage = () => {
         cesiumLightingEnabled,
         cesiumShadowsEnabled,
         cesiumCurrentTime,
-      } = fetchedProject.sceneData;
+      } = sceneData;
 
-          // Initialize objects (GLB models, etc.)
-          if (Array.isArray(objects)) {
-            useSceneStore.setState({ objects });
-          }
+      // Initialize objects (GLB models, etc.)
+      if (Array.isArray(objects)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        useSceneStore.setState({ objects: objects as any });
+      }
 
-          if (selectedAssetId) {
-            useSceneStore.setState({
-              selectedAssetId,
-              showTiles: showTiles ?? false,
-            });
-          }
-          if (selectedLocation) {
-            useSceneStore.setState({ selectedLocation });
-          }
-          if (basemapType) {
-            useSceneStore.setState({ basemapType });
-          }
-          if (Array.isArray(cesiumIonAssets)) {
-            useSceneStore.setState({ cesiumIonAssets });
-          }
-          // Restore time simulation settings
-          if (cesiumLightingEnabled !== undefined) {
-            useSceneStore.setState({ cesiumLightingEnabled });
-          }
-          if (cesiumShadowsEnabled !== undefined) {
-            useSceneStore.setState({ cesiumShadowsEnabled });
-          }
-          if (cesiumCurrentTime !== undefined) {
-            useSceneStore.setState({ cesiumCurrentTime });
+      if (selectedAssetId && typeof selectedAssetId === 'string') {
+        useSceneStore.setState({
+          selectedAssetId,
+          showTiles: showTiles ?? false,
+        });
+      }
+      if (selectedLocation && typeof selectedLocation === 'object' && selectedLocation !== null && 'latitude' in selectedLocation && 'longitude' in selectedLocation) {
+        useSceneStore.setState({ selectedLocation: selectedLocation as { latitude: number; longitude: number; altitude?: number } });
+      }
+      if (basemapType && typeof basemapType === 'string') {
+        const validBasemapTypes = ["cesium", "none", "google", "google-photorealistic", "bing"] as const;
+        if (validBasemapTypes.includes(basemapType as typeof validBasemapTypes[number])) {
+          useSceneStore.setState({ basemapType: basemapType as typeof validBasemapTypes[number] });
+        }
+      }
+      if (Array.isArray(cesiumIonAssets)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        useSceneStore.setState({ cesiumIonAssets: cesiumIonAssets as any });
+      }
+      // Restore time simulation settings
+      if (cesiumLightingEnabled !== undefined) {
+        useSceneStore.setState({ cesiumLightingEnabled });
+      }
+      if (cesiumShadowsEnabled !== undefined) {
+        useSceneStore.setState({ cesiumShadowsEnabled });
+      }
+      if (cesiumCurrentTime !== undefined && cesiumCurrentTime !== null) {
+        useSceneStore.setState({ cesiumCurrentTime: String(cesiumCurrentTime) });
       }
     }
   }, [fetchedProject, setActiveWorld, setObservationPoints, selectObservation]);

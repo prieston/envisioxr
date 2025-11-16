@@ -124,10 +124,10 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
 
       // Prefer assetMetadata.id over assetId or regex parsing
       const inferredId =
-        assetMetadata?.id ??
+        (assetMetadata as { id?: number })?.id ??
         assetId ??
         (() => {
-          const match = /sources\/(\d+)\//.exec(uploadLocation?.prefix || "");
+          const match = /sources\/(\d+)\//.exec((uploadLocation as { prefix?: string })?.prefix || "");
           return match ? Number(match[1]) : undefined;
         })();
 
@@ -150,7 +150,7 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
       showToast(`Successfully uploaded to Cesium Ion! Asset ID: ${inferredId}`);
 
       // Poll for tiling status and save to library when complete
-      pollAssetStatus(inferredId, accessToken, (_status, _percent) => {
+      pollAssetStatus(Number(inferredId), accessToken, (_status, _percent) => {
         // Tiling progress update
       })
         .then(async (assetInfo) => {

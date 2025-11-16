@@ -30,7 +30,17 @@ export default function Scene() {
     setProject(fetchedProject);
 
     // Initialize objects, selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
-    if (fetchedProject.sceneData) {
+    if (fetchedProject.sceneData && typeof fetchedProject.sceneData === 'object') {
+      const sceneData = fetchedProject.sceneData as {
+        objects?: unknown[];
+        selectedAssetId?: string;
+        selectedLocation?: unknown;
+        basemapType?: string;
+        cesiumIonAssets?: unknown[];
+        cesiumLightingEnabled?: boolean;
+        cesiumShadowsEnabled?: boolean;
+        cesiumCurrentTime?: unknown;
+      };
       const {
         objects,
         selectedAssetId,
@@ -40,24 +50,29 @@ export default function Scene() {
         cesiumLightingEnabled,
         cesiumShadowsEnabled,
         cesiumCurrentTime,
-      } = fetchedProject.sceneData;
+      } = sceneData;
 
-          // Initialize objects (GLB models, etc.)
-          if (Array.isArray(objects)) {
-            useSceneStore.setState({ objects });
-          }
+      // Initialize objects (GLB models, etc.)
+      if (Array.isArray(objects)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        useSceneStore.setState({ objects: objects as any });
+      }
 
-          if (selectedAssetId) {
+          if (selectedAssetId && typeof selectedAssetId === 'string') {
             useSceneStore.setState({ selectedAssetId });
           }
-          if (selectedLocation) {
-            useSceneStore.setState({ selectedLocation });
+          if (selectedLocation && typeof selectedLocation === 'object' && selectedLocation !== null && 'latitude' in selectedLocation && 'longitude' in selectedLocation) {
+            useSceneStore.setState({ selectedLocation: selectedLocation as { latitude: number; longitude: number; altitude?: number } });
           }
-          if (basemapType) {
-            useSceneStore.setState({ basemapType });
+          if (basemapType && typeof basemapType === 'string') {
+            const validBasemapTypes = ["cesium", "none", "google", "google-photorealistic", "bing"] as const;
+            if (validBasemapTypes.includes(basemapType as typeof validBasemapTypes[number])) {
+              useSceneStore.setState({ basemapType: basemapType as typeof validBasemapTypes[number] });
+            }
           }
           if (Array.isArray(cesiumIonAssets)) {
-            useSceneStore.setState({ cesiumIonAssets });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            useSceneStore.setState({ cesiumIonAssets: cesiumIonAssets as any });
           }
           // Restore time simulation settings
           if (cesiumLightingEnabled !== undefined) {
@@ -66,9 +81,9 @@ export default function Scene() {
           if (cesiumShadowsEnabled !== undefined) {
             useSceneStore.setState({ cesiumShadowsEnabled });
           }
-          if (cesiumCurrentTime !== undefined) {
-            useSceneStore.setState({ cesiumCurrentTime });
-      }
+          if (cesiumCurrentTime !== undefined && cesiumCurrentTime !== null) {
+            useSceneStore.setState({ cesiumCurrentTime: String(cesiumCurrentTime) });
+          }
     }
   }, [fetchedProject]);
 

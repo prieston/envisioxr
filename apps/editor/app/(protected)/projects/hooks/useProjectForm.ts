@@ -2,6 +2,8 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createProject, updateProject } from "@/app/utils/api";
 import useProjects from "@/app/hooks/useProjects";
+import type { KeyedMutator } from "swr";
+import type { Project } from "@/app/utils/api";
 
 interface UseProjectFormProps {
   projects: Array<{ id: string; title: string; description?: string; engine?: string }>;
@@ -9,12 +11,12 @@ interface UseProjectFormProps {
     React.SetStateAction<
       Array<{ id: string; title: string; description?: string; engine?: string }>
     >
-  >;
+  > | KeyedMutator<Project[]>;
 }
 
 export const useProjectForm = ({ projects, setProjects: _setProjects }: UseProjectFormProps) => {
   const router = useRouter();
-  const { mutate } = useProjects();
+  const { setProjects: mutate } = useProjects();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [title, setTitle] = useState("");

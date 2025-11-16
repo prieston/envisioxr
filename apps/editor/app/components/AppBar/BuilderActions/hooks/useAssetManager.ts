@@ -35,7 +35,21 @@ export const useAssetManager = ({
   const fetchUserAssets = useCallback(async () => {
     try {
       const data = await getModels();
-      setUserAssets(data.assets || []);
+      // Convert Asset[] to LibraryAsset[]
+      const libraryAssets: LibraryAsset[] = (data.assets || []).map((asset) => ({
+        id: asset.id,
+        name: asset.name || asset.originalFilename || "",
+        originalFilename: asset.originalFilename,
+        fileUrl: asset.fileUrl,
+        fileType: asset.fileType,
+        thumbnail: asset.thumbnail || undefined,
+        description: asset.description || undefined,
+        metadata: asset.metadata as Record<string, string> | undefined,
+        assetType: asset.assetType,
+        cesiumAssetId: asset.cesiumAssetId || undefined,
+        cesiumApiKey: asset.cesiumApiKey || undefined,
+      }));
+      setUserAssets(libraryAssets);
     } catch (err) {
       console.error("Error fetching models:", err);
       showToast("Failed to load models");
@@ -121,19 +135,42 @@ export const useAssetManager = ({
       }
 
       // Step 3: Save model metadata to database
+      // Convert metadata array to object
+      const metadataObject = data.metadata.reduce(
+        (acc, item) => {
+          if (item.label && item.value) {
+            acc[item.label] = item.value;
+          }
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+
       const { asset: newModel } = await createModelAsset({
         key: key,
         originalFilename: data.file.name,
         name: data.friendlyName,
         fileType: data.file.type,
         thumbnail: thumbnailUrl,
-        metadata: data.metadata,
+        metadata: metadataObject,
       });
       showToast("Model uploaded and added to library!");
-      setUserAssets((prev) => [...prev, newModel]);
+      // Convert Asset to LibraryAsset
+      const libraryAsset: LibraryAsset = {
+        id: newModel.id,
+        name: newModel.name || newModel.originalFilename || "",
+        originalFilename: newModel.originalFilename,
+        fileUrl: newModel.fileUrl,
+        fileType: newModel.fileType,
+        thumbnail: newModel.thumbnail || undefined,
+        description: newModel.description || undefined,
+        metadata: newModel.metadata as Record<string, string> | undefined,
+        assetType: newModel.assetType,
+      };
+      setUserAssets((prev) => [...prev, libraryAsset]);
 
       // Automatically add to scene
-      handleModelSelect(newModel);
+      handleModelSelect(libraryAsset);
     } catch (error) {
       console.error("Upload error:", error);
       showToast("An error occurred during upload.");
@@ -230,9 +267,22 @@ export const useAssetManager = ({
       const data = await updateModelMetadata(assetId, updates);
       showToast("Asset updated successfully.");
       // Update local state with the returned asset data
+      const updatedLibraryAsset: LibraryAsset = {
+        id: data.asset.id,
+        name: data.asset.name || data.asset.originalFilename || "",
+        originalFilename: data.asset.originalFilename,
+        fileUrl: data.asset.fileUrl,
+        fileType: data.asset.fileType,
+        thumbnail: data.asset.thumbnail || undefined,
+        description: data.asset.description || undefined,
+        metadata: data.asset.metadata as Record<string, string> | undefined,
+        assetType: data.asset.assetType,
+        cesiumAssetId: data.asset.cesiumAssetId || undefined,
+        cesiumApiKey: data.asset.cesiumApiKey || undefined,
+      };
       setUserAssets((prev) =>
         prev.map((asset) =>
-          asset.id === assetId ? { ...asset, ...data.asset } : asset
+          asset.id === assetId ? updatedLibraryAsset : asset
         )
       );
     } catch (error) {

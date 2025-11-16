@@ -11,6 +11,12 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { UploadModelTab } from "@envisio/ui";
 import { showToast, dataURLtoBlob } from "@envisio/ui";
+import {
+  getModelUploadUrl,
+  getThumbnailUploadUrl,
+  uploadToSignedUrl,
+  createModelAsset,
+} from "@/app/utils/api";
 
 interface UploadModelDrawerProps {
   open: boolean;
@@ -99,13 +105,24 @@ export const UploadModelDrawer: React.FC<UploadModelDrawerProps> = ({
       }
 
       // Step 3: Save model metadata to database
+      // Convert metadata array to object
+      const metadataObject = data.metadata.reduce(
+        (acc, item) => {
+          if (item.label && item.value) {
+            acc[item.label] = item.value;
+          }
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+
       await createModelAsset({
         key: key,
         originalFilename: data.file.name,
         name: data.friendlyName,
         fileType: data.file.type,
         thumbnail: thumbnailUrl,
-        metadata: data.metadata, // Send as array - API will convert to object
+        metadata: metadataObject,
         description: data.description,
       });
 

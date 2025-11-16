@@ -226,7 +226,6 @@ const SettingsGeneralPage = () => {
                     name: organization.name,
                     slug: organization.slug,
                   });
-                  setError(null);
                 }}
                 disabled={saving}
                 size="small"

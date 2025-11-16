@@ -53,9 +53,14 @@ const ModelMetadata: React.FC<ModelMetadataProps> = ({ assetId }) => {
     );
   }
 
+  // Extract metadata fields
+  const metadata = data?.metadata as { description?: string; tags?: string[]; category?: string } | undefined;
+  const description = data?.description || metadata?.description;
+  const tags = metadata?.tags;
+  const category = metadata?.category;
+
   // Check if there's any actual content to display
-  const hasContent =
-    data && (data.description || data.tags?.length > 0 || data.category);
+  const hasContent = description || (tags && tags.length > 0) || category;
 
   if (!data || !hasContent) {
     return (
@@ -80,22 +85,22 @@ const ModelMetadata: React.FC<ModelMetadataProps> = ({ assetId }) => {
         padding: "14px",
       }}
     >
-      {data.description && (
+      {description && (
         <Typography
           sx={{
             fontSize: "0.75rem",
             color: "rgba(51, 65, 85, 0.9)",
             lineHeight: 1.5,
-            mb: data.tags || data.category ? 1.5 : 0,
+            mb: tags || category ? 1.5 : 0,
           }}
         >
-          {data.description}
+          {description}
         </Typography>
       )}
 
-      {(data.tags || data.category) && (
+      {(tags || category) && (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
-          {data.category && (
+          {category && (
             <Box
               sx={{
                 px: 1,
@@ -112,12 +117,12 @@ const ModelMetadata: React.FC<ModelMetadataProps> = ({ assetId }) => {
                   color: "var(--color-primary, #6B9CD8)",
                 }}
               >
-                {data.category}
+                {category}
               </Typography>
             </Box>
           )}
 
-          {data.tags?.map((tag: string) => (
+          {tags?.map((tag: string) => (
             <Box
               key={tag}
               sx={{

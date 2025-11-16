@@ -39,11 +39,13 @@ import useModels from "@/app/hooks/useModels";
 const LibraryModelsPage = () => {
   const {
     models: fetchedModels,
+    loadingModels,
     mutate,
   } = useModels({
     assetType: "model",
   });
   const [models, setModels] = useState<LibraryAsset[]>([]);
+  const loading = loadingModels;
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedModel, setSelectedModel] = useState<LibraryAsset | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -56,7 +58,18 @@ const LibraryModelsPage = () => {
 
   // Sync fetched models to local state
   useEffect(() => {
-    setModels(fetchedModels as LibraryAsset[]);
+    const mappedModels: LibraryAsset[] = fetchedModels.map((model) => ({
+      id: model.id,
+      name: model.name || model.originalFilename || "",
+      originalFilename: model.originalFilename,
+      fileUrl: model.fileUrl,
+      fileType: model.fileType,
+      thumbnail: model.thumbnail,
+      description: model.description,
+      metadata: model.metadata as Record<string, string> | undefined,
+      assetType: model.assetType,
+    }));
+    setModels(mappedModels);
   }, [fetchedModels]);
 
   // Sync selectedModel with updated data
@@ -189,15 +202,11 @@ const LibraryModelsPage = () => {
     if (!selectedModel) return;
 
     try {
-      const data = await updateModelMetadata(selectedModel.id, {
+      await updateModelMetadata(selectedModel.id, {
         thumbnail: screenshot,
       });
       showToast("Thumbnail updated successfully", "success");
-      setModels((prev) =>
-        prev.map((m) =>
-          m.id === selectedModel.id ? { ...m, ...data.asset } : m
-        )
-      );
+      mutate(); // Refresh models from SWR
     } catch (error) {
       console.error("Thumbnail update error:", error);
       showToast("An error occurred while updating thumbnail", "error");
@@ -206,7 +215,7 @@ const LibraryModelsPage = () => {
 
   // Handle upload
   const handleUploadSuccess = () => {
-    fetchModels();
+    mutate();
     setUploadDrawerOpen(false);
   };
 

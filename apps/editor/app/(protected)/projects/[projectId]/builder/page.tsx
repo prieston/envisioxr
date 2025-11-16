@@ -205,7 +205,8 @@ const sanitizeSceneData = (
 
 export default function BuilderPage() {
   const { projectId } = useParams();
-  const { project: fetchedProject, loadingProject } = useProject(projectId as string);
+  const projectIdStr = Array.isArray(projectId) ? projectId[0] : projectId;
+  const { project: fetchedProject, loadingProject } = useProject(projectIdStr);
   const [project, setProject] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const setActiveWorld = useWorldStore((s) => s.setActiveWorld);
@@ -228,7 +229,19 @@ export default function BuilderPage() {
       setActiveWorld(fetchedProject);
 
       // Initialize scene data from project
-      if (fetchedProject?.sceneData) {
+      if (fetchedProject?.sceneData && typeof fetchedProject.sceneData === 'object') {
+        const sceneData = fetchedProject.sceneData as {
+          objects?: unknown[];
+          observationPoints?: unknown[];
+          selectedAssetId?: string;
+          selectedLocation?: unknown;
+          showTiles?: boolean;
+          basemapType?: string;
+          cesiumIonAssets?: unknown[];
+          cesiumLightingEnabled?: boolean;
+          cesiumShadowsEnabled?: boolean;
+          cesiumCurrentTime?: unknown;
+        };
         const {
           objects,
           observationPoints,
@@ -240,29 +253,33 @@ export default function BuilderPage() {
           cesiumLightingEnabled,
           cesiumShadowsEnabled,
           cesiumCurrentTime,
-        } = fetchedProject.sceneData;
+        } = sceneData;
 
         if (Array.isArray(objects)) {
           // Restore objects with all their properties including observation model data
-          setObjects(objects);
+          setObjects(objects as Parameters<typeof setObjects>[0]);
         }
         if (Array.isArray(observationPoints)) {
-          setObservationPoints(observationPoints);
+          setObservationPoints(observationPoints as Parameters<typeof setObservationPoints>[0]);
         }
-        if (selectedAssetId) {
+        if (selectedAssetId && typeof selectedAssetId === 'string') {
           useSceneStore.setState({
             selectedAssetId,
             showTiles: showTiles ?? false,
           });
         }
-        if (selectedLocation) {
-          useSceneStore.setState({ selectedLocation });
+        if (selectedLocation && typeof selectedLocation === 'object' && selectedLocation !== null && 'latitude' in selectedLocation && 'longitude' in selectedLocation) {
+          useSceneStore.setState({ selectedLocation: selectedLocation as { latitude: number; longitude: number; altitude?: number } });
         }
-        if (basemapType) {
-          useSceneStore.setState({ basemapType });
+        if (basemapType && typeof basemapType === 'string') {
+          const validBasemapTypes = ["cesium", "none", "google", "google-photorealistic", "bing"] as const;
+          if (validBasemapTypes.includes(basemapType as typeof validBasemapTypes[number])) {
+            useSceneStore.setState({ basemapType: basemapType as typeof validBasemapTypes[number] });
+          }
         }
         if (Array.isArray(cesiumIonAssets)) {
-          useSceneStore.setState({ cesiumIonAssets });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          useSceneStore.setState({ cesiumIonAssets: cesiumIonAssets as any });
         }
         // Restore time simulation settings
         if (cesiumLightingEnabled !== undefined) {
@@ -271,8 +288,8 @@ export default function BuilderPage() {
         if (cesiumShadowsEnabled !== undefined) {
           useSceneStore.setState({ cesiumShadowsEnabled });
         }
-        if (cesiumCurrentTime !== undefined) {
-          useSceneStore.setState({ cesiumCurrentTime });
+        if (cesiumCurrentTime !== undefined && cesiumCurrentTime !== null) {
+          useSceneStore.setState({ cesiumCurrentTime: String(cesiumCurrentTime) });
         }
       }
     } catch (error) {
@@ -306,7 +323,7 @@ export default function BuilderPage() {
         storeState.cesiumCurrentTime
       );
 
-      await updateProjectScene(projectId, sceneData);
+      await updateProjectScene(projectIdStr, sceneData);
 
       showToast("Project saved successfully", "info");
     } catch (error) {
@@ -320,7 +337,7 @@ export default function BuilderPage() {
   // Publish handler
   const handlePublish = async () => {
     try {
-      await publishProject(projectId);
+      await publishProject(projectIdStr);
       showToast("Project published successfully!");
 
       // Open the published world in a new window

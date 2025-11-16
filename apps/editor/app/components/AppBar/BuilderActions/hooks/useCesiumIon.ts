@@ -177,19 +177,23 @@ export const useCesiumIon = () => {
       const { assetId, assetMetadata, uploadLocation, onComplete } = createAssetResponse;
 
       // Prefer assetMetadata.id over assetId or regex parsing
-      const inferredId =
-        assetMetadata?.id ??
-        assetId ??
+      const metadata = assetMetadata as { id?: number } | undefined;
+      const location = uploadLocation as { prefix?: string } | undefined;
+      const inferredIdRaw =
+        metadata?.id ??
+        (typeof assetId === 'number' ? assetId : undefined) ??
+        (typeof assetId === 'string' ? Number(assetId) : undefined) ??
         (() => {
-          const match = /sources\/(\d+)\//.exec(uploadLocation?.prefix || "");
+          const match = /sources\/(\d+)\//.exec(location?.prefix || "");
           return match ? Number(match[1]) : undefined;
         })();
 
-      if (!inferredId) {
+      if (!inferredIdRaw || isNaN(inferredIdRaw)) {
         throw new Error(
           "Ion response missing assetMetadata.id, assetId, and prefix; cannot proceed."
         );
       }
+      const inferredId: number = inferredIdRaw;
 
       setIonUploadProgress(20);
 

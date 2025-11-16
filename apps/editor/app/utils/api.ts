@@ -220,15 +220,18 @@ export async function deleteProject(
 
 export interface Asset {
   id: string;
-  name: string;
-  url: string;
-  type: string;
+  name?: string | null;
+  originalFilename: string;
+  fileUrl: string;
+  fileType: string;
   organizationId: string;
-  metadata?: {
-    description?: string;
-    tags?: string[];
-    category?: string;
-  };
+  projectId?: string | null;
+  assetType?: "model" | "cesiumIonAsset" | null;
+  description?: string | null;
+  thumbnail?: string | null;
+  metadata?: Record<string, unknown> | null;
+  cesiumAssetId?: string | null;
+  cesiumApiKey?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

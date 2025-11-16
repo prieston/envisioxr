@@ -37,11 +37,13 @@ import useModels from "@/app/hooks/useModels";
 const LibraryGeospatialPage = () => {
   const {
     models: fetchedAssets,
+    loadingModels,
     mutate,
   } = useModels({
     assetType: "cesiumIonAsset",
   });
   const [assets, setAssets] = useState<LibraryAsset[]>([]);
+  const loading = loadingModels;
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAsset, setSelectedAsset] = useState<LibraryAsset | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -54,7 +56,20 @@ const LibraryGeospatialPage = () => {
 
   // Sync fetched assets to local state
   useEffect(() => {
-    setAssets(fetchedAssets as LibraryAsset[]);
+    const mappedAssets: LibraryAsset[] = fetchedAssets.map((asset) => ({
+      id: asset.id,
+      name: asset.name || asset.originalFilename || "",
+      originalFilename: asset.originalFilename,
+      fileUrl: asset.fileUrl,
+      fileType: asset.fileType,
+      thumbnail: asset.thumbnail,
+      description: asset.description,
+      metadata: asset.metadata as Record<string, string> | undefined,
+      assetType: asset.assetType,
+      cesiumAssetId: asset.cesiumAssetId,
+      cesiumApiKey: asset.cesiumApiKey,
+    }));
+    setAssets(mappedAssets);
   }, [fetchedAssets]);
 
   // Sync selectedAsset with updated data
@@ -180,12 +195,12 @@ const LibraryGeospatialPage = () => {
 
   // Handle upload/add success
   const handleUploadSuccess = () => {
-    fetchAssets();
+    mutate();
     setUploadToIonDrawerOpen(false);
   };
 
   const handleAddSuccess = () => {
-    fetchAssets();
+    mutate();
     setAddIonAssetDrawerOpen(false);
   };
 

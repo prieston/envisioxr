@@ -22,11 +22,12 @@ import { updateProject } from "@/app/utils/api";
 
 const EditProjectPage = () => {
   const { projectId } = useParams();
+  const projectIdStr = Array.isArray(projectId) ? projectId[0] : (projectId || "");
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [engine, setEngine] = useState("three");
-  const { project, loadingProject } = useProject(projectId as string);
+  const { project, loadingProject } = useProject(projectIdStr);
 
   // Sync project data to form when it loads
   useEffect(() => {
@@ -42,7 +43,7 @@ const EditProjectPage = () => {
   // Handler to save updated project details
   const handleSave = async () => {
     try {
-      await updateProject(projectId, { title, description, engine: engine as "three" | "cesium" });
+      await updateProject(projectIdStr, { title, description, engine: engine as "three" | "cesium" });
       showToast("Project saved successfully!");
       router.push("/dashboard");
     } catch (error) {
