@@ -126,6 +126,12 @@ const DashboardSidebar: React.FC = () => {
     return pathname === subPath;
   };
 
+  // Hide sidebar on builder pages (but keep component mounted to maintain hook order)
+  const isBuilderPage = pathname?.includes("/builder");
+  if (isBuilderPage) {
+    return null;
+  }
+
   return (
     <LeftPanelContainer
       previewMode={false}
