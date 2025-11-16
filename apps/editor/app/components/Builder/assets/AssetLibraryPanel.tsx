@@ -50,13 +50,15 @@ interface AssetLibraryPanelProps {
   userAssets: AssetModel[];
   deletingAssetId: string | null;
   handleDeleteModel: (assetId: string) => Promise<void>;
-  handleModelSelect: (model: AssetModel) => void;
-  selectingPosition: boolean;
-  setSelectingPosition: (selecting: boolean) => void;
-  selectedPosition: Vector3Tuple | null;
-  pendingModel: AssetModel | null;
-  handleConfirmModelPlacement: () => void;
-  handleCancelModelPlacement: () => void;
+  // Scene integration props (optional - only needed in builder)
+  handleModelSelect?: (model: AssetModel) => void;
+  selectingPosition?: boolean;
+  setSelectingPosition?: (selecting: boolean) => void;
+  selectedPosition?: Vector3Tuple | null;
+  pendingModel?: AssetModel | null;
+  handleConfirmModelPlacement?: () => void;
+  handleCancelModelPlacement?: () => void;
+  // Upload props
   previewUrl: string | null;
   setPreviewUrl: (url: string | null) => void;
   previewFile: File | null;
@@ -166,7 +168,7 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
         <Tab label="Add Ion Asset" />
       </Tabs>
 
-      {selectingPosition && (
+      {selectingPosition && setSelectingPosition && (
         <Box
           sx={{
             mt: 2,
@@ -195,45 +197,48 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
         </Box>
       )}
 
-      {selectedPosition && pendingModel && (
-        <Box
-          sx={{
-            mt: 2,
-            p: 2,
-            bgcolor: "success.light",
-            borderRadius: 1,
-            position: "relative",
-          }}
-        >
-          <Typography variant="subtitle2" gutterBottom>
-            Selected Position for {pendingModel.name}:
-          </Typography>
-          <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-            X: {selectedPosition[0].toFixed(2)}
-            <br />
-            Y: {selectedPosition[1].toFixed(2)}
-            <br />
-            Z: {selectedPosition[2].toFixed(2)}
-          </Typography>
-          <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-            <Button
-              size="small"
-              variant="contained"
-              color="primary"
-              onClick={handleConfirmModelPlacement}
-            >
-              Confirm Placement
-            </Button>
-            <Button
-              size="small"
-              color="inherit"
-              onClick={handleCancelModelPlacement}
-            >
-              Cancel
-            </Button>
+      {selectedPosition &&
+        pendingModel &&
+        handleConfirmModelPlacement &&
+        handleCancelModelPlacement && (
+          <Box
+            sx={{
+              mt: 2,
+              p: 2,
+              bgcolor: "success.light",
+              borderRadius: 1,
+              position: "relative",
+            }}
+          >
+            <Typography variant="subtitle2" gutterBottom>
+              Selected Position for {pendingModel.name}:
+            </Typography>
+            <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+              X: {selectedPosition[0].toFixed(2)}
+              <br />
+              Y: {selectedPosition[1].toFixed(2)}
+              <br />
+              Z: {selectedPosition[2].toFixed(2)}
+            </Typography>
+            <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={handleConfirmModelPlacement}
+              >
+                Confirm Placement
+              </Button>
+              <Button
+                size="small"
+                color="inherit"
+                onClick={handleCancelModelPlacement}
+              >
+                Cancel
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      )}
+        )}
 
       <Box sx={{ flex: 1, overflow: "auto", pb: 4 }}>
         {tabIndex === 0 && (
@@ -288,21 +293,23 @@ const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({
                       )}
                   </CardContent>
                   <CardActions>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      onClick={() => {
-                        handleModelSelect({
-                          id: model.id,
-                          name: model.originalFilename,
-                          url: model.fileUrl,
-                          type: model.fileType,
-                          assetId: model.id,
-                        });
-                      }}
-                    >
-                      Add Models
-                    </Button>
+                    {handleModelSelect && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        onClick={() => {
+                          handleModelSelect({
+                            id: model.id,
+                            name: model.originalFilename,
+                            url: model.fileUrl,
+                            type: model.fileType,
+                            assetId: model.id,
+                          });
+                        }}
+                      >
+                        Add Models
+                      </Button>
+                    )}
                     <Button
                       size="small"
                       variant="outlined"
@@ -454,7 +461,10 @@ interface AddIonAssetTabProps {
   onSuccess?: () => void;
 }
 
-const AddIonAssetTab: React.FC<AddIonAssetTabProps> = ({ onAdd, onSuccess }) => {
+const AddIonAssetTab: React.FC<AddIonAssetTabProps> = ({
+  onAdd,
+  onSuccess,
+}) => {
   const [name, setName] = React.useState("");
   const [assetId, setAssetId] = React.useState("");
   const [assetToken, setAssetToken] = React.useState("");
@@ -490,9 +500,7 @@ const AddIonAssetTab: React.FC<AddIonAssetTabProps> = ({ onAdd, onSuccess }) => 
         onSuccess();
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to add Ion asset"
-      );
+      setError(err instanceof Error ? err.message : "Failed to add Ion asset");
     } finally {
       setAdding(false);
     }

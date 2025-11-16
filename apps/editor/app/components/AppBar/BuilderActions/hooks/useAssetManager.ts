@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { showToast } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
 import { dataURLtoBlob } from "@envisio/ui";
@@ -23,12 +23,7 @@ export const useAssetManager = ({
   const addCesiumIonAsset = useSceneStore((s) => s.addCesiumIonAsset);
   const addModel = useSceneStore((state) => state.addModel);
 
-  // Fetch user's uploaded models when component mounts
-  useEffect(() => {
-    fetchUserAssets();
-  }, []);
-
-  const fetchUserAssets = () => {
+  const fetchUserAssets = useCallback(() => {
     fetch("/api/models")
       .then((res) => res.json())
       .then((data) => {
@@ -38,7 +33,12 @@ export const useAssetManager = ({
         console.error("Error fetching models:", err);
         showToast("Failed to load models");
       });
-  };
+  }, []);
+
+  // Fetch user's uploaded models when component mounts
+  useEffect(() => {
+    fetchUserAssets();
+  }, [fetchUserAssets]);
 
   // Handle custom model upload
   const handleCustomModelUpload = async (data: {

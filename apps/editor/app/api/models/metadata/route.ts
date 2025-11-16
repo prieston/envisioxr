@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/authOptions";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
+import { isUserMemberOfOrganization } from "@/lib/organizations";
 
 // PATCH: Update asset (name, description, metadata, thumbnail)
 export async function PATCH(request: NextRequest) {
@@ -25,7 +26,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Verify the asset belongs to the user
+    // Verify the asset exists and user is a member of the organization
     const existingAsset = await prisma.asset.findUnique({
       where: { id: assetId },
     });
@@ -34,7 +35,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
 
-    if (existingAsset.userId !== userId) {
+    const isMember = await isUserMemberOfOrganization(
+      userId,
+      existingAsset.organizationId
+    );
+    if (!isMember) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { NextRequest } from "next/server";
 import { Session } from "next-auth";
+import { isUserMemberOfOrganization } from "@/lib/organizations";
 
 interface UserSession extends Session {
   user: {
@@ -46,11 +47,15 @@ export async function GET(request: NextRequest, { params }: ProjectParams) {
       return NextResponse.json({ project });
     }
 
-    // For unpublished projects, require a valid session and that the project belongs to the user.
+    // For unpublished projects, require a valid session and that the user is a member of the project's organization.
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (project.userId !== session.user.id) {
+    const isMember = await isUserMemberOfOrganization(
+      session.user.id,
+      project.organizationId
+    );
+    if (!isMember) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -74,12 +79,19 @@ export async function POST(request: NextRequest, { params }: ProjectParams) {
   const userId = session.user.id;
 
   try {
-    // First verify project ownership
+    // First verify project exists and user is a member of the organization
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
-    if (!project || project.userId !== userId) {
+    if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+    const isMember = await isUserMemberOfOrganization(
+      userId,
+      project.organizationId
+    );
+    if (!isMember) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const body = await request.json();
@@ -123,8 +135,15 @@ export async function DELETE(request: NextRequest, { params }: ProjectParams) {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
-    if (!project || project.userId !== userId) {
+    if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+    const isMember = await isUserMemberOfOrganization(
+      userId,
+      project.organizationId
+    );
+    if (!isMember) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
     await prisma.project.delete({
       where: { id: projectId },
@@ -151,12 +170,19 @@ export async function PUT(request: NextRequest, { params }: ProjectParams) {
   try {
     const body = await request.json();
     const { title, description, engine } = body;
-    // Ensure the project belongs to the user before updating
+    // Ensure the project exists and user is a member of the organization
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
-    if (!project || project.userId !== userId) {
+    if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+    const isMember = await isUserMemberOfOrganization(
+      userId,
+      project.organizationId
+    );
+    if (!isMember) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
@@ -179,8 +205,24 @@ export async function PATCH(request: NextRequest, { params }: ProjectParams) {
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const userId = session.user.id;
 
   try {
+    // Verify project exists and user is a member
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+    if (!project) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+    const isMember = await isUserMemberOfOrganization(
+      userId,
+      project.organizationId
+    );
+    if (!isMember) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
     const body = await request.json();
     // For example, expect a field publish: true
     if (body.publish) {

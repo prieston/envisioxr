@@ -2,144 +2,25 @@
 
 import React, { useState } from "react";
 import { Box, Typography, CircularProgress } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import { useRouter } from "next/navigation";
 import useProjects from "../../hooks/useProjects";
 import {
   DashboardCreateProjectCard as CreateProjectCard,
   DashboardProjectCard as ProjectCard,
   DashboardOptionsMenu as OptionsMenu,
-  DashboardHelpPopup as HelpPopup,
   DashboardDeleteConfirmationDialog as DeleteConfirmationDialog,
 } from "@envisio/ui";
-import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
-
-// Styled components for animated background
-const AnimatedBackground = styled(Box)(() => ({
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  zIndex: -1,
-  overflow: "hidden",
-  background: "linear-gradient(180deg, #0d0e11 0%, #111317 100%)",
-}));
-
-const GlowingContainer = styled(Box)(() => ({
-  position: "relative",
-  transformOrigin: "right",
-  animation: "colorChange 5s linear infinite",
-  "&:nth-of-type(even)": {
-    transformOrigin: "left",
-  },
-  "@keyframes colorChange": {
-    "0%": {
-      filter: "hue-rotate(0deg)",
-      transform: "rotate(0deg)",
-    },
-    "100%": {
-      filter: "hue-rotate(360deg)",
-      transform: "rotate(360deg)",
-    },
-  },
-}));
-
-const GlowingSpan = styled(Box)<{ index: number }>(({ index }) => ({
-  position: "absolute",
-  top: `calc(80px * ${index})`,
-  left: `calc(80px * ${index})`,
-  bottom: `calc(80px * ${index})`,
-  right: `calc(80px * ${index})`,
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: "50%",
-    left: "-8px",
-    width: "15px",
-    height: "15px",
-    background: "rgba(255, 255, 255, 0.1)",
-    borderRadius: "50%",
-    boxShadow:
-      "0 0 20px rgba(255, 255, 255, 0.05), " +
-      "0 0 40px rgba(255, 255, 255, 0.03), " +
-      "0 0 60px rgba(255, 255, 255, 0.02), " +
-      "0 0 80px rgba(255, 255, 255, 0.01), " +
-      "0 0 0 8px rgba(255, 255, 255, 0.01)",
-  },
-  "&:nth-of-type(3n + 1)": {
-    animation: "animate 10s alternate infinite",
-    "&::before": {
-      background: "rgba(255, 255, 255, 0.08)",
-      boxShadow:
-        "0 0 20px rgba(255, 255, 255, 0.04), " +
-        "0 0 40px rgba(255, 255, 255, 0.03), " +
-        "0 0 60px rgba(255, 255, 255, 0.02), " +
-        "0 0 80px rgba(255, 255, 255, 0.01), " +
-        "0 0 0 8px rgba(255, 255, 255, 0.01)",
-    },
-  },
-  "&:nth-of-type(3n + 2)": {
-    animation: "animate-reverse 3s alternate infinite",
-    "&::before": {
-      background: "rgba(255, 255, 255, 0.06)",
-      boxShadow:
-        "0 0 20px rgba(255, 255, 255, 0.03), " +
-        "0 0 40px rgba(255, 255, 255, 0.02), " +
-        "0 0 60px rgba(255, 255, 255, 0.01), " +
-        "0 0 80px rgba(255, 255, 255, 0.005), " +
-        "0 0 0 8px rgba(255, 255, 255, 0.005)",
-    },
-  },
-  "&:nth-of-type(3n + 3)": {
-    animation: "animate 8s alternate infinite",
-    "&::before": {
-      background: "rgba(255, 255, 255, 0.05)",
-      boxShadow:
-        "0 0 20px rgba(255, 255, 255, 0.02), " +
-        "0 0 40px rgba(255, 255, 255, 0.015), " +
-        "0 0 60px rgba(255, 255, 255, 0.01), " +
-        "0 0 80px rgba(255, 255, 255, 0.005), " +
-        "0 0 0 8px rgba(255, 255, 255, 0.005)",
-    },
-  },
-  "@keyframes animate": {
-    "0%": {
-      transform: "rotate(180deg)",
-    },
-    "50%": {
-      transform: "rotate(0deg)",
-    },
-    "100%": {
-      transform: "rotate(360deg)",
-    },
-  },
-  "@keyframes animate-reverse": {
-    "0%": {
-      transform: "rotate(360deg)",
-    },
-    "50%": {
-      transform: "rotate(180deg)",
-    },
-    "100%": {
-      transform: "rotate(0deg)",
-    },
-  },
-}));
+import DashboardSidebar from "@/app/components/Dashboard/DashboardSidebar";
+import {
+  AnimatedBackground,
+  GlowingContainer,
+  GlowingSpan,
+} from "@/app/components/Builder/AdminLayout.styles";
 
 const DashboardPage = () => {
   const router = useRouter();
   const { projects, setProjects, loadingProjects } = useProjects();
-  const [showHelp, setShowHelp] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
-
-  const handleHelpClick = () => {
-    setShowHelp(true);
-  };
-
-  const handleCloseHelp = () => {
-    setShowHelp(false);
-  };
 
   const handleCreateProject = () => {
     router.push("/projects/create");
@@ -242,30 +123,26 @@ const DashboardPage = () => {
         </GlowingContainer>
       </AnimatedBackground>
 
-      <AdminAppBar
-        mode="simple"
-        onHelpClick={handleHelpClick}
-        showHelpPulse={false}
-      />
+      {/* Sidebar */}
+      <DashboardSidebar />
 
+      {/* Main Content Area */}
       <Box
         sx={(theme) => ({
-          padding: "120px 16px 40px 16px",
-          backgroundColor: "transparent",
-          color: theme.palette.text.primary,
+          marginLeft: "392px", // Match sidebar width (360px + 16px left + 16px gap)
+          padding: "24px",
           minHeight: "100vh",
           position: "relative",
           zIndex: 1,
+          backgroundColor: theme.palette.background.default,
         })}
       >
-        <HelpPopup open={showHelp} onClose={handleCloseHelp} />
-
         <Box
           sx={{
-            paddingBottom: 2,
+            paddingBottom: 3,
           }}
         >
-          <Typography variant="h5" sx={{ color: "text.primary" }}>
+          <Typography variant="h5" sx={{ color: "text.primary", fontWeight: 600 }}>
             Your Projects
           </Typography>
         </Box>

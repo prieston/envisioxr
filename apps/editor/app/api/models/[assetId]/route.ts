@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/authOptions";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
+import { isUserMemberOfOrganization } from "@/lib/organizations";
 
 type RouteContext = {
   params: {
@@ -29,12 +30,20 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const asset = await prisma.asset.findUnique({
       where: {
         id: assetId,
-        userId: session.user.id,
       },
     });
 
     if (!asset) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
+    }
+
+    // Verify user is a member of the asset's organization
+    const isMember = await isUserMemberOfOrganization(
+      session.user.id,
+      asset.organizationId
+    );
+    if (!isMember) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     return NextResponse.json({ asset });

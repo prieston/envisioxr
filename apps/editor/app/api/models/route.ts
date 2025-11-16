@@ -11,6 +11,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
 import { serverEnv } from "@/lib/env/server";
+import { getUserDefaultOrganization, getUserOrganizationIds, isUserMemberOfOrganization } from "@/lib/organizations";
 
 interface StockModel {
   name: string;
@@ -40,8 +41,15 @@ export async function GET(_request: NextRequest) {
   }
   const userId = session.user.id;
   try {
+    // Get all organization IDs the user is a member of
+    const userOrgIds = await getUserOrganizationIds(userId);
+
     const assets = await prisma.asset.findMany({
-      where: { userId },
+      where: {
+        organizationId: {
+          in: userOrgIds,
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({ stockModels, assets });
@@ -100,6 +108,15 @@ export async function POST(request: NextRequest) {
   }
   const userId = session.user.id;
   try {
+    // Get user's default organization (personal org)
+    const organization = await getUserDefaultOrganization(userId);
+    if (!organization) {
+      return NextResponse.json(
+        { error: "No organization found for user" },
+        { status: 400 }
+      );
+    }
+
     // Expecting a JSON body with key, originalFilename, name, fileType, thumbnail, metadata
     // OR for Cesium Ion assets: assetType, cesiumAssetId, cesiumApiKey, name
     const body = await request.json();
@@ -115,7 +132,20 @@ export async function POST(request: NextRequest) {
       cesiumAssetId,
       cesiumApiKey,
       description,
+      organizationId, // Optional: allow specifying organization
     } = body;
+
+    // Use provided organizationId or default to user's personal org
+    const targetOrgId = organizationId || organization.id;
+
+    // Verify user is a member of the target organization
+    const userOrgIds = await getUserOrganizationIds(userId);
+    if (!userOrgIds.includes(targetOrgId)) {
+      return NextResponse.json(
+        { error: "User is not a member of the specified organization" },
+        { status: 403 }
+      );
+    }
 
     // Handle Cesium Ion Asset
     if (assetType === "cesiumIonAsset") {
@@ -134,7 +164,7 @@ export async function POST(request: NextRequest) {
 
       const asset = await prisma.asset.create({
         data: {
-          userId,
+          organizationId: targetOrgId,
           assetType: "cesiumIonAsset",
           fileUrl: `cesium://ion/${cesiumAssetId}`, // Placeholder URL
           fileType: "cesium-ion-tileset",
@@ -184,7 +214,7 @@ export async function POST(request: NextRequest) {
 
     const asset = await prisma.asset.create({
       data: {
-        userId,
+        organizationId: targetOrgId,
         assetType: "model",
         fileUrl,
         originalFilename,
@@ -225,7 +255,12 @@ export async function DELETE(request: NextRequest) {
     if (!asset) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
-    if (asset.userId !== userId) {
+    // Check if user is a member of the asset's organization
+    const isMember = await isUserMemberOfOrganization(
+      userId,
+      asset.organizationId
+    );
+    if (!isMember) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
     // Determine the key from the asset's fileUrl.
