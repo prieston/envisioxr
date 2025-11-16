@@ -7,9 +7,18 @@ import {
   CircularProgress,
   TextField,
   InputAdornment,
+  Drawer,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  IconButton,
+  Divider,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
+import CloseIcon from "@mui/icons-material/Close";
 import { useRouter } from "next/navigation";
 import useProjects from "../../hooks/useProjects";
 import {
@@ -32,9 +41,61 @@ const ProjectsPage = () => {
   const router = useRouter();
   const { projects, setProjects, loadingProjects } = useProjects();
   const [selectedProjectId, setSelectedProjectId] = useState(null);
+  
+  // Drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [newProjectTitle, setNewProjectTitle] = useState("");
+  const [newProjectDescription, setNewProjectDescription] = useState("");
+  const [newProjectEngine, setNewProjectEngine] = useState("three");
+  const [creatingProject, setCreatingProject] = useState(false);
 
   const handleCreateProject = () => {
-    router.push("/projects/create");
+    setDrawerOpen(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setDrawerOpen(false);
+    setNewProjectTitle("");
+    setNewProjectDescription("");
+    setNewProjectEngine("three");
+  };
+
+  const handleSaveProject = async () => {
+    if (!newProjectTitle.trim()) return;
+
+    setCreatingProject(true);
+    try {
+      const res = await fetch("/api/projects", {
+        credentials: "include",
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newProjectTitle.trim(),
+          description: newProjectDescription.trim(),
+          engine: newProjectEngine,
+        }),
+      });
+      
+      if (!res.ok) {
+        throw new Error("Failed to create project");
+      }
+      
+      const newProject = await res.json();
+      
+      // Add the new project to the list
+      setProjects((prev) => [newProject, ...prev]);
+      
+      // Close drawer and reset form
+      handleCloseDrawer();
+      
+      // Navigate to the builder
+      router.push(`/projects/${newProject.id}/builder`);
+    } catch (error) {
+      console.error("Error creating project:", error);
+      // TODO: Show error toast
+    } finally {
+      setCreatingProject(false);
+    }
   };
 
   const handleProjectSelect = (projectId) => {
@@ -154,7 +215,9 @@ const ProjectsPage = () => {
                 fullWidth
                 sx={(theme) => ({
                   maxWidth: "400px",
-                  ...((typeof textFieldStyles === 'function' ? textFieldStyles(theme) : textFieldStyles) as Record<string, any>),
+                  ...((typeof textFieldStyles === "function"
+                    ? textFieldStyles(theme)
+                    : textFieldStyles) as Record<string, any>),
                 })}
                 InputProps={{
                   startAdornment: (
@@ -258,6 +321,158 @@ const ProjectsPage = () => {
           }"? This action cannot be undone.`}
         />
       </Page>
+
+      {/* Create Project Drawer */}
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={handleCloseDrawer}
+        PaperProps={{
+          sx: (theme) => ({
+            width: { xs: "100%", sm: "420px" },
+            backgroundColor: theme.palette.background.paper,
+            borderRight: "1px solid rgba(255, 255, 255, 0.05)",
+          }),
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          {/* Header */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 3,
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Create New Project
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={handleCloseDrawer}
+              sx={{
+                color: "text.secondary",
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.05)",
+                },
+              }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+
+          <Divider sx={{ mb: 3 }} />
+
+          {/* Form */}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <TextField
+              label="Project Title"
+              value={newProjectTitle}
+              onChange={(e) => setNewProjectTitle(e.target.value)}
+              fullWidth
+              required
+              sx={(theme) => ({
+                ...((typeof textFieldStyles === "function"
+                  ? textFieldStyles(theme)
+                  : textFieldStyles) as Record<string, any>),
+              })}
+            />
+
+            <TextField
+              label="Project Description"
+              value={newProjectDescription}
+              onChange={(e) => setNewProjectDescription(e.target.value)}
+              fullWidth
+              multiline
+              rows={4}
+              sx={(theme) => ({
+                ...((typeof textFieldStyles === "function"
+                  ? textFieldStyles(theme)
+                  : textFieldStyles) as Record<string, any>),
+              })}
+            />
+
+            <FormControl fullWidth>
+              <InputLabel id="engine-select-label">Rendering Engine</InputLabel>
+              <Select
+                labelId="engine-select-label"
+                id="engine-select"
+                value={newProjectEngine}
+                label="Rendering Engine"
+                onChange={(e) => setNewProjectEngine(e.target.value)}
+                sx={(theme) => ({
+                  ...((typeof textFieldStyles === "function"
+                    ? textFieldStyles(theme)
+                    : textFieldStyles) as Record<string, any>),
+                })}
+              >
+                <MenuItem value="three">
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography>Three.js</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      - 3D scene with custom models and effects
+                    </Typography>
+                  </Box>
+                </MenuItem>
+                <MenuItem value="cesium">
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography>Cesium</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      - 3D globe with terrain and geospatial data
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Actions */}
+            <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={handleCloseDrawer}
+                fullWidth
+                disabled={creatingProject}
+                sx={(theme) => ({
+                  borderRadius: `${theme.shape.borderRadius}px`,
+                  textTransform: "none",
+                })}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleSaveProject}
+                fullWidth
+                disabled={!newProjectTitle.trim() || creatingProject}
+                sx={(theme) => ({
+                  borderRadius: `${theme.shape.borderRadius}px`,
+                  textTransform: "none",
+                  fontWeight: 500,
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? "#161B20"
+                      : theme.palette.background.paper,
+                  color: theme.palette.primary.main,
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                  "&:hover": {
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? "#1a1f26"
+                        : alpha(theme.palette.primary.main, 0.05),
+                    borderColor: alpha(theme.palette.primary.main, 0.5),
+                  },
+                  "&:disabled": {
+                    opacity: 0.5,
+                  },
+                })}
+              >
+                {creatingProject ? "Creating..." : "Create Project"}
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Drawer>
     </>
   );
 };
