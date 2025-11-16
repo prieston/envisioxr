@@ -58,10 +58,11 @@ export async function GET(request: NextRequest) {
 
     // Add assetType filter if provided
     // Explicitly filter to ensure only the requested type is returned
+    // Use Prisma enum values directly
     if (assetType === "model") {
-      whereClause.assetType = "model";
+      whereClause.assetType = "model" as const;
     } else if (assetType === "cesiumIonAsset") {
-      whereClause.assetType = "cesiumIonAsset";
+      whereClause.assetType = "cesiumIonAsset" as const;
     }
     // If no assetType specified, don't filter (show all)
 
@@ -69,8 +70,16 @@ export async function GET(request: NextRequest) {
       where: whereClause,
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json({ stockModels, assets });
+    
+    // Convert BigInt fileSize to number for JSON serialization
+    const serializedAssets = assets.map((asset) => ({
+      ...asset,
+      fileSize: asset.fileSize ? Number(asset.fileSize) : null,
+    }));
+    
+    return NextResponse.json({ stockModels, assets: serializedAssets });
   } catch (error) {
+    console.error("Error fetching models:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
@@ -209,7 +218,12 @@ export async function POST(request: NextRequest) {
         metadata: { assetName: name, assetType: "cesiumIonAsset" },
       });
 
-      return NextResponse.json({ asset });
+      // Convert BigInt fileSize to number for JSON serialization
+      const serializedAsset = {
+        ...asset,
+        fileSize: asset.fileSize ? Number(asset.fileSize) : null,
+      };
+      return NextResponse.json({ asset: serializedAsset });
     }
 
     // Handle Regular Model Upload

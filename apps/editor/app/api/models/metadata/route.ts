@@ -76,7 +76,12 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ asset: updatedAsset });
+    // Convert BigInt fileSize to number for JSON serialization
+    const serializedAsset = {
+      ...updatedAsset,
+      fileSize: updatedAsset.fileSize ? Number(updatedAsset.fileSize) : null,
+    };
+    return NextResponse.json({ asset: serializedAsset });
   } catch (error) {
     console.error("Asset update error:", error);
     return NextResponse.json(
