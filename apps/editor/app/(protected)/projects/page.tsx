@@ -1,19 +1,28 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Button, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  TextField,
+  InputAdornment,
+} from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import SearchIcon from "@mui/icons-material/Search";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import SwapVertIcon from "@mui/icons-material/SwapVert";
 import { useRouter } from "next/navigation";
 import useProjects from "../../hooks/useProjects";
 import {
-  DashboardCreateProjectCard as CreateProjectCard,
   DashboardProjectCard as ProjectCard,
   DashboardOptionsMenu as OptionsMenu,
   DashboardDeleteConfirmationDialog as DeleteConfirmationDialog,
   Page,
   PageHeader,
   PageDescription,
-  PageActions,
   PageContent,
+  textFieldStyles,
 } from "@envisio/ui";
 import {
   AnimatedBackground,
@@ -122,16 +131,90 @@ const ProjectsPage = () => {
       <Page>
         <PageHeader title="Projects" />
         <PageDescription>
-          Create and manage your 3D visualization projects
+          Your 3D environments, scenes, and digital twins in one place.
         </PageDescription>
 
-        <PageActions>
-          <Button variant="contained" onClick={handleCreateProject}>
-            + Create Project
-          </Button>
-        </PageActions>
-
         <PageContent maxWidth="6xl">
+          {/* Search Toolbar */}
+          <Box
+            sx={(theme) => ({
+              display: "flex",
+              gap: 2,
+              mb: 3,
+              pb: 3,
+              alignItems: "center",
+              justifyContent: "space-between",
+              borderBottom: `1px solid ${theme.palette.divider}`,
+            })}
+          >
+            <Box
+              sx={{ display: "flex", gap: 2, alignItems: "center", flex: 1 }}
+            >
+              <TextField
+                placeholder="Search projects..."
+                size="small"
+                fullWidth
+                sx={{
+                  maxWidth: "400px",
+                  ...textFieldStyles,
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon
+                        sx={(theme) => ({
+                          color: theme.palette.text.secondary,
+                        })}
+                      />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <Button
+                variant="outlined"
+                startIcon={<FilterListIcon />}
+                size="small"
+              >
+                Filters
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<SwapVertIcon />}
+                size="small"
+              >
+                Sort
+              </Button>
+            </Box>
+            <Button
+              variant="contained"
+              onClick={handleCreateProject}
+              size="small"
+              sx={(theme) => ({
+                borderRadius: `${theme.shape.borderRadius}px`,
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "#161B20"
+                    : theme.palette.background.paper,
+                color: theme.palette.primary.main,
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                padding: "6px 16px",
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? "#1a1f26"
+                      : alpha(theme.palette.primary.main, 0.05),
+                  borderColor: alpha(theme.palette.primary.main, 0.5),
+                },
+              })}
+            >
+              + New Project
+            </Button>
+          </Box>
+
           {loadingProjects ? (
             <Box
               sx={{
@@ -147,12 +230,10 @@ const ProjectsPage = () => {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
                 gap: 3,
               }}
             >
-              <CreateProjectCard onClick={handleCreateProject} />
-
               {projects.map((project) => (
                 <ProjectCard
                   key={project.id}
@@ -191,4 +272,3 @@ const ProjectsPage = () => {
 };
 
 export default ProjectsPage;
-
