@@ -75,43 +75,38 @@ export const useCesiumIon = () => {
     accessToken: string,
     onRefresh?: () => void
   ): Promise<{ asset: any }> => {
-    try {
-      // Determine tiling status
-      const tilingStatus = assetInfo.status === "COMPLETE" ? "COMPLETE" :
-                          assetInfo.status === "ERROR" || assetInfo.status === "FAILED" ? "ERROR" :
-                          "IN_PROGRESS";
+    // Determine tiling status
+    const tilingStatus = assetInfo.status === "COMPLETE" ? "COMPLETE" :
+                        assetInfo.status === "ERROR" || assetInfo.status === "FAILED" ? "ERROR" :
+                        "IN_PROGRESS";
 
-      // Save to your database via API
-      const { asset } = await createCesiumIonAsset({
-        assetType: "cesiumIonAsset",
-        cesiumAssetId: String(assetId),
-        cesiumApiKey: accessToken,
-        name: assetInfo.name || `Ion Asset ${assetId}`,
-        description: assetInfo.description || "",
-        metadata: {
-          ionAssetId: String(assetId),
-          tilingStatus,
-          tilingProgress: assetInfo.percentComplete || (tilingStatus === "COMPLETE" ? 100 : 0),
-          type: assetInfo.type,
-          status: assetInfo.status,
-          bytes: assetInfo.bytes,
-        },
-      });
+    // Save to your database via API
+    const { asset } = await createCesiumIonAsset({
+      assetType: "cesiumIonAsset",
+      cesiumAssetId: String(assetId),
+      cesiumApiKey: accessToken,
+      name: assetInfo.name || `Ion Asset ${assetId}`,
+      description: assetInfo.description || "",
+      metadata: {
+        ionAssetId: String(assetId),
+        tilingStatus,
+        tilingProgress: assetInfo.percentComplete || (tilingStatus === "COMPLETE" ? 100 : 0),
+        type: assetInfo.type,
+        status: assetInfo.status,
+        bytes: assetInfo.bytes,
+      },
+    });
 
-      // Refresh the library to show the new asset
-      if (onRefresh) {
-        onRefresh();
-      }
-
-      if (tilingStatus === "COMPLETE") {
-        showToast("Ion asset added to your library!");
-      }
-
-      return { asset };
-    } catch (error) {
-      // Error saving Ion asset
-      throw error;
+    // Refresh the library to show the new asset
+    if (onRefresh) {
+      onRefresh();
     }
+
+    if (tilingStatus === "COMPLETE") {
+      showToast("Ion asset added to your library!");
+    }
+
+    return { asset };
   };
 
   // Handle upload to Cesium Ion (integrated with app API)
