@@ -36,6 +36,42 @@ export async function GET(request: NextRequest, { params }: ProjectParams) {
   try {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
+      include: {
+        organization: {
+          include: {
+            members: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        assets: {
+          orderBy: { createdAt: "desc" },
+          take: 50, // Limit assets
+        },
+        activities: {
+          orderBy: { createdAt: "desc" },
+          take: 20, // Recent activities
+          include: {
+            actor: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!project) {
@@ -169,7 +205,7 @@ export async function PUT(request: NextRequest, { params }: ProjectParams) {
 
   try {
     const body = await request.json();
-    const { title, description, engine } = body;
+    const { title, description, engine, thumbnail } = body;
     // Ensure the project exists and user is a member of the organization
     const project = await prisma.project.findUnique({
       where: { id: projectId },
@@ -184,9 +220,20 @@ export async function PUT(request: NextRequest, { params }: ProjectParams) {
     if (!isMember) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
+    const updateData: {
+      title?: string;
+      description?: string;
+      engine?: "three" | "cesium";
+      thumbnail?: string | null;
+    } = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (engine !== undefined) updateData.engine = engine;
+    if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
+
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
-      data: { title, description, ...(engine ? { engine } : {}) },
+      data: updateData,
     });
     return NextResponse.json({ project: updatedProject });
   } catch (error) {
@@ -224,7 +271,7 @@ export async function PATCH(request: NextRequest, { params }: ProjectParams) {
     }
 
     const body = await request.json();
-    // For example, expect a field publish: true
+    // Handle publish action
     if (body.publish) {
       const updatedProject = await prisma.project.update({
         where: { id: projectId },
@@ -235,13 +282,23 @@ export async function PATCH(request: NextRequest, { params }: ProjectParams) {
         },
       });
       return NextResponse.json({ project: updatedProject });
-    } else {
-      return NextResponse.json(
-        { error: "No publish action provided" },
-        { status: 400 }
-      );
     }
+    // Handle thumbnail update
+    if (body.thumbnail !== undefined) {
+      const updatedProject = await prisma.project.update({
+        where: { id: projectId },
+        data: {
+          thumbnail: body.thumbnail,
+        },
+      });
+      return NextResponse.json({ project: updatedProject });
+    }
+    return NextResponse.json(
+      { error: "No valid action provided" },
+      { status: 400 }
+    );
   } catch (error) {
+    console.error("PATCH /api/projects/[projectId] error:", error);
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Internal Server Error",

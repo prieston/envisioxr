@@ -206,7 +206,7 @@ const sanitizeSceneData = (
 export default function BuilderPage() {
   const { projectId } = useParams();
   const projectIdStr = Array.isArray(projectId) ? projectId[0] : projectId;
-  const { project: fetchedProject, loadingProject } = useProject(projectIdStr);
+  const { project: fetchedProject, loadingProject, mutate: mutateProject } = useProject(projectIdStr);
   const [project, setProject] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const setActiveWorld = useWorldStore((s) => s.setActiveWorld);
@@ -363,8 +363,18 @@ export default function BuilderPage() {
     );
   }
 
+  const handleThumbnailUpdate = () => {
+    mutateProject(); // Refresh project data to get updated thumbnail
+  };
+
   return (
-    <AdminLayout onSave={handleSave} onPublish={handlePublish}>
+    <AdminLayout
+      onSave={handleSave}
+      onPublish={handlePublish}
+      projectId={projectIdStr}
+      projectThumbnail={project?.thumbnail || null}
+      onThumbnailUpdate={handleThumbnailUpdate}
+    >
       <SceneCanvas
         initialSceneData={project?.sceneData}
         renderObservationPoints={true}

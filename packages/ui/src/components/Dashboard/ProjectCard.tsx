@@ -18,6 +18,7 @@ export interface ProjectCardProps {
     title: string;
     description?: string;
     engine?: string;
+    thumbnail?: string | null;
     createdAt?: string | Date;
     updatedAt?: string | Date;
   };
@@ -61,26 +62,26 @@ export default function ProjectCard({
       onClick={handleCardClick}
       sx={(theme) => {
         return {
-        width: "100%",
-        height: 260,
-        position: "relative",
-        overflow: "hidden",
-        cursor: "pointer",
-        backgroundColor: "#161B20",
-        border: "1px solid rgba(255, 255, 255, 0.05)",
-        borderRadius: "4px",
-        boxShadow: "none",
-        display: "flex",
-        flexDirection: "column",
-        transition: "all 0.2s ease",
-        "&:hover": {
-          borderColor: alpha(theme.palette.primary.main, 0.5),
-          backgroundColor: alpha(theme.palette.primary.main, 0.04),
-        },
-        "&.selected": {
-          borderColor: theme.palette.primary.main,
-          backgroundColor: alpha(theme.palette.primary.main, 0.08),
-        },
+          width: "100%",
+          height: 260,
+          position: "relative",
+          overflow: "hidden",
+          cursor: "pointer",
+          backgroundColor: "#161B20",
+          border: "1px solid rgba(255, 255, 255, 0.05)",
+          borderRadius: "4px",
+          boxShadow: "none",
+          display: "flex",
+          flexDirection: "column",
+          transition: "all 0.2s ease",
+          "&:hover": {
+            borderColor: alpha(theme.palette.primary.main, 0.5),
+            backgroundColor: alpha(theme.palette.primary.main, 0.04),
+          },
+          "&.selected": {
+            borderColor: theme.palette.primary.main,
+            backgroundColor: alpha(theme.palette.primary.main, 0.08),
+          },
         };
       }}
     >
@@ -95,6 +96,7 @@ export default function ProjectCard({
           justifyContent: "center",
           position: "relative",
           overflow: "hidden",
+          flexShrink: 0,
         }}
       >
         {/* Badge overlay */}
@@ -134,12 +136,46 @@ export default function ProjectCard({
         >
           <MoreVertIcon fontSize="small" />
         </IconButton>
-        {/* Placeholder thumbnail icon */}
-        <FolderIcon sx={{ fontSize: 48, color: "#6B9CD8", opacity: 0.5 }} />
+        {/* Thumbnail image or placeholder */}
+        {project.thumbnail ? (
+          <Box
+            component="img"
+            src={project.thumbnail}
+            alt={project.title}
+            loading="lazy"
+            onError={() => {
+              console.error(
+                `Failed to load thumbnail for ${project.title}:`,
+                project.thumbnail
+              );
+            }}
+            sx={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: 0,
+            }}
+          />
+        ) : (
+          <FolderIcon
+            sx={{ fontSize: 48, color: "#6B9CD8", opacity: 0.5, zIndex: 0 }}
+          />
+        )}
       </Box>
 
       {/* Content */}
-      <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column", p: 2, pb: 1.5 }}>
+      <CardContent
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          p: 2,
+          pb: 1.5,
+        }}
+      >
         <Typography
           variant="h6"
           sx={{
@@ -176,7 +212,9 @@ export default function ProjectCard({
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <PersonIcon sx={{ fontSize: 16, color: "rgba(255, 255, 255, 0.4)" }} />
+            <PersonIcon
+              sx={{ fontSize: 16, color: "rgba(255, 255, 255, 0.4)" }}
+            />
             <Typography
               variant="caption"
               sx={{
@@ -195,20 +233,23 @@ export default function ProjectCard({
             }}
           >
             {project.updatedAt
-              ? new Date(project.updatedAt).toLocaleDateString() === new Date().toLocaleDateString()
+              ? new Date(project.updatedAt).toLocaleDateString() ===
+                new Date().toLocaleDateString()
                 ? "Today"
                 : new Date(project.updatedAt).toLocaleDateString() ===
                     new Date(Date.now() - 86400000).toLocaleDateString()
                   ? "Yesterday"
                   : `${Math.floor(
-                      (Date.now() - new Date(project.updatedAt).getTime()) / (1000 * 60 * 60)
+                      (Date.now() - new Date(project.updatedAt).getTime()) /
+                        (1000 * 60 * 60)
                     )} hours ago`
               : project.createdAt
                 ? new Date(project.createdAt).toLocaleDateString() ===
-                    new Date().toLocaleDateString()
+                  new Date().toLocaleDateString()
                   ? "Today"
                   : `${Math.floor(
-                      (Date.now() - new Date(project.createdAt).getTime()) / (1000 * 60 * 60)
+                      (Date.now() - new Date(project.createdAt).getTime()) /
+                        (1000 * 60 * 60)
                     )} hours ago`
                 : ""}
           </Typography>

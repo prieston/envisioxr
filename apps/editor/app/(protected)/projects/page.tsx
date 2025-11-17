@@ -33,7 +33,10 @@ import { useProjectForm } from "./hooks/useProjectForm";
 
 const ProjectsPage = () => {
   const router = useRouter();
-  const { projects, setProjects, loadingProjects } = useProjects();
+  const [searchQuery, setSearchQuery] = useState("");
+  const { projects, setProjects, loadingProjects } = useProjects({
+    search: searchQuery,
+  });
   const [selectedProjectId, setSelectedProjectId] = useState(null);
 
   const {
@@ -56,9 +59,10 @@ const ProjectsPage = () => {
     setSelectedProjectId(selectedProjectId === projectId ? null : projectId);
   };
 
-  const handleGoToBuilder = (projectId) => {
-    router.push(`/projects/${projectId}/builder`);
+  const handleGoToProject = (projectId) => {
+    router.push(`/projects/${projectId}`);
   };
+
 
   // --- Options Menu State ---
   const [anchorEl, setAnchorEl] = useState(null);
@@ -160,6 +164,8 @@ const ProjectsPage = () => {
                 placeholder="Search projects..."
                 size="small"
                 fullWidth
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 sx={(theme) => ({
                   maxWidth: "400px",
                   ...((typeof textFieldStyles === "function"
@@ -220,6 +226,39 @@ const ProjectsPage = () => {
             >
               <CircularProgress />
             </Box>
+          ) : projects.length === 0 ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: "400px",
+                color: "rgba(100, 116, 139, 0.6)",
+              }}
+            >
+              <Box sx={{ textAlign: "center" }}>
+                {searchQuery ? (
+                  <>
+                    <Box sx={{ fontSize: "0.875rem", mb: 1 }}>
+                      No projects found matching &quot;{searchQuery}&quot;
+                    </Box>
+                    <Box sx={{ fontSize: "0.75rem" }}>
+                      Try a different search term
+                    </Box>
+                  </>
+                ) : (
+                  <>
+                    <Box sx={{ fontSize: "0.875rem", mb: 1 }}>
+                      No projects yet.
+                    </Box>
+                    <Box sx={{ fontSize: "0.75rem" }}>
+                      Create your first project to get started!
+                    </Box>
+                  </>
+                )}
+              </Box>
+            </Box>
           ) : (
             <Box
               sx={{
@@ -232,7 +271,7 @@ const ProjectsPage = () => {
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  onGoToBuilder={() => handleGoToBuilder(project.id)}
+                  onGoToBuilder={() => handleGoToProject(project.id)}
                   onMenuOpen={(event) => handleMenuOpen(event, project.id)}
                   selected={selectedProjectId === project.id}
                   onSelect={() => handleProjectSelect(project.id)}

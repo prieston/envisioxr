@@ -147,6 +147,7 @@ export interface Project {
   sceneData: unknown;
   isPublished: boolean;
   publishedUrl: string | null;
+  thumbnail: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -179,11 +180,22 @@ export async function updateProject(
     title?: string;
     description?: string;
     engine?: "three" | "cesium";
+    thumbnail?: string | null;
   }
 ): Promise<{ project: Project }> {
   return apiRequest<{ project: Project }>(`/api/projects/${projectId}`, {
     method: "PUT",
     body: JSON.stringify(data),
+  });
+}
+
+export async function updateProjectThumbnail(
+  projectId: string,
+  thumbnailUrl: string | null
+): Promise<{ project: Project }> {
+  return apiRequest<{ project: Project }>(`/api/projects/${projectId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ thumbnail: thumbnailUrl }),
   });
 }
 
@@ -502,8 +514,8 @@ export const swrFetcher = <T>(url: string): Promise<T> => {
 /**
  * Fetcher for projects list
  */
-export const projectsFetcher = (): Promise<Project[]> => {
-  return apiRequest<{ projects: Project[] }>("/api/projects").then(
+export const projectsFetcher = (url: string): Promise<Project[]> => {
+  return apiRequest<{ projects: Project[] }>(url).then(
     (res) => res.projects
   );
 };

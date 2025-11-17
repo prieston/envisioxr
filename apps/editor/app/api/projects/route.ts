@@ -4,7 +4,10 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { NextRequest } from "next/server";
 import { Session } from "next-auth";
-import { getUserDefaultOrganization, getUserOrganizationIds } from "@/lib/organizations";
+import {
+  getUserDefaultOrganization,
+  getUserOrganizationIds,
+} from "@/lib/organizations";
 
 interface UserSession extends Session {
   user: {
@@ -80,7 +83,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = (await getServerSession(authOptions)) as UserSession;
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -88,19 +91,45 @@ export async function GET() {
   const userId = session.user.id;
 
   try {
+    // Get search query parameter
+    const { searchParams } = new URL(request.url);
+    const searchQuery = searchParams.get("search")?.trim() || "";
+
     // Get all organization IDs the user is a member of
     const userOrgIds = await getUserOrganizationIds(userId);
 
     // Debug logging (remove in production)
     console.log("[Projects API] User ID:", userId);
     console.log("[Projects API] User Org IDs:", userOrgIds);
+    console.log("[Projects API] Search query:", searchQuery);
+
+    // Build where clause
+    const whereClause: any = {
+      organizationId: {
+        in: userOrgIds,
+      },
+    };
+
+    // Add search filter if query is provided
+    if (searchQuery) {
+      whereClause.OR = [
+        {
+          title: {
+            contains: searchQuery,
+            mode: "insensitive",
+          },
+        },
+        {
+          description: {
+            contains: searchQuery,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
 
     const projects = await prisma.project.findMany({
-      where: {
-        organizationId: {
-          in: userOrgIds,
-        },
-      },
+      where: whereClause,
       orderBy: { createdAt: "desc" },
     });
 

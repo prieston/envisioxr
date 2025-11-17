@@ -17,7 +17,23 @@ import ModelPositioningManager from "./ModelPositioningManager";
 import { useSceneStore } from "@envisio/core";
 import { showToast } from "@envisio/ui";
 
-const AdminLayout = ({ children, onSave, onPublish }) => {
+interface AdminLayoutProps {
+  children: React.ReactNode;
+  onSave?: () => Promise<void>;
+  onPublish: () => void;
+  projectId?: string;
+  projectThumbnail?: string | null;
+  onThumbnailUpdate?: () => void;
+}
+
+const AdminLayout: React.FC<AdminLayoutProps> = ({
+  children,
+  onSave,
+  onPublish,
+  projectId,
+  projectThumbnail,
+  onThumbnailUpdate,
+}) => {
   const [selectingPosition, setSelectingPosition] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<
     [number, number, number] | null
@@ -157,6 +173,9 @@ const AdminLayout = ({ children, onSave, onPublish }) => {
           <RightPanel
             onSave={onSave}
             onPublish={onPublish}
+            projectId={projectId}
+            projectThumbnail={projectThumbnail}
+            onThumbnailUpdate={onThumbnailUpdate}
             selectingPosition={selectingPosition}
             setSelectingPosition={setSelectingPosition}
             selectedPosition={selectedPosition}

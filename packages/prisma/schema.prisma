@@ -111,6 +111,8 @@ model Project {
   isPublished    Boolean  @default(false)
   // publishedUrl could be generated based on the project ID or a slug.
   publishedUrl   String?
+  // thumbnail URL for the project preview image
+  thumbnail      String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

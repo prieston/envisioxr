@@ -147,6 +147,7 @@ export default function Scene({
       <Canvas
         shadows
         camera={{ position: [0, 5, 10], fov: 50 }}
+        gl={{ preserveDrawingBuffer: true }}
         onCreated={({ gl }) => {
           (gl as any).setClearColor?.("#000000");
         }}
