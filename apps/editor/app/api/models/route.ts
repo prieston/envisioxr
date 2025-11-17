@@ -293,7 +293,12 @@ export async function POST(request: NextRequest) {
       metadata: { assetName: name || originalFilename, assetType: "model" },
     });
 
-    return NextResponse.json({ asset });
+    // Convert BigInt fileSize to number for JSON serialization
+    const serializedAsset = {
+      ...asset,
+      fileSize: asset.fileSize ? Number(asset.fileSize) : null,
+    };
+    return NextResponse.json({ asset: serializedAsset });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
