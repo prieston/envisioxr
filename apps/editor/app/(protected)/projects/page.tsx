@@ -63,7 +63,6 @@ const ProjectsPage = () => {
     router.push(`/projects/${projectId}`);
   };
 
-
   // --- Options Menu State ---
   const [anchorEl, setAnchorEl] = useState(null);
   const [menuProjectId, setMenuProjectId] = useState(null);
