@@ -14,6 +14,8 @@ import {
   Avatar,
   Stack,
   IconButton,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import {
@@ -34,7 +36,7 @@ import {
   Delete,
 } from "@mui/icons-material";
 import useSWR from "swr";
-import { projectFetcher, getThumbnailUploadUrl, uploadToSignedUrl, updateProjectThumbnail } from "@/app/utils/api";
+import { projectFetcher, getThumbnailUploadUrl, uploadToSignedUrl, updateProjectThumbnail, updateProjectPublishSettings } from "@/app/utils/api";
 import { showToast } from "@envisio/ui";
 import {
   Page,
@@ -56,6 +58,7 @@ interface ProjectDetail {
   organizationId: string;
   sceneData: unknown;
   isPublished: boolean;
+  isPublic: boolean;
   publishedUrl: string | null;
   thumbnail: string | null;
   createdAt: Date | string;
@@ -63,6 +66,7 @@ interface ProjectDetail {
   organization?: {
     id: string;
     name: string;
+    isPersonal: boolean;
     members: Array<{
       id: string;
       role: string;
@@ -153,6 +157,51 @@ const ProjectDetailPage = () => {
         asset.fileType?.match(/\.(jpg|jpeg|png|gif|webp)$/i)
     );
     return imageAsset?.thumbnail || imageAsset?.fileUrl || null;
+  };
+
+  const handlePublishToggle = async (checked: boolean) => {
+    if (!project) return;
+    try {
+      await updateProjectPublishSettings(project.id, {
+        isPublished: checked,
+      });
+      mutate();
+      showToast(
+        checked ? "Project published successfully" : "Project unpublished successfully",
+        "success"
+      );
+    } catch (error) {
+      console.error("Error updating publish status:", error);
+      showToast(
+        error instanceof Error ? error.message : "Failed to update publish status",
+        "error"
+      );
+    }
+  };
+
+  const handlePublicToggle = async (checked: boolean) => {
+    if (!project) return;
+    // For personal organizations, this should not be changeable
+    if (project.organization?.isPersonal) {
+      showToast("Personal organizations always have public access", "info");
+      return;
+    }
+    try {
+      await updateProjectPublishSettings(project.id, {
+        isPublic: checked,
+      });
+      mutate();
+      showToast(
+        checked ? "Project is now publicly accessible" : "Project is now private",
+        "success"
+      );
+    } catch (error) {
+      console.error("Error updating public access:", error);
+      showToast(
+        error instanceof Error ? error.message : "Failed to update access setting",
+        "error"
+      );
+    }
   };
 
   const handleThumbnailUpload = async (file: File) => {
@@ -353,7 +402,7 @@ const ProjectDetailPage = () => {
           <Button
             variant="contained"
             startIcon={<OpenInNew />}
-            onClick={() => router.push(`/projects/${projectId}/builder`)}
+            onClick={() => window.open(`/projects/${projectId}/builder`, '_blank')}
             sx={(theme) => ({
               borderRadius: `${theme.shape.borderRadius}px`,
               textTransform: "none",
@@ -385,11 +434,17 @@ const ProjectDetailPage = () => {
             <Grid item xs={12} md={8}>
               {/* Project Thumbnail */}
               <Card
+                elevation={0}
                 sx={(_theme) => ({
                   mb: 3,
                   backgroundColor: "#161B20",
                   border: "1px solid rgba(255, 255, 255, 0.05)",
                   borderRadius: "4px",
+                  boxShadow: "none",
+                  "&.MuiPaper-root": {
+                    backgroundColor: "#161B20",
+                    boxShadow: "none",
+                  },
                 })}
               >
                 <Box
@@ -475,11 +530,17 @@ const ProjectDetailPage = () => {
 
               {/* Project Information */}
               <Card
+                elevation={0}
                 sx={(_theme) => ({
                   mb: 3,
                   backgroundColor: "#161B20",
                   border: "1px solid rgba(255, 255, 255, 0.05)",
                   borderRadius: "4px",
+                  boxShadow: "none",
+                  "&.MuiPaper-root": {
+                    backgroundColor: "#161B20",
+                    boxShadow: "none",
+                  },
                 })}
               >
                 <CardContent>
@@ -564,11 +625,17 @@ const ProjectDetailPage = () => {
 
               {/* Recent Activity */}
               <Card
+                elevation={0}
                 sx={(_theme) => ({
                   mb: 3,
                   backgroundColor: "#161B20",
                   border: "1px solid rgba(255, 255, 255, 0.05)",
                   borderRadius: "4px",
+                  boxShadow: "none",
+                  "&.MuiPaper-root": {
+                    backgroundColor: "#161B20",
+                    boxShadow: "none",
+                  },
                 })}
               >
                 <CardContent>
@@ -730,11 +797,17 @@ const ProjectDetailPage = () => {
 
               {/* Reports Placeholder */}
               <Card
+                elevation={0}
                 sx={(_theme) => ({
                   mb: 3,
                   backgroundColor: "#161B20",
                   border: "1px solid rgba(255, 255, 255, 0.05)",
                   borderRadius: "4px",
+                  boxShadow: "none",
+                  "&.MuiPaper-root": {
+                    backgroundColor: "#161B20",
+                    boxShadow: "none",
+                  },
                 })}
               >
                 <CardContent>
@@ -763,11 +836,17 @@ const ProjectDetailPage = () => {
             <Grid item xs={12} md={4}>
               {/* Publish Settings */}
               <Card
+                elevation={0}
                 sx={(_theme) => ({
                   mb: 3,
                   backgroundColor: "#161B20",
                   border: "1px solid rgba(255, 255, 255, 0.05)",
                   borderRadius: "4px",
+                  boxShadow: "none",
+                  "&.MuiPaper-root": {
+                    backgroundColor: "#161B20",
+                    boxShadow: "none",
+                  },
                 })}
               >
                 <CardContent>
@@ -777,37 +856,35 @@ const ProjectDetailPage = () => {
                   >
                     Publish Settings
                   </Typography>
-                  <Stack spacing={2}>
+                  <Stack spacing={3}>
                     <Box>
-                      <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                        {project.isPublished ? (
-                          <Public
-                            sx={{ fontSize: 18, mr: 1, color: "#10b981" }}
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={project.isPublished}
+                            onChange={(e) => handlePublishToggle(e.target.checked)}
+                            color="primary"
                           />
-                        ) : (
-                          <Lock
-                            sx={{ fontSize: 18, mr: 1, color: "rgba(255, 255, 255, 0.5)" }}
-                          />
-                        )}
-                        <Typography variant="body2" color="text.secondary">
-                          Status
-                        </Typography>
-                      </Box>
-                      <Chip
-                        label={project.isPublished ? "Published" : "Unpublished"}
-                        size="small"
-                        sx={{
-                          backgroundColor: project.isPublished
-                            ? "rgba(16, 185, 129, 0.15)"
-                            : "rgba(255, 255, 255, 0.05)",
-                          color: project.isPublished ? "#10b981" : "rgba(255, 255, 255, 0.6)",
-                          border: `1px solid ${
-                            project.isPublished
-                              ? "rgba(16, 185, 129, 0.4)"
-                              : "rgba(255, 255, 255, 0.1)"
-                          }`,
-                        }}
+                        }
+                        label={
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            {project.isPublished ? (
+                              <Public sx={{ fontSize: 18, color: "#10b981" }} />
+                            ) : (
+                              <Lock sx={{ fontSize: 18, color: "rgba(255, 255, 255, 0.5)" }} />
+                            )}
+                            <Typography variant="body2">
+                              {project.isPublished ? "Published" : "Unpublished"}
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{ m: 0 }}
                       />
+                      <Typography variant="caption" color="text.secondary" sx={{ ml: 4, mt: 0.5, display: "block" }}>
+                        {project.isPublished
+                          ? "Your project is live and accessible"
+                          : "Your project is not published"}
+                      </Typography>
                     </Box>
                     {project.isPublished && project.publishedUrl && (
                       <Box>
@@ -824,27 +901,57 @@ const ProjectDetailPage = () => {
                         </Button>
                       </Box>
                     )}
-                    <Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        Access
-                      </Typography>
-                      <Typography variant="body2">
-                        {project.isPublished
-                          ? "Public - Anyone can view"
-                          : "Private - Requires login"}
-                      </Typography>
-                    </Box>
+                    {project.isPublished && (
+                      <Box>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={project.isPublic}
+                              onChange={(e) => handlePublicToggle(e.target.checked)}
+                              disabled={project.organization?.isPersonal}
+                              color="primary"
+                            />
+                          }
+                          label={
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                              {project.isPublic ? (
+                                <Public sx={{ fontSize: 18, color: "#10b981" }} />
+                              ) : (
+                                <Lock sx={{ fontSize: 18, color: "rgba(255, 255, 255, 0.5)" }} />
+                              )}
+                              <Typography variant="body2">
+                                {project.isPublic ? "Public Access" : "Private Access"}
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ m: 0 }}
+                        />
+                        <Typography variant="caption" color="text.secondary" sx={{ ml: 4, mt: 0.5, display: "block" }}>
+                          {project.organization?.isPersonal
+                            ? "Personal organizations always have public access"
+                            : project.isPublic
+                            ? "Anyone can view this published world"
+                            : "Only organization members can view this published world"}
+                        </Typography>
+                      </Box>
+                    )}
                   </Stack>
                 </CardContent>
               </Card>
 
               {/* Team Members */}
               <Card
+                elevation={0}
                 sx={(_theme) => ({
                   mb: 3,
                   backgroundColor: "#161B20",
                   border: "1px solid rgba(255, 255, 255, 0.05)",
                   borderRadius: "4px",
+                  boxShadow: "none",
+                  "&.MuiPaper-root": {
+                    backgroundColor: "#161B20",
+                    boxShadow: "none",
+                  },
                 })}
               >
                 <CardContent>

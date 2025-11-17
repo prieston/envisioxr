@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Typography, Box } from "@mui/material";
+import { Typography, Box, Button } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { Lock } from "@mui/icons-material";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import { LoadingScreen } from "@envisio/ui";
 import useProject from "@/app/hooks/useProject";
+import { signIn } from "next-auth/react";
 // eslint-disable-next-line import/extensions
 import MobileLayout from "@/app/components/PublishPage/MobileLayout";
 // eslint-disable-next-line import/extensions
@@ -15,7 +17,7 @@ import DesktopLayout from "@/app/components/PublishPage/DesktopLayout";
 
 const PublishedScenePage = () => {
   const { projectId } = useParams();
-  const { project: fetchedProject, loadingProject } = useProject(projectId as string);
+  const { project: fetchedProject, loadingProject, error } = useProject(projectId as string);
   const [project, setProject] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const setActiveWorld = useWorldStore((s) => s.setActiveWorld);
@@ -49,8 +51,10 @@ const PublishedScenePage = () => {
   useEffect(() => {
     if (!fetchedProject) return;
 
+    // Check if project is published
     if (!fetchedProject.isPublished) {
-      throw new Error("Project not published");
+      // Project is not published, don't set it
+      return;
     }
     setProject(fetchedProject);
     setActiveWorld(fetchedProject);
@@ -165,18 +169,60 @@ const PublishedScenePage = () => {
     };
   }, [projectId, setObservationPoints, selectObservation, setActiveWorld]);
 
-  if (loadingProject || !project) {
+  if (loadingProject) {
     return <LoadingScreen message="Loading project..." />;
   }
 
-  if (!project) {
+  // Handle error cases
+  if (error || (!loadingProject && !fetchedProject)) {
+    const errorStatus = (error as { status?: number })?.status;
+    const errorMessage = error?.message || "Project not found";
+    const isAuthError = errorStatus === 403 || errorStatus === 401 ||
+      errorMessage.includes("authentication") || errorMessage.includes("requires authentication");
+
     return (
-      <Box sx={{ p: 5 }}>
-        <Typography variant="h6">
-          Project not found or not published.
+      <Box sx={{ p: 5, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+        <Typography variant="h6" color="error">
+          {isAuthError ? "Authentication Required" : "Project Not Available"}
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ textAlign: "center", maxWidth: 500 }}>
+          {isAuthError
+            ? "This published world requires you to be logged in. Please sign in to view it."
+            : "This project is not published or does not exist."}
+        </Typography>
+        {isAuthError && (
+          <Button
+            variant="contained"
+            onClick={() => signIn(undefined, { callbackUrl: `/publish/${projectId}` })}
+            sx={{ mt: 2 }}
+          >
+            Sign In
+          </Button>
+        )}
+      </Box>
+    );
+  }
+
+  // Check if project is published
+  if (!fetchedProject.isPublished) {
+    return (
+      <Box sx={{ p: 5, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, minHeight: "100vh", justifyContent: "center" }}>
+        <Lock sx={{ fontSize: 64, color: (theme) => theme.palette.text.secondary, mb: 2, opacity: 0.5 }} />
+        <Typography variant="h4" sx={{ fontWeight: 600, mb: 1, color: "text.primary" }}>
+          Content Unavailable
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ textAlign: "center", maxWidth: 600, mb: 3 }}>
+          This project has not been published or is currently unavailable. Please contact the project owner or administrator for access.
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", maxWidth: 600 }}>
+          If you believe this is an error, please verify the URL or reach out to support.
         </Typography>
       </Box>
     );
+  }
+
+  if (!project) {
+    return <LoadingScreen message="Loading project..." />;
   }
 
   const currentObservation = observationPoints[previewIndex];

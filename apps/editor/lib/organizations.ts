@@ -35,13 +35,14 @@ export async function getUserPersonalOrganization(userId: string) {
 
 /**
  * Get organization IDs where user has a specific role or higher
- * Roles hierarchy: owner > admin > member
+ * Roles hierarchy: owner > admin > member > publicViewer
  */
 export async function getUserOrganizationIds(
   userId: string,
   minRole: OrganizationRole = "member"
 ) {
   const roleHierarchy: Record<OrganizationRole, number> = {
+    publicViewer: -1,
     member: 0,
     admin: 1,
     owner: 2,
@@ -98,6 +99,7 @@ export async function hasUserRoleInOrganization(
   if (!member) return false;
 
   const roleHierarchy: Record<OrganizationRole, number> = {
+    publicViewer: -1,
     member: 0,
     admin: 1,
     owner: 2,
@@ -122,5 +124,44 @@ export async function getUserDefaultOrganization(userId: string) {
   });
 
   return member?.organization || null;
+}
+
+/**
+ * Check if a user can view a published project
+ * Returns true if:
+ * - Project is published AND (project is public OR user is a member/publicViewer of the organization)
+ * - For personal organizations, published projects are always public
+ */
+export async function canUserViewPublishedProject(
+  userId: string | null,
+  project: {
+    isPublished: boolean;
+    isPublic: boolean;
+    organizationId: string;
+    organization: { isPersonal: boolean };
+  }
+): Promise<boolean> {
+  // Project must be published
+  if (!project.isPublished) {
+    return false;
+  }
+
+  // For personal organizations, published projects are always public
+  if (project.organization.isPersonal) {
+    return true;
+  }
+
+  // If project is public, anyone can view it
+  if (project.isPublic) {
+    return true;
+  }
+
+  // If project is private, user must be authenticated and have access
+  if (!userId) {
+    return false;
+  }
+
+  // Check if user is a member or publicViewer of the organization
+  return isUserMemberOfOrganization(userId, project.organizationId);
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Grid } from "@mui/material";
+import { Grid, Box, Chip, alpha } from "@mui/material";
 import { MetricCard } from "@envisio/ui";
 import FolderIcon from "@mui/icons-material/Folder";
 import ThreeDRotationIcon from "@mui/icons-material/ThreeDRotation";
@@ -40,15 +40,37 @@ export const KeyMetrics: React.FC<KeyMetricsProps> = ({ metrics, loading }) => {
         />
       </Grid>
       <Grid item xs={6} sm={4} md={2.4}>
-        <MetricCard
-          label="Sensors"
-          value={loading ? "..." : metrics.sensors.toString()}
-          icon={<SensorsIcon sx={{ fontSize: 20 }} />}
-        />
+        <Box sx={{ position: "relative" }}>
+          <MetricCard
+            label="Sensors"
+            value={loading ? "..." : metrics.sensors.toString()}
+            icon={<SensorsIcon sx={{ fontSize: 20 }} />}
+          />
+          <Chip
+            label="Coming Soon"
+            size="small"
+            sx={{
+              position: "absolute",
+              top: 4,
+              right: 4,
+              height: "18px",
+              fontSize: "0.65rem",
+              fontWeight: 500,
+              backgroundColor: alpha("#6366f1", 0.15),
+              color: "#6366f1",
+              border: "1px solid",
+              borderColor: alpha("#6366f1", 0.4),
+              "& .MuiChip-label": {
+                px: 0.75,
+                py: 0,
+              },
+            }}
+          />
+        </Box>
       </Grid>
       <Grid item xs={6} sm={4} md={2.4}>
         <MetricCard
-          label="Tilesets"
+          label="Geospatial Assets"
           value={loading ? "..." : metrics.tilesets.toString()}
           icon={<MapIcon sx={{ fontSize: 20 }} />}
         />

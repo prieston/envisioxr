@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { NextRequest } from "next/server";
 import { Session } from "next-auth";
-import { isUserMemberOfOrganization } from "@/lib/organizations";
+import { isUserMemberOfOrganization, canUserViewPublishedProject } from "@/lib/organizations";
 
 interface UserSession extends Session {
   user: {
@@ -38,7 +38,11 @@ export async function GET(request: NextRequest, { params }: ProjectParams) {
       where: { id: projectId },
       include: {
         organization: {
-          include: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            isPersonal: true,
             members: {
               include: {
                 user: {
@@ -78,24 +82,40 @@ export async function GET(request: NextRequest, { params }: ProjectParams) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    // If the project is published, return it regardless of session.
-    if (project.isPublished) {
+    const userId = session?.user?.id || null;
+
+    // Check if user can view the published project
+    const canView = await canUserViewPublishedProject(userId, {
+      isPublished: project.isPublished,
+      isPublic: project.isPublic,
+      organizationId: project.organizationId,
+      organization: project.organization,
+    });
+
+    if (canView) {
       return NextResponse.json({ project });
     }
 
     // For unpublished projects, require a valid session and that the user is a member of the project's organization.
-    if (!session || !session.user || !session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const isMember = await isUserMemberOfOrganization(
-      session.user.id,
-      project.organizationId
-    );
-    if (!isMember) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!project.isPublished) {
+      if (!session || !session.user || !session.user.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const isMember = await isUserMemberOfOrganization(
+        session.user.id,
+        project.organizationId
+      );
+      if (!isMember) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      return NextResponse.json({ project });
     }
 
-    return NextResponse.json({ project });
+    // Project is published but user doesn't have access (private project, not authenticated or not a member)
+    return NextResponse.json(
+      { error: "This published world requires authentication" },
+      { status: 403 }
+    );
   } catch (error) {
     return NextResponse.json(
       {
@@ -271,32 +291,56 @@ export async function PATCH(request: NextRequest, { params }: ProjectParams) {
     }
 
     const body = await request.json();
-    // Handle publish action
-    if (body.publish) {
-      const updatedProject = await prisma.project.update({
-        where: { id: projectId },
-        data: {
-          isPublished: true,
-          // Optionally, generate a published URL here. For simplicity, we can use the project id.
-          publishedUrl: `/publish/${projectId}`,
-        },
-      });
-      return NextResponse.json({ project: updatedProject });
+
+    // Get the organization to check if it's personal
+    const organization = await prisma.organization.findUnique({
+      where: { id: project.organizationId },
+      select: { isPersonal: true },
+    });
+
+    const updateData: {
+      isPublished?: boolean;
+      isPublic?: boolean;
+      publishedUrl?: string;
+      thumbnail?: string | null;
+    } = {};
+
+    // Handle publish/unpublish toggle
+    if (body.isPublished !== undefined) {
+      updateData.isPublished = body.isPublished;
+      if (body.isPublished) {
+        updateData.publishedUrl = `/publish/${projectId}`;
+      } else {
+        updateData.publishedUrl = null;
+      }
     }
+
+    // Handle public/private access setting
+    // For personal organizations, isPublic is always true (cannot be changed)
+    if (body.isPublic !== undefined && organization && !organization.isPersonal) {
+      updateData.isPublic = body.isPublic;
+    } else if (organization && organization.isPersonal && body.isPublic === false) {
+      // If trying to set private on personal org, ignore it (always public)
+      updateData.isPublic = true;
+    }
+
     // Handle thumbnail update
     if (body.thumbnail !== undefined) {
-      const updatedProject = await prisma.project.update({
-        where: { id: projectId },
-        data: {
-          thumbnail: body.thumbnail,
-        },
-      });
-      return NextResponse.json({ project: updatedProject });
+      updateData.thumbnail = body.thumbnail;
     }
-    return NextResponse.json(
-      { error: "No valid action provided" },
-      { status: 400 }
-    );
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { error: "No valid action provided" },
+        { status: 400 }
+      );
+    }
+
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: updateData,
+    });
+    return NextResponse.json({ project: updatedProject });
   } catch (error) {
     console.error("PATCH /api/projects/[projectId] error:", error);
     return NextResponse.json(

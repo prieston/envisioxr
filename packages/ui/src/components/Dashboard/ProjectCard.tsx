@@ -11,6 +11,7 @@ import { alpha } from "@mui/material/styles";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import FolderIcon from "@mui/icons-material/Folder";
 import PersonIcon from "@mui/icons-material/Person";
+import { formatTimeAgo } from "../../utils/dateUtils";
 
 export interface ProjectCardProps {
   project: {
@@ -46,9 +47,9 @@ export default function ProjectCard({
   const chipStyles =
     project.engine === "cesium"
       ? {
-          backgroundColor: "rgba(99, 102, 241, 0.15)",
-          color: "#6366f1",
-          border: "1px solid rgba(99, 102, 241, 0.4)",
+          backgroundColor: "rgba(59, 130, 246, 0.15)",
+          color: "#3b82f6",
+          border: "1px solid rgba(59, 130, 246, 0.4)",
         }
       : {
           backgroundColor: "rgba(245, 158, 11, 0.15)",
@@ -233,24 +234,9 @@ export default function ProjectCard({
             }}
           >
             {project.updatedAt
-              ? new Date(project.updatedAt).toLocaleDateString() ===
-                new Date().toLocaleDateString()
-                ? "Today"
-                : new Date(project.updatedAt).toLocaleDateString() ===
-                    new Date(Date.now() - 86400000).toLocaleDateString()
-                  ? "Yesterday"
-                  : `${Math.floor(
-                      (Date.now() - new Date(project.updatedAt).getTime()) /
-                        (1000 * 60 * 60)
-                    )} hours ago`
+              ? formatTimeAgo(project.updatedAt)
               : project.createdAt
-                ? new Date(project.createdAt).toLocaleDateString() ===
-                  new Date().toLocaleDateString()
-                  ? "Today"
-                  : `${Math.floor(
-                      (Date.now() - new Date(project.createdAt).getTime()) /
-                        (1000 * 60 * 60)
-                    )} hours ago`
+                ? formatTimeAgo(project.createdAt)
                 : ""}
           </Typography>
         </Box>

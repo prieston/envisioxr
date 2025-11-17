@@ -7,6 +7,7 @@ import {
   PageHeader,
   PageDescription,
   PageContent,
+  formatTimeAgo,
 } from "@envisio/ui";
 import {
   AnimatedBackground,
@@ -35,22 +36,6 @@ interface DashboardMetrics {
   storageUsed: string;
 }
 
-// Simple time formatting function
-const formatTimeAgo = (date: Date): string => {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffSecs < 60) return "just now";
-  if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-  return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? "s" : ""} ago`;
-};
-
 const DashboardPage = () => {
   const { projects, loadingProjects } = useProjects();
   const { models, loadingModels } = useModels({ assetType: "model" });
@@ -69,21 +54,6 @@ const DashboardPage = () => {
 
   useEffect(() => {
     if (!loadingProjects && !loadingModels && !loadingTilesets) {
-      // Count sensors from observation models in all projects
-      let sensorCount = 0;
-      projects.forEach((project) => {
-        if (project.sceneData && typeof project.sceneData === "object") {
-          const sceneData = project.sceneData as {
-            objects?: Array<{ isObservationModel?: boolean }>;
-          };
-          if (Array.isArray(sceneData.objects)) {
-            sensorCount += sceneData.objects.filter(
-              (obj) => obj.isObservationModel === true
-            ).length;
-          }
-        }
-      });
-
       // Calculate storage from assets
       let totalBytes = 0;
       [...models, ...tilesets].forEach((asset) => {
@@ -122,7 +92,7 @@ const DashboardPage = () => {
       setMetrics({
         projects: projects.length,
         models: models.length,
-        sensors: sensorCount,
+        sensors: 0, // Always 0 - coming soon
         tilesets: tilesets.length,
         storageUsed,
       });

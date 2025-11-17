@@ -14,6 +14,7 @@ import { alpha as muiAlpha } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import AddIcon from "@mui/icons-material/Add";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Page,
   PageHeader,
@@ -35,6 +36,8 @@ import { AddIonAssetDrawer } from "./components/AddIonAssetDrawer";
 import useModels from "@/app/hooks/useModels";
 
 const LibraryGeospatialPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     models: fetchedAssets,
     loadingModels,
@@ -54,6 +57,15 @@ const LibraryGeospatialPage = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [uploadToIonDrawerOpen, setUploadToIonDrawerOpen] = useState(false);
   const [addIonAssetDrawerOpen, setAddIonAssetDrawerOpen] = useState(false);
+
+  // Check for upload query param and open drawer
+  useEffect(() => {
+    if (searchParams.get("upload") === "true" && !uploadToIonDrawerOpen) {
+      setUploadToIonDrawerOpen(true);
+      // Remove the query param from URL
+      router.replace("/library/geospatial");
+    }
+  }, [searchParams, uploadToIonDrawerOpen, router]);
 
   // Memoize mapped assets to prevent unnecessary re-renders
   const mappedAssets = useMemo(() => {

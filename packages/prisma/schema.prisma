@@ -82,6 +82,7 @@ enum OrganizationRole {
   owner
   admin
   member
+  publicViewer
 }
 
 model OrganizationMember {
@@ -107,8 +108,11 @@ model Project {
   // sceneData stores your scene's configuration in JSON format.
   sceneData      Json
   engine         Engine   @default(three)
-  // isPublished indicates whether the project is public.
+  // isPublished indicates whether the project is published (can be toggled on/off).
   isPublished    Boolean  @default(false)
+  // isPublic indicates whether the published project requires authentication (false) or is publicly accessible (true).
+  // For personal organizations, this is always true (cannot be changed).
+  isPublic       Boolean  @default(true)
   // publishedUrl could be generated based on the project ID or a slug.
   publishedUrl   String?
   // thumbnail URL for the project preview image

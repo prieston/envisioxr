@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { alpha as muiAlpha } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Page,
   PageHeader,
@@ -37,6 +38,8 @@ import { deleteModel, updateModelMetadata } from "@/app/utils/api";
 import useModels from "@/app/hooks/useModels";
 
 const LibraryModelsPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     models: fetchedModels,
     loadingModels,
@@ -56,6 +59,15 @@ const LibraryModelsPage = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [retakePhotoOpen, setRetakePhotoOpen] = useState(false);
   const [uploadDrawerOpen, setUploadDrawerOpen] = useState(false);
+
+  // Check for upload query param and open drawer
+  useEffect(() => {
+    if (searchParams.get("upload") === "true" && !uploadDrawerOpen) {
+      setUploadDrawerOpen(true);
+      // Remove the query param from URL
+      router.replace("/library/models");
+    }
+  }, [searchParams, uploadDrawerOpen, router]);
 
   // Memoize mapped models to prevent unnecessary re-renders
   const mappedModels = useMemo(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import useProjects from "@/app/hooks/useProjects";
 import { deleteProject } from "@/app/utils/api";
 import {
@@ -33,6 +33,7 @@ import { useProjectForm } from "./hooks/useProjectForm";
 
 const ProjectsPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const { projects, setProjects, loadingProjects } = useProjects({
     search: searchQuery,
@@ -54,6 +55,15 @@ const ProjectsPage = () => {
     handleCloseDrawer,
     handleSaveProject,
   } = useProjectForm({ projects, setProjects });
+
+  // Check for create query param and open drawer
+  useEffect(() => {
+    if (searchParams.get("create") === "true" && !drawerOpen) {
+      handleCreateProject();
+      // Remove the query param from URL
+      router.replace("/projects");
+    }
+  }, [searchParams, drawerOpen, handleCreateProject, router]);
 
   const handleProjectSelect = (projectId) => {
     setSelectedProjectId(selectedProjectId === projectId ? null : projectId);

@@ -146,6 +146,7 @@ export interface Project {
   organizationId: string;
   sceneData: unknown;
   isPublished: boolean;
+  isPublic: boolean;
   publishedUrl: string | null;
   thumbnail: string | null;
   createdAt: Date;
@@ -214,7 +215,20 @@ export async function publishProject(
 ): Promise<{ project: Project }> {
   return apiRequest<{ project: Project }>(`/api/projects/${projectId}`, {
     method: "PATCH",
-    body: JSON.stringify({ publish: true }),
+    body: JSON.stringify({ isPublished: true }),
+  });
+}
+
+export async function updateProjectPublishSettings(
+  projectId: string,
+  settings: {
+    isPublished?: boolean;
+    isPublic?: boolean;
+  }
+): Promise<{ project: Project }> {
+  return apiRequest<{ project: Project }>(`/api/projects/${projectId}`, {
+    method: "PATCH",
+    body: JSON.stringify(settings),
   });
 }
 

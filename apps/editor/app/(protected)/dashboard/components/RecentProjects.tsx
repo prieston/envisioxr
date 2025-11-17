@@ -1,16 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Box, Grid, Typography, Button, CircularProgress } from "@mui/material";
 import Link from "next/link";
-import { PageCard } from "@envisio/ui";
-import FolderIcon from "@mui/icons-material/Folder";
+import { useRouter } from "next/navigation";
+import { PageCard, DashboardProjectCard, DashboardOptionsMenu } from "@envisio/ui";
 import AddIcon from "@mui/icons-material/Add";
 
 interface Project {
   id: string;
   title: string;
+  description?: string | null;
+  engine?: string;
+  thumbnail?: string | null;
   createdAt: string | Date;
+  updatedAt?: string | Date;
 }
 
 interface RecentProjectsProps {
@@ -22,6 +26,22 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({
   projects,
   loading,
 }) => {
+  const router = useRouter();
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const openMenu = Boolean(anchorEl);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, _projectId: string) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleGoToProject = (projectId: string) => {
+    router.push(`/projects/${projectId}`);
+  };
+
   return (
     <Box sx={{ mb: 3 }}>
       <PageCard>
@@ -72,57 +92,31 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({
           <Grid container spacing={2}>
             {projects.slice(0, 4).map((project) => (
               <Grid item xs={6} key={project.id}>
-                <Box
-                  component={Link}
-                  href={`/projects/${project.id}/builder`}
-                  sx={{
-                    display: "block",
-                    p: 2,
-                    borderRadius: "4px",
-                    backgroundColor: "rgba(255, 255, 255, 0.02)",
-                    border: "1px solid rgba(255, 255, 255, 0.05)",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      borderColor: "rgba(255, 255, 255, 0.1)",
-                    },
-                    textDecoration: "none",
-                    color: "inherit",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: "100%",
-                      height: "120px",
-                      borderRadius: "4px",
-                      backgroundColor: "rgba(107, 156, 216, 0.1)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      mb: 1.5,
-                    }}
-                  >
-                    <FolderIcon sx={{ fontSize: 48, color: "#6B9CD8" }} />
-                  </Box>
-                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5 }}>
-                    {project.title}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: "rgba(255, 255, 255, 0.5)",
-                      fontSize: "0.75rem",
-                    }}
-                  >
-                    {new Date(project.createdAt).toLocaleDateString()}
-                  </Typography>
-                </Box>
+                <DashboardProjectCard
+                  project={project}
+                  onGoToBuilder={() => handleGoToProject(project.id)}
+                  onMenuOpen={(event) => handleMenuOpen(event, project.id)}
+                />
               </Grid>
             ))}
           </Grid>
         )}
       </PageCard>
+
+      {/* Options Menu */}
+      <DashboardOptionsMenu
+        anchorEl={anchorEl}
+        open={openMenu}
+        onClose={handleMenuClose}
+        onEdit={() => {
+          // Navigate to edit if needed
+          handleMenuClose();
+        }}
+        onDelete={() => {
+          // Handle delete if needed
+          handleMenuClose();
+        }}
+      />
     </Box>
   );
 };
