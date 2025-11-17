@@ -324,7 +324,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
             variant="outlined"
             startIcon={<AddCircleOutline />}
             onClick={onAddToScene}
-            disabled={isCesiumIonAsset && !isTilingComplete}
+            disabled={Boolean(isCesiumIonAsset && !isTilingComplete)}
             sx={(theme) => ({
               borderRadius: "4px",
               textTransform: "none",
