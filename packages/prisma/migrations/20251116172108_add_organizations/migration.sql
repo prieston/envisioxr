@@ -122,6 +122,19 @@ ALTER TABLE "Asset" ALTER COLUMN "organizationId" SET NOT NULL;
 ALTER TABLE "Project" ADD CONSTRAINT "Project_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "Asset" ADD CONSTRAINT "Asset_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- Step 4b: Add Activity foreign key constraint if Activity table exists and constraint doesn't exist
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'Activity') THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.table_constraints
+            WHERE constraint_name = 'Activity_organizationId_fkey'
+        ) THEN
+            ALTER TABLE "Activity" ADD CONSTRAINT "Activity_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+    END IF;
+END $$;
+
 -- Step 5: Drop old userId columns and foreign keys
 ALTER TABLE "Project" DROP CONSTRAINT IF EXISTS "Project_userId_fkey";
 ALTER TABLE "Project" DROP COLUMN "userId";
