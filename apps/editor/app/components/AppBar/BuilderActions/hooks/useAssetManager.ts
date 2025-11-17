@@ -199,11 +199,12 @@ export const useAssetManager = ({
       });
 
       // Also add to objects array so it appears in scene objects list
+      // Use model.id (database asset ID) for assetId so metadata can be fetched correctly
       addModel({
         name: model.name || model.originalFilename,
         type: "cesium-ion-tileset",
         apiKey: (model as any).cesiumApiKey,
-        assetId: (model as any).cesiumAssetId,
+        assetId: model.id, // Use database asset ID for metadata fetching, not Cesium Ion asset ID
         position: [0, 0, 0], // Placeholder, actual position handled by Cesium
         scale: [1, 1, 1],
         rotation: [0, 0, 0],

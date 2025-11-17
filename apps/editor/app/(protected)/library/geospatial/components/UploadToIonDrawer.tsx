@@ -12,7 +12,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { UploadToIonTab } from "@envisio/ui";
 import { showToast } from "@envisio/ui";
 import { useCesiumIonUpload } from "@envisio/engine-cesium";
-import { createIonAsset, completeIonUpload, createCesiumIonAsset } from "@/app/utils/api";
+import { createIonAsset, completeIonUpload, createCesiumIonAsset, updateModelMetadata } from "@/app/utils/api";
 
 interface UploadToIonDrawerProps {
   open: boolean;
@@ -149,32 +149,60 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
 
       showToast(`Successfully uploaded to Cesium Ion! Asset ID: ${inferredId}`);
 
-      // Poll for tiling status and save to library when complete
+      // Save to database immediately with IN_PROGRESS status
+      // This allows the asset to appear in the library right away
+      const { asset: newAsset } = await createCesiumIonAsset({
+        assetType: "cesiumIonAsset",
+        cesiumAssetId: String(inferredId),
+        cesiumApiKey: accessToken,
+        name: name || `Ion Asset ${inferredId}`,
+        description: description || "",
+        metadata: {
+          ionAssetId: String(inferredId),
+          tilingStatus: "IN_PROGRESS",
+          tilingProgress: 0,
+        },
+      });
+
+      showToast("Ion asset added to your library! Tiling in progress...");
+      onSuccess();
+
+      // Start background polling to update tiling status
+      // Don't await - let it run in the background
       pollAssetStatus(Number(inferredId), accessToken, (_status, _percent) => {
-        // Tiling progress update
+        // Tiling progress update - could update asset metadata here if needed
       })
         .then(async (assetInfo) => {
-          // Save to database
-          await createCesiumIonAsset({
-            assetType: "cesiumIonAsset",
-            cesiumAssetId: String(inferredId),
-            cesiumApiKey: accessToken,
-            name: assetInfo.name || `Ion Asset ${inferredId}`,
-            description: assetInfo.description || "",
-            metadata: {
-              ionAssetId: String(inferredId),
-              type: assetInfo.type,
-              status: assetInfo.status,
-              bytes: assetInfo.bytes,
-            },
-          });
-
-          showToast("Ion asset added to your library!");
-          onSuccess();
+          // Update asset metadata when tiling completes
+          try {
+            await updateModelMetadata(newAsset.id, {
+              metadata: {
+                ionAssetId: String(inferredId),
+                tilingStatus: "COMPLETE",
+                tilingProgress: 100,
+                type: assetInfo.type,
+                status: assetInfo.status,
+                bytes: assetInfo.bytes,
+              },
+            });
+          } catch (err) {
+            console.error("Failed to update tiling status:", err);
+          }
         })
-        .catch((err) => {
-          console.error("Polling or saving error:", err);
-          showToast(`Tiling status check failed: ${err.message}`);
+        .catch(async (err) => {
+          console.error("Polling error:", err);
+          // Update status to ERROR
+          try {
+            await updateModelMetadata(newAsset.id, {
+              metadata: {
+                ionAssetId: String(inferredId),
+                tilingStatus: "ERROR",
+                error: err.message,
+              },
+            });
+          } catch (updateErr) {
+            console.error("Failed to update error status:", updateErr);
+          }
         });
 
       return { assetId: String(inferredId) };

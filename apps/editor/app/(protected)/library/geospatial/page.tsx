@@ -31,9 +31,16 @@ import {
 import type { LibraryAsset, MetadataRow } from "@envisio/ui";
 import { AssetCard, AssetDetailView, DeleteConfirmDialog } from "@envisio/ui";
 import { UploadToIonDrawer } from "./components/UploadToIonDrawer";
-import { deleteModel, updateModelMetadata } from "@/app/utils/api";
+import {
+  deleteModel,
+  updateModelMetadata,
+  getThumbnailUploadUrl,
+  uploadToSignedUrl,
+} from "@/app/utils/api";
 import { AddIonAssetDrawer } from "./components/AddIonAssetDrawer";
 import useModels from "@/app/hooks/useModels";
+import { useTilingStatusPolling } from "@/app/hooks/useTilingStatusPolling";
+import CesiumPreviewDialog from "./components/CesiumPreviewDialog";
 
 const LibraryGeospatialPage = () => {
   const router = useRouter();
@@ -46,6 +53,9 @@ const LibraryGeospatialPage = () => {
   } = useModels({
     assetType: "cesiumIonAsset",
   });
+
+  // Poll for tiling status updates for assets that are IN_PROGRESS
+  useTilingStatusPolling();
   const [assets, setAssets] = useState<LibraryAsset[]>([]);
   const loading = loadingModels;
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,6 +67,7 @@ const LibraryGeospatialPage = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [uploadToIonDrawerOpen, setUploadToIonDrawerOpen] = useState(false);
   const [addIonAssetDrawerOpen, setAddIonAssetDrawerOpen] = useState(false);
+  const [retakePhotoOpen, setRetakePhotoOpen] = useState(false);
 
   // Check for upload query param and open drawer
   useEffect(() => {
@@ -117,7 +128,8 @@ const LibraryGeospatialPage = () => {
     const hasChanged =
       updatedAsset.name !== selectedAsset.name ||
       updatedAsset.description !== selectedAsset.description ||
-      JSON.stringify(updatedAsset.metadata) !== JSON.stringify(selectedAsset.metadata) ||
+      JSON.stringify(updatedAsset.metadata) !==
+        JSON.stringify(selectedAsset.metadata) ||
       updatedAsset.thumbnail !== selectedAsset.thumbnail ||
       updatedAsset.fileUrl !== selectedAsset.fileUrl ||
       updatedAsset.cesiumAssetId !== selectedAsset.cesiumAssetId ||
@@ -130,7 +142,8 @@ const LibraryGeospatialPage = () => {
       prevAsset.id === updatedAsset.id &&
       prevAsset.name === updatedAsset.name &&
       prevAsset.description === updatedAsset.description &&
-      JSON.stringify(prevAsset.metadata) === JSON.stringify(updatedAsset.metadata);
+      JSON.stringify(prevAsset.metadata) ===
+        JSON.stringify(updatedAsset.metadata);
 
     if (hasChanged && !isSameUpdate) {
       prevSelectedAssetRef.current = updatedAsset;
@@ -141,7 +154,10 @@ const LibraryGeospatialPage = () => {
       const newName = updatedAsset.name || updatedAsset.originalFilename || "";
       const newDescription = updatedAsset.description || "";
       const newMetadata: MetadataRow[] = updatedAsset.metadata
-        ? Object.entries(updatedAsset.metadata).map(([label, value]) => ({ label, value }))
+        ? Object.entries(updatedAsset.metadata).map(([label, value]) => ({
+            label,
+            value,
+          }))
         : [];
 
       // Only update if values actually changed
@@ -269,6 +285,56 @@ const LibraryGeospatialPage = () => {
   const handleAddSuccess = () => {
     mutate();
     setAddIonAssetDrawerOpen(false);
+  };
+
+  // Handle retake photo
+  const handleRetakePhoto = () => {
+    setRetakePhotoOpen(true);
+  };
+
+  // Handle capture screenshot
+  const handleCaptureScreenshot = async (screenshot: string) => {
+    if (!selectedAsset) return;
+
+    try {
+      // Convert data URL to blob
+      const response = await fetch(screenshot);
+      const blob = await response.blob();
+
+      const thumbnailFileName = `${selectedAsset.name || selectedAsset.originalFilename || "thumbnail"}-thumbnail.png`;
+
+      // Get presigned URL for thumbnail
+      const { signedUrl: thumbSignedUrl, acl: thumbAcl } =
+        await getThumbnailUploadUrl({
+          fileName: thumbnailFileName,
+          fileType: "image/png",
+        });
+
+      // Upload thumbnail directly to S3
+      await uploadToSignedUrl(thumbSignedUrl, blob, {
+        contentType: "image/png",
+        acl: thumbAcl,
+      });
+
+      // Extract thumbnail URL from signed URL (remove query parameters)
+      const thumbnailUrl = thumbSignedUrl.split("?")[0];
+
+      // Update asset metadata with thumbnail URL
+      await updateModelMetadata(selectedAsset.id, {
+        thumbnail: thumbnailUrl,
+      });
+
+      showToast("Thumbnail updated successfully", "success");
+      mutate(); // Refresh assets
+    } catch (error) {
+      console.error("Error capturing screenshot:", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "An error occurred while updating thumbnail",
+        "error"
+      );
+    }
   };
 
   return (
@@ -433,7 +499,9 @@ const LibraryGeospatialPage = () => {
                 Error loading geospatial assets
               </Box>
               <Box sx={{ fontSize: "0.75rem", color: "text.secondary" }}>
-                {assetsError instanceof Error ? assetsError.message : "Unknown error"}
+                {assetsError instanceof Error
+                  ? assetsError.message
+                  : "Unknown error"}
               </Box>
               <Button
                 variant="outlined"
@@ -561,9 +629,7 @@ const LibraryGeospatialPage = () => {
                     onAddToScene={() => {
                       // Not needed in geospatial page, but required by component
                     }}
-                    onRetakePhoto={() => {
-                      // Not applicable for Cesium Ion assets
-                    }}
+                    onRetakePhoto={handleRetakePhoto}
                     canUpdate={true}
                     showAddToScene={false}
                   />
@@ -614,6 +680,22 @@ const LibraryGeospatialPage = () => {
         onClose={() => setAddIonAssetDrawerOpen(false)}
         onSuccess={handleAddSuccess}
       />
+
+      {/* Cesium Preview Dialog for Retaking Photo */}
+      {selectedAsset &&
+        selectedAsset.cesiumAssetId &&
+        selectedAsset.cesiumApiKey && (
+          <CesiumPreviewDialog
+            open={retakePhotoOpen}
+            onClose={() => setRetakePhotoOpen(false)}
+            cesiumAssetId={selectedAsset.cesiumAssetId}
+            cesiumApiKey={selectedAsset.cesiumApiKey}
+            assetName={
+              selectedAsset.name || selectedAsset.originalFilename || "Asset"
+            }
+            onCapture={handleCaptureScreenshot}
+          />
+        )}
     </>
   );
 };

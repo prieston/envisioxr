@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, Button, IconButton, TextField } from "@mui/material";
+import { Box, Typography, Button, IconButton, TextField, LinearProgress, Alert } from "@mui/material";
 import { Delete, Edit, Save, Close, AddCircleOutline, CameraAlt } from "@mui/icons-material";
 import { MetadataTable, type MetadataRow } from "../../../table";
 import type { LibraryAsset } from "../MyLibraryTab";
@@ -42,6 +42,15 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
   canUpdate = true,
   showAddToScene = true,
 }) => {
+  // Check tiling status for Cesium Ion assets
+  const metadata = asset.metadata as Record<string, any> | undefined;
+  const tilingStatus = metadata?.tilingStatus as string | undefined;
+  const tilingProgress = metadata?.tilingProgress as number | undefined;
+  const isCesiumIonAsset = asset.assetType === "cesiumIonAsset" || asset.cesiumAssetId;
+  const isTilingComplete = tilingStatus === "COMPLETE";
+  const isTilingInProgress = tilingStatus === "IN_PROGRESS";
+  const isTilingError = tilingStatus === "ERROR";
+
   return (
     <>
       <Box
@@ -270,6 +279,35 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
         </Box>
       </Box>
 
+      {/* Tiling Status Banner */}
+      {isCesiumIonAsset && isTilingInProgress && (
+        <Box sx={{ px: 2, pb: 1 }}>
+          <Alert severity="info" sx={{ fontSize: "0.75rem", py: 0.5 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Typography variant="caption">
+                Tiling in progress... This may take a few minutes.
+              </Typography>
+              <LinearProgress
+                variant="determinate"
+                value={tilingProgress || 0}
+                sx={{ height: 6, borderRadius: 1 }}
+              />
+              <Typography variant="caption" sx={{ textAlign: "right" }}>
+                {tilingProgress || 0}%
+              </Typography>
+            </Box>
+          </Alert>
+        </Box>
+      )}
+
+      {isCesiumIonAsset && isTilingError && (
+        <Box sx={{ px: 2, pb: 1 }}>
+          <Alert severity="error" sx={{ fontSize: "0.75rem" }}>
+            Tiling failed. Please try uploading again.
+          </Alert>
+        </Box>
+      )}
+
       {/* Fixed Action Bar */}
       <Box
         sx={{
@@ -286,6 +324,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
             variant="outlined"
             startIcon={<AddCircleOutline />}
             onClick={onAddToScene}
+            disabled={isCesiumIonAsset && !isTilingComplete}
             sx={(theme) => ({
               borderRadius: "4px",
               textTransform: "none",
@@ -306,9 +345,15 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
                     : "rgba(95, 136, 199, 0.08)",
                 boxShadow: "none",
               },
+              "&:disabled": {
+                borderColor: "rgba(100, 116, 139, 0.2)",
+                color: "rgba(100, 116, 139, 0.5)",
+              },
             })}
           >
-            Add to Scene
+            {isCesiumIonAsset && !isTilingComplete
+              ? "Tiling in progress..."
+              : "Add to Scene"}
           </Button>
         )}
 
