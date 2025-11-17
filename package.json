@@ -68,7 +68,7 @@
     "audit:performance": "pnpm audit:renderloop && pnpm audit:webgl && pnpm audit:tiles && pnpm audit:viewer && pnpm audit:hydration && pnpm audit:lists && pnpm audit:network && pnpm audit:cpu && pnpm audit:textures && pnpm audit:rsc",
     "prisma:generate": "pnpm --filter @envisioxr/prisma generate",
     "prisma:migrate:deploy": "cd packages/prisma && prisma migrate deploy",
-    "vercel:build:editor": "pnpm prisma:generate && pnpm clean && pnpm build:packages && cd apps/editor && pnpm build",
+    "vercel:build:editor": "pnpm prisma:generate && pnpm prisma:migrate:deploy && pnpm clean && pnpm build:packages && cd apps/editor && pnpm build",
     "check:tarball": "pnpm -r --filter ./packages... exec bash -lc 'pnpm pack --pack-destination /tmp && tar -tf /tmp/*.tgz | (grep -E \"(^package/dist/|^package/package.json$)\" && ! grep -E \"package/src/\")'",
     "vercel:build:website": "pnpm build:website",
     "postinstall": "pnpm prisma:generate",
