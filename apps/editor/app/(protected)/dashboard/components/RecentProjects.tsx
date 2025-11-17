@@ -30,8 +30,8 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const openMenu = Boolean(anchorEl);
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, _projectId: string) => {
-    setAnchorEl(event.currentTarget);
+  const handleMenuOpen = (event: React.MouseEvent<Element>, _projectId: string) => {
+    setAnchorEl(event.currentTarget as HTMLElement);
   };
 
   const handleMenuClose = () => {
