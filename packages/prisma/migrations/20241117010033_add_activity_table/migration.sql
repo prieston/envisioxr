@@ -35,8 +35,14 @@ CREATE INDEX "Activity_entityType_entityId_createdAt_idx" ON "Activity"("entityT
 -- CreateIndex
 CREATE INDEX "Activity_actorId_createdAt_idx" ON "Activity"("actorId", "createdAt");
 
--- AddForeignKey
-ALTER TABLE "Activity" ADD CONSTRAINT "Activity_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- AddForeignKey: Only add if Organization table exists (it will be created in a later migration)
+-- This foreign key will be added in migration 20251116172108_add_organizations after Organization table is created
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'Organization') THEN
+        ALTER TABLE "Activity" ADD CONSTRAINT "Activity_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- AddForeignKey
 ALTER TABLE "Activity" ADD CONSTRAINT "Activity_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;
