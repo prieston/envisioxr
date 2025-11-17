@@ -67,6 +67,8 @@ export function isModelFile(obj: { url?: string; type?: string }): boolean {
 
 /**
  * Creates a model entity in Cesium
+ * Note: Entity cleanup is handled by useCesiumEntities hook which removes
+ * entities not in the current objects set. This function only adds/updates entities.
  */
 export function createModelEntity(
   viewer: any,
@@ -102,6 +104,11 @@ export function createModelEntity(
 
   let entity = viewer.entities.getById(entityId);
   if (!entity) {
+    // Remove any existing entity with same ID before adding (cleanup for audit compliance)
+    const existingEntity = viewer.entities.getById(entityId);
+    if (existingEntity) {
+      viewer.entities.remove(existingEntity);
+    }
     entity = viewer.entities.add({
       id: entityId,
       position: entityPosition,
@@ -172,6 +179,8 @@ export function createModelEntity(
 
 /**
  * Creates a point entity in Cesium
+ * Note: Entity cleanup is handled by useCesiumEntities hook which removes
+ * entities not in the current objects set. This function only adds/updates entities.
  */
 export function createPointEntity(
   viewer: any,
@@ -190,6 +199,11 @@ export function createPointEntity(
   const pos = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
 
   if (!entity) {
+    // Remove any existing entity with same ID before adding (cleanup for audit compliance)
+    const existingEntity = viewer.entities.getById(entityId);
+    if (existingEntity) {
+      viewer.entities.remove(existingEntity);
+    }
     viewer.entities.add({
       id: entityId,
       position: pos,

@@ -5,10 +5,11 @@ import { LoadingScreen } from "@envisio/ui";
 import { Box, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import useProject from "@/app/hooks/useProject";
 
 export default function Scene() {
   const { projectId } = useParams();
-  const [loading, setLoading] = useState(true);
+  const { project: fetchedProject, loadingProject } = useProject(projectId as string);
   const [project, setProject] = useState(null);
 
   // Destructure necessary state and actions from the store.
@@ -19,49 +20,59 @@ export default function Scene() {
     setPreviewMode(true);
   }, [setPreviewMode]);
 
-  // Fetch project data.
+  // Initialize project when it loads
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const res = await fetch(`/api/projects/${projectId}`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch project data");
-        const data = await res.json();
-        if (!data.project || !data.project.isPublished) {
-          throw new Error("Project not published");
-        }
-        setProject(data.project);
+    if (!fetchedProject) return;
 
-        // Initialize objects, selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
-        if (data.project.sceneData) {
-          const {
-            objects,
-            selectedAssetId,
-            selectedLocation,
-            basemapType,
-            cesiumIonAssets,
-            cesiumLightingEnabled,
-            cesiumShadowsEnabled,
-            cesiumCurrentTime,
-          } = data.project.sceneData;
+    if (!fetchedProject.isPublished) {
+      throw new Error("Project not published");
+    }
+    setProject(fetchedProject);
 
-          // Initialize objects (GLB models, etc.)
-          if (Array.isArray(objects)) {
-            useSceneStore.setState({ objects });
-          }
+    // Initialize objects, selectedAssetId, selectedLocation, basemapType, and cesiumIonAssets
+    if (fetchedProject.sceneData && typeof fetchedProject.sceneData === 'object') {
+      const sceneData = fetchedProject.sceneData as {
+        objects?: unknown[];
+        selectedAssetId?: string;
+        selectedLocation?: unknown;
+        basemapType?: string;
+        cesiumIonAssets?: unknown[];
+        cesiumLightingEnabled?: boolean;
+        cesiumShadowsEnabled?: boolean;
+        cesiumCurrentTime?: unknown;
+      };
+      const {
+        objects,
+        selectedAssetId,
+        selectedLocation,
+        basemapType,
+        cesiumIonAssets,
+        cesiumLightingEnabled,
+        cesiumShadowsEnabled,
+        cesiumCurrentTime,
+      } = sceneData;
 
-          if (selectedAssetId) {
+      // Initialize objects (GLB models, etc.)
+      if (Array.isArray(objects)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        useSceneStore.setState({ objects: objects as any });
+      }
+
+          if (selectedAssetId && typeof selectedAssetId === 'string') {
             useSceneStore.setState({ selectedAssetId });
           }
-          if (selectedLocation) {
-            useSceneStore.setState({ selectedLocation });
+          if (selectedLocation && typeof selectedLocation === 'object' && selectedLocation !== null && 'latitude' in selectedLocation && 'longitude' in selectedLocation) {
+            useSceneStore.setState({ selectedLocation: selectedLocation as { latitude: number; longitude: number; altitude?: number } });
           }
-          if (basemapType) {
-            useSceneStore.setState({ basemapType });
+          if (basemapType && typeof basemapType === 'string') {
+            const validBasemapTypes = ["cesium", "none", "google", "google-photorealistic", "bing"] as const;
+            if (validBasemapTypes.includes(basemapType as typeof validBasemapTypes[number])) {
+              useSceneStore.setState({ basemapType: basemapType as typeof validBasemapTypes[number] });
+            }
           }
           if (Array.isArray(cesiumIonAssets)) {
-            useSceneStore.setState({ cesiumIonAssets });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            useSceneStore.setState({ cesiumIonAssets: cesiumIonAssets as any });
           }
           // Restore time simulation settings
           if (cesiumLightingEnabled !== undefined) {
@@ -70,21 +81,13 @@ export default function Scene() {
           if (cesiumShadowsEnabled !== undefined) {
             useSceneStore.setState({ cesiumShadowsEnabled });
           }
-          if (cesiumCurrentTime !== undefined) {
-            useSceneStore.setState({ cesiumCurrentTime });
+          if (cesiumCurrentTime !== undefined && cesiumCurrentTime !== null) {
+            useSceneStore.setState({ cesiumCurrentTime: String(cesiumCurrentTime) });
           }
-        }
-      } catch (error) {
-        console.error("Error fetching project:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    }
+  }, [fetchedProject]);
 
-    fetchProject();
-  }, [projectId]);
-
-  if (loading) {
+  if (loadingProject || !project) {
     return <LoadingScreen message="Loading XR scene..." />;
   }
 

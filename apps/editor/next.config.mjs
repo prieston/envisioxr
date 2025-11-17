@@ -35,6 +35,16 @@ const nextConfig = {
   env: {
     CESIUM_BASE_URL: '/cesium',
   },
+  // Image optimization configuration
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.digitaloceanspaces.com',
+        pathname: '/**',
+      },
+    ],
+  },
   webpack(config, { isServer, webpack: _webpack }) {
     // Define compile-time constants for dead-code elimination
     const isDev = process.env.NODE_ENV === 'development';

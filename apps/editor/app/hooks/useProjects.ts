@@ -1,28 +1,32 @@
-import { useState, useEffect } from "react";
+import useSWR from "swr";
+import { projectsFetcher } from "@/app/utils/api";
 
-const useProjects = () => {
-  const [projects, setProjects] = useState([]);
-  const [loadingProjects, setLoadingProjects] = useState(true);
+interface UseProjectsOptions {
+  search?: string;
+}
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await fetch(`/api/projects`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch projects");
-        const data = await res.json();
-        setProjects(data.projects);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      } finally {
-        setLoadingProjects(false);
-      }
-    };
-    fetchProjects();
-  }, []);
+const useProjects = (options?: UseProjectsOptions) => {
+  // Build the SWR key with search as query parameter
+  const searchQuery = options?.search?.trim() || "";
+  const key = searchQuery
+    ? `/api/projects?search=${encodeURIComponent(searchQuery)}`
+    : "/api/projects";
 
-  return { projects, setProjects, loadingProjects };
+  const { data: projects = [], error, isLoading: loadingProjects, mutate } = useSWR(
+    key,
+    (url) => projectsFetcher(url),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+    }
+  );
+
+  return {
+    projects,
+    setProjects: mutate,
+    loadingProjects,
+    error,
+  };
 };
 
 export default useProjects;

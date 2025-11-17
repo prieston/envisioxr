@@ -11,6 +11,8 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
 import { serverEnv } from "@/lib/env/server";
+import { getUserDefaultOrganization, getUserOrganizationIds, isUserMemberOfOrganization } from "@/lib/organizations";
+import { logActivity } from "@/lib/activity";
 
 interface StockModel {
   name: string;
@@ -33,19 +35,51 @@ const stockModels: StockModel[] = [
 ];
 
 // GET: List both stock models and user's uploaded assets.
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   const session = (await getServerSession(authOptions)) as Session;
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const userId = session.user.id;
   try {
+    // Get query parameters for filtering
+    const { searchParams } = new URL(request.url);
+    const assetType = searchParams.get("assetType"); // Optional: "model" | "cesiumIonAsset"
+
+    // Get all organization IDs the user is a member of
+    const userOrgIds = await getUserOrganizationIds(userId);
+
+    // Build where clause
+    const whereClause: any = {
+      organizationId: {
+        in: userOrgIds,
+      },
+    };
+
+    // Add assetType filter if provided
+    // Explicitly filter to ensure only the requested type is returned
+    // Use Prisma enum values directly
+    if (assetType === "model") {
+      whereClause.assetType = "model" as const;
+    } else if (assetType === "cesiumIonAsset") {
+      whereClause.assetType = "cesiumIonAsset" as const;
+    }
+    // If no assetType specified, don't filter (show all)
+
     const assets = await prisma.asset.findMany({
-      where: { userId },
+      where: whereClause,
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json({ stockModels, assets });
+
+    // Convert BigInt fileSize to number for JSON serialization
+    const serializedAssets = assets.map((asset) => ({
+      ...asset,
+      fileSize: asset.fileSize ? Number(asset.fileSize) : null,
+    }));
+
+    return NextResponse.json({ stockModels, assets: serializedAssets });
   } catch (error) {
+    console.error("Error fetching models:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
@@ -100,6 +134,15 @@ export async function POST(request: NextRequest) {
   }
   const userId = session.user.id;
   try {
+    // Get user's default organization (personal org)
+    const organization = await getUserDefaultOrganization(userId);
+    if (!organization) {
+      return NextResponse.json(
+        { error: "No organization found for user" },
+        { status: 400 }
+      );
+    }
+
     // Expecting a JSON body with key, originalFilename, name, fileType, thumbnail, metadata
     // OR for Cesium Ion assets: assetType, cesiumAssetId, cesiumApiKey, name
     const body = await request.json();
@@ -115,7 +158,21 @@ export async function POST(request: NextRequest) {
       cesiumAssetId,
       cesiumApiKey,
       description,
+      organizationId, // Optional: allow specifying organization
+      fileSize, // File size in bytes
     } = body;
+
+    // Use provided organizationId or default to user's personal org
+    const targetOrgId = organizationId || organization.id;
+
+    // Verify user is a member of the target organization
+    const userOrgIds = await getUserOrganizationIds(userId);
+    if (!userOrgIds.includes(targetOrgId)) {
+      return NextResponse.json(
+        { error: "User is not a member of the specified organization" },
+        { status: 403 }
+      );
+    }
 
     // Handle Cesium Ion Asset
     if (assetType === "cesiumIonAsset") {
@@ -134,7 +191,7 @@ export async function POST(request: NextRequest) {
 
       const asset = await prisma.asset.create({
         data: {
-          userId,
+          organizationId: targetOrgId,
           assetType: "cesiumIonAsset",
           fileUrl: `cesium://ion/${cesiumAssetId}`, // Placeholder URL
           fileType: "cesium-ion-tileset",
@@ -145,9 +202,28 @@ export async function POST(request: NextRequest) {
           cesiumAssetId,
           cesiumApiKey: cesiumApiKey || null,
           metadata: metadata || {},
+          fileSize: fileSize ? BigInt(fileSize) : null,
         },
       });
-      return NextResponse.json({ asset });
+
+      // Log activity
+      await logActivity({
+        organizationId: targetOrgId,
+        projectId: null, // Org-level activity
+        actorId: userId,
+        entityType: "GEOSPATIAL_ASSET",
+        entityId: asset.id,
+        action: "CREATED",
+        message: `Geospatial tileset "${name}" uploaded`,
+        metadata: { assetName: name, assetType: "cesiumIonAsset" },
+      });
+
+      // Convert BigInt fileSize to number for JSON serialization
+      const serializedAsset = {
+        ...asset,
+        fileSize: asset.fileSize ? Number(asset.fileSize) : null,
+      };
+      return NextResponse.json({ asset: serializedAsset });
     }
 
     // Handle Regular Model Upload
@@ -184,7 +260,7 @@ export async function POST(request: NextRequest) {
 
     const asset = await prisma.asset.create({
       data: {
-        userId,
+        organizationId: targetOrgId,
         assetType: "model",
         fileUrl,
         originalFilename,
@@ -193,8 +269,22 @@ export async function POST(request: NextRequest) {
         fileType,
         thumbnail: thumbnail || null,
         metadata: metadataObject,
+        fileSize: fileSize ? BigInt(fileSize) : null,
       },
     });
+
+    // Log activity
+    await logActivity({
+      organizationId: targetOrgId,
+      projectId: null, // Org-level activity (could be linked to project later)
+      actorId: userId,
+      entityType: "MODEL",
+      entityId: asset.id,
+      action: "CREATED",
+      message: `Model "${name || originalFilename}" uploaded`,
+      metadata: { assetName: name || originalFilename, assetType: "model" },
+    });
+
     return NextResponse.json({ asset });
   } catch (error) {
     console.error(error);
@@ -225,7 +315,12 @@ export async function DELETE(request: NextRequest) {
     if (!asset) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
-    if (asset.userId !== userId) {
+    // Check if user is a member of the asset's organization
+    const isMember = await isUserMemberOfOrganization(
+      userId,
+      asset.organizationId
+    );
+    if (!isMember) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
     // Determine the key from the asset's fileUrl.
@@ -248,6 +343,21 @@ export async function DELETE(request: NextRequest) {
       Key: key,
     });
     await s3.send(deleteCommand);
+
+    // Log activity before deleting
+    const entityType =
+      asset.assetType === "cesiumIonAsset" ? "GEOSPATIAL_ASSET" : "MODEL";
+    await logActivity({
+      organizationId: asset.organizationId,
+      projectId: asset.projectId || null,
+      actorId: userId,
+      entityType,
+      entityId: assetId,
+      action: "DELETED",
+      message: `Asset "${asset.name || asset.originalFilename}" deleted`,
+      metadata: { assetName: asset.name || asset.originalFilename },
+    });
+
     // Delete the asset record from the database.
     await prisma.asset.delete({
       where: { id: assetId },

@@ -4,6 +4,7 @@ import {
   useCesiumIonUpload,
   type CesiumIonUploadData,
 } from "@envisio/engine-cesium";
+import { createIonAsset, completeIonUpload, createCesiumIonAsset } from "@/app/utils/api";
 
 /**
  * App-specific Cesium Ion hook that wraps the generic engine-cesium hook
@@ -31,23 +32,12 @@ export const useCesiumIon = () => {
   }) => {
     try {
       // Save to database
-      const res = await fetch("/api/models", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          assetType: "cesiumIonAsset",
-          cesiumAssetId: data.assetId,
-          cesiumApiKey: data.apiKey,
-          name: data.name,
-        }),
+      const { asset: newAsset } = await createCesiumIonAsset({
+        assetType: "cesiumIonAsset",
+        cesiumAssetId: data.assetId,
+        cesiumApiKey: data.apiKey,
+        name: data.name,
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to save Cesium Ion asset");
-      }
-
-      const { asset: newAsset } = await res.json();
       showToast(`Saved Cesium Ion asset: ${data.name}`);
 
       // Add to scene store for immediate rendering (both arrays)
@@ -86,33 +76,19 @@ export const useCesiumIon = () => {
   ): Promise<void> => {
     try {
       // Save to your database via API
-      const response = await fetch("/api/models", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await createCesiumIonAsset({
+        assetType: "cesiumIonAsset",
+        cesiumAssetId: String(assetId),
+        cesiumApiKey: accessToken,
+        name: assetInfo.name || `Ion Asset ${assetId}`,
+        description: assetInfo.description || "",
+        metadata: {
+          ionAssetId: String(assetId),
+          type: assetInfo.type,
+          status: assetInfo.status,
+          bytes: assetInfo.bytes,
         },
-        body: JSON.stringify({
-          name: assetInfo.name || `Ion Asset ${assetId}`,
-          originalFilename: assetInfo.name,
-          description: assetInfo.description || "",
-          fileType: "cesium-ion",
-          assetType: "cesiumIonAsset",
-          cesiumAssetId: String(assetId),
-          cesiumApiKey: accessToken,
-          metadata: {
-            ionAssetId: String(assetId),
-            type: assetInfo.type,
-            status: assetInfo.status,
-            bytes: assetInfo.bytes,
-          },
-        }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to save: ${response.status}`);
-      }
-
-      await response.json();
 
       // Refresh the library to show the new asset
       if (onRefresh) {
@@ -190,60 +166,34 @@ export const useCesiumIon = () => {
         ionOptions.textureFormat = "KTX2";
       }
 
-      const createAssetResponse = await fetch("/api/ion-upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          description,
-          type: ionType,
-          accessToken,
-          options: ionOptions,
-        }),
+      const createAssetResponse = await createIonAsset({
+        name,
+        description,
+        type: ionType,
+        accessToken,
+        options: ionOptions,
       });
 
-      if (!createAssetResponse.ok) {
-        const errorData = await createAssetResponse.json();
-        console.error("Cesium Ion API Error Response:", errorData);
-
-        let errorMessage =
-          errorData.error || "Failed to create asset on Cesium Ion";
-        if (errorData.details) {
-          try {
-            const details =
-              typeof errorData.details === "string"
-                ? JSON.parse(errorData.details)
-                : errorData.details;
-            if (details.message) {
-              errorMessage = details.message;
-            }
-          } catch (e) {
-            errorMessage = errorData.details;
-          }
-        }
-
-        throw new Error(errorMessage);
-      }
-
-      const { assetId, assetMetadata, uploadLocation, onComplete } =
-        await createAssetResponse.json();
+      const { assetId, assetMetadata, uploadLocation, onComplete } = createAssetResponse;
 
       // Prefer assetMetadata.id over assetId or regex parsing
-      const inferredId =
-        assetMetadata?.id ??
-        assetId ??
+      const metadata = assetMetadata as { id?: number } | undefined;
+      const location = uploadLocation as { prefix?: string } | undefined;
+      const inferredIdRaw =
+        metadata?.id ??
+        (typeof assetId === 'number' ? assetId : undefined) ??
+        (typeof assetId === 'string' ? Number(assetId) : undefined) ??
         (() => {
-          const match = /sources\/(\d+)\//.exec(uploadLocation?.prefix || "");
+          const match = /sources\/(\d+)\//.exec(location?.prefix || "");
           return match ? Number(match[1]) : undefined;
         })();
 
-      if (!inferredId) {
+      if (!inferredIdRaw || isNaN(inferredIdRaw)) {
         throw new Error(
           "Ion response missing assetMetadata.id, assetId, and prefix; cannot proceed."
         );
       }
+      const inferredId: number = inferredIdRaw;
 
       setIonUploadProgress(20);
 
@@ -251,18 +201,7 @@ export const useCesiumIon = () => {
       await uploadToS3(file, uploadLocation, setIonUploadProgress);
 
       // Step 3: Notify Cesium Ion that upload is complete
-      const completeResponse = await fetch("/api/ion-upload", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ onComplete, accessToken }),
-      });
-
-      if (!completeResponse.ok) {
-        const errorData = await completeResponse.json();
-        throw new Error(errorData.error || "Failed to complete upload");
-      }
+      await completeIonUpload({ onComplete, accessToken });
 
       setIonUploadProgress(100);
 

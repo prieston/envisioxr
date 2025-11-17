@@ -11,6 +11,9 @@ import BuilderActions from "@/app/components/AppBar/BuilderActions";
 interface RightPanelProps {
   onSave?: () => Promise<void>;
   onPublish?: () => void;
+  projectId?: string;
+  projectThumbnail?: string | null;
+  onThumbnailUpdate?: () => void;
   selectingPosition?: boolean;
   setSelectingPosition?: (selecting: boolean) => void;
   selectedPosition?: [number, number, number] | null;
@@ -25,6 +28,9 @@ interface RightPanelProps {
 const RightPanel: React.FC<RightPanelProps> = ({
   onSave,
   onPublish,
+  projectId,
+  projectThumbnail,
+  onThumbnailUpdate,
   selectingPosition,
   setSelectingPosition,
   selectedPosition,
@@ -131,6 +137,9 @@ const RightPanel: React.FC<RightPanelProps> = ({
           <BuilderActions
             onSave={onSave}
             onPublish={onPublish}
+            projectId={projectId}
+            projectThumbnail={projectThumbnail}
+            onThumbnailUpdate={onThumbnailUpdate}
             selectingPosition={selectingPosition}
             setSelectingPosition={setSelectingPosition}
             selectedPosition={selectedPosition}

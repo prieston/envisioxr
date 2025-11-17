@@ -21,6 +21,7 @@ interface AssetDetailViewProps {
   onAddToScene: () => void;
   onRetakePhoto: () => void;
   canUpdate?: boolean;
+  showAddToScene?: boolean;
 }
 
 export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
@@ -39,6 +40,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
   onAddToScene,
   onRetakePhoto,
   canUpdate = true,
+  showAddToScene = true,
 }) => {
   return (
     <>
@@ -279,34 +281,36 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
           alignItems: "center",
         }}
       >
-        <Button
-          variant="outlined"
-          startIcon={<AddCircleOutline />}
-          onClick={onAddToScene}
-          sx={(theme) => ({
-            borderRadius: "4px",
-            textTransform: "none",
-            fontWeight: 500,
-            fontSize: "0.75rem",
-            borderColor:
-              theme.palette.mode === "dark"
-                ? "rgba(107, 156, 216, 0.35)"
-                : "rgba(95, 136, 199, 0.4)",
-            color: theme.palette.primary.main,
-            padding: "6px 16px",
-            boxShadow: "none",
-            "&:hover": {
-              borderColor: theme.palette.primary.main,
-              backgroundColor:
+        {showAddToScene && (
+          <Button
+            variant="outlined"
+            startIcon={<AddCircleOutline />}
+            onClick={onAddToScene}
+            sx={(theme) => ({
+              borderRadius: "4px",
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.75rem",
+              borderColor:
                 theme.palette.mode === "dark"
-                  ? "rgba(107, 156, 216, 0.12)"
-                  : "rgba(95, 136, 199, 0.08)",
+                  ? "rgba(107, 156, 216, 0.35)"
+                  : "rgba(95, 136, 199, 0.4)",
+              color: theme.palette.primary.main,
+              padding: "6px 16px",
               boxShadow: "none",
-            },
-          })}
-        >
-          Add to Scene
-        </Button>
+              "&:hover": {
+                borderColor: theme.palette.primary.main,
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(107, 156, 216, 0.12)"
+                    : "rgba(95, 136, 199, 0.08)",
+                boxShadow: "none",
+              },
+            })}
+          >
+            Add to Scene
+          </Button>
+        )}
 
         <Box sx={{ flex: 1 }} />
 

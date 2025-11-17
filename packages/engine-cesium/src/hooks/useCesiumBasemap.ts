@@ -12,6 +12,7 @@ export function useCesiumBasemap(viewer: any, cesium: any, isLoading: boolean) {
   const cesiumRef = useRef(cesium);
   const lastBasemapTypeRef = useRef<string | null>(null);
   const hasAppliedBasemapRef = useRef(false);
+  const tilesetRef = useRef<any>(null);
 
   // Update refs when viewer/cesium change, but don't trigger basemap reapplication
   useEffect(() => {
@@ -28,11 +29,41 @@ export function useCesiumBasemap(viewer: any, cesium: any, isLoading: boolean) {
     if (!isInitialApplication && lastBasemapTypeRef.current === basemapType)
       return;
 
+    // Cleanup previous tileset before applying new basemap
+    if (tilesetRef.current && viewerRef.current?.scene?.primitives) {
+      try {
+        viewerRef.current.scene.primitives.remove(tilesetRef.current);
+        tilesetRef.current = null;
+      } catch (error) {
+        // Ignore cleanup errors
+      }
+    }
+
     // Apply basemap change when basemapType changes or on initial load
     if (basemapType) {
       lastBasemapTypeRef.current = basemapType;
       hasAppliedBasemapRef.current = true;
-      applyBasemapType(viewerRef.current, cesiumRef.current, basemapType);
+      applyBasemapType(viewerRef.current, cesiumRef.current, basemapType).then(
+        (tileset) => {
+          if (tileset) {
+            tilesetRef.current = tileset;
+          }
+        }
+      );
     }
   }, [basemapType, isLoading]);
+
+  // Cleanup tileset on unmount
+  useEffect(() => {
+    return () => {
+      if (tilesetRef.current && viewerRef.current?.scene?.primitives) {
+        try {
+          viewerRef.current.scene.primitives.remove(tilesetRef.current);
+          tilesetRef.current = null;
+        } catch (error) {
+          // Ignore cleanup errors
+        }
+      }
+    };
+  }, []);
 }

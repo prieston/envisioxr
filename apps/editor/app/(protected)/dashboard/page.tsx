@@ -1,220 +1,159 @@
 "use client";
 
-import React, { useState } from "react";
-import { Box, Typography, CircularProgress } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import { useRouter } from "next/navigation";
-import useProjects from "../../hooks/useProjects";
+import React, { useState, useEffect } from "react";
+import { Grid } from "@mui/material";
 import {
-  DashboardCreateProjectCard as CreateProjectCard,
-  DashboardProjectCard as ProjectCard,
-  DashboardOptionsMenu as OptionsMenu,
-  DashboardHelpPopup as HelpPopup,
-  DashboardDeleteConfirmationDialog as DeleteConfirmationDialog,
+  Page,
+  PageHeader,
+  PageDescription,
+  PageContent,
+  formatTimeAgo,
 } from "@envisio/ui";
-import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
+import {
+  AnimatedBackground,
+  GlowingContainer,
+  GlowingSpan,
+} from "@/app/components/Builder/AdminLayout.styles";
+import useProjects from "@/app/hooks/useProjects";
+import useModels from "@/app/hooks/useModels";
+import useActivity from "@/app/hooks/useActivity";
+import SensorsIcon from "@mui/icons-material/Sensors";
+import MapIcon from "@mui/icons-material/Map";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { KeyMetrics } from "./components/KeyMetrics";
+import { QuickActions } from "./components/QuickActions";
+import { RecentActivity } from "./components/RecentActivity";
+import { UsageSummary } from "./components/UsageSummary";
+import { RecentProjects } from "./components/RecentProjects";
+import { Changelog } from "./components/Changelog";
 
-// Styled components for animated background
-const AnimatedBackground = styled(Box)(() => ({
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  zIndex: -1,
-  overflow: "hidden",
-  background: "linear-gradient(180deg, #0d0e11 0%, #111317 100%)",
-}));
-
-const GlowingContainer = styled(Box)(() => ({
-  position: "relative",
-  transformOrigin: "right",
-  animation: "colorChange 5s linear infinite",
-  "&:nth-of-type(even)": {
-    transformOrigin: "left",
-  },
-  "@keyframes colorChange": {
-    "0%": {
-      filter: "hue-rotate(0deg)",
-      transform: "rotate(0deg)",
-    },
-    "100%": {
-      filter: "hue-rotate(360deg)",
-      transform: "rotate(360deg)",
-    },
-  },
-}));
-
-const GlowingSpan = styled(Box)<{ index: number }>(({ index }) => ({
-  position: "absolute",
-  top: `calc(80px * ${index})`,
-  left: `calc(80px * ${index})`,
-  bottom: `calc(80px * ${index})`,
-  right: `calc(80px * ${index})`,
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: "50%",
-    left: "-8px",
-    width: "15px",
-    height: "15px",
-    background: "rgba(255, 255, 255, 0.1)",
-    borderRadius: "50%",
-    boxShadow:
-      "0 0 20px rgba(255, 255, 255, 0.05), " +
-      "0 0 40px rgba(255, 255, 255, 0.03), " +
-      "0 0 60px rgba(255, 255, 255, 0.02), " +
-      "0 0 80px rgba(255, 255, 255, 0.01), " +
-      "0 0 0 8px rgba(255, 255, 255, 0.01)",
-  },
-  "&:nth-of-type(3n + 1)": {
-    animation: "animate 10s alternate infinite",
-    "&::before": {
-      background: "rgba(255, 255, 255, 0.08)",
-      boxShadow:
-        "0 0 20px rgba(255, 255, 255, 0.04), " +
-        "0 0 40px rgba(255, 255, 255, 0.03), " +
-        "0 0 60px rgba(255, 255, 255, 0.02), " +
-        "0 0 80px rgba(255, 255, 255, 0.01), " +
-        "0 0 0 8px rgba(255, 255, 255, 0.01)",
-    },
-  },
-  "&:nth-of-type(3n + 2)": {
-    animation: "animate-reverse 3s alternate infinite",
-    "&::before": {
-      background: "rgba(255, 255, 255, 0.06)",
-      boxShadow:
-        "0 0 20px rgba(255, 255, 255, 0.03), " +
-        "0 0 40px rgba(255, 255, 255, 0.02), " +
-        "0 0 60px rgba(255, 255, 255, 0.01), " +
-        "0 0 80px rgba(255, 255, 255, 0.005), " +
-        "0 0 0 8px rgba(255, 255, 255, 0.005)",
-    },
-  },
-  "&:nth-of-type(3n + 3)": {
-    animation: "animate 8s alternate infinite",
-    "&::before": {
-      background: "rgba(255, 255, 255, 0.05)",
-      boxShadow:
-        "0 0 20px rgba(255, 255, 255, 0.02), " +
-        "0 0 40px rgba(255, 255, 255, 0.015), " +
-        "0 0 60px rgba(255, 255, 255, 0.01), " +
-        "0 0 80px rgba(255, 255, 255, 0.005), " +
-        "0 0 0 8px rgba(255, 255, 255, 0.005)",
-    },
-  },
-  "@keyframes animate": {
-    "0%": {
-      transform: "rotate(180deg)",
-    },
-    "50%": {
-      transform: "rotate(0deg)",
-    },
-    "100%": {
-      transform: "rotate(360deg)",
-    },
-  },
-  "@keyframes animate-reverse": {
-    "0%": {
-      transform: "rotate(360deg)",
-    },
-    "50%": {
-      transform: "rotate(180deg)",
-    },
-    "100%": {
-      transform: "rotate(0deg)",
-    },
-  },
-}));
+interface DashboardMetrics {
+  projects: number;
+  models: number;
+  sensors: number;
+  tilesets: number;
+  storageUsed: string;
+}
 
 const DashboardPage = () => {
-  const router = useRouter();
-  const { projects, setProjects, loadingProjects } = useProjects();
-  const [showHelp, setShowHelp] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const { projects, loadingProjects } = useProjects();
+  const { models, loadingModels } = useModels({ assetType: "model" });
+  const { models: tilesets, loadingModels: loadingTilesets } = useModels({
+    assetType: "cesiumIonAsset",
+  });
+  const { activities, loadingActivity } = useActivity({ limit: 10 });
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    projects: 0,
+    models: 0,
+    sensors: 0,
+    tilesets: 0,
+    storageUsed: "0 GB",
+  });
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
 
-  const handleHelpClick = () => {
-    setShowHelp(true);
-  };
-
-  const handleCloseHelp = () => {
-    setShowHelp(false);
-  };
-
-  const handleCreateProject = () => {
-    router.push("/projects/create");
-  };
-
-  const handleProjectSelect = (projectId) => {
-    setSelectedProjectId(selectedProjectId === projectId ? null : projectId);
-  };
-
-  const handleGoToBuilder = (projectId) => {
-    router.push(`/projects/${projectId}/builder`);
-  };
-
-  // --- Options Menu State ---
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [menuProjectId, setMenuProjectId] = useState(null);
-  const openMenu = Boolean(anchorEl);
-
-  const handleMenuOpen = (event, projectId) => {
-    setMenuProjectId(projectId);
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleEdit = () => {
-    router.push(`/projects/${menuProjectId}/edit`);
-    handleMenuClose();
-  };
-
-  // --- Delete Confirmation Dialog State ---
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-
-  const handleDeleteClick = () => {
-    setOpenDeleteDialog(true);
-    handleMenuClose();
-  };
-
-  const handleDeleteCancel = () => {
-    setOpenDeleteDialog(false);
-  };
-
-  const handleDeleteConfirm = async () => {
-    try {
-      const res = await fetch(`/api/projects/${menuProjectId}`, {
-        method: "DELETE",
-        credentials: "include",
+  useEffect(() => {
+    if (!loadingProjects && !loadingModels && !loadingTilesets) {
+      // Calculate storage from assets
+      let totalBytes = 0;
+      [...models, ...tilesets].forEach((asset) => {
+        // For regular models: use fileSize column
+        if (asset.fileSize) {
+          const size =
+            typeof asset.fileSize === "bigint"
+              ? Number(asset.fileSize)
+              : asset.fileSize;
+          totalBytes += size;
+        }
+        // For Cesium Ion assets: check metadata.bytes
+        else if (
+          asset.assetType === "cesiumIonAsset" &&
+          asset.metadata &&
+          typeof asset.metadata === "object"
+        ) {
+          const metadata = asset.metadata as Record<string, unknown>;
+          if (typeof metadata.bytes === "number") {
+            totalBytes += metadata.bytes;
+          }
+        }
       });
-      if (!res.ok) throw new Error("Failed to delete project");
-      setProjects((prevProjects) =>
-        prevProjects.filter((project) => project.id !== menuProjectId)
-      );
-      setOpenDeleteDialog(false);
-    } catch (error) {
-      console.error("Error deleting project:", error);
-    }
-  };
 
-  // Render a loader until projects are loaded.
-  if (loadingProjects) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
+      // Format storage
+      const formatStorage = (bytes: number): string => {
+        if (bytes === 0) return "0 B";
+        const k = 1024;
+        const sizes = ["B", "KB", "MB", "GB", "TB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
+      };
+
+      const storageUsed = formatStorage(totalBytes);
+
+      setMetrics({
+        projects: projects.length,
+        models: models.length,
+        sensors: 0, // Always 0 - coming soon
+        tilesets: tilesets.length,
+        storageUsed,
+      });
+      setLoadingMetrics(false);
+    }
+  }, [projects, models, tilesets, loadingProjects, loadingModels, loadingTilesets]);
+
+  // Format activities for RecentActivity component
+  const recentActivity = activities.map((activity) => {
+    // Map entity types and actions to icons
+    let icon: React.ReactNode;
+    if (activity.entityType === "MODEL" || activity.entityType === "GEOSPATIAL_ASSET") {
+      icon = <CloudUploadIcon />;
+    } else if (activity.entityType === "SENSOR") {
+      icon = <SensorsIcon />;
+    } else if (activity.entityType === "PROJECT") {
+      icon = <MapIcon />;
+    } else if (activity.entityType === "USER") {
+      icon = <PersonAddIcon />;
+    } else {
+      icon = <CloudUploadIcon />;
+    }
+
+    // Use message if available, otherwise construct from entityType + action
+    const title =
+      activity.message ||
+      `${activity.entityType} ${activity.action.toLowerCase()}`;
+
+    // Extract description from metadata or project title
+    const description =
+      activity.project?.title ||
+      (activity.metadata && typeof activity.metadata === "object"
+        ? (activity.metadata as { assetName?: string; projectTitle?: string })
+            .assetName ||
+          (activity.metadata as { assetName?: string; projectTitle?: string })
+            .projectTitle ||
+          ""
+        : "");
+
+    return {
+      icon,
+      title,
+      description,
+      timestamp: formatTimeAgo(new Date(activity.createdAt)),
+    };
+  });
+
+  // Mock announcements
+  const announcements = [
+    {
+      title: "Viewshed 2.0 Released",
+    },
+    {
+      title: "Cesium Terrain Clipping",
+    },
+    {
+      title: "Performance Improvements",
+    },
+  ];
+
+  const recentProjects = projects.slice(0, 6);
 
   return (
     <>
@@ -242,66 +181,38 @@ const DashboardPage = () => {
         </GlowingContainer>
       </AnimatedBackground>
 
-      <AdminAppBar
-        mode="simple"
-        onHelpClick={handleHelpClick}
-        showHelpPulse={false}
-      />
+      <Page>
+        <PageHeader title="Dashboard" />
+        <PageDescription>
+          Overview of your projects, assets, activity, and platform updates
+        </PageDescription>
 
-      <Box
-        sx={(theme) => ({
-          padding: "120px 16px 40px 16px",
-          backgroundColor: "transparent",
-          color: theme.palette.text.primary,
-          minHeight: "100vh",
-          position: "relative",
-          zIndex: 1,
-        })}
-      >
-        <HelpPopup open={showHelp} onClose={handleCloseHelp} />
+        <PageContent maxWidth="6xl">
+          {/* Row 1: Key Metrics */}
+          <KeyMetrics metrics={metrics} loading={loadingMetrics} />
 
-        <Box
-          sx={{
-            paddingBottom: 2,
-          }}
-        >
-          <Typography variant="h5" sx={{ color: "text.primary" }}>
-            Your Projects
-          </Typography>
-        </Box>
+          {/* Row 2: Quick Actions */}
+          <QuickActions />
 
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-          {projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onGoToBuilder={handleGoToBuilder}
-              onMenuOpen={handleMenuOpen}
-              selected={selectedProjectId === project.id}
-              onSelect={handleProjectSelect}
-            />
-          ))}
-          <CreateProjectCard
-            onClick={handleCreateProject}
-            selected={selectedProjectId === "create"}
-            onSelect={() => handleProjectSelect("create")}
-          />
-        </Box>
-      </Box>
+          {/* Two Column Layout: Left (Activity + Usage) | Right (Projects + Changelog) */}
+          <Grid container spacing={3}>
+            {/* Left Column */}
+            <Grid item xs={12} md={5}>
+              <RecentActivity
+                activities={recentActivity}
+                loading={loadingActivity}
+              />
+              <UsageSummary storageUsed={metrics.storageUsed} />
+            </Grid>
 
-      <OptionsMenu
-        anchorEl={anchorEl}
-        open={openMenu}
-        onClose={handleMenuClose}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
-      />
-
-      <DeleteConfirmationDialog
-        open={openDeleteDialog}
-        onCancel={handleDeleteCancel}
-        onConfirm={handleDeleteConfirm}
-      />
+            {/* Right Column */}
+            <Grid item xs={12} md={7}>
+              <RecentProjects projects={recentProjects} loading={loadingProjects} />
+              <Changelog announcements={announcements} />
+            </Grid>
+          </Grid>
+        </PageContent>
+      </Page>
     </>
   );
 };

@@ -10,7 +10,7 @@ import { ClientProviders } from "./providers";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Klorad | App",
+  title: "Klorad | Platform",
   description: "Control and publish immersive experiences with Klorad.",
   icons: { icon: "/klorad-favicon.png" },
 };

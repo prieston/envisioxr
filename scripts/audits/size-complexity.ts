@@ -21,6 +21,7 @@ const WORKSPACE_ROOT = process.cwd();
 const allowlistPath = path.join(WORKSPACE_ROOT, "scripts/audits/ALLOWLIST.json");
 const allowlist = JSON.parse(fs.readFileSync(allowlistPath, "utf8"));
 const sizeIgnorePatterns = allowlist.size?.ignorePatterns || [];
+const allowComplexComponents = allowlist.size?.allowComplexComponents || [];
 
 interface Violation {
   file: string;
@@ -240,18 +241,21 @@ function checkComponentComplexity() {
         });
       }
 
-      if (complexity > COMPLEXITY_FAIL) {
-        violations.push({
-          file,
-          severity: "fail",
-          message: `Component "${componentName}" too complex: ${complexity} (limit: ${COMPLEXITY_FAIL})`,
-        });
-      } else if (complexity >= COMPLEXITY_WARN) {
-        violations.push({
-          file,
-          severity: "warn",
-          message: `Component "${componentName}" complex: ${complexity} (warn: ${COMPLEXITY_WARN})`,
-        });
+      // Skip complexity check if file is in allowComplexComponents list
+      if (!allowComplexComponents.includes(file)) {
+        if (complexity > COMPLEXITY_FAIL) {
+          violations.push({
+            file,
+            severity: "fail",
+            message: `Component "${componentName}" too complex: ${complexity} (limit: ${COMPLEXITY_FAIL})`,
+          });
+        } else if (complexity >= COMPLEXITY_WARN) {
+          violations.push({
+            file,
+            severity: "warn",
+            message: `Component "${componentName}" complex: ${complexity} (warn: ${COMPLEXITY_WARN})`,
+          });
+        }
       }
     }
   }

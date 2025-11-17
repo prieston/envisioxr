@@ -7,6 +7,8 @@ import AdminLayout from "../../../../../app/components/Builder/AdminLayout";
 import SceneCanvas from "../../../../../app/components/Builder/Scene/SceneCanvas";
 import { useSceneStore, useWorldStore } from "@envisio/core";
 import { showToast } from "@envisio/ui";
+import { updateProjectScene, publishProject } from "@/app/utils/api";
+import useProject from "@/app/hooks/useProject";
 
 // Function to sanitize scene data before saving
 const sanitizeSceneData = (
@@ -203,10 +205,16 @@ const sanitizeSceneData = (
 
 export default function BuilderPage() {
   const { projectId } = useParams();
-  const [loading, setLoading] = useState(true);
+  const projectIdStr = Array.isArray(projectId) ? projectId[0] : projectId;
+  const { project: fetchedProject, loadingProject, mutate: mutateProject } = useProject(projectIdStr);
   const [project, setProject] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const setActiveWorld = useWorldStore((s) => s.setActiveWorld);
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Klorad | Studio";
+  }, []);
 
   // Get scene data and actions from store
   const setObjects = useSceneStore((state) => state.setObjects);
@@ -214,80 +222,88 @@ export default function BuilderPage() {
     (state) => state.setObservationPoints
   );
 
-  // Fetch project data and initialize scene on mount
+  // Initialize scene when project loads
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        // Reset scene state first
-        useSceneStore.getState().resetScene();
+    if (!fetchedProject) return;
 
-        const res = await fetch(`/api/projects/${projectId}`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch project");
-        const data = await res.json();
-        setProject(data.project);
-        setActiveWorld(data.project);
+    try {
+      // Reset scene state first
+      useSceneStore.getState().resetScene();
 
-        // Initialize scene data from project
-        if (data.project?.sceneData) {
-          const {
-            objects,
-            observationPoints,
+      setProject(fetchedProject);
+      setActiveWorld(fetchedProject);
+
+      // Initialize scene data from project
+      if (fetchedProject?.sceneData && typeof fetchedProject.sceneData === 'object') {
+        const sceneData = fetchedProject.sceneData as {
+          objects?: unknown[];
+          observationPoints?: unknown[];
+          selectedAssetId?: string;
+          selectedLocation?: unknown;
+          showTiles?: boolean;
+          basemapType?: string;
+          cesiumIonAssets?: unknown[];
+          cesiumLightingEnabled?: boolean;
+          cesiumShadowsEnabled?: boolean;
+          cesiumCurrentTime?: unknown;
+        };
+        const {
+          objects,
+          observationPoints,
+          selectedAssetId,
+          selectedLocation,
+          showTiles,
+          basemapType,
+          cesiumIonAssets,
+          cesiumLightingEnabled,
+          cesiumShadowsEnabled,
+          cesiumCurrentTime,
+        } = sceneData;
+
+        if (Array.isArray(objects)) {
+          // Restore objects with all their properties including observation model data
+          setObjects(objects as Parameters<typeof setObjects>[0]);
+        }
+        if (Array.isArray(observationPoints)) {
+          setObservationPoints(observationPoints as Parameters<typeof setObservationPoints>[0]);
+        }
+        if (selectedAssetId && typeof selectedAssetId === 'string') {
+          useSceneStore.setState({
             selectedAssetId,
-            selectedLocation,
-            showTiles,
-            basemapType,
-            cesiumIonAssets,
-            cesiumLightingEnabled,
-            cesiumShadowsEnabled,
-            cesiumCurrentTime,
-          } = data.project.sceneData;
-
-          if (Array.isArray(objects)) {
-            // Restore objects with all their properties including observation model data
-            setObjects(objects);
-          }
-          if (Array.isArray(observationPoints)) {
-            setObservationPoints(observationPoints);
-          }
-          if (selectedAssetId) {
-            useSceneStore.setState({
-              selectedAssetId,
-              showTiles: showTiles ?? false,
-            });
-          }
-          if (selectedLocation) {
-            useSceneStore.setState({ selectedLocation });
-          }
-          if (basemapType) {
-            useSceneStore.setState({ basemapType });
-          }
-          if (Array.isArray(cesiumIonAssets)) {
-            useSceneStore.setState({ cesiumIonAssets });
-          }
-          // Restore time simulation settings
-          if (cesiumLightingEnabled !== undefined) {
-            useSceneStore.setState({ cesiumLightingEnabled });
-          }
-          if (cesiumShadowsEnabled !== undefined) {
-            useSceneStore.setState({ cesiumShadowsEnabled });
-          }
-          if (cesiumCurrentTime !== undefined) {
-            useSceneStore.setState({ cesiumCurrentTime });
+            showTiles: showTiles ?? false,
+          });
+        }
+        if (selectedLocation && typeof selectedLocation === 'object' && selectedLocation !== null && 'latitude' in selectedLocation && 'longitude' in selectedLocation) {
+          useSceneStore.setState({ selectedLocation: selectedLocation as { latitude: number; longitude: number; altitude?: number } });
+        }
+        if (basemapType && typeof basemapType === 'string') {
+          const validBasemapTypes = ["cesium", "none", "google", "google-photorealistic", "bing"] as const;
+          if (validBasemapTypes.includes(basemapType as typeof validBasemapTypes[number])) {
+            useSceneStore.setState({ basemapType: basemapType as typeof validBasemapTypes[number] });
           }
         }
-      } catch (error) {
-        console.error("Error fetching project:", error);
-        showToast("Error loading project");
-      } finally {
-        setLoading(false);
+        if (Array.isArray(cesiumIonAssets)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          useSceneStore.setState({ cesiumIonAssets: cesiumIonAssets as any });
+        }
+        // Restore time simulation settings
+        if (cesiumLightingEnabled !== undefined) {
+          useSceneStore.setState({ cesiumLightingEnabled });
+        }
+        if (cesiumShadowsEnabled !== undefined) {
+          useSceneStore.setState({ cesiumShadowsEnabled });
+        }
+        if (cesiumCurrentTime !== undefined && cesiumCurrentTime !== null) {
+          useSceneStore.setState({ cesiumCurrentTime: String(cesiumCurrentTime) });
+        }
       }
-    };
+    } catch (error) {
+      console.error("Error initializing project:", error);
+      showToast("Error loading project");
+    }
 
-    fetchProject();
     return () => setActiveWorld(null);
-  }, [projectId, setObjects, setObservationPoints, setActiveWorld]);
+  }, [fetchedProject, setObjects, setObservationPoints, setActiveWorld]);
 
   // Save handler
   const handleSave = async () => {
@@ -312,20 +328,7 @@ export default function BuilderPage() {
         storeState.cesiumCurrentTime
       );
 
-      const response = await fetch(`/api/projects/${projectId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sceneData,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save project");
-      }
+      await updateProjectScene(projectIdStr, sceneData);
 
       showToast("Project saved successfully", "info");
     } catch (error) {
@@ -339,19 +342,7 @@ export default function BuilderPage() {
   // Publish handler
   const handlePublish = async () => {
     try {
-      const res = await fetch(`/api/projects/${projectId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ publish: true }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to publish project");
-      }
-
-      await res.json();
+      await publishProject(projectIdStr);
       showToast("Project published successfully!");
 
       // Open the published world in a new window
@@ -362,7 +353,7 @@ export default function BuilderPage() {
     }
   };
 
-  if (loading) {
+  if (loadingProject) {
     return (
       <Box
         sx={{
@@ -377,8 +368,18 @@ export default function BuilderPage() {
     );
   }
 
+  const handleThumbnailUpdate = () => {
+    mutateProject(); // Refresh project data to get updated thumbnail
+  };
+
   return (
-    <AdminLayout onSave={handleSave} onPublish={handlePublish}>
+    <AdminLayout
+      onSave={handleSave}
+      onPublish={handlePublish}
+      projectId={projectIdStr}
+      projectThumbnail={project?.thumbnail || null}
+      onThumbnailUpdate={handleThumbnailUpdate}
+    >
       <SceneCanvas
         initialSceneData={project?.sceneData}
         renderObservationPoints={true}

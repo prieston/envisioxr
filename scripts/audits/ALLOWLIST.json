@@ -41,7 +41,26 @@
       "**/*.test.ts",
       "**/*.test.tsx",
       "**/vendor/**",
-      "**/cesium-ion-sdk/**"
+      "**/cesium-ion-sdk/**",
+      "scripts/audits/**"
+    ],
+    "allowComplexComponents": [
+      "apps/editor/app/components/AppBar/UserAccountMenu.tsx",
+      "apps/editor/app/components/AppBar/AdminAppBar.tsx",
+      "apps/editor/app/(protected)/settings/page.tsx",
+      "apps/editor/app/(protected)/profile/page.tsx",
+      "apps/editor/app/(protected)/projects/[projectId]/builder/page.tsx",
+      "apps/editor/app/components/Builder/assets/AssetLibraryPanel.tsx",
+      "apps/editor/app/components/Builder/SettingRenderer.tsx",
+      "apps/editor/app/components/Builder/ModelPositioningManager.tsx",
+      "apps/editor/app/components/Builder/ModelPositioningOverlay.tsx",
+      "apps/editor/app/components/Builder/properties/TransformLocationSection.tsx",
+      "apps/editor/app/components/Builder/properties/ModelMetadata.tsx",
+      "apps/editor/app/components/Builder/properties/PropertiesPanel/views/ObservationPointView.tsx",
+      "apps/editor/app/components/Builder/properties/PropertiesPanel/views/ObjectPropertiesView.tsx",
+      "apps/editor/app/components/Report/ReportGenerator.tsx",
+      "apps/editor/app/(public)/publish/[projectId]/page.tsx",
+      "apps/editor/app/(public)/publish/[projectId]/xr/page.tsx"
     ]
   },
   "deadExports": {

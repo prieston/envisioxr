@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/authOptions";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
+import { isUserMemberOfOrganization } from "@/lib/organizations";
+import { logActivity } from "@/lib/activity";
 
 // PATCH: Update asset (name, description, metadata, thumbnail)
 export async function PATCH(request: NextRequest) {
@@ -25,7 +27,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Verify the asset belongs to the user
+    // Verify the asset exists and user is a member of the organization
     const existingAsset = await prisma.asset.findUnique({
       where: { id: assetId },
     });
@@ -34,7 +36,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
 
-    if (existingAsset.userId !== userId) {
+    const isMember = await isUserMemberOfOrganization(
+      userId,
+      existingAsset.organizationId
+    );
+    if (!isMember) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -51,7 +57,31 @@ export async function PATCH(request: NextRequest) {
       data: updateData,
     });
 
-    return NextResponse.json({ asset: updatedAsset });
+    // Log activity
+    const entityType =
+      existingAsset.assetType === "cesiumIonAsset"
+        ? "GEOSPATIAL_ASSET"
+        : "MODEL";
+    await logActivity({
+      organizationId: existingAsset.organizationId,
+      projectId: existingAsset.projectId || null,
+      actorId: userId,
+      entityType,
+      entityId: assetId,
+      action: "UPDATED",
+      message: `Asset "${updatedAsset.name || updatedAsset.originalFilename}" updated`,
+      metadata: {
+        assetName: updatedAsset.name || updatedAsset.originalFilename,
+        changedFields: Object.keys(updateData),
+      },
+    });
+
+    // Convert BigInt fileSize to number for JSON serialization
+    const serializedAsset = {
+      ...updatedAsset,
+      fileSize: updatedAsset.fileSize ? Number(updatedAsset.fileSize) : null,
+    };
+    return NextResponse.json({ asset: serializedAsset });
   } catch (error) {
     console.error("Asset update error:", error);
     return NextResponse.json(

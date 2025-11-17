@@ -1,9 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { showToast } from "@envisio/ui";
 import { useSceneStore } from "@envisio/core";
 import { dataURLtoBlob } from "@envisio/ui";
 import { clientEnv } from "@/lib/env/client";
 import type { LibraryAsset } from "@envisio/ui";
+import {
+  getModels,
+  getModelUploadUrl,
+  getThumbnailUploadUrl,
+  uploadToSignedUrl,
+  createModelAsset,
+  deleteModel,
+  updateModelMetadata,
+} from "@/app/utils/api";
 
 interface UseAssetManagerProps {
   setSelectingPosition?: (selecting: boolean) => void;
@@ -23,22 +32,34 @@ export const useAssetManager = ({
   const addCesiumIonAsset = useSceneStore((s) => s.addCesiumIonAsset);
   const addModel = useSceneStore((state) => state.addModel);
 
+  const fetchUserAssets = useCallback(async () => {
+    try {
+      const data = await getModels();
+      // Convert Asset[] to LibraryAsset[]
+      const libraryAssets: LibraryAsset[] = (data.assets || []).map((asset) => ({
+        id: asset.id,
+        name: asset.name || asset.originalFilename || "",
+        originalFilename: asset.originalFilename,
+        fileUrl: asset.fileUrl,
+        fileType: asset.fileType,
+        thumbnail: asset.thumbnail || undefined,
+        description: asset.description || undefined,
+        metadata: asset.metadata as Record<string, string> | undefined,
+        assetType: asset.assetType,
+        cesiumAssetId: asset.cesiumAssetId || undefined,
+        cesiumApiKey: asset.cesiumApiKey || undefined,
+      }));
+      setUserAssets(libraryAssets);
+    } catch (err) {
+      console.error("Error fetching models:", err);
+      showToast("Failed to load models");
+    }
+  }, []);
+
   // Fetch user's uploaded models when component mounts
   useEffect(() => {
     fetchUserAssets();
-  }, []);
-
-  const fetchUserAssets = () => {
-    fetch("/api/models")
-      .then((res) => res.json())
-      .then((data) => {
-        setUserAssets(data.assets || []);
-      })
-      .catch((err) => {
-        console.error("Error fetching models:", err);
-        showToast("Failed to load models");
-      });
-  };
+  }, [fetchUserAssets]);
 
   // Handle custom model upload
   const handleCustomModelUpload = async (data: {
@@ -52,20 +73,10 @@ export const useAssetManager = ({
 
     try {
       // Step 1: Get presigned URL for model file
-      const signedUrlResponse = await fetch("/api/models", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileName: data.file.name,
-          fileType: data.file.type,
-        }),
+      const { signedUrl, key, acl } = await getModelUploadUrl({
+        fileName: data.file.name,
+        fileType: data.file.type,
       });
-
-      if (!signedUrlResponse.ok) {
-        throw new Error("Failed to get signed URL");
-      }
-
-      const { signedUrl, key, acl } = await signedUrlResponse.json();
 
       // Step 2: Upload model file directly to S3 using presigned URL
       await new Promise<void>((resolve, reject) => {
@@ -104,66 +115,63 @@ export const useAssetManager = ({
         const thumbnailFileName = `${data.friendlyName}-thumbnail.png`;
 
         // Get presigned URL for thumbnail
-        const thumbSignedUrlResponse = await fetch("/api/models", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fileName: thumbnailFileName,
-            fileType: "image/png",
-          }),
+        const {
+          signedUrl: thumbSignedUrl,
+          key: thumbKey,
+          acl: thumbAcl,
+        } = await getThumbnailUploadUrl({
+          fileName: thumbnailFileName,
+          fileType: "image/png",
         });
 
-        if (thumbSignedUrlResponse.ok) {
-          const {
-            signedUrl: thumbSignedUrl,
-            key: thumbKey,
-            acl: thumbAcl,
-          } = await thumbSignedUrlResponse.json();
+        // Upload thumbnail directly to S3
+        await uploadToSignedUrl(thumbSignedUrl, thumbnailBlob, {
+          contentType: "image/png",
+          acl: thumbAcl,
+        });
 
-          // Upload thumbnail directly to S3
-          const headers: Record<string, string> = {
-            "Content-Type": "image/png",
-          };
-          if (thumbAcl) {
-            headers["x-amz-acl"] = thumbAcl;
-          }
-
-          await fetch(thumbSignedUrl, {
-            method: "PUT",
-            headers,
-            body: thumbnailBlob,
-          });
-
-          // Construct thumbnail URL
-          thumbnailUrl = `${clientEnv.NEXT_PUBLIC_DO_SPACES_ENDPOINT}/${clientEnv.NEXT_PUBLIC_DO_SPACES_BUCKET}/${thumbKey}`;
-        }
+        // Construct thumbnail URL
+        thumbnailUrl = `${clientEnv.NEXT_PUBLIC_DO_SPACES_ENDPOINT}/${clientEnv.NEXT_PUBLIC_DO_SPACES_BUCKET}/${thumbKey}`;
       }
 
       // Step 3: Save model metadata to database
-      const res = await fetch("/api/models", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          key: key,
-          originalFilename: data.file.name,
-          name: data.friendlyName,
-          fileType: data.file.type,
-          thumbnail: thumbnailUrl,
-          metadata: data.metadata,
-        }),
+      // Convert metadata array to object
+      const metadataObject = data.metadata.reduce(
+        (acc, item) => {
+          if (item.label && item.value) {
+            acc[item.label] = item.value;
+          }
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+
+      const { asset: newModel } = await createModelAsset({
+        key: key,
+        originalFilename: data.file.name,
+        name: data.friendlyName,
+        fileType: data.file.type,
+        thumbnail: thumbnailUrl,
+        metadata: metadataObject,
+        fileSize: data.file.size,
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to create model record");
-      }
-
-      const { asset: newModel } = await res.json();
       showToast("Model uploaded and added to library!");
-      setUserAssets((prev) => [...prev, newModel]);
+      // Convert Asset to LibraryAsset
+      const libraryAsset: LibraryAsset = {
+        id: newModel.id,
+        name: newModel.name || newModel.originalFilename || "",
+        originalFilename: newModel.originalFilename,
+        fileUrl: newModel.fileUrl,
+        fileType: newModel.fileType,
+        thumbnail: newModel.thumbnail || undefined,
+        description: newModel.description || undefined,
+        metadata: newModel.metadata as Record<string, string> | undefined,
+        assetType: newModel.assetType,
+      };
+      setUserAssets((prev) => [...prev, libraryAsset]);
 
       // Automatically add to scene
-      handleModelSelect(newModel);
+      handleModelSelect(libraryAsset);
     } catch (error) {
       console.error("Upload error:", error);
       showToast("An error occurred during upload.");
@@ -237,18 +245,9 @@ export const useAssetManager = ({
   // Handle model deletion
   const handleDeleteModel = async (assetId: string) => {
     try {
-      const res = await fetch("/api/models", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assetId }),
-      });
-
-      if (res.ok) {
-        showToast("Asset deleted successfully.");
-        setUserAssets((prev) => prev.filter((asset) => asset.id !== assetId));
-      } else {
-        showToast("Failed to delete asset.");
-      }
+      await deleteModel(assetId);
+      showToast("Asset deleted successfully.");
+      setUserAssets((prev) => prev.filter((asset) => asset.id !== assetId));
     } catch (error) {
       console.error("Delete error:", error);
       showToast("An error occurred during deletion.");
@@ -266,28 +265,27 @@ export const useAssetManager = ({
     }
   ) => {
     try {
-      const res = await fetch("/api/models/metadata", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assetId, ...updates }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        showToast("Asset updated successfully.");
-        // Update local state with the returned asset data
-        setUserAssets((prev) =>
-          prev.map((asset) =>
-            asset.id === assetId ? { ...asset, ...data.asset } : asset
-          )
-        );
-      } else {
-        const errorData = await res.json();
-        console.error("Update failed:", errorData);
-        showToast(
-          `Failed to update asset: ${errorData.error || "Unknown error"}`
-        );
-      }
+      const data = await updateModelMetadata(assetId, updates);
+      showToast("Asset updated successfully.");
+      // Update local state with the returned asset data
+      const updatedLibraryAsset: LibraryAsset = {
+        id: data.asset.id,
+        name: data.asset.name || data.asset.originalFilename || "",
+        originalFilename: data.asset.originalFilename,
+        fileUrl: data.asset.fileUrl,
+        fileType: data.asset.fileType,
+        thumbnail: data.asset.thumbnail || undefined,
+        description: data.asset.description || undefined,
+        metadata: data.asset.metadata as Record<string, string> | undefined,
+        assetType: data.asset.assetType,
+        cesiumAssetId: data.asset.cesiumAssetId || undefined,
+        cesiumApiKey: data.asset.cesiumApiKey || undefined,
+      };
+      setUserAssets((prev) =>
+        prev.map((asset) =>
+          asset.id === assetId ? updatedLibraryAsset : asset
+        )
+      );
     } catch (error) {
       console.error("Asset update error:", error);
       showToast("An error occurred while updating asset.");

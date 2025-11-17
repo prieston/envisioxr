@@ -26,6 +26,9 @@ interface PendingModel {
 interface BuilderActionsProps {
   onSave?: () => Promise<void>;
   onPublish: () => void;
+  projectId?: string;
+  projectThumbnail?: string | null;
+  onThumbnailUpdate?: () => void;
   // Model positioning callbacks
   selectingPosition?: boolean;
   setSelectingPosition?: (selecting: boolean) => void;
@@ -38,6 +41,9 @@ interface BuilderActionsProps {
 const BuilderActions: React.FC<BuilderActionsProps> = ({
   onSave,
   onPublish,
+  projectId,
+  projectThumbnail,
+  onThumbnailUpdate,
   setSelectingPosition,
   setSelectedPosition,
   setPendingModel,
@@ -107,6 +113,9 @@ const BuilderActions: React.FC<BuilderActionsProps> = ({
       <ProjectSettingsModal
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
+        projectId={projectId}
+        projectThumbnail={projectThumbnail}
+        onThumbnailUpdate={onThumbnailUpdate}
       />
 
       {/* Asset Manager Modal */}

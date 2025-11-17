@@ -11,12 +11,13 @@ export type BasemapType =
 
 /**
  * Utility function to apply basemap type
+ * Returns the tileset reference if one was created (for cleanup)
  */
 export const applyBasemapType = async (
   viewer: any,
   Cesium: any,
   basemapType: BasemapType
-) => {
+): Promise<any | null> => {
   try {
     // Always remove existing imagery layers first
     viewer.imageryLayers.removeAll();
@@ -99,7 +100,15 @@ export const applyBasemapType = async (
           const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207);
           // Set the assetId property for easy identification
           tileset.assetId = 2275207;
+          // Remove any existing basemap tileset before adding new one (cleanup)
+          for (let i = viewer.scene.primitives.length - 1; i >= 0; i--) {
+            const primitive = viewer.scene.primitives.get(i);
+            if (primitive && primitive.assetId === 2275207) {
+              viewer.scene.primitives.remove(primitive);
+            }
+          }
           viewer.scene.primitives.add(tileset);
+          return tileset; // Return tileset for cleanup tracking
         } catch (error) {
           // Error setting Google Photorealistic
           viewer.imageryLayers.addImageryProvider(
@@ -142,8 +151,10 @@ export const applyBasemapType = async (
         break;
       }
     }
+    return null; // No tileset created for other basemap types
   } catch (error) {
     // Error applying basemap
+    return null;
   }
 };
 

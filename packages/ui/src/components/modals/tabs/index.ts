@@ -9,3 +9,8 @@ export type { UploadToIonTabProps } from "./UploadToIonTab";
 
 export { default as AddIonAssetTab } from "./AddIonAssetTab";
 export type { AddIonAssetTabProps } from "./AddIonAssetTab";
+
+// Export sub-components for use outside of tabs
+export { AssetCard } from "./my-library/AssetCard";
+export { AssetDetailView } from "./my-library/AssetDetailView";
+export { DeleteConfirmDialog } from "./my-library/DeleteConfirmDialog";

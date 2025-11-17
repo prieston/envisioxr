@@ -29,7 +29,7 @@ export const textFieldStyles: SxProps<Theme> = (theme) => ({
       padding: "8.5px 14px",
     },
     "& textarea": {
-      padding: "8.5px 14px",
+      padding: "0 !important",
     },
     "& fieldset": {
       borderColor:
