@@ -5,7 +5,7 @@ export async function middleware(req) {
   const token = await getToken({ req, secret: process.env.SECRET });
 
   // Define protected routes
-  const protectedRoutes = ["/", "/dashboard", "/editor", "/projects"];
+  const protectedRoutes = ["/", "/dashboard", "/editor", "/projects", "/admin"];
 
   // Check if user is authenticated for protected routes
   if (protectedRoutes.some((path) => req.nextUrl.pathname.startsWith(path))) {
@@ -19,5 +19,5 @@ export async function middleware(req) {
 
 // Apply middleware only to specific routes
 export const config = {
-  matcher: ["/dashboard/:path*", "/editor/:path*", "/projects/:path*"],
+  matcher: ["/dashboard/:path*", "/editor/:path*", "/projects/:path*", "/admin/:path*"],
 };
