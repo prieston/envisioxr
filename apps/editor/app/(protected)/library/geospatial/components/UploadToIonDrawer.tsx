@@ -52,6 +52,7 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
       epsgCode?: string;
       makeDownloadable?: boolean;
       tilesetJson?: string;
+      gaussianSplats?: boolean;
     };
   }): Promise<{ assetId: string }> => {
     setIonUploading(true);
