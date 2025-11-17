@@ -292,6 +292,29 @@ const LibraryGeospatialPage = () => {
     setRetakePhotoOpen(true);
   };
 
+  const handleRetryTiling = async () => {
+    if (!selectedAsset) return;
+
+    try {
+      // Reset tiling status from ERROR to IN_PROGRESS
+      await updateModelMetadata(selectedAsset.id, {
+        metadata: {
+          ...(selectedAsset.metadata as Record<string, any>),
+          tilingStatus: "IN_PROGRESS",
+          error: undefined, // Clear error message
+        },
+      });
+
+      // Refresh assets to show updated status
+      mutate();
+
+      showToast("Retrying tiling status check...");
+    } catch (error) {
+      console.error("Failed to retry tiling:", error);
+      showToast("Failed to retry tiling status check");
+    }
+  };
+
   // Handle capture screenshot
   const handleCaptureScreenshot = async (screenshot: string) => {
     if (!selectedAsset) return;
@@ -630,6 +653,7 @@ const LibraryGeospatialPage = () => {
                       // Not needed in geospatial page, but required by component
                     }}
                     onRetakePhoto={handleRetakePhoto}
+                    onRetryTiling={handleRetryTiling}
                     canUpdate={true}
                     showAddToScene={false}
                   />

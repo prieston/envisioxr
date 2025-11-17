@@ -23,12 +23,14 @@ interface AdvancedOptionsProps {
   webpImages: boolean;
   geometricCompression: string;
   epsgCode: string;
+  gaussianSplats?: boolean;
   uploading: boolean;
   onDracoCompressionChange: (value: boolean) => void;
   onKtx2CompressionChange: (value: boolean) => void;
   onWebpImagesChange: (value: boolean) => void;
   onGeometricCompressionChange: (value: string) => void;
   onEpsgCodeChange: (value: string) => void;
+  onGaussianSplatsChange?: (value: boolean) => void;
 }
 
 export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
@@ -38,12 +40,14 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
   webpImages,
   geometricCompression,
   epsgCode,
+  gaussianSplats = false,
   uploading,
   onDracoCompressionChange,
   onKtx2CompressionChange,
   onWebpImagesChange,
   onGeometricCompressionChange,
   onEpsgCodeChange,
+  onGaussianSplatsChange,
 }) => {
   const theme = useTheme();
   const accent = theme.palette.primary.main;
@@ -226,10 +230,34 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
         )}
 
         {sourceType === "POINTCLOUD" && (
-          <Alert severity="info" sx={{ fontSize: "0.75rem" }}>
-            Ion will tile your point cloud data into a 3D Tiles tileset for efficient
-            streaming.
-          </Alert>
+          <>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={dracoCompression}
+                  onChange={(e) => onDracoCompressionChange(e.target.checked)}
+                  disabled={uploading}
+                />
+              }
+              label={<Typography sx={{ fontSize: "0.875rem" }}>Draco compression</Typography>}
+            />
+            {onGaussianSplatsChange && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={gaussianSplats}
+                    onChange={(e) => onGaussianSplatsChange(e.target.checked)}
+                    disabled={uploading}
+                  />
+                }
+                label={<Typography sx={{ fontSize: "0.875rem" }}>Gaussian splats</Typography>}
+              />
+            )}
+            <Alert severity="info" sx={{ fontSize: "0.75rem" }}>
+              Ion will tile your point cloud data into a 3D Tiles tileset for efficient
+              streaming.
+            </Alert>
+          </>
         )}
       </AccordionDetails>
     </Accordion>

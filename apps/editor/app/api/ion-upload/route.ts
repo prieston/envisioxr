@@ -38,6 +38,8 @@ interface CesiumIonUploadRequest {
     textureFormat?: string; // "KTX2" for BIM/CAD
     tilesetJson?: string;
     makeDownloadable?: boolean;
+    dracoCompression?: boolean; // For point clouds
+    gaussianSplats?: boolean; // For point clouds
   };
 }
 
@@ -149,6 +151,15 @@ export async function POST(request: NextRequest) {
 
       if (typeof options.makeDownloadable === "boolean") {
         cleanOptions.makeDownloadable = options.makeDownloadable;
+      }
+
+      // Point Cloud options
+      if (typeof options.dracoCompression === "boolean") {
+        cleanOptions.dracoCompression = options.dracoCompression;
+      }
+
+      if (typeof options.gaussianSplats === "boolean") {
+        cleanOptions.gaussianSplats = options.gaussianSplats;
       }
     }
 

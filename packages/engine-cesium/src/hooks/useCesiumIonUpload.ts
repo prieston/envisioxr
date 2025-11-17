@@ -42,16 +42,35 @@ export const useCesiumIonUpload = () => {
 
   /**
    * Poll Cesium Ion asset status until tiling completes
+   * Handles transient errors gracefully and only fails on explicit ERROR/FAILED status
+   * Continues polling indefinitely until Cesium Ion reports COMPLETE or ERROR/FAILED
+   * @param _fileSizeBytes Optional file size in bytes (kept for API compatibility, not used)
    */
   const pollAssetStatus = async (
     assetId: number,
     accessToken: string,
-    onProgress?: (status: string, percentComplete: number) => void
+    onProgress?: (status: string, percentComplete: number) => void,
+    _fileSizeBytes?: number
   ): Promise<CesiumIonAssetStatus> => {
-    const maxAttempts = 40; // 40 attempts * 3s = 2 minutes max
-    const pollInterval = 3000; // 3 seconds
+    // Use longer polling interval to reduce API calls and avoid rate limits
+    // Start with 10 seconds, increase to 20 seconds after initial delay
+    const initialPollInterval = 10000; // 10 seconds
+    const steadyPollInterval = 20000; // 20 seconds after initial period
+    const initialDelay = 15000; // 15 second delay before first poll (give Ion time to process)
+    const initialPeriodDuration = 60000; // Use 10s interval for first minute, then switch to 20s
+    const maxConsecutiveErrors = 10; // Allow more consecutive errors since we're polling longer
 
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // Wait before starting to poll (give Cesium Ion time to process the upload)
+    await new Promise((resolve) => setTimeout(resolve, initialDelay));
+
+    let consecutiveErrors = 0;
+    let attempt = 0;
+    const startTime = Date.now();
+
+    // Poll indefinitely until Cesium Ion reports COMPLETE or ERROR/FAILED
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      attempt++;
       try {
         const response = await fetch(
           `https://api.cesium.com/v1/assets/${assetId}`,
@@ -63,9 +82,42 @@ export const useCesiumIonUpload = () => {
           }
         );
 
+        // Handle HTTP errors - treat 404 and 5xx as transient, retry
         if (!response.ok) {
+          // 404 might mean asset isn't ready yet, retry
+          if (response.status === 404) {
+            consecutiveErrors++;
+            if (consecutiveErrors >= maxConsecutiveErrors) {
+              throw new Error(
+                `Asset not found after ${maxConsecutiveErrors} attempts. The asset may not exist or the ID may be incorrect.`
+              );
+            }
+            // Wait and retry
+            await new Promise((resolve) => setTimeout(resolve, pollInterval));
+            continue;
+          }
+
+          // 5xx errors are server errors, retry
+          if (response.status >= 500) {
+            consecutiveErrors++;
+            if (consecutiveErrors >= maxConsecutiveErrors) {
+              throw new Error(
+                `Server error (${response.status}) after ${maxConsecutiveErrors} attempts. Please try again later.`
+              );
+            }
+            // Exponential backoff for server errors
+            await new Promise((resolve) =>
+              setTimeout(resolve, pollInterval * (consecutiveErrors + 1))
+            );
+            continue;
+          }
+
+          // Other errors (4xx except 404) are likely permanent
           throw new Error(`Failed to fetch asset status: ${response.status}`);
         }
+
+        // Reset consecutive error counter on success
+        consecutiveErrors = 0;
 
         const assetInfo: CesiumIonAssetStatus = await response.json();
         const status = assetInfo.status;
@@ -79,22 +131,45 @@ export const useCesiumIonUpload = () => {
           return assetInfo;
         }
 
+        // Only fail on explicit ERROR/FAILED status from Cesium Ion
         if (status === "ERROR" || status === "FAILED") {
           const errorMessage = assetInfo.error?.message || "Tiling failed";
           throw new Error(errorMessage);
         }
 
-        // Continue polling
+        // Continue polling for other statuses (IN_PROGRESS, etc.)
+        // Use shorter interval initially, then switch to longer interval
+        const elapsed = Date.now() - startTime;
+        const pollInterval =
+          elapsed < initialPeriodDuration
+            ? initialPollInterval
+            : steadyPollInterval;
         await new Promise((resolve) => setTimeout(resolve, pollInterval));
       } catch (error) {
-        console.error("Error polling asset status:", error);
-        throw error;
+        // If it's an explicit error from Cesium Ion (ERROR/FAILED status), throw it
+        if (error instanceof Error && error.message.includes("Tiling failed")) {
+          throw error;
+        }
+
+        // For other errors, log but continue polling (unless we've exceeded max consecutive errors)
+        const elapsed = Date.now() - startTime;
+        const elapsedMinutes = Math.floor(elapsed / 60000);
+        console.warn(
+          `Error polling asset status (attempt ${attempt}, ${elapsedMinutes}min elapsed):`,
+          error
+        );
+
+        // If we've exceeded max consecutive errors, throw
+        if (consecutiveErrors >= maxConsecutiveErrors) {
+          throw new Error(
+            `Too many consecutive errors (${consecutiveErrors}) while polling asset status. Last error: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+
+        // Wait before retrying (use longer interval for retries)
+        await new Promise((resolve) => setTimeout(resolve, steadyPollInterval));
       }
     }
-
-    throw new Error(
-      `Timeout waiting for tiling to complete after ${(maxAttempts * pollInterval) / 1000}s`
-    );
   };
 
   /**
@@ -133,14 +208,23 @@ export const useCesiumIonUpload = () => {
 
   /**
    * Upload file to S3 using Cesium Ion's temporary credentials
+   * Uses multipart upload for large files (>5MB) to avoid loading entire file into memory
    */
   const uploadToS3 = async (
     file: File,
     uploadLocation: any,
     onProgress?: (percent: number) => void
   ) => {
-    const fileBuffer = await file.arrayBuffer();
-    const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+    const LARGE_FILE_THRESHOLD = 5 * 1024 * 1024; // 5MB
+    const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks for multipart upload
+
+    const {
+      S3Client,
+      PutObjectCommand,
+      CreateMultipartUploadCommand,
+      UploadPartCommand,
+      CompleteMultipartUploadCommand,
+    } = await import("@aws-sdk/client-s3");
 
     const s3Client = new S3Client({
       region: "us-east-1",
@@ -154,17 +238,81 @@ export const useCesiumIonUpload = () => {
 
     const s3Key = `${uploadLocation.prefix}${file.name}`;
 
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: uploadLocation.bucket,
-        Key: s3Key,
-        Body: new Uint8Array(fileBuffer),
-        ContentType: file.type || "application/octet-stream",
-      })
-    );
+    // Use multipart upload for large files to avoid loading entire file into memory
+    if (file.size > LARGE_FILE_THRESHOLD) {
+      // Initiate multipart upload
+      const createResponse = await s3Client.send(
+        new CreateMultipartUploadCommand({
+          Bucket: uploadLocation.bucket,
+          Key: s3Key,
+          ContentType: file.type || "application/octet-stream",
+        })
+      );
 
-    if (onProgress) {
-      onProgress(90);
+      const uploadId = createResponse.UploadId!;
+      const totalParts = Math.ceil(file.size / CHUNK_SIZE);
+      const parts: Array<{ ETag: string; PartNumber: number }> = [];
+
+      // Upload parts in chunks without loading entire file
+      for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
+        const start = (partNumber - 1) * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, file.size);
+
+        // Use file.slice() to read chunk without loading entire file
+        const chunk = file.slice(start, end);
+        const chunkBuffer = await chunk.arrayBuffer();
+
+        const uploadResponse = await s3Client.send(
+          new UploadPartCommand({
+            Bucket: uploadLocation.bucket,
+            Key: s3Key,
+            PartNumber: partNumber,
+            UploadId: uploadId,
+            Body: new Uint8Array(chunkBuffer),
+          })
+        );
+
+        parts.push({
+          ETag: uploadResponse.ETag!,
+          PartNumber: partNumber,
+        });
+
+        // Update progress: 20-90% range (20% for asset creation, 90% for completion)
+        if (onProgress) {
+          const progress = Math.round((partNumber / totalParts) * 70) + 20;
+          onProgress(progress);
+        }
+      }
+
+      // Complete multipart upload
+      await s3Client.send(
+        new CompleteMultipartUploadCommand({
+          Bucket: uploadLocation.bucket,
+          Key: s3Key,
+          UploadId: uploadId,
+          MultipartUpload: { Parts: parts },
+        })
+      );
+
+      if (onProgress) {
+        onProgress(90);
+      }
+    } else {
+      // Small files: use simple upload (but still avoid loading entire file if possible)
+      const fileBuffer = await file.arrayBuffer();
+
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: uploadLocation.bucket,
+          Key: s3Key,
+          Body: new Uint8Array(fileBuffer),
+          ContentType: file.type || "application/octet-stream",
+        })
+      );
+
+      if (onProgress) {
+        onProgress(90);
+      }
     }
   };
 

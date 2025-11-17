@@ -28,6 +28,7 @@ export interface UploadToIonTabProps {
       epsgCode?: string;
       makeDownloadable?: boolean;
       tilesetJson?: string;
+      gaussianSplats?: boolean;
     };
   }) => Promise<{ assetId: string }>;
   uploading?: boolean;
@@ -60,11 +61,24 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
   const [epsgCode, setEpsgCode] = useState("");
   const [makeDownloadable, setMakeDownloadable] = useState(false);
   const [tilesetJson, setTilesetJson] = useState("tileset.json");
+  const [gaussianSplats, setGaussianSplats] = useState(false);
 
   const handleFileSelected = useCallback((file: File) => {
     setSelectedFile(file);
     setName(file.name.replace(/\.[^/.]+$/, ""));
+
+    // Auto-detect LAS/LAZ files and set source type to POINTCLOUD
+    const fileName = file.name.toLowerCase();
+    if (fileName.endsWith(".las") || fileName.endsWith(".laz")) {
+      setSourceType("POINTCLOUD");
+    }
   }, []);
+
+  // Check if the selected file is a LAS/LAZ file
+  const isPointCloudFile = selectedFile
+    ? selectedFile.name.toLowerCase().endsWith(".las") ||
+      selectedFile.name.toLowerCase().endsWith(".laz")
+    : false;
 
   const handleCancel = useCallback(() => {
     setSelectedFile(null);
@@ -83,6 +97,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
     setEpsgCode("");
     setMakeDownloadable(false);
     setTilesetJson("tileset.json");
+    setGaussianSplats(false);
   }, []);
 
   const handleUpload = useCallback(async () => {
@@ -102,6 +117,8 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         if (geometricCompression)
           uploadOptions.geometricCompression = geometricCompression;
         if (epsgCode) uploadOptions.epsgCode = epsgCode;
+        if (gaussianSplats !== undefined)
+          uploadOptions.gaussianSplats = gaussianSplats;
       }
 
       if (makeDownloadable) uploadOptions.makeDownloadable = makeDownloadable;
@@ -138,6 +155,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
     epsgCode,
     makeDownloadable,
     tilesetJson,
+    gaussianSplats,
     onUpload,
   ]);
 
@@ -243,6 +261,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         sourceType={sourceType}
         tilesetJson={tilesetJson}
         uploading={uploading}
+        sourceTypeLocked={isPointCloudFile}
         onNameChange={setName}
         onDescriptionChange={setDescription}
         onAccessTokenChange={setAccessToken}
@@ -258,12 +277,14 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         webpImages={webpImages}
         geometricCompression={geometricCompression}
         epsgCode={epsgCode}
+        gaussianSplats={gaussianSplats}
         uploading={uploading}
         onDracoCompressionChange={setDracoCompression}
         onKtx2CompressionChange={setKtx2Compression}
         onWebpImagesChange={setWebpImages}
         onGeometricCompressionChange={setGeometricCompression}
         onEpsgCodeChange={setEpsgCode}
+        onGaussianSplatsChange={setGaussianSplats}
       />
 
       {/* Make available for download */}

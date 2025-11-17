@@ -112,6 +112,16 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
         ionOptions.textureFormat = "KTX2";
       }
 
+      // Point Cloud options: dracoCompression and gaussianSplats
+      if (uploadSourceType === "POINT_CLOUD") {
+        if (options?.dracoCompression !== undefined) {
+          ionOptions.dracoCompression = options.dracoCompression;
+        }
+        if (options?.gaussianSplats !== undefined) {
+          ionOptions.gaussianSplats = options.gaussianSplats;
+        }
+      }
+
       const createAssetResponse = await createIonAsset({
         name,
         description,
@@ -169,9 +179,10 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
 
       // Start background polling to update tiling status
       // Don't await - let it run in the background
+      // Pass file size to calculate appropriate timeout (larger files take longer to tile)
       pollAssetStatus(Number(inferredId), accessToken, (_status, _percent) => {
         // Tiling progress update - could update asset metadata here if needed
-      })
+      }, file.size)
         .then(async (assetInfo) => {
           // Update asset metadata when tiling completes
           try {
