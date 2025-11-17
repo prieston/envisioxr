@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
  * Migration Safety Audit
- * 
+ *
  * Ensures migrations never cause data loss by checking for:
  * - Dangerous operations (DROP, DELETE, TRUNCATE without WHERE)
  * - Column drops without data migration
@@ -70,16 +70,16 @@ function checkMigrationSafety(migrationContent: string, migrationName: string): 
   for (const match of dropColumnMatches) {
     const columnName = match[1];
     const lineNumber = migrationContent.substring(0, match.index).split("\n").length;
-    
+
     // Check if data is migrated before drop
     const beforeDrop = migrationContent.substring(0, match.index);
-    
+
     // Check for various data migration patterns:
     // 1. UPDATE statements
     // 2. Data migration in DO blocks (PostgreSQL)
     // 3. Column is added/migrated in same migration
     // 4. Safe comments
-    const hasDataMigration = 
+    const hasDataMigration =
       (beforeDrop.includes(`UPDATE`) && beforeDrop.includes(`SET`)) ||
       (beforeDrop.includes(`DO $$`) && beforeDrop.includes(`UPDATE`)) ||
       (beforeDrop.includes(`ADD COLUMN`) && beforeDrop.includes(columnName)) ||
@@ -88,13 +88,13 @@ function checkMigrationSafety(migrationContent: string, migrationName: string): 
       beforeDrop.includes(`-- Migrate`) ||
       // Check if column is being replaced (old column dropped, new one added)
       migrationContent.includes(`ADD COLUMN`) && migrationContent.includes(`organizationId`);
-    
+
     // PostgreSQL doesn't support IF EXISTS for DROP COLUMN, but we can check if it's safe
-    const isSafeDrop = 
+    const isSafeDrop =
       hasDataMigration ||
       // Column is being replaced (common pattern: add new column, migrate data, drop old)
       (beforeDrop.includes(`ADD COLUMN`) && beforeDrop.includes(`organizationId`));
-    
+
     if (!isSafeDrop) {
       violations.push({
         migration: migrationName,
@@ -120,13 +120,13 @@ function checkMigrationSafety(migrationContent: string, migrationName: string): 
   for (const match of notNullMatches) {
     const columnName = match[1];
     const lineNumber = migrationContent.substring(0, match.index).split("\n").length;
-    
+
     // Check if column has DEFAULT or is added with NOT NULL DEFAULT
     const beforeAlter = migrationContent.substring(0, match.index);
-    const hasDefault = 
+    const hasDefault =
       beforeAlter.includes(`DEFAULT`) ||
       migrationContent.includes(`ADD COLUMN ${columnName}.*NOT NULL.*DEFAULT`);
-    
+
     if (!hasDefault) {
       violations.push({
         migration: migrationName,
@@ -144,15 +144,15 @@ function checkMigrationSafety(migrationContent: string, migrationName: string): 
     const tableName = match[1];
     const columnName = match[2];
     const lineNumber = migrationContent.substring(0, match.index).split("\n").length;
-    
+
     // Check if column exists check is present (PostgreSQL doesn't support IF EXISTS for ALTER COLUMN)
     // But we can check if it's part of a safe migration pattern
     const context = migrationContent.substring(Math.max(0, match.index - 200), match.index + 200);
-    const isSafe = 
-      context.includes(`ADD COLUMN`) || 
+    const isSafe =
+      context.includes(`ADD COLUMN`) ||
       context.includes(`DEFAULT`) ||
       context.includes(`-- Safe:`);
-    
+
     // This is just a warning since ALTER COLUMN IF EXISTS isn't standard SQL
     if (!isSafe) {
       violations.push({

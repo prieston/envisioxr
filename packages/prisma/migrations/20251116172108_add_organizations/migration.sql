@@ -127,7 +127,7 @@ DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'Activity') THEN
         IF NOT EXISTS (
-            SELECT 1 FROM information_schema.table_constraints 
+            SELECT 1 FROM information_schema.table_constraints
             WHERE constraint_name = 'Activity_organizationId_fkey'
         ) THEN
             ALTER TABLE "Activity" ADD CONSTRAINT "Activity_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
