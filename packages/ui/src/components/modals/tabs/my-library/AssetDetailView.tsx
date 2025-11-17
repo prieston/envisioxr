@@ -46,7 +46,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
   const metadata = asset.metadata as Record<string, any> | undefined;
   const tilingStatus = metadata?.tilingStatus as string | undefined;
   const tilingProgress = metadata?.tilingProgress as number | undefined;
-  const isCesiumIonAsset = asset.assetType === "cesiumIonAsset" || asset.cesiumAssetId;
+  const isCesiumIonAsset = asset.assetType === "cesiumIonAsset" || !!asset.cesiumAssetId;
   const isTilingComplete = tilingStatus === "COMPLETE";
   const isTilingInProgress = tilingStatus === "IN_PROGRESS";
   const isTilingError = tilingStatus === "ERROR";
