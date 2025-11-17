@@ -244,19 +244,27 @@ export async function POST(request: NextRequest) {
     const fileUrl = `${serverEnv.DO_SPACES_ENDPOINT}/${serverEnv.DO_SPACES_BUCKET}/${key}`;
 
     // Convert metadata array to object format
-    const metadataObject =
-      metadata?.reduce(
-        (
-          acc: Record<string, string>,
-          field: { label: string; value: string }
-        ) => {
-          if (field.label && field.value) {
-            acc[field.label] = field.value;
-          }
-          return acc;
-        },
-        {}
-      ) || {};
+    // Handle both array format (from form) and object format (already converted)
+    let metadataObject: Record<string, string> = {};
+    if (metadata) {
+      if (Array.isArray(metadata)) {
+        metadataObject = metadata.reduce(
+          (
+            acc: Record<string, string>,
+            field: { label: string; value: string }
+          ) => {
+            if (field.label && field.value) {
+              acc[field.label] = field.value;
+            }
+            return acc;
+          },
+          {}
+        );
+      } else if (typeof metadata === "object") {
+        // Already an object, use it directly
+        metadataObject = metadata as Record<string, string>;
+      }
+    }
 
     const asset = await prisma.asset.create({
       data: {
