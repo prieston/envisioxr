@@ -4,7 +4,7 @@ import {
   useCesiumIonUpload,
   type CesiumIonUploadData,
 } from "@envisio/engine-cesium";
-import { createIonAsset, completeIonUpload, createCesiumIonAsset } from "@/app/utils/api";
+import { createIonAsset, completeIonUpload, createCesiumIonAsset, updateModelMetadata } from "@/app/utils/api";
 
 /**
  * App-specific Cesium Ion hook that wraps the generic engine-cesium hook
@@ -44,16 +44,17 @@ export const useCesiumIon = () => {
       addCesiumIonAsset({
         name: data.name,
         apiKey: data.apiKey || "",
-        assetId: data.assetId,
+        assetId: data.assetId, // Cesium Ion asset ID for rendering
         enabled: true,
       });
 
       // Also add to objects array so it appears in scene objects list
+      // Use newAsset.id (database asset ID) for assetId so metadata can be fetched correctly
       addModel({
         name: data.name,
         type: "cesium-ion-tileset",
         apiKey: data.apiKey,
-        assetId: data.assetId,
+        assetId: newAsset.id, // Use database asset ID for metadata fetching, not Cesium Ion asset ID
         position: [0, 0, 0], // Placeholder, actual position handled by Cesium
         scale: [1, 1, 1],
         rotation: [0, 0, 0],
@@ -67,16 +68,21 @@ export const useCesiumIon = () => {
     }
   };
 
-  // Save Cesium Ion asset to the library after tiling completes
+  // Save Cesium Ion asset to the library (immediately or after tiling completes)
   const saveCesiumIonAssetToLibrary = async (
     assetId: number,
     assetInfo: any,
     accessToken: string,
     onRefresh?: () => void
-  ): Promise<void> => {
+  ): Promise<{ asset: any }> => {
     try {
+      // Determine tiling status
+      const tilingStatus = assetInfo.status === "COMPLETE" ? "COMPLETE" :
+                          assetInfo.status === "ERROR" || assetInfo.status === "FAILED" ? "ERROR" :
+                          "IN_PROGRESS";
+
       // Save to your database via API
-      await createCesiumIonAsset({
+      const { asset } = await createCesiumIonAsset({
         assetType: "cesiumIonAsset",
         cesiumAssetId: String(assetId),
         cesiumApiKey: accessToken,
@@ -84,6 +90,8 @@ export const useCesiumIon = () => {
         description: assetInfo.description || "",
         metadata: {
           ionAssetId: String(assetId),
+          tilingStatus,
+          tilingProgress: assetInfo.percentComplete || (tilingStatus === "COMPLETE" ? 100 : 0),
           type: assetInfo.type,
           status: assetInfo.status,
           bytes: assetInfo.bytes,
@@ -94,9 +102,14 @@ export const useCesiumIon = () => {
       if (onRefresh) {
         onRefresh();
       }
-      showToast("Ion asset added to your library!");
+
+      if (tilingStatus === "COMPLETE") {
+        showToast("Ion asset added to your library!");
+      }
+
+      return { asset };
     } catch (error) {
-      console.error("Error saving Ion asset:", error);
+      // Error saving Ion asset
       throw error;
     }
   };
@@ -207,26 +220,82 @@ export const useCesiumIon = () => {
 
       showToast(`Successfully uploaded to Cesium Ion! Asset ID: ${inferredId}`);
 
-      // Poll for tiling status and save to library when complete
-      pollAssetStatus(inferredId, accessToken, (_status, _percent) => {
-        // Tiling progress update
+      // Save to library immediately with IN_PROGRESS status
+      // This allows the asset to appear in the library right away
+      const { asset: newAsset } = await saveCesiumIonAssetToLibrary(
+        inferredId,
+        {
+          status: "IN_PROGRESS",
+          percentComplete: 0,
+          name: name,
+          description: description,
+        } as any,
+        accessToken,
+        onRefresh
+      );
+
+      // Start background polling to update tiling status
+      // Don't await - let it run in the background
+      pollAssetStatus(inferredId, accessToken, async (_status, _percent) => {
+        // Update progress periodically
+        try {
+          await updateModelMetadata(newAsset.id, {
+            metadata: {
+              ...(newAsset.metadata as Record<string, any>),
+              tilingProgress: _percent,
+            },
+          });
+          if (onRefresh) {
+            onRefresh();
+          }
+        } catch (err) {
+          // Failed to update tiling progress
+        }
       })
-        .then((assetInfo) => {
-          return saveCesiumIonAssetToLibrary(
-            inferredId,
-            assetInfo,
-            accessToken,
-            onRefresh
-          );
+        .then(async (assetInfo) => {
+          // Update asset metadata when tiling completes
+          try {
+            await updateModelMetadata(newAsset.id, {
+              metadata: {
+                ...(newAsset.metadata as Record<string, any>),
+                tilingStatus: "COMPLETE",
+                tilingProgress: 100,
+                type: assetInfo.type,
+                status: assetInfo.status,
+                bytes: assetInfo.bytes,
+              },
+            });
+            if (onRefresh) {
+              onRefresh();
+            }
+            showToast("Tiling completed! Asset is ready to use.");
+          } catch (err) {
+            // Failed to update tiling status
+          }
         })
-        .catch((err) => {
-          console.error("Polling or saving error:", err);
+        .catch(async (err) => {
+          // Polling error
+          // Update status to ERROR
+          try {
+            await updateModelMetadata(newAsset.id, {
+              metadata: {
+                ...(newAsset.metadata as Record<string, any>),
+                tilingStatus: "ERROR",
+                error: err.message,
+              },
+            });
+            if (onRefresh) {
+              onRefresh();
+            }
+          } catch (updateErr) {
+            // Failed to update error status
+          }
           showToast(`Tiling status check failed: ${err.message}`);
         });
 
       return { assetId: String(inferredId) };
     } catch (error) {
-      console.error("Ion upload error:", error);
+      // Ion upload error
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       showToast(`Cesium Ion upload failed: ${errorMessage}`);
