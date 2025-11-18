@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import {
   Button,
   Typography,
@@ -15,8 +13,8 @@ import {
 import { styled, alpha } from "@mui/material/styles";
 import GoogleIcon from "@mui/icons-material/Google";
 import LogoHeader from "@/app/components/AppBar/LogoHeader";
-import { useTenant } from "@envisio/core";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 const SignInContainer = styled(Box)(({ theme }) => ({
   minHeight: "100vh",
@@ -104,49 +102,89 @@ const SubmitButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-export default function SignInPage() {
-  const tenant = useTenant();
-  const router = useRouter();
+export default function SignUpPage() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [resendVerification, setResendVerification] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleEmailPasswordSignIn = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name: name || undefined }),
       });
 
-      if (result?.error) {
-        // Map NextAuth error codes to user-friendly messages
-        const errorMessages: Record<string, string> = {
-          CredentialsSignin: "Invalid email or password. Please try again.",
-          "Email not verified. Please check your email.": "Email not verified. Please check your email.",
-        };
+      const data = await response.json();
 
-        const errorMessage =
-          errorMessages[result.error] ||
-          result.error ||
-          "Invalid email or password. Please try again.";
-
-        setError(errorMessage);
+      if (!response.ok) {
+        // Handle case where user already exists and is verified
+        if (response.status === 409 && data.verified) {
+          setError(
+            "An account with this email already exists and is verified. Please sign in instead."
+          );
+        } else {
+          setError(data.error || "Failed to create account");
+        }
         setLoading(false);
-      } else if (result?.ok) {
-        router.push("/");
-        router.refresh();
+        return;
       }
+
+      // Check if this is a resend verification case
+      if (data.resendVerification) {
+        setResendVerification(true);
+      } else {
+        setSuccess(true);
+      }
+      setLoading(false);
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }
   };
+
+  if (success || resendVerification) {
+    return (
+      <SignInContainer>
+        <SignInCard>
+          <Box mb={4}>
+            <LogoHeader />
+          </Box>
+          <Alert severity="success" sx={{ mb: 2, width: "100%" }}>
+            {resendVerification
+              ? "A new verification email has been sent. Please check your email to verify your account."
+              : "Account created! Please check your email to verify your account before signing in."}
+          </Alert>
+          <Typography
+            variant="body2"
+            sx={{
+              color: (theme) => theme.palette.text.secondary,
+              mb: 3,
+              textAlign: "center",
+            }}
+          >
+            The verification link will expire in 24 hours.
+          </Typography>
+          <Button
+            component={Link}
+            href="/auth/signin"
+            variant="contained"
+            fullWidth
+          >
+            Go to Sign In
+          </Button>
+        </SignInCard>
+      </SignInContainer>
+    );
+  }
 
   return (
     <SignInContainer>
@@ -164,7 +202,7 @@ export default function SignInPage() {
             mb: 1,
           }}
         >
-          Welcome
+          Create Account
         </Typography>
 
         <Typography
@@ -177,27 +215,24 @@ export default function SignInPage() {
             letterSpacing: "0.02em",
           }}
         >
-          Spatial Authoring Environment for Real-World Operations
-        </Typography>
-
-        <Typography
-          variant="body1"
-          sx={{
-            color: (theme) => theme.palette.text.secondary,
-            mb: 4,
-            textAlign: "center",
-          }}
-        >
-          Sign in to continue to {tenant.name}
+          Join {tenant.name}
         </Typography>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2, width: "100%" }}>
+          <Alert severity="error" sx={{ mb: 2, width: "100%", mt: 2 }}>
             {error}
           </Alert>
         )}
 
-        <EmailPasswordForm component="form" onSubmit={handleEmailPasswordSignIn}>
+        <EmailPasswordForm component="form" onSubmit={handleSignUp}>
+          <TextField
+            label="Name (optional)"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            fullWidth
+            autoComplete="name"
+          />
           <TextField
             label="Email"
             type="email"
@@ -214,24 +249,11 @@ export default function SignInPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             fullWidth
-            autoComplete="current-password"
+            autoComplete="new-password"
+            helperText="Must be at least 8 characters"
           />
-          <Box sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
-            <MuiLink
-              component={Link}
-              href="/auth/forgot-password"
-              sx={{
-                color: (theme) => theme.palette.primary.main,
-                textDecoration: "none",
-                fontSize: "0.875rem",
-                "&:hover": { textDecoration: "underline" },
-              }}
-            >
-              Forgot password?
-            </MuiLink>
-          </Box>
           <SubmitButton type="submit" fullWidth disabled={loading}>
-            {loading ? "Signing in..." : "Sign in with Email"}
+            {loading ? "Creating account..." : "Create Account"}
           </SubmitButton>
         </EmailPasswordForm>
 
@@ -259,17 +281,17 @@ export default function SignInPage() {
 
         <Box sx={{ mt: 3, textAlign: "center", width: "100%" }}>
           <Typography variant="body2" sx={{ color: (theme) => theme.palette.text.secondary }}>
-            Don&apos;t have an account?{" "}
+            Already have an account?{" "}
             <MuiLink
               component={Link}
-              href="/auth/signup"
+              href="/auth/signin"
               sx={{
                 color: (theme) => theme.palette.primary.main,
                 textDecoration: "none",
                 "&:hover": { textDecoration: "underline" },
               }}
             >
-              Sign up
+              Sign in
             </MuiLink>
           </Typography>
         </Box>
@@ -283,9 +305,10 @@ export default function SignInPage() {
             maxWidth: 360,
           }}
         >
-          By signing in, you agree to our Terms of Service and Privacy Policy
+          By creating an account, you agree to our Terms of Service and Privacy Policy
         </Typography>
       </SignInCard>
     </SignInContainer>
   );
 }
+

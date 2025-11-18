@@ -34,6 +34,56 @@ export async function getUserPersonalOrganization(userId: string) {
 }
 
 /**
+ * Create a personal organization for a user
+ * This is called automatically when a user signs up
+ */
+export async function createPersonalOrganization(
+  userId: string,
+  userName: string | null,
+  userEmail: string
+) {
+  // Generate slug from user's name or email
+  const baseName = userName || userEmail || "user";
+  const slug = baseName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+
+  // Ensure uniqueness by appending user ID if needed
+  let finalSlug = slug;
+  let counter = 1;
+  while (
+    await prisma.organization.findUnique({
+      where: { slug: finalSlug },
+    })
+  ) {
+    finalSlug = `${slug}-${userId.substring(0, 8)}-${counter}`;
+    counter++;
+  }
+
+  // Create personal organization
+  const organization = await prisma.organization.create({
+    data: {
+      name: userName || userEmail || "Personal",
+      slug: finalSlug,
+      isPersonal: true,
+    },
+  });
+
+  // Add user as owner
+  await prisma.organizationMember.create({
+    data: {
+      organizationId: organization.id,
+      userId,
+      role: "owner",
+    },
+  });
+
+  return organization;
+}
+
+/**
  * Get organization IDs where user has a specific role or higher
  * Roles hierarchy: owner > admin > member > publicViewer
  */

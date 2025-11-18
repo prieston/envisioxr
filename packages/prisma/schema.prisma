@@ -51,6 +51,7 @@ model User {
   sessions              Session[]
   subscription          Subscription? // One-to-one relation with Subscription
   organizationMembers   OrganizationMember[]
+  organizationInvitesSent OrganizationInvite[] @relation("InvitesSent") // Invitations sent by this user
   activities            Activity[] // Activities performed by this user (as actor)
 }
 
@@ -73,6 +74,7 @@ model Organization {
   updatedAt  DateTime @updatedAt
 
   members    OrganizationMember[]
+  invites    OrganizationInvite[]
   projects   Project[]
   assets     Asset[]
   activities Activity[]
@@ -97,6 +99,25 @@ model OrganizationMember {
 
   @@unique([organizationId, userId])
   @@index([userId])
+  @@index([organizationId])
+}
+
+model OrganizationInvite {
+  id             String           @id @default(cuid())
+  organizationId String
+  email          String
+  role           OrganizationRole @default(member)
+  token          String           @unique
+  expires        DateTime
+  invitedById    String // User who sent the invitation
+  createdAt      DateTime         @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy     User         @relation("InvitesSent", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, email])
+  @@index([email])
+  @@index([token])
   @@index([organizationId])
 }
 

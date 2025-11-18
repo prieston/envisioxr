@@ -54,6 +54,11 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_CESIUM_ION_KEY: z
     .string()
     .min(1, "NEXT_PUBLIC_CESIUM_ION_KEY is required"),
+
+  // Email (Resend)
+  RESEND_API_KEY: z.string().min(1, "RESEND_API_KEY is required"),
+  EMAIL_FROM: z.string().min(1, "EMAIL_FROM is required"),
+  // APP_URL is already defined as NEXT_PUBLIC_APP_URL above
 });
 
 // Parse and validate the environment variables
@@ -82,4 +87,11 @@ export const doSpacesConfig = {
     bucket: serverEnv.NEXT_PUBLIC_DO_SPACES_BUCKET,
     folder: serverEnv.NEXT_PUBLIC_DO_SPACES_FOLDER,
   },
+};
+
+// Email configuration
+export const emailConfig = {
+  apiKey: serverEnv.RESEND_API_KEY,
+  from: serverEnv.EMAIL_FROM,
+  appUrl: serverEnv.NEXT_PUBLIC_APP_URL,
 };

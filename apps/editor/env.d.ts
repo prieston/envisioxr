@@ -37,5 +37,9 @@ declare namespace NodeJS {
     // Cesium Ion (support both naming conventions)
     NEXT_PUBLIC_CESIUM_ION_KEY: string;
     NEXT_PUBLIC_CESIUM_TOKEN: string;
+
+    // Email (Resend)
+    RESEND_API_KEY: string;
+    EMAIL_FROM: string;
   }
 }
