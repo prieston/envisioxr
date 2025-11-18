@@ -118,18 +118,43 @@ export interface Organization {
   userRole: string | null;
 }
 
-export async function getOrganization(): Promise<{
+export async function getOrganization(orgId: string): Promise<{
   organization: Organization;
 }> {
-  return apiRequest<{ organization: Organization }>("/api/organizations");
+  if (!orgId) {
+    throw new Error("organizationId is required");
+  }
+  return apiRequest<{ organization: Organization }>(`/api/organizations/${orgId}`);
 }
 
-export async function updateOrganization(data: {
+export async function updateOrganization(
+  data: {
   name?: string;
+  slug?: string;
+  },
+  orgId: string
+): Promise<{ organization: Organization }> {
+  if (!orgId) {
+    throw new Error("organizationId is required");
+  }
+  return apiRequest<{ organization: Organization }>(`/api/organizations/${orgId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getAllOrganizations(): Promise<{
+  organizations: Organization[];
+}> {
+  return apiRequest<{ organizations: Organization[] }>("/api/organizations/list");
+}
+
+export async function createOrganization(data: {
+  name: string;
   slug?: string;
 }): Promise<{ organization: Organization }> {
   return apiRequest<{ organization: Organization }>("/api/organizations", {
-    method: "PATCH",
+    method: "POST",
     body: JSON.stringify(data),
   });
 }
@@ -167,7 +192,7 @@ export async function createProject(data: {
   title?: string;
   description?: string;
   engine?: "three" | "cesium";
-  organizationId?: string;
+  organizationId: string; // Required: organization must be specified
 }): Promise<{ project: Project }> {
   return apiRequest<{ project: Project }>("/api/projects", {
     method: "POST",
@@ -299,6 +324,7 @@ export interface ModelsResponse {
 
 export async function getModels(params?: {
   assetType?: "model" | "cesiumIonAsset";
+  organizationId?: string;
 }): Promise<ModelsResponse> {
   return apiRequest<ModelsResponse>("/api/models", { params });
 }
@@ -582,6 +608,15 @@ export const userFetcher = (url: string): Promise<User> => {
 export const organizationFetcher = (url: string): Promise<Organization> => {
   return apiRequest<{ organization: Organization }>(url).then(
     (res) => res.organization
+  );
+};
+
+/**
+ * Fetcher for organizations list
+ */
+export const organizationsFetcher = (url: string): Promise<Organization[]> => {
+  return apiRequest<{ organizations: Organization[] }>(url).then(
+    (res) => res.organizations
   );
 };
 

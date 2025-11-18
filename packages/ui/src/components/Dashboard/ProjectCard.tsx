@@ -1,7 +1,6 @@
 import React from "react";
 import {
   CardContent,
-  Chip,
   IconButton,
   Card,
   Typography,
@@ -36,26 +35,10 @@ export default function ProjectCard({
   selected,
   onSelect: _onSelect,
 }: ProjectCardProps) {
-  const getEngineLabel = (engine?: string) =>
-    engine === "cesium" ? "Cesium" : "Three.js";
-
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest(".menu-button")) return;
     onGoToBuilder(project.id);
   };
-
-  const chipStyles =
-    project.engine === "cesium"
-      ? {
-          backgroundColor: "rgba(59, 130, 246, 0.15)",
-          color: "#3b82f6",
-          border: "1px solid rgba(59, 130, 246, 0.4)",
-        }
-      : {
-          backgroundColor: "rgba(245, 158, 11, 0.15)",
-          color: "#f59e0b",
-          border: "1px solid rgba(245, 158, 11, 0.4)",
-        };
 
   return (
     <Card
@@ -100,22 +83,6 @@ export default function ProjectCard({
           flexShrink: 0,
         }}
       >
-        {/* Badge overlay */}
-        <Chip
-          label={getEngineLabel(project.engine || "three")}
-          size="small"
-          sx={{
-            position: "absolute",
-            top: 8,
-            left: 8,
-            fontSize: "0.7rem",
-            height: 22,
-            fontWeight: 500,
-            "& .MuiChip-label": { p: "0 8px" },
-            zIndex: 2,
-            ...chipStyles,
-          }}
-        />
         {/* Menu button */}
         <IconButton
           className="menu-button"

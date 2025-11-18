@@ -1,22 +1,26 @@
 import useSWR from "swr";
 import { activitiesFetcher } from "@/app/utils/api";
 import type { ActivitiesResponse } from "@/app/utils/api";
+import { useOrgId } from "./useOrgId";
 
 interface UseActivityOptions {
   limit?: number;
-  organizationId?: string;
+  organizationId?: string | null;
 }
 
 const useActivity = (options?: UseActivityOptions) => {
-  // Build the SWR key with query parameters
+  const orgIdFromUrl = useOrgId();
+  const orgId = options?.organizationId ?? orgIdFromUrl;
+
+  // Build the SWR key with query parameters - orgId is required
   const params = new URLSearchParams();
+  if (orgId) {
+    params.append("organizationId", orgId);
+  }
   if (options?.limit) {
     params.append("limit", String(options.limit));
   }
-  if (options?.organizationId) {
-    params.append("organizationId", options.organizationId);
-  }
-  const key = `/api/activity${params.toString() ? `?${params.toString()}` : ""}`;
+  const key = orgId ? `/api/activity?${params.toString()}` : null;
 
   const { data, error, isLoading, mutate } = useSWR<ActivitiesResponse>(
     key,

@@ -69,6 +69,15 @@ interface CesiumIonAssetResponse {
   };
 }
 
+/**
+ * POST: Create a Cesium Ion asset and get upload location.
+ *
+ * Note: This endpoint only creates the asset on Cesium Ion's side.
+ * The actual database record is created via POST /api/models which requires organizationId.
+ * This endpoint is authenticated but does not require organizationId as it's a utility endpoint
+ * that interfaces with Cesium Ion API. The organization scoping happens when the asset
+ * record is saved to the database via /api/models POST.
+ */
 export async function POST(request: NextRequest) {
   try {
     // Unique marker to verify we're hitting the latest code

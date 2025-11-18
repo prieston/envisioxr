@@ -22,8 +22,8 @@ const tenantConfigs: Record<TenantId, TenantConfig> = {
     domain: "klorad.com",
     logo: "/images/logo/klorad-logo.svg",
     logoAlt: "Klorad Studio",
-    logoWidth: 130,
-    logoHeight: 21,
+    logoWidth: 650,
+    logoHeight: 128.67,
   },
   psmdt: {
     id: "psmdt",
@@ -31,8 +31,8 @@ const tenantConfigs: Record<TenantId, TenantConfig> = {
     domain: "psm.klorad.com",
     logo: "/images/logo/psm-logo-new.png",
     logoAlt: "PSMDT",
-    logoWidth: 130,
-    logoHeight: 21,
+    logoWidth: 650,
+    logoHeight: 106,
     poweredBy: "Powered by Klorad",
   },
 };

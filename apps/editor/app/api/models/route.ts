@@ -11,7 +11,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
 import { serverEnv } from "@/lib/env/server";
-import { getUserDefaultOrganization, getUserOrganizationIds, isUserMemberOfOrganization } from "@/lib/organizations";
+import { getUserOrganizationIds, isUserMemberOfOrganization } from "@/lib/organizations";
 import { logActivity } from "@/lib/activity";
 
 interface StockModel {
@@ -45,15 +45,28 @@ export async function GET(request: NextRequest) {
     // Get query parameters for filtering
     const { searchParams } = new URL(request.url);
     const assetType = searchParams.get("assetType"); // Optional: "model" | "cesiumIonAsset"
+    const organizationId = searchParams.get("organizationId");
 
-    // Get all organization IDs the user is a member of
+    // Require organizationId for security
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "organizationId is required" },
+        { status: 400 }
+      );
+    }
+
+    // Verify user is a member of the specified organization
     const userOrgIds = await getUserOrganizationIds(userId);
+    if (!userOrgIds.includes(organizationId)) {
+      return NextResponse.json(
+        { error: "User is not a member of the specified organization" },
+        { status: 403 }
+      );
+    }
 
-    // Build where clause
+    // Build where clause - filter by specific organization
     const whereClause: any = {
-      organizationId: {
-        in: userOrgIds,
-      },
+      organizationId,
     };
 
     // Add assetType filter if provided
@@ -87,7 +100,13 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PATCH: Generate a signed URL for uploading a file to DigitalOcean Spaces.
+/**
+ * PATCH: Generate a signed URL for uploading a file to DigitalOcean Spaces.
+ *
+ * Note: This endpoint only generates signed URLs for file uploads.
+ * The actual asset record is created via POST /api/models which requires organizationId.
+ * This endpoint is authenticated but does not require organizationId as it's a utility endpoint.
+ */
 export async function PATCH(request: NextRequest) {
   const session = (await getServerSession(authOptions)) as Session;
   if (!session?.user?.id) {
@@ -134,15 +153,6 @@ export async function POST(request: NextRequest) {
   }
   const userId = session.user.id;
   try {
-    // Get user's default organization (personal org)
-    const organization = await getUserDefaultOrganization(userId);
-    if (!organization) {
-      return NextResponse.json(
-        { error: "No organization found for user" },
-        { status: 400 }
-      );
-    }
-
     // Expecting a JSON body with key, originalFilename, name, fileType, thumbnail, metadata
     // OR for Cesium Ion assets: assetType, cesiumAssetId, cesiumApiKey, name
     const body = await request.json();
@@ -158,16 +168,21 @@ export async function POST(request: NextRequest) {
       cesiumAssetId,
       cesiumApiKey,
       description,
-      organizationId, // Optional: allow specifying organization
+      organizationId, // Required: organization must be specified
       fileSize, // File size in bytes
     } = body;
 
-    // Use provided organizationId or default to user's personal org
-    const targetOrgId = organizationId || organization.id;
+    // Require organizationId for security
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "organizationId is required" },
+        { status: 400 }
+      );
+    }
 
     // Verify user is a member of the target organization
     const userOrgIds = await getUserOrganizationIds(userId);
-    if (!userOrgIds.includes(targetOrgId)) {
+    if (!userOrgIds.includes(organizationId)) {
       return NextResponse.json(
         { error: "User is not a member of the specified organization" },
         { status: 403 }
@@ -191,7 +206,7 @@ export async function POST(request: NextRequest) {
 
       const asset = await prisma.asset.create({
         data: {
-          organizationId: targetOrgId,
+          organizationId,
           assetType: "cesiumIonAsset",
           fileUrl: `cesium://ion/${cesiumAssetId}`, // Placeholder URL
           fileType: "cesium-ion-tileset",
@@ -208,7 +223,7 @@ export async function POST(request: NextRequest) {
 
       // Log activity
       await logActivity({
-        organizationId: targetOrgId,
+        organizationId,
         projectId: null, // Org-level activity
         actorId: userId,
         entityType: "GEOSPATIAL_ASSET",
@@ -268,7 +283,7 @@ export async function POST(request: NextRequest) {
 
     const asset = await prisma.asset.create({
       data: {
-        organizationId: targetOrgId,
+        organizationId,
         assetType: "model",
         fileUrl,
         originalFilename,
@@ -283,7 +298,7 @@ export async function POST(request: NextRequest) {
 
     // Log activity
     await logActivity({
-      organizationId: targetOrgId,
+      organizationId,
       projectId: null, // Org-level activity (could be linked to project later)
       actorId: userId,
       entityType: "MODEL",

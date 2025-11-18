@@ -15,7 +15,14 @@ export default async function AdminPage() {
 
   // Check if user is the admin
   if (session.user.email !== ADMIN_EMAIL) {
-    redirect("/projects");
+    // Redirect to default organization dashboard
+    const { getUserDefaultOrganization } = await import("@/lib/organizations");
+    const defaultOrg = await getUserDefaultOrganization(session.user.id);
+    if (defaultOrg) {
+      redirect(`/org/${defaultOrg.id}/dashboard`);
+    } else {
+      redirect("/auth/signin");
+    }
   }
 
   return <AdminDashboard />;

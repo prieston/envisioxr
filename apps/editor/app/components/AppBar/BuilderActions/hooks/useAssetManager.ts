@@ -13,6 +13,7 @@ import {
   deleteModel,
   updateModelMetadata,
 } from "@/app/utils/api";
+import { useOrgId } from "@/app/hooks/useOrgId";
 
 interface UseAssetManagerProps {
   setSelectingPosition?: (selecting: boolean) => void;
@@ -25,6 +26,7 @@ export const useAssetManager = ({
   setSelectedPosition,
   setPendingModel,
 }: UseAssetManagerProps) => {
+  const orgId = useOrgId();
   const [userAssets, setUserAssets] = useState<LibraryAsset[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -34,7 +36,11 @@ export const useAssetManager = ({
 
   const fetchUserAssets = useCallback(async () => {
     try {
-      const data = await getModels();
+      if (!orgId) {
+        console.warn("Organization ID not available, cannot fetch models");
+        return;
+      }
+      const data = await getModels({ organizationId: orgId });
       // Convert Asset[] to LibraryAsset[]
       const libraryAssets: LibraryAsset[] = (data.assets || []).map((asset) => ({
         id: asset.id,
@@ -54,7 +60,7 @@ export const useAssetManager = ({
       console.error("Error fetching models:", err);
       showToast("Failed to load models");
     }
-  }, []);
+  }, [orgId]);
 
   // Fetch user's uploaded models when component mounts
   useEffect(() => {
@@ -146,6 +152,10 @@ export const useAssetManager = ({
         {} as Record<string, string>
       );
 
+      if (!orgId) {
+        throw new Error("Organization ID is required");
+      }
+
       const { asset: newModel } = await createModelAsset({
         key: key,
         originalFilename: data.file.name,
@@ -154,6 +164,7 @@ export const useAssetManager = ({
         thumbnail: thumbnailUrl,
         metadata: metadataObject,
         fileSize: data.file.size,
+        organizationId: orgId,
       });
       showToast("Model uploaded and added to library!");
       // Convert Asset to LibraryAsset

@@ -14,8 +14,16 @@ export default function LogoHeader() {
         sx={{
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
+          alignItems: "flex-start",
           gap: 0.5,
+        }}
+      >
+        <Box
+          sx={{
+            width: 130, // Fixed display width for consistent alignment
+            height: "auto",
+            display: "flex",
+            alignItems: "flex-start",
         }}
       >
         <Image
@@ -28,8 +36,13 @@ export default function LogoHeader() {
             filter: tenant.logo.endsWith(".png")
               ? "brightness(0) invert(1)"
               : "none",
+              display: "block",
+              width: "100%",
+              height: "auto",
+              objectFit: "contain",
           }}
         />
+        </Box>
         {tenant.poweredBy && (
           <Link
             href="https://klorad.com/partners"

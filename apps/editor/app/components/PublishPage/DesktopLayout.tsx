@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { Button, FormControlLabel, Switch, Typography, Box } from "@mui/material";
 import { LeftPanelContainer } from "@envisio/ui";
 import {
@@ -12,7 +13,7 @@ import {
   Separator,
 } from "./DesktopLayout.styles";
 import LogoHeader from "../AppBar/LogoHeader";
-import PreviewScene from "../Builder/Scene/PreviewScene";
+import type { SceneProps } from "@envisio/engine-three";
 
 type Observation = {
   id?: string | number;
@@ -24,8 +25,13 @@ type Project = {
   id?: string | number;
   title: string;
   description?: string;
-  sceneData: Parameters<typeof PreviewScene>[0]["initialSceneData"];
+  sceneData: NonNullable<SceneProps["initialSceneData"]>;
 };
+
+// Dynamically import PreviewScene to avoid SSR issues with 3d-tiles-renderer
+const PreviewScene = dynamic(() => import("../Builder/Scene/PreviewScene"), {
+  ssr: false,
+});
 
 interface DesktopLayoutProps {
   project: Project;
