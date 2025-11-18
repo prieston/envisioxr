@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       title,
       description,
       engine = "three",
-      organizationId, // Optional: allow specifying organization
+      organizationId, // Required: organization must be specified
     } = body as {
       title?: string;
       description?: string;
@@ -48,12 +48,17 @@ export async function POST(request: NextRequest) {
       organizationId?: string;
     };
 
-    // Use provided organizationId or default to user's personal org
-    const targetOrgId = organizationId || organization.id;
+    // Require organizationId for security
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "organizationId is required" },
+        { status: 400 }
+      );
+    }
 
     // Verify user is a member of the target organization
     const userOrgIds = await getUserOrganizationIds(userId);
-    if (!userOrgIds.includes(targetOrgId)) {
+    if (!userOrgIds.includes(organizationId)) {
       return NextResponse.json(
         { error: "User is not a member of the specified organization" },
         { status: 403 }
@@ -64,7 +69,7 @@ export async function POST(request: NextRequest) {
       data: {
         title: title || "Untitled Project",
         description: description || "",
-        organizationId: targetOrgId,
+        organizationId,
         sceneData: {},
         engine,
         isPublished: false,
@@ -91,23 +96,31 @@ export async function GET(request: NextRequest) {
   const userId = session.user.id;
 
   try {
-    // Get search query parameter
+    // Get query parameters
     const { searchParams } = new URL(request.url);
     const searchQuery = searchParams.get("search")?.trim() || "";
+    const organizationId = searchParams.get("organizationId");
 
-    // Get all organization IDs the user is a member of
+    // Require organizationId for security
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "organizationId is required" },
+        { status: 400 }
+      );
+    }
+
+    // Verify user is a member of the specified organization
     const userOrgIds = await getUserOrganizationIds(userId);
+    if (!userOrgIds.includes(organizationId)) {
+      return NextResponse.json(
+        { error: "User is not a member of the specified organization" },
+        { status: 403 }
+      );
+    }
 
-    // Debug logging (remove in production)
-    console.log("[Projects API] User ID:", userId);
-    console.log("[Projects API] User Org IDs:", userOrgIds);
-    console.log("[Projects API] Search query:", searchQuery);
-
-    // Build where clause
+    // Build where clause - filter by specific organization
     const whereClause: any = {
-      organizationId: {
-        in: userOrgIds,
-      },
+      organizationId,
     };
 
     // Add search filter if query is provided
@@ -132,8 +145,6 @@ export async function GET(request: NextRequest) {
       where: whereClause,
       orderBy: { createdAt: "desc" },
     });
-
-    console.log("[Projects API] Projects found:", projects.length);
 
     return NextResponse.json({ projects });
   } catch (error) {

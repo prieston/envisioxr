@@ -42,6 +42,7 @@
     "audit:forms": "node scripts/audit-form-fields.mjs",
     "audit:dependencies": "node scripts/audit-dependencies.mjs",
     "audit:fetch": "node scripts/audit-fetch-usage.mjs",
+    "audit:api-org": "tsx scripts/audits/api-org-scoping.ts",
     "audit:all": "pnpm audit:state && pnpm audit:cesium && pnpm audit:mesh && pnpm audit:errors && pnpm audit:modules && pnpm audit:forms && pnpm audit:dependencies && pnpm audit:fetch",
     "audit:light": "pnpm audit:boundaries && pnpm audit:ssr && pnpm audit:types && pnpm audit:dead && pnpm audit:migrations",
     "audit:heavy": "pnpm audit:graph && pnpm audit:bundle && pnpm audit:external && pnpm audit:env && pnpm audit:size",

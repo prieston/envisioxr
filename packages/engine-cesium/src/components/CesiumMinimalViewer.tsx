@@ -25,6 +25,8 @@ export function CesiumMinimalViewer({
   const viewerRef = useRef<any>(null);
   const cesiumRef = useRef<any>(null);
   const isInitializing = useRef(false);
+  const tilesetRef = useRef<any>(null);
+  const rafIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Check if container exists and if viewer is already initialized
@@ -75,7 +77,13 @@ export function CesiumMinimalViewer({
         // Wait for container to have dimensions if needed
         if (rect.width === 0 || rect.height === 0) {
           // Wait a frame for styles to apply
-          await new Promise((resolve) => requestAnimationFrame(resolve));
+          await new Promise<void>((resolve) => {
+            const rafId = requestAnimationFrame(() => {
+              rafIdRef.current = null;
+              resolve();
+            });
+            rafIdRef.current = rafId;
+          });
           const newRect = container.getBoundingClientRect();
           if (newRect.width === 0 || newRect.height === 0) {
             // Still no dimensions, use defaults
@@ -195,6 +203,7 @@ export function CesiumMinimalViewer({
           parseInt(cesiumAssetId)
         );
 
+        tilesetRef.current = tileset;
         viewerRef.current.scene.primitives.add(tileset);
 
         // Focus camera on model
@@ -215,7 +224,23 @@ export function CesiumMinimalViewer({
 
     // Cleanup
     return () => {
+      // Cancel any pending animation frame
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+
       if (viewerRef.current) {
+        // Remove tileset from primitives if it exists
+        if (tilesetRef.current && viewerRef.current.scene) {
+          try {
+            viewerRef.current.scene.primitives.remove(tilesetRef.current);
+          } catch {
+            // Ignore cleanup errors
+          }
+          tilesetRef.current = null;
+        }
+
         // Disconnect credit observer if it exists
         if ((viewerRef.current as any)._creditObserver) {
           (viewerRef.current as any)._creditObserver.disconnect();

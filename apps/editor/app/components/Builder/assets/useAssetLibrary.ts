@@ -12,6 +12,7 @@ import {
   createModelAsset,
   createCesiumIonAsset,
 } from "@/app/utils/api";
+import { useOrgId } from "@/app/hooks/useOrgId";
 
 interface AssetModel {
   id: string;
@@ -52,6 +53,7 @@ interface MetadataField {
 }
 
 export const useAssetLibrary = () => {
+  const orgId = useOrgId();
   const [tabIndex, setTabIndex] = useState(0);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [stockModels, setStockModels] = useState<StockModel[]>([]);
@@ -77,7 +79,12 @@ export const useAssetLibrary = () => {
 
   const fetchAssets = useCallback(async () => {
     try {
-      const data = await getModels();
+      if (!orgId) {
+        console.warn("Organization ID not available, cannot fetch assets");
+        setLoading(false);
+        return;
+      }
+      const data = await getModels({ organizationId: orgId });
       setAssets(data.assets || []);
       setStockModels(data.stockModels || []);
     } catch (error) {
@@ -86,7 +93,7 @@ export const useAssetLibrary = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [orgId]);
 
   useEffect(() => {
     fetchAssets();
@@ -268,6 +275,10 @@ export const useAssetLibrary = () => {
         ...(isObservationModel ? { observationProperties } : {}),
       };
 
+      if (!orgId) {
+        throw new Error("Organization ID is required");
+      }
+
       await createModelAsset({
         key,
         originalFilename: previewFile.name,
@@ -280,6 +291,7 @@ export const useAssetLibrary = () => {
         thumbnail: thumbnailUrl,
         metadata: metadataWithObservation,
         fileSize: previewFile.size,
+        organizationId: orgId,
       });
 
       showToast("Model uploaded successfully", "success");
@@ -305,16 +317,22 @@ export const useAssetLibrary = () => {
     observationProperties,
     handleCancelUpload,
     fetchAssets,
+    orgId,
   ]);
 
   const handleCesiumAssetAdd = useCallback(
     async (data: { assetId: string; name: string; apiKey?: string }) => {
       try {
+        if (!orgId) {
+          throw new Error("Organization ID is required");
+        }
+
         await createCesiumIonAsset({
           assetType: "cesiumIonAsset",
           cesiumAssetId: data.assetId,
           cesiumApiKey: data.apiKey,
           name: data.name,
+          organizationId: orgId,
         });
 
         showToast("Ion asset added successfully", "success");
@@ -327,7 +345,7 @@ export const useAssetLibrary = () => {
         throw error;
       }
     },
-    [fetchAssets]
+    [fetchAssets, orgId]
   );
 
   // Combine stock models and assets for display

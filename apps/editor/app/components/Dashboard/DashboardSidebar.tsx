@@ -12,6 +12,8 @@ import {
   AccordionSummary,
   AccordionDetails,
   Chip,
+  Divider,
+  Skeleton,
   alpha,
   useTheme,
 } from "@mui/material";
@@ -22,9 +24,13 @@ import FolderIcon from "@mui/icons-material/Folder";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import SettingsIcon from "@mui/icons-material/Settings";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import BusinessIcon from "@mui/icons-material/Business";
 import { LeftPanelContainer } from "@envisio/ui";
 import LogoHeader from "@/app/components/AppBar/LogoHeader";
 import UserAccountMenu from "@/app/components/AppBar/UserAccountMenu";
+import useOrganization from "@/app/hooks/useOrganization";
+import useOrganizations from "@/app/hooks/useOrganizations";
+import { useOrgId } from "@/app/hooks/useOrgId";
 
 interface SubMenuItem {
   label: string;
@@ -82,27 +88,48 @@ const menuItems: MenuItem[] = [
 const DashboardSidebar: React.FC = () => {
   const pathname = usePathname();
   const theme = useTheme();
+  const orgId = useOrgId();
+  const { organization: currentOrganization, loadingOrganization } =
+    useOrganization(orgId);
+  const { organizations, loadingOrganizations } = useOrganizations();
+
+  // Build paths with orgId prefix
+  const buildPath = useMemo(() => {
+    return (path: string) => {
+      if (!orgId) return path;
+      // Remove leading slash and build new path
+      const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+      return `/org/${orgId}/${cleanPath}`;
+    };
+  }, [orgId]);
 
   // Track manual expansion state (user clicks) - null means no manual interaction yet
   const [manuallyExpanded, setManuallyExpanded] = useState<
     Record<string, boolean | null>
   >({
+    organization: null,
     library: null,
     settings: null,
   });
 
   // Calculate which accordions should be expanded based on pathname
   const pathnameExpanded = useMemo(() => {
+    const orgPrefix = orgId ? `/org/${orgId}` : "";
     return {
-      library: pathname?.startsWith("/library/") || false,
-      settings: pathname?.startsWith("/settings/") || false,
+      organization: false, // Organization switcher doesn't expand based on pathname
+      library: pathname?.startsWith(`${orgPrefix}/library/`) || false,
+      settings: pathname?.startsWith(`${orgPrefix}/settings/`) || false,
     };
-  }, [pathname]);
+  }, [pathname, orgId]);
 
   // Combine pathname-based expansion with manual expansion
   // Manual expansion/collapse takes precedence, pathname expansion only applies if no manual interaction
   const expandedGroups = useMemo(() => {
     return {
+      organization:
+        manuallyExpanded.organization !== null
+          ? manuallyExpanded.organization
+          : pathnameExpanded.organization,
       library:
         manuallyExpanded.library !== null
           ? manuallyExpanded.library
@@ -115,15 +142,20 @@ const DashboardSidebar: React.FC = () => {
   }, [manuallyExpanded, pathnameExpanded]);
 
   const isItemActive = (item: MenuItem) => {
+    const itemPath = buildPath(item.path);
     if (item.subItems) {
       // For groups, check if any subpage is active
-      return item.subItems.some((subItem) => pathname === subItem.path);
+      return item.subItems.some((subItem) => {
+        const subPath = buildPath(subItem.path);
+        return pathname === subPath;
+      });
     }
-    return pathname === item.path || pathname === `${item.path}/`;
+    return pathname === itemPath || pathname === `${itemPath}/`;
   };
 
   const isSubItemActive = (subPath: string) => {
-    return pathname === subPath;
+    const fullPath = buildPath(subPath);
+    return pathname === fullPath;
   };
 
   // Hide sidebar on builder pages (but keep component mounted to maintain hook order)
@@ -154,7 +186,6 @@ const DashboardSidebar: React.FC = () => {
           justifyContent: "flex-start",
           height: "64px",
           borderBottom: "1px solid rgba(100, 116, 139, 0.2)",
-          mb: 2,
           px: 2,
           flexShrink: 0,
         }}
@@ -211,6 +242,233 @@ const DashboardSidebar: React.FC = () => {
             },
           }}
         >
+          {/* Organization Switcher */}
+          {((currentOrganization && organizations.length > 0) ||
+            loadingOrganization ||
+            loadingOrganizations) && (
+            <Box sx={{ marginBottom: 4 }}>
+              <Accordion
+                expanded={expandedGroups.organization}
+                onChange={(_event, newExpanded) => {
+                  setManuallyExpanded((prev) => ({
+                    ...prev,
+                    organization: newExpanded,
+                  }));
+                }}
+                sx={{
+                  marginBottom: 0,
+                  boxShadow: "none",
+                  "&:before": {
+                    display: "none",
+                  },
+                  "&.Mui-expanded": {
+                    margin: 0,
+                  },
+                  backgroundColor: "transparent",
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  sx={{
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? theme.palette.background.paper
+                        : "rgba(248, 250, 252, 0.6)",
+                    borderRadius: 0,
+                    minHeight: "48px",
+                    padding: theme.spacing(1.5, 2),
+                    borderBottom: "1px solid",
+                    borderColor: "rgba(255, 255, 255, 0.08)",
+                    "&.Mui-expanded": {
+                      minHeight: "48px",
+                      borderBottom: "none",
+                    },
+                    "&:hover": {
+                      backgroundColor:
+                        theme.palette.mode === "dark"
+                          ? alpha(theme.palette.primary.main, 0.1)
+                          : "rgba(248, 250, 252, 0.9)",
+                      color: theme.palette.primary.main,
+                    },
+                    "& .MuiAccordionSummary-content": {
+                      margin: 0,
+                      "&.Mui-expanded": {
+                        margin: 0,
+                      },
+                    },
+                    transition: "background-color 0.15s ease, color 0.15s ease",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      width: "100%",
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 40,
+                        color: "inherit",
+                        mr: 1,
+                        position: "relative",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-start",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          position: "relative",
+                          width: 32,
+                          height: 28,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            width: "100%",
+                            height: "100%",
+                            borderRadius: "4px",
+                            backgroundColor: "currentColor",
+                            opacity: 0.15,
+                          }}
+                        />
+                        <BusinessIcon
+                          sx={{
+                            fontSize: "1.25rem",
+                            color: "inherit",
+                            position: "relative",
+                            zIndex: 1,
+                          }}
+                        />
+                      </Box>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        loadingOrganization || loadingOrganizations ? (
+                          <Skeleton
+                            variant="text"
+                            width={120}
+                            height={20}
+                            sx={{
+                              bgcolor: alpha(theme.palette.primary.main, 0.1),
+                            }}
+                          />
+                        ) : (
+                          currentOrganization?.name || ""
+                        )
+                      }
+                      secondary={
+                        !loadingOrganization &&
+                        !loadingOrganizations &&
+                        currentOrganization?.isPersonal
+                          ? "(Your Workspace)"
+                          : null
+                      }
+                      primaryTypographyProps={{
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                        letterSpacing: "0.01em",
+                      }}
+                      secondaryTypographyProps={{
+                        fontSize: "0.75rem",
+                        color: "text.secondary",
+                      }}
+                    />
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails
+                  sx={{
+                    padding: 0,
+                    backgroundColor: "transparent",
+                    borderBottom: "1px solid",
+                    borderColor: "rgba(255, 255, 255, 0.08)",
+                  }}
+                >
+                  <List component="div" disablePadding>
+                    {organizations.map((org) => {
+                      const isSelected = org.id === orgId;
+                      return (
+                        <ListItem key={org.id} disablePadding>
+                          <ListItemButton
+                            component={Link}
+                            href={`/org/${org.id}/dashboard`}
+                            selected={isSelected}
+                            disableRipple
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Organization switching happens via navigation
+                            }}
+                            sx={(theme) => ({
+                              pl: 6,
+                              borderRadius: 0,
+                              marginBottom: 0,
+                              padding: theme.spacing(1.5, 2),
+                              backgroundColor: isSelected
+                                ? alpha(theme.palette.primary.main, 0.18)
+                                : theme.palette.mode === "dark"
+                                  ? theme.palette.background.paper
+                                  : "rgba(248, 250, 252, 0.6)",
+                              color: isSelected
+                                ? theme.palette.primary.main
+                                : theme.palette.mode === "dark"
+                                  ? theme.palette.text.primary
+                                  : "rgba(51, 65, 85, 0.95)",
+                              transition:
+                                "background-color 0.15s ease, color 0.15s ease",
+                              "&.Mui-selected": {
+                                backgroundColor: alpha(
+                                  theme.palette.primary.main,
+                                  0.18
+                                ),
+                                color: theme.palette.primary.main,
+                                "&:hover": {
+                                  backgroundColor: alpha(
+                                    theme.palette.primary.main,
+                                    0.24
+                                  ),
+                                },
+                              },
+                              "&:hover": {
+                                backgroundColor: isSelected
+                                  ? alpha(theme.palette.primary.main, 0.24)
+                                  : theme.palette.mode === "dark"
+                                    ? alpha(theme.palette.primary.main, 0.1)
+                                    : "rgba(248, 250, 252, 0.9)",
+                                color: theme.palette.primary.main,
+                              },
+                            })}
+                          >
+                            <ListItemText
+                              primary={org.name}
+                              secondary={
+                                org.isPersonal ? "(Your Workspace)" : null
+                              }
+                              primaryTypographyProps={{
+                                fontSize: "0.875rem",
+                                fontWeight: isSelected ? 600 : 400,
+                                letterSpacing: "0.01em",
+                              }}
+                              secondaryTypographyProps={{
+                                fontSize: "0.75rem",
+                                color: "text.secondary",
+                                fontStyle: "italic",
+                              }}
+                            />
+                          </ListItemButton>
+                        </ListItem>
+                      );
+                    })}
+                  </List>
+                </AccordionDetails>
+              </Accordion>
+            </Box>
+          )}
+
           {menuItems.map((item) => {
             const isActive = isItemActive(item);
             const groupKey = item.label.toLowerCase();
@@ -317,7 +575,9 @@ const DashboardSidebar: React.FC = () => {
                               <ListItemButton
                                 component={subItem.comingSoon ? Box : Link}
                                 href={
-                                  subItem.comingSoon ? undefined : subItem.path
+                                  subItem.comingSoon
+                                    ? undefined
+                                    : buildPath(subItem.path)
                                 }
                                 selected={isSubActive}
                                 disableRipple
@@ -428,7 +688,7 @@ const DashboardSidebar: React.FC = () => {
               <ListItem key={item.path} disablePadding sx={{ marginBottom: 0 }}>
                 <ListItemButton
                   component={Link}
-                  href={item.path}
+                  href={buildPath(item.path)}
                   selected={isActive}
                   disableRipple
                   sx={(theme) => ({
@@ -490,6 +750,15 @@ const DashboardSidebar: React.FC = () => {
           })}
         </List>
       </Box>
+
+      {/* Divider above user account menu */}
+      <Divider
+        sx={{
+          borderColor: "rgba(255, 255, 255, 0.08)",
+          mt: 2,
+          mb: 2,
+        }}
+      />
 
       {/* User Account Menu - Fixed at bottom */}
       <Box

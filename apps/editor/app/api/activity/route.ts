@@ -20,16 +20,26 @@ export async function GET(request: NextRequest) {
     const entityType = searchParams.get("entityType");
     const entityId = searchParams.get("entityId");
 
-    // Get all organization IDs the user is a member of
-    const userOrgIds = await getUserOrganizationIds(session.user.id);
+    // Require organizationId for security
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "organizationId is required" },
+        { status: 400 }
+      );
+    }
 
-    // Build where clause
+    // Verify user is a member of the specified organization
+    const userOrgIds = await getUserOrganizationIds(session.user.id);
+    if (!userOrgIds.includes(organizationId)) {
+      return NextResponse.json(
+        { error: "User is not a member of the specified organization" },
+        { status: 403 }
+      );
+    }
+
+    // Build where clause - filter by specific organization
     const whereClause: any = {
-      organizationId: {
-        in: organizationId && userOrgIds.includes(organizationId)
-          ? [organizationId]
-          : userOrgIds,
-      },
+      organizationId,
     };
 
     // Filter by project if provided

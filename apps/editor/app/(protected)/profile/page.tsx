@@ -26,11 +26,15 @@ import PersonIcon from "@mui/icons-material/Person";
 import BusinessIcon from "@mui/icons-material/Business";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import useUser from "@/app/hooks/useUser";
+import useOrganizations from "@/app/hooks/useOrganizations";
 
 const ProfilePage = () => {
+  const router = useRouter();
   const { status: sessionStatus } = useSession();
   const { user: userData, loadingUser, error: userError } = useUser();
+  const { organizations, loadingOrganizations } = useOrganizations();
 
   // Determine loading and error states
   const loading = sessionStatus === "loading" || loadingUser;
@@ -325,6 +329,147 @@ const ProfilePage = () => {
                       </Typography>
                     </Box>
                   </Box>
+                </PageCard>
+
+                {/* My Organizations Card */}
+                <PageCard padding={2}>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    My Organizations
+                  </Typography>
+
+                  {loadingOrganizations ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        py: 4,
+                      }}
+                    >
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : organizations.length === 0 ? (
+                    <Alert severity="info">
+                      You are not a member of any organizations yet.
+                    </Alert>
+                  ) : (
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "1fr",
+                          sm: "repeat(2, 1fr)",
+                          md: "repeat(3, 1fr)",
+                        },
+                        gap: 2,
+                      }}
+                    >
+                      {organizations.map((org) => (
+                        <Box
+                          key={org.id}
+                          sx={{
+                            p: 2,
+                            border: "1px solid",
+                            borderColor: "divider",
+                            borderRadius: 2,
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            "&:hover": {
+                              borderColor: "primary.main",
+                              backgroundColor: "action.hover",
+                              transform: "translateY(-2px)",
+                              boxShadow: 2,
+                            },
+                          }}
+                          onClick={() => {
+                            router.push(`/org/${org.id}/dashboard`);
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1.5,
+                              mb: 1,
+                            }}
+                          >
+                            <Avatar
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                bgcolor: org.isPersonal
+                                  ? "primary.main"
+                                  : "secondary.main",
+                              }}
+                            >
+                              <BusinessIcon />
+                            </Avatar>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography
+                                variant="subtitle2"
+                                sx={{
+                                  fontWeight: 600,
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {org.name}
+                              </Typography>
+                              {org.isPersonal && (
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{ fontSize: "0.7rem" }}
+                                >
+                                  Your Workspace
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 1,
+                              flexWrap: "wrap",
+                              mt: 1,
+                            }}
+                          >
+                            <Chip
+                              label={
+                                org.isPersonal ? "Personal" : "Team"
+                              }
+                              size="small"
+                              variant="outlined"
+                              color={org.isPersonal ? "primary" : "default"}
+                            />
+                            {org.userRole && (
+                              <Chip
+                                label={org.userRole}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                              />
+                            )}
+                          </Box>
+                          {org.slug && (
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{
+                                display: "block",
+                                mt: 1,
+                                fontFamily: "monospace",
+                                fontSize: "0.7rem",
+                              }}
+                            >
+                              {org.slug}
+                            </Typography>
+                          )}
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
                 </PageCard>
               </>
             )}

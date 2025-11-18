@@ -5,12 +5,14 @@ import {
   type CesiumIonUploadData,
 } from "@envisio/engine-cesium";
 import { createIonAsset, completeIonUpload, createCesiumIonAsset, updateModelMetadata } from "@/app/utils/api";
+import { useOrgId } from "@/app/hooks/useOrgId";
 
 /**
  * App-specific Cesium Ion hook that wraps the generic engine-cesium hook
  * with application API integration logic
  */
 export const useCesiumIon = () => {
+  const orgId = useOrgId();
   const {
     ionUploading,
     ionUploadProgress,
@@ -31,12 +33,17 @@ export const useCesiumIon = () => {
     apiKey?: string;
   }) => {
     try {
+      if (!orgId) {
+        throw new Error("Organization ID is required");
+      }
+
       // Save to database
       const { asset: newAsset } = await createCesiumIonAsset({
         assetType: "cesiumIonAsset",
         cesiumAssetId: data.assetId,
         cesiumApiKey: data.apiKey,
         name: data.name,
+        organizationId: orgId,
       });
       showToast(`Saved Cesium Ion asset: ${data.name}`);
 
@@ -81,6 +88,10 @@ export const useCesiumIon = () => {
                         "IN_PROGRESS";
 
     // Save to your database via API
+    if (!orgId) {
+      throw new Error("Organization ID is required");
+    }
+
     const { asset } = await createCesiumIonAsset({
       assetType: "cesiumIonAsset",
       cesiumAssetId: String(assetId),
@@ -95,6 +106,7 @@ export const useCesiumIon = () => {
         status: assetInfo.status,
         bytes: assetInfo.bytes,
       },
+      organizationId: orgId,
     });
 
     // Refresh the library to show the new asset
