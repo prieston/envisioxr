@@ -1,10 +1,23 @@
 -- AlterEnum
 -- Add 'publicViewer' to OrganizationRole enum if it doesn't exist
 DO $$ BEGIN
+    -- Drop default constraint temporarily
+    ALTER TABLE "OrganizationMember" ALTER COLUMN "role" DROP DEFAULT;
+
+    -- Create new enum type
     CREATE TYPE "OrganizationRole_new" AS ENUM ('owner', 'admin', 'member', 'publicViewer');
+
+    -- Alter column type
     ALTER TABLE "OrganizationMember" ALTER COLUMN "role" TYPE "OrganizationRole_new" USING ("role"::text::"OrganizationRole_new");
+
+    -- Rename types
     ALTER TYPE "OrganizationRole" RENAME TO "OrganizationRole_old";
     ALTER TYPE "OrganizationRole_new" RENAME TO "OrganizationRole";
+
+    -- Restore default
+    ALTER TABLE "OrganizationMember" ALTER COLUMN "role" SET DEFAULT 'member'::"OrganizationRole";
+
+    -- Drop old type
     DROP TYPE "OrganizationRole_old";
 EXCEPTION
     WHEN duplicate_object THEN null;

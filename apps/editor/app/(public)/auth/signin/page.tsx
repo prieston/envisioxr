@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { signIn } from "next-auth/react";
+import React, { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
   Button,
@@ -107,10 +107,24 @@ const SubmitButton = styled(Button)(({ theme }) => ({
 export default function SignInPage() {
   const tenant = useTenant();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Check if user just signed in and has a pending invitation
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      // Check for stored invite token
+      const inviteToken = sessionStorage.getItem("inviteToken");
+      if (inviteToken) {
+        // Redirect back to invite acceptance page
+        router.push(`/orgs/invites/accept?token=${inviteToken}`);
+        return;
+      }
+    }
+  }, [status, session, router]);
 
   const handleEmailPasswordSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,8 +153,16 @@ export default function SignInPage() {
         setError(errorMessage);
         setLoading(false);
       } else if (result?.ok) {
-        router.push("/");
-        router.refresh();
+        // Check for pending invitation
+        const inviteToken = sessionStorage.getItem("inviteToken");
+        if (inviteToken) {
+          // Redirect to invite acceptance page
+          router.push(`/orgs/invites/accept?token=${inviteToken}`);
+        } else {
+          // Default redirect
+          router.push("/");
+          router.refresh();
+        }
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -252,7 +274,17 @@ export default function SignInPage() {
         <GoogleButton
           fullWidth
           startIcon={<GoogleIcon />}
-          onClick={() => signIn("google", { callbackUrl: "/" })}
+          onClick={() => {
+            // Check for pending invitation
+            const inviteToken =
+              typeof window !== "undefined"
+                ? sessionStorage.getItem("inviteToken")
+                : null;
+            const callbackUrl = inviteToken
+              ? `/orgs/invites/accept?token=${inviteToken}`
+              : "/";
+            signIn("google", { callbackUrl });
+          }}
         >
           Continue with Google
         </GoogleButton>

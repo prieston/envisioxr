@@ -82,7 +82,7 @@ const menuItems: MenuItem[] = [
     path: "/settings",
     subItems: [
       { label: "General", path: "/settings/general" },
-      { label: "Members", path: "/settings/members", comingSoon: true },
+      { label: "Members", path: "/settings/members" },
       { label: "License", path: "/settings/billing", comingSoon: true },
       { label: "Usage", path: "/settings/usage", comingSoon: true },
       { label: "API Keys", path: "/settings/api-keys", comingSoon: true },

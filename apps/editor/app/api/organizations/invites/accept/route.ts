@@ -66,7 +66,11 @@ export async function POST(request: NextRequest) {
     // Verify email matches (if user has email)
     if (user.email && user.email.toLowerCase() !== invite.email.toLowerCase()) {
       return NextResponse.json(
-        { error: "This invitation was sent to a different email address" },
+        {
+          error: "This invitation was sent to a different email address",
+          userEmail: user.email,
+          inviteEmail: invite.email,
+        },
         { status: 403 }
       );
     }

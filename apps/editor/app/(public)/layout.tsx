@@ -1,6 +1,9 @@
 import "@/global.css";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/authOptions";
+import { SessionProviderWrapper } from "@/app/components/SessionProviderWrapper";
 import { ClientProviders } from "./providers";
 
 export const metadata = {
@@ -9,7 +12,11 @@ export const metadata = {
   icons: { icon: "/klorad-favicon.png" },
 };
 
-export default function PublicLayout({ children }) {
+export const dynamic = "force-dynamic";
+
+export default async function PublicLayout({ children }) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en" className="dark">
       <head>
@@ -32,16 +39,18 @@ export default function PublicLayout({ children }) {
         />
       </head>
       <body>
-        <ClientProviders>{children}</ClientProviders>
-        <ToastContainer
-          position="bottom-right"
-          autoClose={3000}
-          theme="dark"
-          hideProgressBar={false}
-          closeOnClick
-          pauseOnHover
-          draggable
-        />
+        <SessionProviderWrapper session={session}>
+          <ClientProviders>{children}</ClientProviders>
+          <ToastContainer
+            position="bottom-right"
+            autoClose={3000}
+            theme="dark"
+            hideProgressBar={false}
+            closeOnClick
+            pauseOnHover
+            draggable
+          />
+        </SessionProviderWrapper>
       </body>
     </html>
   );
