@@ -97,7 +97,11 @@ const DashboardSidebar: React.FC = () => {
   const orgId = useOrgId();
   const { organization: currentOrganization, loadingOrganization } =
     useOrganization(orgId);
-  const { organizations, loadingOrganizations, mutate: mutateOrganizations } = useOrganizations();
+  const {
+    organizations,
+    loadingOrganizations,
+    mutate: mutateOrganizations,
+  } = useOrganizations();
 
   // Create organization drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -139,7 +143,9 @@ const DashboardSidebar: React.FC = () => {
     } catch (error) {
       console.error("Error creating organization:", error);
       showToast(
-        error instanceof Error ? error.message : "Failed to create organization",
+        error instanceof Error
+          ? error.message
+          : "Failed to create organization",
         "error"
       );
     } finally {
@@ -530,17 +536,21 @@ const DashboardSidebar: React.FC = () => {
                           borderRadius: 0,
                           marginBottom: 0,
                           padding: theme.spacing(1.5, 2),
-                          backgroundColor: theme.palette.mode === "dark"
-                            ? theme.palette.background.paper
-                            : "rgba(248, 250, 252, 0.6)",
-                          color: theme.palette.mode === "dark"
-                            ? theme.palette.text.primary
-                            : "rgba(51, 65, 85, 0.95)",
-                          transition: "background-color 0.15s ease, color 0.15s ease",
+                          backgroundColor:
+                            theme.palette.mode === "dark"
+                              ? theme.palette.background.paper
+                              : "rgba(248, 250, 252, 0.6)",
+                          color:
+                            theme.palette.mode === "dark"
+                              ? theme.palette.text.primary
+                              : "rgba(51, 65, 85, 0.95)",
+                          transition:
+                            "background-color 0.15s ease, color 0.15s ease",
                           "&:hover": {
-                            backgroundColor: theme.palette.mode === "dark"
-                              ? alpha(theme.palette.primary.main, 0.1)
-                              : "rgba(248, 250, 252, 0.9)",
+                            backgroundColor:
+                              theme.palette.mode === "dark"
+                                ? alpha(theme.palette.primary.main, 0.1)
+                                : "rgba(248, 250, 252, 0.9)",
                             color: theme.palette.primary.main,
                           },
                         })}
