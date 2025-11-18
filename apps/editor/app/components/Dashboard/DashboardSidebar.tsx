@@ -100,8 +100,11 @@ const DashboardSidebar: React.FC = () => {
   const orgId = useOrgId();
   const { organization: currentOrganization, loadingOrganization } =
     useOrganization(orgId);
-  const { organizations, loadingOrganizations, mutate: mutateOrganizations } =
-    useOrganizations();
+  const {
+    organizations,
+    loadingOrganizations,
+    mutate: mutateOrganizations,
+  } = useOrganizations();
   const { user } = useUser();
   const isAdmin = user?.email === ADMIN_EMAIL;
 
