@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   Box,
   List,
@@ -25,12 +25,17 @@ import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import SettingsIcon from "@mui/icons-material/Settings";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import BusinessIcon from "@mui/icons-material/Business";
+import AddIcon from "@mui/icons-material/Add";
 import { LeftPanelContainer } from "@envisio/ui";
 import LogoHeader from "@/app/components/AppBar/LogoHeader";
 import UserAccountMenu from "@/app/components/AppBar/UserAccountMenu";
 import useOrganization from "@/app/hooks/useOrganization";
 import useOrganizations from "@/app/hooks/useOrganizations";
 import { useOrgId } from "@/app/hooks/useOrgId";
+import { useRouter } from "next/navigation";
+import { createOrganization } from "@/app/utils/api";
+import { CreateOrganizationDrawer } from "@/app/components/Organizations/CreateOrganizationDrawer";
+import { showToast } from "@envisio/ui";
 
 interface SubMenuItem {
   label: string;
@@ -88,10 +93,59 @@ const menuItems: MenuItem[] = [
 const DashboardSidebar: React.FC = () => {
   const pathname = usePathname();
   const theme = useTheme();
+  const router = useRouter();
   const orgId = useOrgId();
   const { organization: currentOrganization, loadingOrganization } =
     useOrganization(orgId);
-  const { organizations, loadingOrganizations } = useOrganizations();
+  const { organizations, loadingOrganizations, mutate: mutateOrganizations } = useOrganizations();
+
+  // Create organization drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [orgName, setOrgName] = useState("");
+  const [orgSlug, setOrgSlug] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleCreateOrganization = useCallback(() => {
+    setDrawerOpen(true);
+    setOrgName("");
+    setOrgSlug("");
+  }, []);
+
+  const handleCloseDrawer = useCallback(() => {
+    setDrawerOpen(false);
+    setOrgName("");
+    setOrgSlug("");
+  }, []);
+
+  const handleSaveOrganization = useCallback(async () => {
+    if (!orgName.trim() || !orgSlug.trim()) return;
+
+    setSaving(true);
+    try {
+      const response = await createOrganization({
+        name: orgName.trim(),
+        slug: orgSlug.trim(),
+      });
+
+      // Refresh organizations list
+      mutateOrganizations();
+
+      showToast("Organization created successfully!", "success");
+
+      // Navigate to the new organization's dashboard
+      router.push(`/org/${response.organization.id}/dashboard`);
+
+      handleCloseDrawer();
+    } catch (error) {
+      console.error("Error creating organization:", error);
+      showToast(
+        error instanceof Error ? error.message : "Failed to create organization",
+        "error"
+      );
+    } finally {
+      setSaving(false);
+    }
+  }, [orgName, orgSlug, mutateOrganizations, router, handleCloseDrawer]);
 
   // Build paths with orgId prefix
   const buildPath = useMemo(() => {
@@ -463,6 +517,53 @@ const DashboardSidebar: React.FC = () => {
                         </ListItem>
                       );
                     })}
+                    {/* Create Organization Option */}
+                    <ListItem disablePadding>
+                      <ListItemButton
+                        disableRipple
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCreateOrganization();
+                        }}
+                        sx={(theme) => ({
+                          pl: 6,
+                          borderRadius: 0,
+                          marginBottom: 0,
+                          padding: theme.spacing(1.5, 2),
+                          backgroundColor: theme.palette.mode === "dark"
+                            ? theme.palette.background.paper
+                            : "rgba(248, 250, 252, 0.6)",
+                          color: theme.palette.mode === "dark"
+                            ? theme.palette.text.primary
+                            : "rgba(51, 65, 85, 0.95)",
+                          transition: "background-color 0.15s ease, color 0.15s ease",
+                          "&:hover": {
+                            backgroundColor: theme.palette.mode === "dark"
+                              ? alpha(theme.palette.primary.main, 0.1)
+                              : "rgba(248, 250, 252, 0.9)",
+                            color: theme.palette.primary.main,
+                          },
+                        })}
+                      >
+                        <ListItemIcon
+                          sx={{
+                            minWidth: 40,
+                            color: "inherit",
+                            mr: 1,
+                          }}
+                        >
+                          <AddIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary="Create Organisation"
+                          primaryTypographyProps={{
+                            fontSize: "0.875rem",
+                            fontWeight: 400,
+                            letterSpacing: "0.01em",
+                          }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
                   </List>
                 </AccordionDetails>
               </Accordion>
@@ -776,6 +877,18 @@ const DashboardSidebar: React.FC = () => {
           <UserAccountMenu />
         </Box>
       </Box>
+
+      {/* Create Organization Drawer */}
+      <CreateOrganizationDrawer
+        open={drawerOpen}
+        name={orgName}
+        slug={orgSlug}
+        saving={saving}
+        onClose={handleCloseDrawer}
+        onNameChange={setOrgName}
+        onSlugChange={setOrgSlug}
+        onSave={handleSaveOrganization}
+      />
     </LeftPanelContainer>
   );
 };

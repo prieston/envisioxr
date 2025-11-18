@@ -21,6 +21,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { useOrgId } from "@/app/hooks/useOrgId";
 
 interface UserAccountMenuProps {
   onLogout?: () => void;
@@ -39,7 +40,8 @@ export function UserAccountMenu({
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
 
-  const isProfileActive = pathname === "/profile";
+  const orgId = useOrgId();
+  const isProfileActive = pathname?.includes("/profile");
 
   const userInitial = useMemo(() => {
     return (
@@ -50,7 +52,11 @@ export function UserAccountMenu({
   }, [session?.user?.email, session?.user?.name]);
 
   const handleProfile = () => {
-    router.push("/profile");
+    if (orgId) {
+      router.push(`/org/${orgId}/profile`);
+    } else {
+      router.push("/profile");
+    }
   };
 
   const handleLogout = async () => {
@@ -170,7 +176,7 @@ export function UserAccountMenu({
             <ListItem disablePadding>
               <ListItemButton
                 component={Link}
-                href="/profile"
+                href={orgId ? `/org/${orgId}/profile` : "/profile"}
                 disableRipple
                 onClick={(e) => {
                   e.stopPropagation();

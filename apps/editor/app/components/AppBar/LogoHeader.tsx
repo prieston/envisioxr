@@ -24,24 +24,24 @@ export default function LogoHeader() {
             height: "auto",
             display: "flex",
             alignItems: "flex-start",
-          }}
-        >
-          <Image
-            src={tenant.logo}
-            alt={tenant.logoAlt}
-            width={tenant.logoWidth}
-            height={tenant.logoHeight}
-            priority
-            style={{
-              filter: tenant.logo.endsWith(".png")
-                ? "brightness(0) invert(1)"
-                : "none",
+        }}
+      >
+        <Image
+          src={tenant.logo}
+          alt={tenant.logoAlt}
+          width={tenant.logoWidth}
+          height={tenant.logoHeight}
+          priority
+          style={{
+            filter: tenant.logo.endsWith(".png")
+              ? "brightness(0) invert(1)"
+              : "none",
               display: "block",
               width: "100%",
               height: "auto",
               objectFit: "contain",
-            }}
-          />
+          }}
+        />
         </Box>
         {tenant.poweredBy && (
           <Link

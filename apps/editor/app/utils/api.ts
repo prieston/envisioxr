@@ -129,8 +129,8 @@ export async function getOrganization(orgId: string): Promise<{
 
 export async function updateOrganization(
   data: {
-    name?: string;
-    slug?: string;
+  name?: string;
+  slug?: string;
   },
   orgId: string
 ): Promise<{ organization: Organization }> {
@@ -147,6 +147,16 @@ export async function getAllOrganizations(): Promise<{
   organizations: Organization[];
 }> {
   return apiRequest<{ organizations: Organization[] }>("/api/organizations/list");
+}
+
+export async function createOrganization(data: {
+  name: string;
+  slug?: string;
+}): Promise<{ organization: Organization }> {
+  return apiRequest<{ organization: Organization }>("/api/organizations", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 // ============================================================================
