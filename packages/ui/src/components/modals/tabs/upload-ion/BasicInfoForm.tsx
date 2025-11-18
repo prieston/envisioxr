@@ -9,6 +9,7 @@ interface BasicInfoFormProps {
   sourceType: string;
   tilesetJson: string;
   uploading: boolean;
+  sourceTypeLocked?: boolean;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
   onAccessTokenChange: (value: string) => void;
@@ -23,6 +24,7 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   sourceType,
   tilesetJson,
   uploading,
+  sourceTypeLocked = false,
   onNameChange,
   onDescriptionChange,
   onAccessTokenChange,
@@ -133,9 +135,55 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           fullWidth
           value={sourceType}
           onChange={(e) => onSourceTypeChange(e.target.value)}
-          disabled={uploading}
+          disabled={uploading || sourceTypeLocked}
           size="small"
-          sx={selectStyles}
+          sx={(theme) => ({
+            ...((typeof selectStyles === "function"
+              ? selectStyles(theme)
+              : selectStyles) as Record<string, any>),
+            "& .MuiSelect-select": {
+              cursor: "pointer",
+            },
+            "& input": {
+              cursor: "pointer",
+            },
+          })}
+          MenuProps={{
+            disablePortal: true,
+            disableScrollLock: true,
+            disableAutoFocus: true,
+            disableEnforceFocus: true,
+            disableRestoreFocus: true,
+            BackdropProps: {
+              invisible: true,
+              sx: {
+                pointerEvents: "auto",
+                cursor: "default",
+              },
+            },
+            PaperProps: {
+              sx: (theme) => ({
+                maxHeight: 300,
+                zIndex: 1600, // Higher than drawer (1500)
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "#14171A"
+                    : theme.palette.background.paper,
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: "4px",
+                mt: 0.5,
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+              }),
+            },
+            anchorOrigin: {
+              vertical: "bottom",
+              horizontal: "left",
+            },
+            transformOrigin: {
+              vertical: "top",
+              horizontal: "left",
+            },
+          }}
         >
           <MenuItem value="3DTILES_ARCHIVE">
             3D Tiles (existing tileset.json)

@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Button, IconButton, TextField, LinearProgress, Alert } from "@mui/material";
-import { Delete, Edit, Save, Close, AddCircleOutline, CameraAlt } from "@mui/icons-material";
+import { Delete, Edit, Save, Close, AddCircleOutline, CameraAlt, Refresh } from "@mui/icons-material";
 import { MetadataTable, type MetadataRow } from "../../../table";
 import type { LibraryAsset } from "../MyLibraryTab";
 import { textFieldStyles } from "../../../../styles/inputStyles";
@@ -20,6 +20,7 @@ interface AssetDetailViewProps {
   onDeleteClick: () => void;
   onAddToScene: () => void;
   onRetakePhoto: () => void;
+  onRetryTiling?: () => void;
   canUpdate?: boolean;
   showAddToScene?: boolean;
 }
@@ -39,6 +40,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
   onDeleteClick,
   onAddToScene,
   onRetakePhoto,
+  onRetryTiling,
   canUpdate = true,
   showAddToScene = true,
 }) => {
@@ -302,8 +304,32 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
 
       {isCesiumIonAsset && isTilingError && (
         <Box sx={{ px: 2, pb: 1 }}>
-          <Alert severity="error" sx={{ fontSize: "0.75rem" }}>
-            Tiling failed. Please try uploading again.
+          <Alert
+            severity="error"
+            sx={{ fontSize: "0.75rem" }}
+            action={
+              onRetryTiling ? (
+                <Button
+                  size="small"
+                  startIcon={<Refresh />}
+                  onClick={onRetryTiling}
+                  sx={{
+                    fontSize: "0.7rem",
+                    textTransform: "none",
+                    minWidth: "auto",
+                    padding: "2px 8px",
+                  }}
+                >
+                  Retry
+                </Button>
+              ) : undefined
+            }
+          >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Typography variant="caption">
+                Tiling failed. {onRetryTiling ? "Click Retry to check status again." : "Please try uploading again."}
+              </Typography>
+            </Box>
           </Alert>
         </Box>
       )}

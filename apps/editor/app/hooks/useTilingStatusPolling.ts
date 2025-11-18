@@ -38,6 +38,10 @@ export const useTilingStatusPolling = () => {
       pollingRefs.current.set(assetId, true);
 
       // Start polling (don't await - let it run in background)
+      // Use bytes from metadata if available to calculate appropriate timeout
+      const metadata = asset.metadata as Record<string, any> | undefined;
+      const fileSizeBytes = metadata?.bytes as number | undefined;
+
       pollAssetStatus(Number(cesiumAssetId), apiKey, async (_status, _percent) => {
         // Update progress periodically
         try {
@@ -53,7 +57,7 @@ export const useTilingStatusPolling = () => {
           // Silently fail - progress updates are not critical
                 // Failed to update tiling progress
         }
-      })
+      }, fileSizeBytes)
         .then(async (assetInfo) => {
           // Update asset metadata when tiling completes
           try {

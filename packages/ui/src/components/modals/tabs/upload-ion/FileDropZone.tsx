@@ -26,11 +26,31 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ onFileSelected }) =>
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
+      // 3D Models
       "model/gltf-binary": [".glb"],
       "model/gltf+json": [".gltf"],
-      "application/zip": [".zip"],
       "application/x-step": [".ifc"],
       "application/ifc": [".ifc"],
+      "application/x-fbx": [".fbx"],
+      "model/vnd.collada+xml": [".dae"],
+      "model/obj": [".obj"],
+      // Point Clouds (LAS/LAZ don't have standard MIME types)
+      // Terrain and other raster formats (use generic octet-stream with extensions)
+      "application/octet-stream": [".las", ".laz", ".img", ".flt", ".src", ".dt0", ".dt1", ".dt2"],
+      // Archives
+      "application/zip": [".zip"],
+      // Imagery
+      "image/tiff": [".tiff", ".tif"],
+      "image/jpeg": [".jpg", ".jpeg"],
+      "image/png": [".png"],
+      "text/plain": [".asc", ".dem"],
+      // Vector formats
+      "application/geo+json": [".geojson"],
+      "application/json": [".json", ".topojson", ".czml"],
+      "application/vnd.google-earth.kml+xml": [".kml"],
+      "application/vnd.google-earth.kmz": [".kmz"],
+      "application/gml+xml": [".citygml", ".gml"],
+      "application/xml": [".xml"],
     },
     multiple: false,
   });
@@ -94,7 +114,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ onFileSelected }) =>
             color: "rgba(100, 116, 139, 0.6)",
           }}
         >
-          Supported formats: GLB, GLTF, IFC, ZIP (with textures)
+          Supported formats: 3D Models (GLB, GLTF, FBX, DAE, OBJ, IFC), Point Clouds (LAS, LAZ), Imagery (GeoTIFF, JPEG, PNG), Terrain, Vector (GeoJSON, KML, CZML, CityGML), Archives (ZIP)
         </Typography>
       </Box>
     </Box>

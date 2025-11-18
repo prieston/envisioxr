@@ -231,6 +231,7 @@ export const useCesiumIon = () => {
 
       // Start background polling to update tiling status
       // Don't await - let it run in the background
+      // Pass file size to calculate appropriate timeout (larger files take longer to tile)
       pollAssetStatus(inferredId, accessToken, async (_status, _percent) => {
         // Update progress periodically
         try {
@@ -246,7 +247,7 @@ export const useCesiumIon = () => {
         } catch (err) {
           // Failed to update tiling progress
         }
-      })
+      }, file.size)
         .then(async (assetInfo) => {
           // Update asset metadata when tiling completes
           try {
