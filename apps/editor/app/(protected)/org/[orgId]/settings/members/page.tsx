@@ -45,7 +45,6 @@ import {
 import useOrganization from "@/app/hooks/useOrganization";
 import { useOrgId } from "@/app/hooks/useOrgId";
 import useSWR from "swr";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 interface Member {
@@ -88,7 +87,6 @@ const fetcher = async (url: string) => {
 
 const SettingsMembersPage = () => {
   const orgId = useOrgId();
-  const router = useRouter();
   const { data: session } = useSession();
   const {
     organization,
@@ -311,33 +309,11 @@ const SettingsMembersPage = () => {
                 <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
                   Personal organizations don&apos;t have members
                 </Typography>
-                <Typography variant="body2" sx={{ mb: 2 }}>
+                <Typography variant="body2">
                   Personal organizations are for individual use only. To
-                  collaborate with team members, create a team organization
-                  instead.
+                  collaborate with team members, you need to be invited to a team organization
+                  by an administrator.
                 </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<UpgradeIcon />}
-                  onClick={() => {
-                    // Navigate to profile page where user can create organizations
-                    const currentOrgId = orgId;
-                    if (currentOrgId) {
-                      router.push(`/org/${currentOrgId}/profile`);
-                    } else {
-                      router.push("/");
-                    }
-                  }}
-                  sx={{
-                    textTransform: "none",
-                    backgroundColor: "#6366f1",
-                    "&:hover": {
-                      backgroundColor: "#4f46e5",
-                    },
-                  }}
-                >
-                  Create Organization
-                </Button>
               </Alert>
             </PageCard>
           ) : (
