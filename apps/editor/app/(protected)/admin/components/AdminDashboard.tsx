@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Grid,
   Box,
@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Card,
   CardContent,
+  Button,
 } from "@mui/material";
 import {
   Page,
@@ -37,6 +38,11 @@ import ActivityIcon from "@mui/icons-material/Timeline";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SessionIcon from "@mui/icons-material/VpnKey";
 import ThreeDRotationIcon from "@mui/icons-material/ThreeDRotation";
+import AddIcon from "@mui/icons-material/Add";
+import { createOrganization } from "@/app/utils/api";
+import { CreateOrganizationDrawer } from "@/app/components/Organizations/CreateOrganizationDrawer";
+import { showToast } from "@envisio/ui";
+import { useRouter } from "next/navigation";
 
 interface AdminStats {
   overview: {
@@ -162,28 +168,79 @@ const formatStorage = (gb: number): string => {
 };
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch("/api/admin/stats");
-        if (!response.ok) {
-          throw new Error("Failed to fetch statistics");
-        }
-        const data = await response.json();
-        setStats(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Create organization drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [orgName, setOrgName] = useState("");
+  const [orgSlug, setOrgSlug] = useState("");
+  const [saving, setSaving] = useState(false);
 
-    fetchStats();
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await fetch("/api/admin/stats");
+      if (!response.ok) {
+        throw new Error("Failed to fetch statistics");
+      }
+      const data = await response.json();
+      setStats(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  const handleCreateOrganization = useCallback(() => {
+    setDrawerOpen(true);
+    setOrgName("");
+    setOrgSlug("");
+  }, []);
+
+  const handleCloseDrawer = useCallback(() => {
+    setDrawerOpen(false);
+    setOrgName("");
+    setOrgSlug("");
+  }, []);
+
+  const handleSaveOrganization = useCallback(async () => {
+    if (!orgName.trim() || !orgSlug.trim()) return;
+
+    setSaving(true);
+    try {
+      const response = await createOrganization({
+        name: orgName.trim(),
+        slug: orgSlug.trim(),
+      });
+
+      showToast("Organization created successfully!", "success");
+
+      // Refresh stats
+      await fetchStats();
+
+      // Navigate to the new organization's dashboard
+      router.push(`/org/${response.organization.id}/dashboard`);
+
+      handleCloseDrawer();
+    } catch (error) {
+      console.error("Error creating organization:", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to create organization",
+        "error"
+      );
+    } finally {
+      setSaving(false);
+    }
+  }, [orgName, orgSlug, router, handleCloseDrawer, fetchStats]);
 
   if (loading) {
     return (
@@ -577,9 +634,29 @@ export default function AdminDashboard() {
             <Grid item xs={12} md={6}>
               <Card>
                 <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Organization Statistics
-                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      mb: 2,
+                    }}
+                  >
+                    <Typography variant="h6">
+                      Organization Statistics
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      onClick={handleCreateOrganization}
+                      size="small"
+                      sx={{
+                        textTransform: "none",
+                      }}
+                    >
+                      Create Organization
+                    </Button>
+                  </Box>
                   <Grid container spacing={2} sx={{ mt: 1 }}>
                     <Grid item xs={6}>
                       <Typography variant="body2" color="text.secondary">
@@ -1002,6 +1079,18 @@ export default function AdminDashboard() {
           </Grid>
         </PageContent>
       </Page>
+
+      {/* Create Organization Drawer */}
+      <CreateOrganizationDrawer
+        open={drawerOpen}
+        name={orgName}
+        slug={orgSlug}
+        saving={saving}
+        onClose={handleCloseDrawer}
+        onNameChange={setOrgName}
+        onSlugChange={setOrgSlug}
+        onSave={handleSaveOrganization}
+      />
     </>
   );
 }

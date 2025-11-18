@@ -4,15 +4,30 @@ import { authOptions } from "@/lib/authOptions";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+const ADMIN_EMAIL = "theofilos@prieston.gr";
+
 /**
  * POST: Create a new organization
- * Creates a new organization and adds the user as owner
+ * Only available for admin user (theofilos@prieston.gr).
+ * Other users can join organizations via invitations sent by admins.
  */
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // Check if user is the admin
+  if (session.user.email !== ADMIN_EMAIL) {
+    return NextResponse.json(
+      {
+        error:
+          "Organization creation is only available for administrators. Please contact an administrator to be invited to an organization.",
+      },
+      { status: 403 }
+    );
+  }
+
   const userId = session.user.id;
 
   try {

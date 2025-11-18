@@ -8,9 +8,7 @@ import {
   Avatar,
   Chip,
   Alert,
-  alpha,
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
 import {
   Page,
   PageHeader,
@@ -30,12 +28,15 @@ import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
-import { Button } from "@mui/material";
+import { Button, alpha } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import useUser from "@/app/hooks/useUser";
 import useOrganizations from "@/app/hooks/useOrganizations";
 import { createOrganization } from "@/app/utils/api";
 import { CreateOrganizationDrawer } from "@/app/components/Organizations/CreateOrganizationDrawer";
 import { showToast } from "@envisio/ui";
+
+const ADMIN_EMAIL = "theofilos@prieston.gr";
 
 const ProfilePage = () => {
   const router = useRouter();
@@ -47,6 +48,7 @@ const ProfilePage = () => {
     loadingOrganizations,
     mutate: mutateOrganizations,
   } = useOrganizations();
+  const isAdmin = userData?.email === ADMIN_EMAIL;
 
   // Create organization drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -415,34 +417,39 @@ const ProfilePage = () => {
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>
                         My Organizations
                       </Typography>
-                      <Button
-                        variant="contained"
-                        onClick={handleCreateOrganization}
-                        size="small"
-                        sx={{
-                          borderRadius: `${theme.shape.borderRadius}px`,
-                          textTransform: "none",
-                          fontWeight: 500,
-                          fontSize: "0.75rem",
-                          backgroundColor:
-                            theme.palette.mode === "dark"
-                              ? "#161B20"
-                              : theme.palette.background.paper,
-                          color: theme.palette.primary.main,
-                          border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                          padding: "6px 16px",
-                          boxShadow: "none",
-                          "&:hover": {
+                      {isAdmin && (
+                        <Button
+                          variant="contained"
+                          onClick={handleCreateOrganization}
+                          size="small"
+                          sx={{
+                            borderRadius: `${theme.shape.borderRadius}px`,
+                            textTransform: "none",
+                            fontWeight: 500,
+                            fontSize: "0.75rem",
                             backgroundColor:
                               theme.palette.mode === "dark"
-                                ? "#1a1f26"
-                                : alpha(theme.palette.primary.main, 0.05),
-                            borderColor: alpha(theme.palette.primary.main, 0.5),
-                          },
-                        }}
-                      >
-                        + New Organisation
-                      </Button>
+                                ? "#161B20"
+                                : theme.palette.background.paper,
+                            color: theme.palette.primary.main,
+                            border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                            padding: "6px 16px",
+                            boxShadow: "none",
+                            "&:hover": {
+                              backgroundColor:
+                                theme.palette.mode === "dark"
+                                  ? "#1a1f26"
+                                  : alpha(theme.palette.primary.main, 0.05),
+                              borderColor: alpha(
+                                theme.palette.primary.main,
+                                0.5
+                              ),
+                            },
+                          }}
+                        >
+                          + New Organisation
+                        </Button>
+                      )}
                     </Box>
 
                     {loadingOrganizations ? (
@@ -581,17 +588,19 @@ const ProfilePage = () => {
         </Box>
       </Page>
 
-      {/* Create Organization Drawer */}
-      <CreateOrganizationDrawer
-        open={drawerOpen}
-        name={orgName}
-        slug={orgSlug}
-        saving={saving}
-        onClose={handleCloseDrawer}
-        onNameChange={setOrgName}
-        onSlugChange={setOrgSlug}
-        onSave={handleSaveOrganization}
-      />
+      {/* Create Organization Drawer - Only for admin */}
+      {isAdmin && (
+        <CreateOrganizationDrawer
+          open={drawerOpen}
+          name={orgName}
+          slug={orgSlug}
+          saving={saving}
+          onClose={handleCloseDrawer}
+          onNameChange={setOrgName}
+          onSlugChange={setOrgSlug}
+          onSave={handleSaveOrganization}
+        />
+      )}
     </>
   );
 };
