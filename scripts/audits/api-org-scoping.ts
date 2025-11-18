@@ -46,14 +46,20 @@ const LEGACY_ENDPOINTS = [
   "organizations/route.ts", // GET/PATCH - returns default org (not organizations/[orgId]/route.ts)
 ];
 
-function findLineNumber(content: string, pattern: string, startIndex = 0): number {
+function findLineNumber(
+  content: string,
+  pattern: string,
+  startIndex = 0
+): number {
   const beforeMatch = content.slice(0, startIndex);
   return beforeMatch.split("\n").length;
 }
 
 function isExcludedEndpoint(filePath: string): boolean {
   const relativePath = path.relative(API_DIR, filePath).replace(/\\/g, "/");
-  return EXCLUDED_ENDPOINTS.some((excluded) => relativePath === excluded || relativePath.includes(excluded));
+  return EXCLUDED_ENDPOINTS.some(
+    (excluded) => relativePath === excluded || relativePath.includes(excluded)
+  );
 }
 
 function isUtilityEndpoint(filePath: string, methodType: string): boolean {
@@ -71,7 +77,9 @@ function isUtilityEndpoint(filePath: string, methodType: string): boolean {
 
 function isLegacyEndpoint(filePath: string): boolean {
   const relativePath = path.relative(API_DIR, filePath).replace(/\\/g, "/");
-  return LEGACY_ENDPOINTS.some((legacy) => relativePath === legacy || relativePath.includes(legacy));
+  return LEGACY_ENDPOINTS.some(
+    (legacy) => relativePath === legacy || relativePath.includes(legacy)
+  );
 }
 
 function checkEndpoint(filePath: string, content: string) {
@@ -103,9 +111,12 @@ function checkEndpoint(filePath: string, content: string) {
 
       // Extract the function body - find the opening brace after the function signature
       const functionStart = match.index;
-      
+
       // Extract a larger chunk for analysis (up to 2000 chars or end of file)
-      const functionBody = content.slice(functionStart, Math.min(functionStart + 2000, content.length));
+      const functionBody = content.slice(
+        functionStart,
+        Math.min(functionStart + 2000, content.length)
+      );
       const functionLines = functionBody.split("\n");
 
       // SECURITY: Legacy endpoints are NOT allowed - they must be migrated
@@ -122,57 +133,55 @@ function checkEndpoint(filePath: string, content: string) {
       }
 
       // Check for authentication - look for getServerSession and auth check
-      const hasAuth = (
+      const hasAuth =
         /getServerSession/.test(functionBody) &&
-        (
-          /Unauthorized.*401/.test(functionBody) ||
+        (/Unauthorized.*401/.test(functionBody) ||
           /401/.test(functionBody) ||
           /session\?\.user/.test(functionBody) ||
           /!session/.test(functionBody) ||
-          /session.*user.*id/.test(functionBody)
-        )
-      );
+          /session.*user.*id/.test(functionBody));
 
       // Check for organizationId requirement (more comprehensive patterns)
-      const hasOrgIdCheck = (
+      const hasOrgIdCheck =
         /organizationId.*required/i.test(functionBody) ||
         /searchParams\.get\(["']organizationId["']\)/.test(functionBody) ||
         /params.*orgId/.test(functionBody) ||
         /params.*organizationId/.test(functionBody) ||
         /organizationId.*request\.json/.test(functionBody) ||
-        /body.*organizationId/.test(functionBody)
-      );
+        /body.*organizationId/.test(functionBody);
 
       // Check for membership verification (more comprehensive)
-      const hasMembershipCheck = (
+      const hasMembershipCheck =
         /isUserMemberOfOrganization/.test(functionBody) ||
         /getUserOrganizationIds/.test(functionBody) ||
         /userOrgIds\.includes/.test(functionBody) ||
         /canUserViewPublishedProject/.test(functionBody) ||
-        (/isMember/.test(functionBody) && /organizationId/.test(functionBody))
-      );
+        (/isMember/.test(functionBody) && /organizationId/.test(functionBody));
 
       // Check for organization filtering (more comprehensive)
-      const hasOrgFilter = (
+      const hasOrgFilter =
         /where.*organizationId/.test(functionBody) ||
         /organizationId.*where/.test(functionBody) ||
         /organizationId:/.test(functionBody) ||
         /organizationId\s*,\s*/.test(functionBody) ||
         /organizationId\s*}/.test(functionBody) ||
-        /organizationId\s*\)/.test(functionBody)
-      );
+        /organizationId\s*\)/.test(functionBody);
 
       // Check for error handling
-      const hasErrorHandling = (
-        (/400|403/.test(functionBody) && /organizationId|not a member|Unauthorized/i.test(functionBody)) ||
-        (/NextResponse\.json.*error.*organizationId/i.test(functionBody)) ||
-        (/NextResponse\.json.*error.*member/i.test(functionBody))
-      );
+      const hasErrorHandling =
+        (/400|403/.test(functionBody) &&
+          /organizationId|not a member|Unauthorized/i.test(functionBody)) ||
+        /NextResponse\.json.*error.*organizationId/i.test(functionBody) ||
+        /NextResponse\.json.*error.*member/i.test(functionBody);
 
       // Special checks for utility endpoints
       if (isUtilityEndpoint(filePath, methodType)) {
         // Utility endpoints should have documentation explaining why they don't require orgId
-        if (!/@deprecated|Note:|utility endpoint|This endpoint only/i.test(functionBody)) {
+        if (
+          !/@deprecated|Note:|utility endpoint|This endpoint only/i.test(
+            functionBody
+          )
+        ) {
           issues.push({
             file: relativePath,
             line: methodStartLine,
@@ -196,36 +205,37 @@ function checkEndpoint(filePath: string, content: string) {
         return; // Skip further checks for utility endpoints
       }
 
-
       // For endpoints that use resource IDs (like /api/projects/[projectId])
       // OR endpoints that take resource IDs in request body (like DELETE /api/models with assetId)
       // They should verify membership via the resource's organization
-      const isResourceEndpoint = (
+      const isResourceEndpoint =
         /\[.*Id\]/.test(relativePath) ||
-        (/assetId|projectId/.test(functionBody) && /findUnique.*where.*id/.test(functionBody))
-      );
+        (/assetId|projectId/.test(functionBody) &&
+          /findUnique.*where.*id/.test(functionBody));
 
       // Special case: GET endpoints for published projects may allow public access
-      const isPublicProjectGet = (
+      const isPublicProjectGet =
         isResourceEndpoint &&
         methodType === "GET" &&
-        /canUserViewPublishedProject/.test(functionBody)
-      );
+        /canUserViewPublishedProject/.test(functionBody);
 
       // Special case: GET endpoints that check project's organization membership
-      const checksProjectOrg = (
+      const checksProjectOrg =
         isResourceEndpoint &&
         methodType === "GET" &&
-        (/project\.organizationId/.test(functionBody) || /project\?\.organizationId/.test(functionBody)) &&
-        hasMembershipCheck
-      );
+        (/project\.organizationId/.test(functionBody) ||
+          /project\?\.organizationId/.test(functionBody)) &&
+        hasMembershipCheck;
 
       // Special case: Endpoints that verify via asset's organization (DELETE, PATCH on models)
-      const checksAssetOrg = (
-        (/asset\.organizationId|existingAsset\.organizationId/.test(functionBody) &&
-        hasMembershipCheck) ||
-        (/assetId/.test(functionBody) && /findUnique.*asset/.test(functionBody) && hasMembershipCheck)
-      );
+      const checksAssetOrg =
+        (/asset\.organizationId|existingAsset\.organizationId/.test(
+          functionBody
+        ) &&
+          hasMembershipCheck) ||
+        (/assetId/.test(functionBody) &&
+          /findUnique.*asset/.test(functionBody) &&
+          hasMembershipCheck);
 
       // Check if endpoint actually has session handling (even if optional for public access)
       const hasSessionHandling = /getServerSession|session/.test(functionBody);
@@ -246,7 +256,12 @@ function checkEndpoint(filePath: string, content: string) {
         }
         // Resource endpoints should filter by the resource's organization
         // But GET endpoints that fetch the resource directly don't need explicit filtering
-        if (!hasOrgFilter && methodType === "GET" && !checksProjectOrg && !isPublicProjectGet) {
+        if (
+          !hasOrgFilter &&
+          methodType === "GET" &&
+          !checksProjectOrg &&
+          !isPublicProjectGet
+        ) {
           // Only flag if it's doing a findMany or similar query
           if (/findMany|findFirst/.test(functionBody)) {
             issues.push({
@@ -351,18 +366,20 @@ function checkEndpoint(filePath: string, content: string) {
 
 // Special handling for excluded endpoints - verify they're correctly excluded
 function verifyExcludedEndpoints() {
-  const excludedFiles = glob.sync("**/route.ts", {
-    cwd: API_DIR,
-    absolute: true,
-  }).filter((file) => {
-    const relativePath = path.relative(API_DIR, file).replace(/\\/g, "/");
-    return (
-      relativePath.includes("/auth/") ||
-      relativePath.includes("/admin/") ||
-      relativePath === "user/route.ts" ||
-      relativePath === "organizations/list/route.ts"
-    );
-  });
+  const excludedFiles = glob
+    .sync("**/route.ts", {
+      cwd: API_DIR,
+      absolute: true,
+    })
+    .filter((file) => {
+      const relativePath = path.relative(API_DIR, file).replace(/\\/g, "/");
+      return (
+        relativePath.includes("/auth/") ||
+        relativePath.includes("/admin/") ||
+        relativePath === "user/route.ts" ||
+        relativePath === "organizations/list/route.ts"
+      );
+    });
 
   for (const file of excludedFiles) {
     const content = fs.readFileSync(file, "utf8");
@@ -416,9 +433,10 @@ function checkPageRoutes() {
     }
 
     // Check if it uses data fetching hooks that require orgId
-    const usesDataHooks = (
-      /useProject|useOrganization|useProjects|useModels|useActivity/.test(content)
-    );
+    const usesDataHooks =
+      /useProject|useOrganization|useProjects|useModels|useActivity/.test(
+        content
+      );
 
     if (!usesDataHooks) {
       continue; // Skip pages that don't fetch organization-scoped data
@@ -560,7 +578,9 @@ function main() {
   }
 
   if (high.length > 0) {
-    console.log("⚠️  Audit passed with warnings - High priority issues recommended");
+    console.log(
+      "⚠️  Audit passed with warnings - High priority issues recommended"
+    );
     process.exit(1);
   }
 
@@ -569,4 +589,3 @@ function main() {
 }
 
 main();
-
