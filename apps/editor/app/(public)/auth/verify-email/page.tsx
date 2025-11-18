@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Button,
@@ -49,7 +49,7 @@ const SignInCard = styled(Box)(({ theme }) => ({
   },
 }));
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState<string>("");
@@ -217,3 +217,32 @@ export default function VerifyEmailPage() {
   );
 }
 
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <SignInContainer>
+          <SignInCard>
+            <Box mb={4}>
+              <LogoHeader />
+            </Box>
+            <CircularProgress sx={{ mb: 3 }} />
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                color: (theme) => theme.palette.text.primary,
+                mb: 1,
+                textAlign: "center",
+              }}
+            >
+              Loading...
+            </Typography>
+          </SignInCard>
+        </SignInContainer>
+      }
+    >
+      <VerifyEmailContent />
+    </Suspense>
+  );
+}

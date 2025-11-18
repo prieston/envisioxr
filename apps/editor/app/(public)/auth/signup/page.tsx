@@ -82,7 +82,7 @@ const GoogleButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-const EmailPasswordForm = styled(Box)(({ theme }) => ({
+const EmailPasswordForm = styled(Box)<{ component?: React.ElementType }>(({ theme }) => ({
   width: "100%",
   display: "flex",
   flexDirection: "column",
@@ -215,7 +215,7 @@ export default function SignUpPage() {
             letterSpacing: "0.02em",
           }}
         >
-          Join {tenant.name}
+          Join Klorad
         </Typography>
 
         {error && (
