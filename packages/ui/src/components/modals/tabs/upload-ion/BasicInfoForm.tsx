@@ -127,7 +127,7 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             sx={(theme) => ({
               ...((typeof selectStyles === "function"
                 ? selectStyles(theme)
-                : selectStyles) as Record<string, any>),
+                : selectStyles) as Record<string, unknown>),
               "& .MuiSelect-select": {
                 cursor: hasValidIntegrations ? "pointer" : "not-allowed",
               },
@@ -272,7 +272,7 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           sx={(theme) => ({
             ...((typeof selectStyles === "function"
               ? selectStyles(theme)
-              : selectStyles) as Record<string, any>),
+              : selectStyles) as Record<string, unknown>),
             "& .MuiSelect-select": {
               cursor: "pointer",
             },

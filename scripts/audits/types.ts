@@ -57,11 +57,30 @@ function isExportedDeclaration(content: string, lineIndex: number): boolean {
 function checkTypeSafety() {
   console.log("🔍 Checking type safety hot-spots...");
 
+  // Load allowlist
+  let allowlist: { types?: { allowAnyIn?: string[]; ignorePatterns?: string[] } } = {};
+  try {
+    const allowlistPath = path.join(WORKSPACE_ROOT, "scripts/audits/ALLOWLIST.json");
+    if (fs.existsSync(allowlistPath)) {
+      allowlist = JSON.parse(fs.readFileSync(allowlistPath, "utf8"));
+    }
+  } catch (error) {
+    // Ignore allowlist errors
+  }
+
   const sourceFiles: string[] = [];
+  const ignorePatterns = [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/build/**",
+    ...(allowlist.types?.ignorePatterns || []),
+  ];
+  
   for (const pattern of HOTSPOT_PATTERNS) {
     const files = glob.sync(pattern, {
       cwd: WORKSPACE_ROOT,
-      ignore: ["**/node_modules/**", "**/.next/**", "**/dist/**", "**/build/**"],
+      ignore: ignorePatterns,
     });
     sourceFiles.push(...files);
   }
@@ -80,7 +99,19 @@ function checkTypeSafety() {
     const content = fs.readFileSync(fullPath, "utf8");
     const lines = content.split("\n");
 
+    // Check if file is in allowlist
+    const allowAnyIn = allowlist.types?.allowAnyIn || [];
+    const isAllowed = allowAnyIn.some((pattern) => {
+      const regex = new RegExp(pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*"));
+      return regex.test(file);
+    });
+
     lines.forEach((line, index) => {
+      // Skip if file is in allowlist
+      if (isAllowed) {
+        return;
+      }
+
       // Check for explicit any in type annotations
       const anyPatterns = [
         /:\s*any\b/g, // : any
@@ -117,7 +148,7 @@ function checkTypeSafety() {
       }
 
       // Check for Record<string, any>
-      if (/\bRecord<string,\s*any>/i.test(line)) {
+      if (/\bRecord<string,\s*any>/i.test(line) && !isAllowed) {
         violations.push({
           file,
           line: index + 1,

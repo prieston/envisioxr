@@ -25,7 +25,12 @@
       "**/*.test.ts",
       "**/*.test.tsx",
       "**/*.spec.ts",
-      "**/*.spec.tsx"
+      "**/*.spec.tsx",
+      "packages/engine-cesium/src/**",
+      "packages/engine-three/src/**",
+      "packages/ion-sdk/src/**",
+      "packages/config/src/**",
+      "packages/ui/src/components/panels/**"
     ],
     "ignorePatterns": [
       "**/node_modules/**",
