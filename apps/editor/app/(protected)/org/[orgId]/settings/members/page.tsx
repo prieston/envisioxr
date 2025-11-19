@@ -523,7 +523,7 @@ const SettingsMembersPage = () => {
                                       theme.palette.mode === "dark"
                                         ? alpha(theme.palette.primary.main, 0.2)
                                         : alpha(theme.palette.primary.main, 0.1),
-                                    color: theme.palette.primary.main,
+                                    color: (theme) => theme.palette.primary.main,
                                   }}
                                 >
                                   {invite.email.charAt(0).toUpperCase()}
