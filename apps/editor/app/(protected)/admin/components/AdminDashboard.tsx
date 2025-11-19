@@ -39,10 +39,12 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SessionIcon from "@mui/icons-material/VpnKey";
 import ThreeDRotationIcon from "@mui/icons-material/ThreeDRotation";
 import AddIcon from "@mui/icons-material/Add";
-import { createOrganization } from "@/app/utils/api";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { createOrganization, deleteOrganization } from "@/app/utils/api";
 import { CreateOrganizationDrawer } from "@/app/components/Organizations/CreateOrganizationDrawer";
 import { showToast } from "@envisio/ui";
 import { useRouter } from "next/navigation";
+import { Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText } from "@mui/material";
 
 interface AdminStats {
   overview: {
@@ -117,6 +119,16 @@ interface AdminStats {
       slug: string;
       assetCount: number;
     }>;
+    all: Array<{
+      id: string;
+      name: string;
+      slug: string;
+      isPersonal: boolean;
+      createdAt: Date;
+      memberCount: number;
+      projectCount: number;
+      assetCount: number;
+    }>;
   };
   projects: {
     total: number;
@@ -178,6 +190,14 @@ export default function AdminDashboard() {
   const [orgName, setOrgName] = useState("");
   const [orgSlug, setOrgSlug] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Delete organization dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [orgToDelete, setOrgToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -241,6 +261,38 @@ export default function AdminDashboard() {
       setSaving(false);
     }
   }, [orgName, orgSlug, router, handleCloseDrawer, fetchStats]);
+
+  const handleOpenDeleteDialog = useCallback((org: { id: string; name: string }) => {
+    setOrgToDelete(org);
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const handleCloseDeleteDialog = useCallback(() => {
+    setDeleteDialogOpen(false);
+    setOrgToDelete(null);
+  }, []);
+
+  const handleDeleteOrganization = useCallback(async () => {
+    if (!orgToDelete) return;
+
+    setDeleting(true);
+    try {
+      await deleteOrganization(orgToDelete.id);
+      showToast("Organization deleted successfully!", "success");
+      await fetchStats();
+      handleCloseDeleteDialog();
+    } catch (error) {
+      console.error("Error deleting organization:", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete organization",
+        "error"
+      );
+    } finally {
+      setDeleting(false);
+    }
+  }, [orgToDelete, fetchStats, handleCloseDeleteDialog]);
 
   if (loading) {
     return (
@@ -631,7 +683,7 @@ export default function AdminDashboard() {
             </Grid>
 
             {/* Organizations Section */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <Card>
                 <CardContent>
                   <Box
@@ -643,7 +695,7 @@ export default function AdminDashboard() {
                     }}
                   >
                     <Typography variant="h6">
-                      Organization Statistics
+                      All Organizations ({stats.organizations.all.length})
                     </Typography>
                     <Button
                       variant="contained"
@@ -657,6 +709,97 @@ export default function AdminDashboard() {
                       Create Organization
                     </Button>
                   </Box>
+                  <TableContainer sx={{ maxHeight: 600 }}>
+                    <Table size="small" stickyHeader>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Name</TableCell>
+                          <TableCell>Slug</TableCell>
+                          <TableCell align="center">Type</TableCell>
+                          <TableCell align="right">Members</TableCell>
+                          <TableCell align="right">Projects</TableCell>
+                          <TableCell align="right">Assets</TableCell>
+                          <TableCell>Created</TableCell>
+                          <TableCell align="right">Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {stats.organizations.all.map((org) => (
+                          <TableRow key={org.id} hover>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight="medium">
+                                {org.name}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" color="text.secondary">
+                                {org.slug}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="center">
+                              {org.isPersonal ? (
+                                <Chip
+                                  label="Personal"
+                                  size="small"
+                                  color="default"
+                                  sx={{ height: 20, fontSize: "0.7rem" }}
+                                />
+                              ) : (
+                                <Chip
+                                  label="Team"
+                                  size="small"
+                                  color="primary"
+                                  sx={{ height: 20, fontSize: "0.7rem" }}
+                                />
+                              )}
+                            </TableCell>
+                            <TableCell align="right">
+                              {org.memberCount}
+                            </TableCell>
+                            <TableCell align="right">
+                              {org.projectCount}
+                            </TableCell>
+                            <TableCell align="right">
+                              {org.assetCount}
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" color="text.secondary">
+                                {new Date(org.createdAt).toLocaleDateString()}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Button
+                                variant="outlined"
+                                color="error"
+                                size="small"
+                                startIcon={<DeleteIcon />}
+                                onClick={() =>
+                                  handleOpenDeleteDialog({
+                                    id: org.id,
+                                    name: org.name,
+                                  })
+                                }
+                                sx={{ textTransform: "none" }}
+                              >
+                                Delete
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Organizations Statistics Section */}
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6">
+                    Organization Statistics
+                  </Typography>
                   <Grid container spacing={2} sx={{ mt: 1 }}>
                     <Grid item xs={6}>
                       <Typography variant="body2" color="text.secondary">
@@ -1091,6 +1234,41 @@ export default function AdminDashboard() {
         onSlugChange={setOrgSlug}
         onSave={handleSaveOrganization}
       />
+
+      {/* Delete Organization Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Delete Organization</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete &quot;{orgToDelete?.name}&quot;? This action
+            cannot be undone and will permanently delete all associated data,
+            including projects, assets, members, and integrations.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseDeleteDialog}
+            disabled={deleting}
+            sx={{ textTransform: "none" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteOrganization}
+            color="error"
+            variant="contained"
+            disabled={deleting}
+            sx={{ textTransform: "none" }}
+          >
+            {deleting ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

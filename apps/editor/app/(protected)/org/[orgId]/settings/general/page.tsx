@@ -208,7 +208,7 @@ const SettingsGeneralPage = () => {
       <Page>
         <PageHeader title="General Settings" />
         <PageDescription>
-          Organization name, logo, domain, and default coordinate system
+          {organization?.isPersonal ? "Workspace" : "Organization"} name, logo, domain, and default coordinate system
         </PageDescription>
 
         <PageContent maxWidth="5xl">
@@ -283,7 +283,7 @@ const SettingsGeneralPage = () => {
 
           <PageCard>
             <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-              Organization Settings
+              {organization?.isPersonal ? "Workspace Settings" : "Organization Settings"}
             </Typography>
 
             {error && (
@@ -294,7 +294,7 @@ const SettingsGeneralPage = () => {
 
             {!canEdit && (
               <Alert severity="info" sx={{ mb: 2 }}>
-                You need admin or owner role to edit organization settings.
+                You need admin or owner role to edit {organization?.isPersonal ? "workspace" : "organization"} settings.
               </Alert>
             )}
 
@@ -308,7 +308,7 @@ const SettingsGeneralPage = () => {
                     mb: 0.5,
                   })}
                 >
-                  Organization Name *
+                  {organization?.isPersonal ? "Workspace" : "Organization"} Name *
                 </Typography>
                 <TextField
                   id="org-name"
@@ -318,7 +318,7 @@ const SettingsGeneralPage = () => {
                   fullWidth
                   size="small"
                   disabled={!canEdit || saving}
-                  placeholder="Enter organization name"
+                  placeholder={`Enter ${organization?.isPersonal ? "workspace" : "organization"} name`}
                   sx={textFieldStyles}
                 />
               </Box>
@@ -342,7 +342,7 @@ const SettingsGeneralPage = () => {
                   fullWidth
                   size="small"
                   disabled={!canEdit || saving || organization.isPersonal}
-                  placeholder="Enter organization slug"
+                  placeholder={`Enter ${organization?.isPersonal ? "workspace" : "organization"} slug`}
                   sx={textFieldStyles}
                 />
                 <Typography
@@ -358,13 +358,13 @@ const SettingsGeneralPage = () => {
                 </Typography>
               </Box>
 
-              <PageSection title="Organization Information" spacing="tight">
+              <PageSection title={organization?.isPersonal ? "Workspace Information" : "Organization Information"} spacing="tight">
                 <Typography
                   variant="body2"
                   color="text.secondary"
                   sx={{ mb: 1 }}
                 >
-                  Organization ID: {organization.id}
+                  {organization?.isPersonal ? "Workspace" : "Organization"} ID: {organization.id}
                 </Typography>
                 <Typography
                   variant="body2"

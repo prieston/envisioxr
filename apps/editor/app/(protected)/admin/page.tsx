@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import AdminDashboard from "./components/AdminDashboard";
-
-const ADMIN_EMAIL = "theofilos@prieston.gr";
+import { isGodUser } from "@/lib/config/godusers";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
@@ -13,8 +12,8 @@ export default async function AdminPage() {
     redirect("/auth/signin");
   }
 
-  // Check if user is the admin
-  if (session.user.email !== ADMIN_EMAIL) {
+  // Check if user is a god user
+  if (!isGodUser(session.user.email)) {
     // Redirect to default organization dashboard
     const { getUserDefaultOrganization } = await import("@/lib/organizations");
     const defaultOrg = await getUserDefaultOrganization(session.user.id);

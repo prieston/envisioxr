@@ -9,6 +9,8 @@ import {
   InputAdornment,
   Grid,
   alpha,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { alpha as muiAlpha } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
@@ -21,6 +23,8 @@ import {
   PageDescription,
   PageContent,
   textFieldStyles,
+  selectStyles,
+  menuItemStyles,
   showToast,
 } from "@envisio/ui";
 import {
@@ -28,6 +32,11 @@ import {
   GlowingContainer,
   GlowingSpan,
 } from "@/app/components/Builder/AdminLayout.styles";
+
+interface AssetType {
+  value: string;
+  label: string;
+}
 import type { LibraryAsset, MetadataRow } from "@envisio/ui";
 import { AssetCard, AssetDetailView, DeleteConfirmDialog } from "@envisio/ui";
 import { UploadToIonDrawer } from "./components/UploadToIonDrawer";
@@ -59,6 +68,18 @@ const LibraryGeospatialPage = () => {
   const [assets, setAssets] = useState<LibraryAsset[]>([]);
   const loading = loadingModels;
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("");
+
+  // Cesium Ion asset types - all supported types
+  const cesiumAssetTypes: AssetType[] = [
+    { value: "IMAGERY", label: "Imagery" },
+    { value: "TERRAIN", label: "Terrain" },
+    { value: "3DTILES", label: "3D Tiles" },
+    { value: "GLTF", label: "glTF Model" },
+    { value: "CZML", label: "CZML" },
+    { value: "KML", label: "KML" },
+    { value: "GEOJSON", label: "GeoJSON" },
+  ];
   const [selectedAsset, setSelectedAsset] = useState<LibraryAsset | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState("");
@@ -176,15 +197,22 @@ const LibraryGeospatialPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assets, selectedAsset?.id, isEditing]);
 
-  // Filter assets based on search query
+
+  // Filter assets based on search query and type
   const filteredAssets = assets.filter((asset) => {
     const name = asset.name || asset.originalFilename || "";
     const description = asset.description || "";
     const query = searchQuery.toLowerCase();
-    return (
+
+    // Filter by search query
+    const matchesSearch =
       name.toLowerCase().includes(query) ||
-      description.toLowerCase().includes(query)
-    );
+      description.toLowerCase().includes(query);
+
+    // Filter by type
+    const matchesType = !selectedType || asset.fileType === selectedType;
+
+    return matchesSearch && matchesType;
   });
 
   // Handle asset selection
@@ -433,6 +461,47 @@ const LibraryGeospatialPage = () => {
                   ),
                 }}
               />
+              <Select
+                id="asset-type-filter"
+                name="asset-type-filter"
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                displayEmpty
+                size="small"
+                sx={(theme) => ({
+                  minWidth: 150,
+                  ...((typeof selectStyles === "function"
+                    ? selectStyles(theme)
+                    : selectStyles) as Record<string, unknown>),
+                  "& .MuiSelect-select": {
+                    color: selectedType
+                      ? undefined
+                      : theme.palette.text.secondary,
+                  },
+                })}
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return "Type";
+                  }
+                  const selectedTypeObj = cesiumAssetTypes.find(
+                    (t) => t.value === selected
+                  );
+                  return selectedTypeObj?.label || selected;
+                }}
+              >
+                <MenuItem value="" sx={menuItemStyles}>
+                  Type
+                </MenuItem>
+                {cesiumAssetTypes.map((type) => (
+                  <MenuItem
+                    key={type.value}
+                    value={type.value}
+                    sx={menuItemStyles}
+                  >
+                    {type.label}
+                  </MenuItem>
+                ))}
+              </Select>
             </Box>
             <Box sx={{ display: "flex", gap: 1.5 }}>
               <Button
@@ -717,6 +786,7 @@ const LibraryGeospatialPage = () => {
             assetName={
               selectedAsset.name || selectedAsset.originalFilename || "Asset"
             }
+            assetType={selectedAsset.fileType}
             onCapture={handleCaptureScreenshot}
           />
         )}

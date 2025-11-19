@@ -177,3 +177,47 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+// DELETE: Delete organization (admin only)
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Check if user is a god user
+  const { isGodUser } = await import("@/lib/config/godusers");
+  if (!isGodUser(session.user.email)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { orgId } = await params;
+
+  try {
+    const organization = await prisma.organization.findUnique({
+      where: { id: orgId },
+    });
+
+    if (!organization) {
+      return NextResponse.json(
+        { error: "Organization not found" },
+        { status: 404 }
+      );
+    }
+
+    // Delete organization (cascade will delete members, projects, assets, etc.)
+    await prisma.organization.delete({
+      where: { id: orgId },
+    });
+
+    return NextResponse.json({ success: true, message: "Organization deleted successfully" });
+  } catch (error) {
+    console.error("[Organizations API] Error deleting organization:", error);
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Internal Server Error",
+      },
+      { status: 500 }
+    );
+  }
+}
+

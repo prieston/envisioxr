@@ -41,5 +41,12 @@ declare namespace NodeJS {
     // Email (Resend)
     RESEND_API_KEY: string;
     EMAIL_FROM: string;
+
+    // Stripe
+    STRIPE_SECRET_KEY: string;
+    STRIPE_WEBHOOK_SECRET: string;
+    STRIPE_PRO_PRODUCT_ID?: string;
+    STRIPE_PRO_PRICE_ID_MONTHLY?: string;
+    STRIPE_PRO_PRICE_ID_YEARLY?: string;
   }
 }

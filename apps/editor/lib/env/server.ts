@@ -59,6 +59,13 @@ const serverEnvSchema = z.object({
   RESEND_API_KEY: z.string().min(1, "RESEND_API_KEY is required"),
   EMAIL_FROM: z.string().min(1, "EMAIL_FROM is required"),
   // APP_URL is already defined as NEXT_PUBLIC_APP_URL above
+
+  // Stripe
+  STRIPE_SECRET_KEY: z.string().min(1, "STRIPE_SECRET_KEY is required"),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1, "STRIPE_WEBHOOK_SECRET is required"),
+  STRIPE_PRO_PRODUCT_ID: z.string().optional(),
+  STRIPE_PRO_PRICE_ID_MONTHLY: z.string().optional(),
+  STRIPE_PRO_PRICE_ID_YEARLY: z.string().optional(),
 });
 
 // Parse and validate the environment variables

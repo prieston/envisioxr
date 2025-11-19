@@ -29,6 +29,7 @@ interface CesiumPreviewDialogProps {
   cesiumAssetId: string;
   cesiumApiKey: string;
   assetName: string;
+  assetType?: string; // e.g., "IMAGERY", "3DTILES", etc.
   onCapture: (screenshot: string) => void;
 }
 
@@ -38,6 +39,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
   cesiumAssetId,
   cesiumApiKey,
   assetName,
+  assetType,
   onCapture,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -218,6 +220,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
               containerRef={containerRef}
               cesiumAssetId={cesiumAssetId}
               cesiumApiKey={cesiumApiKey}
+              assetType={assetType}
               onViewerReady={handleViewerReady}
               onError={handleError}
             />

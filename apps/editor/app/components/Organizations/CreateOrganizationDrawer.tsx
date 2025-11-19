@@ -196,7 +196,7 @@ export const CreateOrganizationDrawer: React.FC<CreateOrganizationDrawerProps> =
                 },
               })}
             >
-              {saving ? "Creating..." : "Create Organization"}
+              Continue to Plan Selection
             </Button>
           </Box>
         </Box>

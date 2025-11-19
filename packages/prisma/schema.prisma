@@ -70,6 +70,11 @@ model Organization {
   slug       String   @unique
   // isPersonal indicates this is a personal organization (cannot have multiple members)
   isPersonal Boolean  @default(false)
+  // Billing fields
+  planCode   String   @default("free") // References Plan.code
+  stripeCustomerId String? @unique // Stripe customer ID
+  stripeSubscriptionId String? @unique // Stripe subscription ID
+  subscriptionStatus String? // active, canceled, past_due, etc.
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -78,6 +83,11 @@ model Organization {
   projects   Project[]
   assets     Asset[]
   activities Activity[]
+  cesiumIonIntegrations CesiumIonIntegration[]
+  cesiumAssets CesiumAsset[]
+  plan       Plan     @relation(fields: [planCode], references: [code])
+
+  @@index([planCode])
 }
 
 enum OrganizationRole {
@@ -183,7 +193,36 @@ enum AssetType {
   cesiumIonAsset // Cesium Ion georeferenced asset
 }
 
-// Subscription model to track user subscriptions via Stripe
+// Plan model defines available subscription plans
+model Plan {
+  code                          String   @id // "free", "pro", "enterprise"
+  name                          String
+  monthlyPriceCents             Int?     // null for enterprise (custom pricing)
+  yearlyPriceCents              Int?     // null for enterprise (custom pricing)
+  includedStorageGb            Int
+  includedBandwidthGbPerMonth   Int
+  includedSeats                 Int
+  includedProcessingJobsPerMonth Int
+  includedProjects              Int?     // null = unlimited
+  includedPublishedProjects     Int?     // null = unlimited
+  includedPrivateShares         Int?     // null = unlimited
+  includedCesiumIntegrations    Int?     // null = unlimited
+  cesiumUploadLimitGb          Int?     // null = unlimited
+  overageStoragePricePerGbCents Int      @default(0)
+  overageBandwidthPricePerGbCents Int    @default(0)
+  overageSeatPricePerMonthCents Int      @default(0)
+  stripeProductId               String?  // Stripe product ID
+  stripePriceIdMonthly          String?  // Stripe price ID for monthly billing
+  stripePriceIdYearly           String?  // Stripe price ID for yearly billing
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+
+  organizations Organization[]
+
+  @@index([code])
+}
+
+// Subscription model to track organization subscriptions via Stripe (legacy - kept for backward compatibility)
 model Subscription {
   id        String    @id @default(cuid())
   stripeId  String    @unique
@@ -232,6 +271,8 @@ enum ActivityEntityType {
   DATA_SOURCE
   ORGANIZATION
   USER
+  CESIUM_INTEGRATION
+  CESIUM_ASSET
 }
 
 enum ActivityActionType {
@@ -243,4 +284,55 @@ enum ActivityActionType {
   ARCHIVED
   ADDED // e.g. "Model added to project"
   REMOVED
+  SYNCED // e.g. "Synced with Cesium Ion"
+}
+
+model CesiumIonIntegration {
+  id                String   @id @default(cuid())
+  organizationId    String
+  label             String   // User-defined label/name for the integration
+  readToken         String   @db.Text // Encrypted read-only token
+  uploadToken       String   @db.Text // Encrypted upload token
+  readTokenLast4    String   // Last 4 characters of read token (for display)
+  uploadTokenLast4  String   // Last 4 characters of upload token (for display)
+  readTokenValid    Boolean  @default(false) // Whether read token is valid
+  uploadTokenValid  Boolean  @default(false) // Whether upload token is valid
+  readTokenScopes   Json?    // Scopes array for read token
+  uploadTokenScopes Json?    // Scopes array for upload token
+  cesiumAccountId   String?  // Cesium account ID (if inferable from API)
+  lastSyncedAt      DateTime? // Last time sync was performed
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cesiumAssets CesiumAsset[]
+
+  @@index([organizationId])
+}
+
+model CesiumAsset {
+  id             String   @id @default(cuid())
+  organizationId String
+  integrationId  String
+  cesiumAssetId  String   // Cesium Ion asset ID
+  name           String
+  type           String?  // Asset type from Cesium
+  attributions  Json?     // Attributions/description from Cesium
+  status         CesiumAssetStatus @default(active)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  integration  CesiumIonIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@unique([integrationId, cesiumAssetId])
+  @@index([organizationId])
+  @@index([integrationId])
+  @@index([cesiumAssetId])
+}
+
+enum CesiumAssetStatus {
+  active
+  deleted
+  unknown
 }

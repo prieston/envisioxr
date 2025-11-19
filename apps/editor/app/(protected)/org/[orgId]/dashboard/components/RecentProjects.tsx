@@ -84,7 +84,7 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({
             </Typography>
             <Button
               component={Link}
-              href={orgId ? `/org/${orgId}/projects/create` : "/projects/create"}
+              href={orgId ? `/org/${orgId}/projects?create=true` : "/projects?create=true"}
               variant="contained"
               size="small"
               startIcon={<AddIcon />}
