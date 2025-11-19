@@ -282,11 +282,7 @@ const SettingsBillingPage = () => {
   if (plansError || plans.length === 0) {
     return (
       <Page>
-        <PageHeader title="Billing & Plans">
-          <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
-            Billing & Plans
-          </Typography>
-        </PageHeader>
+        <PageHeader title="Billing & Plans" />
         <PageContent>
           <Typography color="error">
             Failed to load plans. Please try again later.
@@ -321,16 +317,10 @@ const SettingsBillingPage = () => {
       </AnimatedBackground>
 
       <Page>
-        <PageHeader>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
-              Billing & Plans
-            </Typography>
-            <PageDescription>
-              Compare plans and choose the one that fits your needs
-            </PageDescription>
-          </Box>
-        </PageHeader>
+        <PageHeader title="Billing & Plans" />
+        <PageDescription>
+          Compare plans and choose the one that fits your needs
+        </PageDescription>
 
         <PageContent>
           {/* Current Plan Card */}
