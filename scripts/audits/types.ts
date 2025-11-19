@@ -76,7 +76,7 @@ function checkTypeSafety() {
     "**/build/**",
     ...(allowlist.types?.ignorePatterns || []),
   ];
-  
+
   for (const pattern of HOTSPOT_PATTERNS) {
     const files = glob.sync(pattern, {
       cwd: WORKSPACE_ROOT,
