@@ -410,7 +410,7 @@ const IntegrationsPage = () => {
           )}
 
           <PageCard>
-            <PageSection title="Cesium Ion Integration" spacing="normal">
+            <PageSection title="Cesium Ion Integration" spacing="default">
               {integrations.length === 0 ? (
                 <Box
                   sx={{
