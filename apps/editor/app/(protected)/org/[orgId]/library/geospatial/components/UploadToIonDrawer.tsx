@@ -12,8 +12,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import { UploadToIonTab } from "@envisio/ui";
 import { showToast } from "@envisio/ui";
 import { useCesiumIonUpload } from "@envisio/engine-cesium";
-import { createIonAsset, completeIonUpload, createCesiumIonAsset, updateModelMetadata } from "@/app/utils/api";
+import { createIonAsset, completeIonUpload, createCesiumIonAsset, updateModelMetadata, getCesiumIntegrations, type CesiumIonIntegration } from "@/app/utils/api";
 import { useOrgId } from "@/app/hooks/useOrgId";
+import useSWR from "swr";
 
 interface UploadToIonDrawerProps {
   open: boolean;
@@ -37,12 +38,23 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
     uploadToS3,
   } = useCesiumIonUpload();
 
+  // Fetch integrations
+  const { data: integrationsData } = useSWR<{
+    integrations: CesiumIonIntegration[];
+  }>(
+    orgId ? `/api/organizations/${orgId}/cesium-integrations` : null,
+    () => getCesiumIntegrations(orgId!)
+  );
+
+  const integrations = integrationsData?.integrations || [];
+
   const handleUpload = async (data: {
     file: File;
     name: string;
     description: string;
     sourceType: string;
-    accessToken: string;
+    integrationId?: string;
+    accessToken?: string;
     longitude?: number;
     latitude?: number;
     height?: number;
@@ -66,6 +78,7 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
         name,
         description,
         sourceType,
+        integrationId,
         accessToken,
         longitude,
         latitude,
@@ -129,7 +142,7 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
         name,
         description,
         type: ionType,
-        accessToken,
+        ...(integrationId ? { integrationId } : { accessToken: accessToken! }),
         options: ionOptions,
       });
 
@@ -156,7 +169,10 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
       await uploadToS3(file, uploadLocation, setIonUploadProgress);
 
       // Step 3: Notify Cesium Ion that upload is complete
-      await completeIonUpload({ onComplete, accessToken });
+      await completeIonUpload({
+        onComplete,
+        ...(integrationId ? { integrationId } : { accessToken: accessToken! }),
+      });
 
       setIonUploadProgress(100);
 
@@ -168,17 +184,24 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
         throw new Error("Organization ID is required");
       }
 
+      // Store integrationId in metadata if using integration, otherwise store accessToken
+      const metadata: Record<string, any> = {
+        ionAssetId: String(inferredId),
+        tilingStatus: "IN_PROGRESS",
+        tilingProgress: 0,
+      };
+
+      if (integrationId) {
+        metadata.integrationId = integrationId;
+      }
+
       const { asset: newAsset } = await createCesiumIonAsset({
         assetType: "cesiumIonAsset",
         cesiumAssetId: String(inferredId),
-        cesiumApiKey: accessToken,
+        cesiumApiKey: integrationId ? `integration:${integrationId}` : accessToken!,
         name: name || `Ion Asset ${inferredId}`,
         description: description || "",
-        metadata: {
-          ionAssetId: String(inferredId),
-          tilingStatus: "IN_PROGRESS",
-          tilingProgress: 0,
-        },
+        metadata,
         organizationId: orgId,
       });
 
@@ -186,43 +209,45 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
       onSuccess();
 
       // Start background polling to update tiling status
-      // Don't await - let it run in the background
-      // Pass file size to calculate appropriate timeout (larger files take longer to tile)
-      pollAssetStatus(Number(inferredId), accessToken, (_status, _percent) => {
-        // Tiling progress update - could update asset metadata here if needed
-      }, file.size)
-        .then(async (assetInfo) => {
-          // Update asset metadata when tiling completes
-          try {
-            await updateModelMetadata(newAsset.id, {
-              metadata: {
-                ionAssetId: String(inferredId),
-                tilingStatus: "COMPLETE",
-                tilingProgress: 100,
-                type: assetInfo.type,
-                status: assetInfo.status,
-                bytes: assetInfo.bytes,
-              },
-            });
-          } catch (err) {
-            console.error("Failed to update tiling status:", err);
-          }
-        })
-        .catch(async (err) => {
-          console.error("Polling error:", err);
-          // Update status to ERROR
-          try {
-            await updateModelMetadata(newAsset.id, {
-              metadata: {
-                ionAssetId: String(inferredId),
-                tilingStatus: "ERROR",
-                error: err.message,
-              },
-            });
-          } catch (updateErr) {
-            console.error("Failed to update error status:", updateErr);
-          }
-        });
+      // Only poll if we have an access token (not using integration)
+      // If using integration, the useTilingStatusPolling hook will handle it
+      if (!integrationId && accessToken) {
+        pollAssetStatus(Number(inferredId), accessToken, (_status, _percent) => {
+          // Tiling progress update - could update asset metadata here if needed
+        }, file.size)
+          .then(async (assetInfo) => {
+            // Update asset metadata when tiling completes
+            try {
+              await updateModelMetadata(newAsset.id, {
+                metadata: {
+                  ionAssetId: String(inferredId),
+                  tilingStatus: "COMPLETE",
+                  tilingProgress: 100,
+                  type: assetInfo.type,
+                  status: assetInfo.status,
+                  bytes: assetInfo.bytes,
+                },
+              });
+            } catch (err) {
+              console.error("Failed to update tiling status:", err);
+            }
+          })
+          .catch(async (err) => {
+            console.error("Polling error:", err);
+            // Update status to ERROR
+            try {
+              await updateModelMetadata(newAsset.id, {
+                metadata: {
+                  ionAssetId: String(inferredId),
+                  tilingStatus: "ERROR",
+                  error: err.message,
+                },
+              });
+            } catch (updateErr) {
+              console.error("Failed to update error status:", updateErr);
+            }
+          });
+      }
 
       return { assetId: String(inferredId) };
     } catch (error) {
@@ -323,6 +348,7 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
             onUpload={handleUpload}
             uploading={ionUploading}
             uploadProgress={ionUploadProgress}
+            integrations={integrations}
           />
         </Box>
       </Box>

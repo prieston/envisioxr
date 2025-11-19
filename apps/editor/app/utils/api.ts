@@ -681,7 +681,8 @@ export async function createIonAsset(data: {
   name: string;
   description?: string;
   type: string;
-  accessToken: string;
+  accessToken?: string;
+  integrationId?: string;
   options?: Record<string, unknown>;
 }): Promise<
   IonUploadResponse & { assetMetadata?: unknown; uploadLocation?: unknown }
@@ -699,7 +700,8 @@ export async function completeIonUpload(data: {
     url: string;
     method: string;
   };
-  accessToken: string;
+  accessToken?: string;
+  integrationId?: string;
 }): Promise<{ success: boolean }> {
   return apiRequest<{ success: boolean }>("/api/ion-upload", {
     method: "PUT",

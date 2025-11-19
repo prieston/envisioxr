@@ -223,14 +223,14 @@ const SettingsUsagePage = () => {
   );
 
   if (isLoading) {
-    return (
-      <>
-        <AnimatedBackground>
-          <GlowingContainer>
-            <GlowingSpan index={1} />
-            <GlowingSpan index={2} />
-            <GlowingSpan index={3} />
-          </GlowingContainer>
+  return (
+    <>
+      <AnimatedBackground>
+        <GlowingContainer>
+          <GlowingSpan index={1} />
+          <GlowingSpan index={2} />
+          <GlowingSpan index={3} />
+        </GlowingContainer>
         </AnimatedBackground>
         <Page>
           <PageContent>
@@ -254,11 +254,11 @@ const SettingsUsagePage = () => {
     return (
       <>
         <AnimatedBackground>
-          <GlowingContainer>
-            <GlowingSpan index={1} />
-            <GlowingSpan index={2} />
-            <GlowingSpan index={3} />
-          </GlowingContainer>
+        <GlowingContainer>
+          <GlowingSpan index={1} />
+          <GlowingSpan index={2} />
+          <GlowingSpan index={3} />
+        </GlowingContainer>
         </AnimatedBackground>
         <Page>
           <PageHeader title="Usage" />
@@ -298,7 +298,7 @@ const SettingsUsagePage = () => {
         <PageContent>
           {/* Current Plan Info */}
           <Card
-            sx={{
+        sx={{
               mb: 4,
               background: (theme) =>
                 theme.palette.mode === "dark"
@@ -306,8 +306,8 @@ const SettingsUsagePage = () => {
                   : alpha(theme.palette.primary.main, 0.05),
               border: (theme) =>
                 `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-            }}
-          >
+        }}
+      >
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <Box>
@@ -320,12 +320,12 @@ const SettingsUsagePage = () => {
                       : plan.code === "pro"
                       ? "Organisation Workspace"
                       : "Enterprise"}
-                  </Typography>
+            </Typography>
                 </Box>
-                <Chip
+            <Chip
                   label={plan.code === "free" ? "Free Plan" : "Active"}
                   color={plan.code === "free" ? "default" : "success"}
-                  size="small"
+              size="small"
                 />
               </Box>
             </CardContent>
@@ -436,17 +436,17 @@ const SettingsUsagePage = () => {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                  }}
+              }}
                 >
                   <Box>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
                       Need More?
-                    </Typography>
+          </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Upgrade to Organisation Workspace for unlimited projects,
                       members, and advanced features.
-                    </Typography>
-                  </Box>
+          </Typography>
+        </Box>
                   <Button
                     variant="contained"
                     onClick={() => router.push(`/org/${orgId}/billing`)}
@@ -454,7 +454,7 @@ const SettingsUsagePage = () => {
                   >
                     Upgrade
                   </Button>
-                </Box>
+      </Box>
               </CardContent>
             </Card>
           )}

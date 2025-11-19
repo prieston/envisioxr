@@ -404,29 +404,29 @@ export async function DELETE(request: NextRequest) {
       }
     } else {
       // Delete regular asset from DigitalOcean Spaces
-      // Determine the key from the asset's fileUrl.
-      const bucketName = serverEnv.DO_SPACES_BUCKET;
-      const endpoint = serverEnv.DO_SPACES_ENDPOINT;
-      const fileUrl = asset.fileUrl;
+    // Determine the key from the asset's fileUrl.
+    const bucketName = serverEnv.DO_SPACES_BUCKET;
+    const endpoint = serverEnv.DO_SPACES_ENDPOINT;
+    const fileUrl = asset.fileUrl;
 
       // Only delete from Spaces if it's not a Cesium Ion placeholder URL
       if (!fileUrl.startsWith("cesium-ion://")) {
-        const key = fileUrl.replace(`${endpoint}/${bucketName}/`, "");
-        // Setup S3 client.
-        const s3 = new S3Client({
-          region: serverEnv.DO_SPACES_REGION,
-          endpoint: endpoint,
-          credentials: {
-            accessKeyId: serverEnv.DO_SPACES_KEY,
-            secretAccessKey: serverEnv.DO_SPACES_SECRET,
-          },
-        });
-        // Delete the object from Spaces.
-        const deleteCommand = new DeleteObjectCommand({
-          Bucket: bucketName,
-          Key: key,
-        });
-        await s3.send(deleteCommand);
+    const key = fileUrl.replace(`${endpoint}/${bucketName}/`, "");
+    // Setup S3 client.
+    const s3 = new S3Client({
+      region: serverEnv.DO_SPACES_REGION,
+      endpoint: endpoint,
+      credentials: {
+        accessKeyId: serverEnv.DO_SPACES_KEY,
+        secretAccessKey: serverEnv.DO_SPACES_SECRET,
+      },
+    });
+    // Delete the object from Spaces.
+    const deleteCommand = new DeleteObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+    });
+    await s3.send(deleteCommand);
       }
     }
 
