@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { prisma } from "@/lib/prisma";
+import { decryptToken } from "@/lib/cesium/encryption";
+import { isUserMemberOfOrganization } from "@/lib/organizations";
 
 // Use console directly in API routes (server-side code)
 const logger = {
@@ -25,7 +28,8 @@ interface CesiumIonUploadRequest {
   name: string;
   description?: string;
   type: string;
-  accessToken: string;
+  accessToken?: string; // Optional: can use integrationId instead
+  integrationId?: string; // Optional: can use accessToken instead
   options?: {
     sourceType?: string;
     position?: {
@@ -91,7 +95,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: CesiumIonUploadRequest = await request.json();
-    const { name, description, type, accessToken, options } = body;
+    const { name, description, type, accessToken, integrationId, options } = body;
 
     if (!name || !type) {
       return NextResponse.json(
@@ -100,9 +104,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!accessToken) {
+    // Get access token from either direct input or integration
+    let finalAccessToken: string;
+    if (integrationId) {
+      // Fetch integration and decrypt upload token
+      const integration = await prisma.cesiumIonIntegration.findUnique({
+        where: { id: integrationId },
+        select: {
+          id: true,
+          organizationId: true,
+          uploadToken: true,
+          uploadTokenValid: true,
+        },
+      });
+
+      if (!integration) {
+        return NextResponse.json(
+          { error: "Integration not found" },
+          { status: 404 }
+        );
+      }
+
+      // Verify user is a member of the organization
+      const isMember = await isUserMemberOfOrganization(
+        session.user.id!,
+        integration.organizationId
+      );
+      if (!isMember) {
+        return NextResponse.json(
+          { error: "User is not a member of this organization" },
+          { status: 403 }
+        );
+      }
+
+      if (!integration.uploadTokenValid) {
+        return NextResponse.json(
+          { error: "Integration upload token is not valid" },
+          { status: 400 }
+        );
+      }
+
+      finalAccessToken = decryptToken(integration.uploadToken);
+    } else if (accessToken) {
+      finalAccessToken = accessToken;
+    } else {
       return NextResponse.json(
-        { error: "Missing Cesium Ion access token" },
+        { error: "Missing Cesium Ion access token or integration ID" },
         { status: 400 }
       );
     }
@@ -202,7 +249,7 @@ export async function POST(request: NextRequest) {
     const requestInit: RequestInit = {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${finalAccessToken}`,
         "Content-Type": "application/json",
         Accept: "application/json",
       },
@@ -222,7 +269,7 @@ export async function POST(request: NextRequest) {
           url: endpoint,
           method: requestInit.method,
           headers: {
-            Authorization: `Bearer ${accessToken.substring(0, 20)}...`,
+            Authorization: `Bearer ${finalAccessToken.substring(0, 20)}...`,
             "Content-Type": "application/json",
             Accept: "application/json",
           },
@@ -324,7 +371,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { onComplete, accessToken } = body;
+    const { onComplete, accessToken, integrationId } = body;
 
     if (!onComplete || !onComplete.method || !onComplete.url) {
       return NextResponse.json(
@@ -333,9 +380,52 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    if (!accessToken) {
+    // Get access token from either direct input or integration
+    let finalAccessToken: string;
+    if (integrationId) {
+      // Fetch integration and decrypt upload token
+      const integration = await prisma.cesiumIonIntegration.findUnique({
+        where: { id: integrationId },
+        select: {
+          id: true,
+          organizationId: true,
+          uploadToken: true,
+          uploadTokenValid: true,
+        },
+      });
+
+      if (!integration) {
+        return NextResponse.json(
+          { error: "Integration not found" },
+          { status: 404 }
+        );
+      }
+
+      // Verify user is a member of the organization
+      const isMember = await isUserMemberOfOrganization(
+        session.user.id!,
+        integration.organizationId
+      );
+      if (!isMember) {
+        return NextResponse.json(
+          { error: "User is not a member of this organization" },
+          { status: 403 }
+        );
+      }
+
+      if (!integration.uploadTokenValid) {
+        return NextResponse.json(
+          { error: "Integration upload token is not valid" },
+          { status: 400 }
+        );
+      }
+
+      finalAccessToken = decryptToken(integration.uploadToken);
+    } else if (accessToken) {
+      finalAccessToken = accessToken;
+    } else {
       return NextResponse.json(
-        { error: "Missing access token for completion" },
+        { error: "Missing access token or integration ID for completion" },
         { status: 400 }
       );
     }
@@ -345,7 +435,7 @@ export async function PUT(request: NextRequest) {
     const requestOptions: RequestInit = {
       method: onComplete.method,
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${finalAccessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(onComplete.fields || {}),

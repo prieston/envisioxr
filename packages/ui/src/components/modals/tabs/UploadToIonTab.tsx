@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { Box, Button, LinearProgress, IconButton, Paper, Typography, Switch, FormControlLabel } from "@mui/material";
+import {
+  Box,
+  Button,
+  LinearProgress,
+  IconButton,
+  Paper,
+  Typography,
+  Switch,
+  FormControlLabel,
+} from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { Close, Public } from "@mui/icons-material";
 import { SuccessView } from "./upload-ion/SuccessView";
@@ -10,13 +19,20 @@ import { BasicInfoForm } from "./upload-ion/BasicInfoForm";
 import { AdvancedOptions } from "./upload-ion/AdvancedOptions";
 import { GeoreferencingForm } from "./upload-ion/GeoreferencingForm";
 
+export interface CesiumIonIntegration {
+  id: string;
+  label: string;
+  uploadTokenValid: boolean;
+}
+
 export interface UploadToIonTabProps {
   onUpload: (data: {
     file: File;
     name: string;
     description: string;
     sourceType: string;
-    accessToken: string;
+    integrationId?: string;
+    accessToken?: string;
     longitude?: number;
     latitude?: number;
     height?: number;
@@ -33,12 +49,14 @@ export interface UploadToIonTabProps {
   }) => Promise<{ assetId: string }>;
   uploading?: boolean;
   uploadProgress?: number;
+  integrations?: CesiumIonIntegration[];
 }
 
 const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
   onUpload,
   uploading = false,
   uploadProgress = 0,
+  integrations = [],
 }) => {
   const theme = useTheme();
   const accent = theme.palette.primary.main;
@@ -49,6 +67,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [sourceType, setSourceType] = useState("3DTILES");
+  const [integrationId, setIntegrationId] = useState<string>("");
   const [accessToken, setAccessToken] = useState("");
   const [longitude, setLongitude] = useState<string>("");
   const [latitude, setLatitude] = useState<string>("");
@@ -85,6 +104,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
     setName("");
     setDescription("");
     setSourceType("3DTILES");
+    setIntegrationId("");
     setAccessToken("");
     setLongitude("");
     setLatitude("");
@@ -101,10 +121,10 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
   }, []);
 
   const handleUpload = useCallback(async () => {
-    if (!selectedFile || !name || !accessToken) return;
+    if (!selectedFile || !name || (!integrationId && !accessToken)) return;
 
     try {
-      const uploadOptions: any = {};
+      const uploadOptions: Record<string, unknown> = {};
 
       if (sourceType === "3DTILES_ARCHIVE") {
         uploadOptions.tilesetJson = tilesetJson || "tileset.json";
@@ -128,7 +148,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         name,
         description,
         sourceType,
-        accessToken,
+        ...(integrationId ? { integrationId } : { accessToken }),
         longitude: longitude ? parseFloat(longitude) : undefined,
         latitude: latitude ? parseFloat(latitude) : undefined,
         height: height ? parseFloat(height) : undefined,
@@ -144,6 +164,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
     name,
     description,
     sourceType,
+    integrationId,
     accessToken,
     longitude,
     latitude,
@@ -257,13 +278,16 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
       <BasicInfoForm
         name={name}
         description={description}
+        integrationId={integrationId}
         accessToken={accessToken}
         sourceType={sourceType}
         tilesetJson={tilesetJson}
         uploading={uploading}
         sourceTypeLocked={isPointCloudFile}
+        integrations={integrations}
         onNameChange={setName}
         onDescriptionChange={setDescription}
+        onIntegrationIdChange={setIntegrationId}
         onAccessTokenChange={setAccessToken}
         onSourceTypeChange={setSourceType}
         onTilesetJsonChange={setTilesetJson}
@@ -369,7 +393,7 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         <Button
           variant="contained"
           onClick={handleUpload}
-          disabled={!name || !accessToken || uploading}
+          disabled={!name || (!integrationId && !accessToken) || uploading}
           startIcon={<Public />}
           sx={(theme) => ({
             borderRadius: "4px",

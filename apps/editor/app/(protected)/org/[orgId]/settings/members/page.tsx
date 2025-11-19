@@ -466,8 +466,8 @@ const SettingsMembersPage = () => {
                                     backgroundColor: alpha(color, 0.15),
                                     color: color,
                                     border: `1px solid ${alpha(color, 0.3)}`,
-                                    fontWeight: 500,
-                                    fontSize: "0.75rem",
+                                  fontWeight: 500,
+                                  fontSize: "0.75rem",
                                   };
                                 }}
                               />
@@ -551,8 +551,8 @@ const SettingsMembersPage = () => {
                                     backgroundColor: alpha(color, 0.15),
                                     color: color,
                                     border: `1px solid ${alpha(color, 0.3)}`,
-                                    fontWeight: 500,
-                                    fontSize: "0.75rem",
+                                  fontWeight: 500,
+                                  fontSize: "0.75rem",
                                   };
                                 }}
                               />

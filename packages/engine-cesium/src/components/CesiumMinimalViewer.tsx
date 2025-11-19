@@ -262,9 +262,9 @@ export function CesiumMinimalViewer({
             case "3DTILES": {
               // Show globe for world-scale 3D Tiles datasets like OSM Buildings
               viewerRef.current.scene.globe.show = true;
-              const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
-                parseInt(cesiumAssetId)
-              );
+        const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
+          parseInt(cesiumAssetId)
+        );
               tilesetRef.current = tileset;
               viewerRef.current.scene.primitives.add(tileset);
               await viewerRef.current.zoomTo(tileset);
@@ -323,9 +323,9 @@ export function CesiumMinimalViewer({
                 const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
                   parseInt(cesiumAssetId)
                 );
-                tilesetRef.current = tileset;
-                viewerRef.current.scene.primitives.add(tileset);
-                await viewerRef.current.zoomTo(tileset);
+        tilesetRef.current = tileset;
+        viewerRef.current.scene.primitives.add(tileset);
+        await viewerRef.current.zoomTo(tileset);
               } catch (err) {
                 throw new Error(
                   `Failed to load asset: ${err instanceof Error ? err.message : "Unknown error"}`

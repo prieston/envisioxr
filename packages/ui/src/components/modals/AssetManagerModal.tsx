@@ -56,10 +56,21 @@ export interface AssetManagerModalProps {
     name: string;
     description: string;
     sourceType: string;
-    accessToken: string;
+    integrationId?: string;
+    accessToken?: string;
     longitude?: number;
     latitude?: number;
     height?: number;
+    options?: {
+      dracoCompression?: boolean;
+      ktx2Compression?: boolean;
+      webpImages?: boolean;
+      geometricCompression?: string;
+      epsgCode?: string;
+      makeDownloadable?: boolean;
+      tilesetJson?: string;
+      gaussianSplats?: boolean;
+    };
   }) => Promise<{ assetId: string }>;
   ionUploading?: boolean;
   ionUploadProgress?: number;
@@ -213,6 +224,7 @@ const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
             onUpload={onCesiumIonUpload}
             uploading={ionUploading}
             uploadProgress={ionUploadProgress}
+            integrations={[]}
           />
         )}
 

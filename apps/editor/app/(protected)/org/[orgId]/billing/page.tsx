@@ -282,7 +282,7 @@ const SettingsBillingPage = () => {
   if (plansError || plans.length === 0) {
     return (
       <Page>
-        <PageHeader>
+        <PageHeader title="Billing & Plans">
           <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
             Billing & Plans
           </Typography>
