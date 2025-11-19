@@ -3,12 +3,11 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-const ADMIN_EMAIL = "theofilos@prieston.gr";
+import { isGodUser } from "@/lib/config/godusers";
 
 /**
  * POST: Create a new organization
- * Only available for admin user (theofilos@prieston.gr).
+ * Only available for god users.
  * Other users can join organizations via invitations sent by admins.
  */
 export async function POST(request: NextRequest) {
@@ -17,8 +16,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Check if user is the admin
-  if (session.user.email !== ADMIN_EMAIL) {
+  // Check if user is a god user
+  if (!isGodUser(session.user.email)) {
     return NextResponse.json(
       {
         error:

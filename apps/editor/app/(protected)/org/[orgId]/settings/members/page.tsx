@@ -44,7 +44,9 @@ import {
 } from "@/app/components/Builder/AdminLayout.styles";
 import useOrganization from "@/app/hooks/useOrganization";
 import { useOrgId } from "@/app/hooks/useOrgId";
+import { getPlans, Plan } from "@/app/utils/api";
 import useSWR from "swr";
+import { CreateOrganizationModal } from "@/app/components/Organizations/CreateOrganizationModal";
 import { useSession } from "next-auth/react";
 
 interface Member {
@@ -95,6 +97,10 @@ const SettingsMembersPage = () => {
   } = useOrganization(orgId);
 
   const isPersonalOrg = organization?.isPersonal ?? false;
+  const [createOrgModalOpen, setCreateOrgModalOpen] = useState(false);
+
+  // Fetch plans for the modal
+  const { data: plansData } = useSWR<{ plans: Plan[] }>("/api/plans", getPlans);
 
   // Only fetch members data for non-personal organizations
   const { data, error, isLoading, mutate } = useSWR<MembersData>(
@@ -189,16 +195,16 @@ const SettingsMembersPage = () => {
     }
   };
 
-  const getRoleColor = (role: string) => {
+  const getRoleColor = (role: string, theme: any) => {
     switch (role) {
       case "owner":
-        return "#f59e0b";
+        return theme.palette.warning?.main || "#f59e0b";
       case "admin":
-        return "#6366f1";
+        return theme.palette.primary.main;
       case "member":
-        return "#10b981";
+        return theme.palette.success?.main || "#10b981";
       default:
-        return "#6b7280";
+        return theme.palette.text.secondary;
     }
   };
 
@@ -300,20 +306,26 @@ const SettingsMembersPage = () => {
                   mb: 3,
                   backgroundColor: (theme) =>
                     theme.palette.mode === "dark"
-                      ? alpha("#6366f1", 0.1)
-                      : alpha("#6366f1", 0.05),
+                      ? alpha(theme.palette.primary.main, 0.1)
+                      : alpha(theme.palette.primary.main, 0.05),
                   border: (theme) =>
-                    `1px solid ${alpha("#6366f1", theme.palette.mode === "dark" ? 0.3 : 0.2)}`,
+                    `1px solid ${alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.3 : 0.2)}`,
                 }}
               >
                 <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
                   Personal organizations don&apos;t have members
                 </Typography>
-                <Typography variant="body2">
+                <Typography variant="body2" sx={{ mb: 2 }}>
                   Personal organizations are for individual use only. To
-                  collaborate with team members, you need to be invited to a team organization
-                  by an administrator.
+                  collaborate with team members, create an Organisation Workspace.
                 </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => setCreateOrgModalOpen(true)}
+                  sx={{ textTransform: "none" }}
+                >
+                  Create Organisation Workspace
+                </Button>
               </Alert>
             </PageCard>
           ) : (
@@ -335,14 +347,7 @@ const SettingsMembersPage = () => {
                     variant="contained"
                     startIcon={<PersonAddIcon />}
                     onClick={() => setInviteDialogOpen(true)}
-                    sx={{
-                      textTransform: "none",
-                      borderRadius: (theme) => `${theme.shape.borderRadius}px`,
-                      backgroundColor: "#6366f1",
-                      "&:hover": {
-                        backgroundColor: "#4f46e5",
-                      },
-                    }}
+                    sx={{ textTransform: "none" }}
                   >
                     Invite Member
                   </Button>
@@ -390,8 +395,8 @@ const SettingsMembersPage = () => {
                     sx={{
                       backgroundColor: (theme) =>
                         theme.palette.mode === "dark"
-                          ? alpha("#14171A", 0.6)
-                          : "background.paper",
+                          ? alpha(theme.palette.background.paper, 0.6)
+                          : theme.palette.background.paper,
                       border: (theme) =>
                         `1px solid ${alpha(theme.palette.divider, 0.5)}`,
                     }}
@@ -455,18 +460,15 @@ const SettingsMembersPage = () => {
                               <Chip
                                 label={formatRole(member.role)}
                                 size="small"
-                                sx={{
-                                  backgroundColor: alpha(
-                                    getRoleColor(member.role),
-                                    0.15
-                                  ),
-                                  color: getRoleColor(member.role),
-                                  border: `1px solid ${alpha(
-                                    getRoleColor(member.role),
-                                    0.3
-                                  )}`,
-                                  fontWeight: 500,
-                                  fontSize: "0.75rem",
+                                sx={(theme) => {
+                                  const color = getRoleColor(member.role, theme);
+                                  return {
+                                    backgroundColor: alpha(color, 0.15),
+                                    color: color,
+                                    border: `1px solid ${alpha(color, 0.3)}`,
+                                    fontWeight: 500,
+                                    fontSize: "0.75rem",
+                                  };
                                 }}
                               />
                             </TableCell>
@@ -485,7 +487,8 @@ const SettingsMembersPage = () => {
                                       sx={{
                                         color: "error.main",
                                         "&:hover": {
-                                          backgroundColor: alpha("#ef4444", 0.1),
+                                          backgroundColor: (theme) =>
+                                            alpha(theme.palette.error.main, 0.1),
                                         },
                                       }}
                                     >
@@ -518,9 +521,9 @@ const SettingsMembersPage = () => {
                                     fontSize: "0.875rem",
                                     backgroundColor: (theme) =>
                                       theme.palette.mode === "dark"
-                                        ? alpha("#6366f1", 0.2)
-                                        : alpha("#6366f1", 0.1),
-                                    color: "#6366f1",
+                                        ? alpha(theme.palette.primary.main, 0.2)
+                                        : alpha(theme.palette.primary.main, 0.1),
+                                    color: theme.palette.primary.main,
                                   }}
                                 >
                                   {invite.email.charAt(0).toUpperCase()}
@@ -542,18 +545,15 @@ const SettingsMembersPage = () => {
                               <Chip
                                 label={formatRole(invite.role)}
                                 size="small"
-                                sx={{
-                                  backgroundColor: alpha(
-                                    getRoleColor(invite.role),
-                                    0.15
-                                  ),
-                                  color: getRoleColor(invite.role),
-                                  border: `1px solid ${alpha(
-                                    getRoleColor(invite.role),
-                                    0.3
-                                  )}`,
-                                  fontWeight: 500,
-                                  fontSize: "0.75rem",
+                                sx={(theme) => {
+                                  const color = getRoleColor(invite.role, theme);
+                                  return {
+                                    backgroundColor: alpha(color, 0.15),
+                                    color: color,
+                                    border: `1px solid ${alpha(color, 0.3)}`,
+                                    fontWeight: 500,
+                                    fontSize: "0.75rem",
+                                  };
                                 }}
                               />
                             </TableCell>
@@ -568,9 +568,18 @@ const SettingsMembersPage = () => {
                                   label="Pending"
                                   size="small"
                                   sx={{
-                                    backgroundColor: alpha("#f59e0b", 0.15),
-                                    color: "#f59e0b",
-                                    border: `1px solid ${alpha("#f59e0b", 0.3)}`,
+                                    backgroundColor: (theme) =>
+                                      alpha(
+                                        theme.palette.warning?.main || "#f59e0b",
+                                        0.15
+                                      ),
+                                    color: (theme) =>
+                                      theme.palette.warning?.main || "#f59e0b",
+                                    border: (theme) =>
+                                      `1px solid ${alpha(
+                                        theme.palette.warning?.main || "#f59e0b",
+                                        0.3
+                                      )}`,
                                     fontSize: "0.75rem",
                                   }}
                                 />
@@ -643,12 +652,7 @@ const SettingsMembersPage = () => {
             onClick={handleInvite}
             variant="contained"
             disabled={!inviteEmail || inviting}
-            sx={{
-              backgroundColor: "#6366f1",
-              "&:hover": {
-                backgroundColor: "#4f46e5",
-              },
-            }}
+            sx={{ textTransform: "none" }}
           >
             {inviting ? <CircularProgress size={20} /> : "Send Invitation"}
           </Button>
@@ -695,6 +699,15 @@ const SettingsMembersPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Create Organization Modal */}
+      {plansData && (
+        <CreateOrganizationModal
+          open={createOrgModalOpen}
+          plans={plansData.plans}
+          onClose={() => setCreateOrgModalOpen(false)}
+        />
+      )}
     </>
   );
 };

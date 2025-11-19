@@ -116,6 +116,32 @@ export interface Organization {
   slug: string;
   isPersonal: boolean;
   userRole: string | null;
+  planCode?: string;
+  stripeCustomerId?: string | null;
+  stripeSubscriptionId?: string | null;
+  subscriptionStatus?: string | null;
+}
+
+export interface Plan {
+  code: string;
+  name: string;
+  monthlyPriceCents: number | null;
+  yearlyPriceCents: number | null;
+  includedStorageGb: number;
+  includedBandwidthGbPerMonth: number;
+  includedSeats: number;
+  includedProcessingJobsPerMonth: number;
+  includedProjects: number | null;
+  includedPublishedProjects: number | null;
+  includedPrivateShares: number | null;
+  includedCesiumIntegrations: number | null;
+  cesiumUploadLimitGb: number | null;
+  overageStoragePricePerGbCents: number;
+  overageBandwidthPricePerGbCents: number;
+  overageSeatPricePerMonthCents: number;
+  stripeProductId: string | null;
+  stripePriceIdMonthly: string | null;
+  stripePriceIdYearly: string | null;
 }
 
 export async function getOrganization(orgId: string): Promise<{
@@ -157,6 +183,136 @@ export async function createOrganization(data: {
     method: "POST",
     body: JSON.stringify(data),
   });
+}
+
+export async function deleteOrganization(
+  orgId: string
+): Promise<{ success: boolean; message: string }> {
+  return apiRequest<{ success: boolean; message: string }>(
+    `/api/organizations/${orgId}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+export interface UsageStats {
+  usage: {
+    members: number;
+    projects: number;
+    publishedProjects: number;
+    privateShares: number;
+    cesiumIntegrations: number;
+    storageGb: number;
+    cesiumUploadGib: number; // GiB (binary) to match Cesium's display
+  };
+  limits: {
+    members: number;
+    projects: number | null;
+    publishedProjects: number | null;
+    privateShares: number | null;
+    cesiumIntegrations: number | null;
+    storageGb: number;
+    cesiumUploadGib: number | null; // Stored as GB in DB, but displayed as GiB
+  };
+  plan: {
+    code: string;
+    name: string;
+  };
+}
+
+export async function getUsageStats(orgId: string): Promise<UsageStats> {
+  if (!orgId) {
+    throw new Error("organizationId is required");
+  }
+  return apiRequest<UsageStats>(`/api/organizations/${orgId}/usage`);
+}
+
+// ============================================================================
+// Cesium Ion Integrations API
+// ============================================================================
+
+export interface CesiumIonIntegration {
+  id: string;
+  organizationId: string;
+  label: string;
+  readTokenLast4: string;
+  uploadTokenLast4: string;
+  readTokenValid: boolean;
+  uploadTokenValid: boolean;
+  lastSyncedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SyncResult {
+  success: boolean;
+  addedCount: number;
+  updatedCount: number;
+  deletedCount: number;
+  totalCesiumAssets: number;
+  totalLocalAssets: number;
+}
+
+export async function getCesiumIntegrations(
+  orgId: string
+): Promise<{ integrations: CesiumIonIntegration[] }> {
+  if (!orgId) {
+    throw new Error("organizationId is required");
+  }
+  return apiRequest<{ integrations: CesiumIonIntegration[] }>(
+    `/api/organizations/${orgId}/cesium-integrations`
+  );
+}
+
+export async function createCesiumIntegration(
+  orgId: string,
+  data: {
+    label: string;
+    readToken: string;
+    uploadToken: string;
+  }
+): Promise<{ integration: CesiumIonIntegration }> {
+  if (!orgId) {
+    throw new Error("organizationId is required");
+  }
+  return apiRequest<{ integration: CesiumIonIntegration }>(
+    `/api/organizations/${orgId}/cesium-integrations`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function deleteCesiumIntegration(
+  orgId: string,
+  integrationId: string
+): Promise<{ success: boolean }> {
+  if (!orgId || !integrationId) {
+    throw new Error("organizationId and integrationId are required");
+  }
+  return apiRequest<{ success: boolean }>(
+    `/api/organizations/${orgId}/cesium-integrations/${integrationId}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+export async function syncCesiumIntegration(
+  orgId: string,
+  integrationId: string
+): Promise<SyncResult> {
+  if (!orgId || !integrationId) {
+    throw new Error("organizationId and integrationId are required");
+  }
+  return apiRequest<SyncResult>(
+    `/api/organizations/${orgId}/cesium-integrations/${integrationId}/sync`,
+    {
+      method: "POST",
+    }
+  );
 }
 
 // ============================================================================
@@ -476,6 +632,18 @@ export async function createCesiumIonAsset(data: {
   });
 }
 
+export interface AssetType {
+  value: string;
+  label: string;
+}
+
+export async function getAssetTypes(params?: {
+  organizationId?: string;
+  assetType?: "cesiumIonAsset";
+}): Promise<{ types: AssetType[] }> {
+  return apiRequest<{ types: AssetType[] }>("/api/models/types", { params });
+}
+
 // ============================================================================
 // Activity API
 // ============================================================================
@@ -619,6 +787,40 @@ export const organizationsFetcher = (url: string): Promise<Organization[]> => {
     (res) => res.organizations
   );
 };
+
+// ============================================================================
+// Plans & Billing API
+// ============================================================================
+
+export async function getPlans(): Promise<{ plans: Plan[] }> {
+  return apiRequest<{ plans: Plan[] }>("/api/plans");
+}
+
+export async function createCheckoutSession(
+  orgId: string,
+  planCode: string,
+  billingInterval: "monthly" | "yearly"
+): Promise<{ url: string }> {
+  return apiRequest<{ url: string }>(
+    `/api/organizations/${orgId}/billing/checkout`,
+    {
+      method: "POST",
+      body: JSON.stringify({ planCode, billingInterval }),
+    }
+  );
+}
+
+export async function createOrganizationCheckoutSession(
+  planCode: string,
+  billingInterval: "monthly" | "yearly",
+  orgName: string,
+  orgSlug: string
+): Promise<{ url: string; bypassed?: boolean }> {
+  return apiRequest<{ url: string; bypassed?: boolean }>("/api/organizations/create-checkout", {
+    method: "POST",
+    body: JSON.stringify({ planCode, billingInterval, orgName, orgSlug }),
+  });
+}
 
 // Export ApiError for error handling
 export { ApiError };

@@ -26,16 +26,17 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import BusinessIcon from "@mui/icons-material/Business";
 import AddIcon from "@mui/icons-material/Add";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { LeftPanelContainer } from "@envisio/ui";
 import LogoHeader from "@/app/components/AppBar/LogoHeader";
 import UserAccountMenu from "@/app/components/AppBar/UserAccountMenu";
 import useOrganization from "@/app/hooks/useOrganization";
 import useOrganizations from "@/app/hooks/useOrganizations";
 import { useOrgId } from "@/app/hooks/useOrgId";
-import { useRouter } from "next/navigation";
-import { createOrganization } from "@/app/utils/api";
-import { CreateOrganizationDrawer } from "@/app/components/Organizations/CreateOrganizationDrawer";
-import { showToast } from "@envisio/ui";
+import { getPlans, Plan } from "@/app/utils/api";
+import { CreateOrganizationModal } from "@/app/components/Organizations/CreateOrganizationModal";
+import useSWR from "swr";
 import useUser from "@/app/hooks/useUser";
 
 interface SubMenuItem {
@@ -84,10 +85,19 @@ const menuItems: MenuItem[] = [
     subItems: [
       { label: "General", path: "/settings/general" },
       { label: "Members", path: "/settings/members" },
-      { label: "License", path: "/settings/billing", comingSoon: true },
-      { label: "Usage", path: "/settings/usage", comingSoon: true },
-      { label: "API Keys", path: "/settings/api-keys", comingSoon: true },
+      { label: "Usage", path: "/settings/usage" },
+      { label: "Integrations", path: "/settings/integrations" },
     ],
+  },
+  {
+    label: "Billing & Plans",
+    icon: <CreditCardIcon />,
+    path: "/billing",
+  },
+  {
+    label: "Support",
+    icon: <HelpOutlineIcon />,
+    path: "/support",
   },
 ];
 
@@ -96,67 +106,22 @@ const ADMIN_EMAIL = "theofilos@prieston.gr";
 const DashboardSidebar: React.FC = () => {
   const pathname = usePathname();
   const theme = useTheme();
-  const router = useRouter();
   const orgId = useOrgId();
   const { organization: currentOrganization, loadingOrganization } =
     useOrganization(orgId);
-  const {
-    organizations,
-    loadingOrganizations,
-    mutate: mutateOrganizations,
-  } = useOrganizations();
+  const { organizations, loadingOrganizations } = useOrganizations();
   const { user } = useUser();
   const isAdmin = user?.email === ADMIN_EMAIL;
 
-  // Create organization drawer state
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [orgName, setOrgName] = useState("");
-  const [orgSlug, setOrgSlug] = useState("");
-  const [saving, setSaving] = useState(false);
+  // Create organization modal state
+  const [createOrgModalOpen, setCreateOrgModalOpen] = useState(false);
+
+  // Fetch plans for the modal
+  const { data: plansData } = useSWR<{ plans: Plan[] }>("/api/plans", getPlans);
 
   const handleCreateOrganization = useCallback(() => {
-    setDrawerOpen(true);
-    setOrgName("");
-    setOrgSlug("");
+    setCreateOrgModalOpen(true);
   }, []);
-
-  const handleCloseDrawer = useCallback(() => {
-    setDrawerOpen(false);
-    setOrgName("");
-    setOrgSlug("");
-  }, []);
-
-  const handleSaveOrganization = useCallback(async () => {
-    if (!orgName.trim() || !orgSlug.trim()) return;
-
-    setSaving(true);
-    try {
-      const response = await createOrganization({
-        name: orgName.trim(),
-        slug: orgSlug.trim(),
-      });
-
-      // Refresh organizations list
-      mutateOrganizations();
-
-      showToast("Organization created successfully!", "success");
-
-      // Navigate to the new organization's dashboard
-      router.push(`/org/${response.organization.id}/dashboard`);
-
-      handleCloseDrawer();
-    } catch (error) {
-      console.error("Error creating organization:", error);
-      showToast(
-        error instanceof Error
-          ? error.message
-          : "Failed to create organization",
-        "error"
-      );
-    } finally {
-      setSaving(false);
-    }
-  }, [orgName, orgSlug, mutateOrganizations, router, handleCloseDrawer]);
 
   // Build paths with orgId prefix
   const buildPath = useMemo(() => {
@@ -895,17 +860,12 @@ const DashboardSidebar: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Create Organization Drawer - Only for admin */}
-      {isAdmin && (
-        <CreateOrganizationDrawer
-          open={drawerOpen}
-          name={orgName}
-          slug={orgSlug}
-          saving={saving}
-          onClose={handleCloseDrawer}
-          onNameChange={setOrgName}
-          onSlugChange={setOrgSlug}
-          onSave={handleSaveOrganization}
+      {/* Create Organization Modal - Only for admin */}
+      {isAdmin && plansData?.plans && (
+        <CreateOrganizationModal
+          open={createOrgModalOpen}
+          plans={plansData.plans}
+          onClose={() => setCreateOrgModalOpen(false)}
         />
       )}
     </LeftPanelContainer>

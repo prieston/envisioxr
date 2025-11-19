@@ -13,6 +13,9 @@ import { Session } from "next-auth";
 import { serverEnv } from "@/lib/env/server";
 import { getUserOrganizationIds, isUserMemberOfOrganization } from "@/lib/organizations";
 import { logActivity } from "@/lib/activity";
+import { decryptToken } from "@/lib/cesium/encryption";
+
+const CESIUM_ION_API_BASE = "https://api.cesium.com/v1";
 
 interface StockModel {
   name: string;
@@ -351,26 +354,81 @@ export async function DELETE(request: NextRequest) {
     if (!isMember) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
-    // Determine the key from the asset's fileUrl.
-    const bucketName = serverEnv.DO_SPACES_BUCKET;
-    const endpoint = serverEnv.DO_SPACES_ENDPOINT;
-    const fileUrl = asset.fileUrl;
-    const key = fileUrl.replace(`${endpoint}/${bucketName}/`, "");
-    // Setup S3 client.
-    const s3 = new S3Client({
-      region: serverEnv.DO_SPACES_REGION,
-      endpoint: endpoint,
-      credentials: {
-        accessKeyId: serverEnv.DO_SPACES_KEY,
-        secretAccessKey: serverEnv.DO_SPACES_SECRET,
-      },
-    });
-    // Delete the object from Spaces.
-    const deleteCommand = new DeleteObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    });
-    await s3.send(deleteCommand);
+
+    // Handle Cesium Ion asset deletion
+    if (asset.assetType === "cesiumIonAsset" && asset.cesiumAssetId) {
+      // Find the integration that owns this asset
+      const cesiumAsset = await prisma.cesiumAsset.findFirst({
+        where: {
+          organizationId: asset.organizationId,
+          cesiumAssetId: asset.cesiumAssetId,
+        },
+        include: {
+          integration: true,
+        },
+      });
+
+      if (cesiumAsset && cesiumAsset.integration.uploadTokenValid) {
+        try {
+          // Decrypt upload token
+          const uploadToken = decryptToken(cesiumAsset.integration.uploadToken);
+
+          // Delete asset from Cesium Ion
+          const deleteResponse = await fetch(
+            `${CESIUM_ION_API_BASE}/assets/${asset.cesiumAssetId}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${uploadToken}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (!deleteResponse.ok && deleteResponse.status !== 404) {
+            // 404 means asset already deleted, which is fine
+            const errorText = await deleteResponse.text();
+            console.error(
+              `Failed to delete Cesium Ion asset ${asset.cesiumAssetId}:`,
+              errorText
+            );
+            // Continue with local deletion even if Cesium deletion fails
+          }
+        } catch (error) {
+          console.error(
+            `Error deleting Cesium Ion asset ${asset.cesiumAssetId}:`,
+            error
+          );
+          // Continue with local deletion even if Cesium deletion fails
+        }
+      }
+    } else {
+      // Delete regular asset from DigitalOcean Spaces
+      // Determine the key from the asset's fileUrl.
+      const bucketName = serverEnv.DO_SPACES_BUCKET;
+      const endpoint = serverEnv.DO_SPACES_ENDPOINT;
+      const fileUrl = asset.fileUrl;
+
+      // Only delete from Spaces if it's not a Cesium Ion placeholder URL
+      if (!fileUrl.startsWith("cesium-ion://")) {
+        const key = fileUrl.replace(`${endpoint}/${bucketName}/`, "");
+        // Setup S3 client.
+        const s3 = new S3Client({
+          region: serverEnv.DO_SPACES_REGION,
+          endpoint: endpoint,
+          credentials: {
+            accessKeyId: serverEnv.DO_SPACES_KEY,
+            secretAccessKey: serverEnv.DO_SPACES_SECRET,
+          },
+        });
+        // Delete the object from Spaces.
+        const deleteCommand = new DeleteObjectCommand({
+          Bucket: bucketName,
+          Key: key,
+        });
+        await s3.send(deleteCommand);
+      }
+    }
 
     // Log activity before deleting
     const entityType =

@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
-
-const ADMIN_EMAIL = "theofilos@prieston.gr";
+import { isGodUser } from "@/lib/config/godusers";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -13,8 +12,8 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Check if user is the admin
-  if (session.user.email !== ADMIN_EMAIL) {
+  // Check if user is a god user
+  if (!isGodUser(session.user.email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -286,6 +285,25 @@ export async function GET() {
       take: 10,
     });
 
+    // Get all organizations with member counts
+    const allOrganizations = await prisma.organization.findMany({
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        isPersonal: true,
+        createdAt: true,
+        _count: {
+          select: {
+            members: true,
+            projects: true,
+            assets: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
     // Get all users with their details
     const allUsers = await prisma.user.findMany({
       select: {
@@ -435,6 +453,16 @@ export async function GET() {
           id: org.id,
           name: org.name,
           slug: org.slug,
+          assetCount: org._count.assets,
+        })),
+        all: allOrganizations.map((org) => ({
+          id: org.id,
+          name: org.name,
+          slug: org.slug,
+          isPersonal: org.isPersonal,
+          createdAt: org.createdAt,
+          memberCount: org._count.members,
+          projectCount: org._count.projects,
           assetCount: org._count.assets,
         })),
       },

@@ -19,7 +19,30 @@ This monorepo contains the following projects:
    pnpm install
    ```
 
-2. Generate Prisma client:
+2. Create a `.env` file at the root of the monorepo with your environment variables:
+   ```bash
+   # Required environment variables (see apps/editor/lib/env/server.ts for full list)
+   DATABASE_URL=postgresql://...
+   SHADOW_DATABASE_URL=postgresql://...
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=...
+   GOOGLE_CLIENT_ID=...
+   GOOGLE_CLIENT_SECRET=...
+   # ... etc
+   ```
+
+   **Note:** The `.env` file should be at the **root** of the monorepo. Symlinks have been created in `apps/editor/.env` and `apps/website/.env` that point to the root `.env` file. This allows:
+   - Prisma to find `DATABASE_URL` when running migrations from `packages/prisma/`
+   - Next.js apps to access environment variables from their own directories
+   - All packages to share the same environment configuration
+
+   If you need to recreate the symlinks:
+   ```bash
+   ln -sf ../../.env apps/editor/.env
+   ln -sf ../../.env apps/website/.env
+   ```
+
+3. Generate Prisma client:
    ```bash
    pnpm prisma:generate
    ```
