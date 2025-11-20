@@ -47,9 +47,18 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
   // Check tiling status for Cesium Ion assets
   const metadata = asset.metadata as Record<string, any> | undefined;
   const tilingStatus = metadata?.tilingStatus as string | undefined;
+  const cesiumStatus = metadata?.status as string | undefined; // Status from Cesium Ion API (for synced assets)
   const tilingProgress = metadata?.tilingProgress as number | undefined;
   const isCesiumIonAsset = asset.assetType === "cesiumIonAsset" || !!asset.cesiumAssetId;
-  const isTilingComplete = tilingStatus === "COMPLETE";
+
+  // Check if tiling is complete:
+  // 1. If tilingStatus is explicitly "COMPLETE" (for newly uploaded assets)
+  // 2. If tilingStatus is undefined but cesiumStatus is "COMPLETE" or "ACTIVE" (for synced assets)
+  //    Synced assets from Cesium Ion integrations don't have tilingStatus but have status from API
+  const isTilingComplete =
+    tilingStatus === "COMPLETE" ||
+    (tilingStatus === undefined && (cesiumStatus === "COMPLETE" || cesiumStatus === "ACTIVE"));
+
   const isTilingInProgress = tilingStatus === "IN_PROGRESS";
   const isTilingError = tilingStatus === "ERROR";
 
