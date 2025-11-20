@@ -35,6 +35,7 @@ export default defineConfig({
   tsconfig: './tsconfig.json',
   esbuildOptions(options) {
     options.logOverride = { 'this-is-undefined-in-esm': 'silent' };
-    options.drop = ['console', 'debugger'];
+    // Keep console logs for debugging - do not drop them
+    // options.drop = ['console', 'debugger'];
   },
 });

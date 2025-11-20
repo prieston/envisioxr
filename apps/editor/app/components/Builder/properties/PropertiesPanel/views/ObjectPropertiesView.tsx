@@ -81,15 +81,34 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
 
     const handleFlyToObject = useCallback(() => {
       // Cesium Ion asset path
-      if (isCesiumIonAsset && selectedObject?.assetId != null) {
-        const target = cesiumIonAssets.find(
-          (a) => String(a.assetId) === String(selectedObject?.assetId)
-        );
+      if (isCesiumIonAsset) {
+        // Try to match by cesiumAssetId first (if stored in object)
+        const cesiumAssetId = (selectedObject as any)?.cesiumAssetId;
+        let target = null;
+        
+        if (cesiumAssetId) {
+          // Match by cesiumAssetId stored in object
+          target = cesiumIonAssets.find(
+            (a) => String(a.assetId) === String(cesiumAssetId)
+          );
+        }
+
+        // Fallback: match by name if cesiumAssetId not found
+        if (!target && selectedObject?.name) {
+          target = cesiumIonAssets.find(
+            (a) => a.name === selectedObject.name
+          );
+        }
+
         if (target) {
           flyToCesiumIonAsset(target.id);
           return;
         }
-        logger.warn("Cesium Ion asset not found:", selectedObject?.assetId);
+        logger.warn("Cesium Ion asset not found:", {
+          objectAssetId: selectedObject?.assetId,
+          cesiumAssetId,
+          objectName: selectedObject?.name,
+        });
         // Fall through to position if available
       }
 

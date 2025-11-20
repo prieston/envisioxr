@@ -216,6 +216,7 @@ export const useAssetManager = ({
         type: "cesium-ion-tileset",
         apiKey: (model as any).cesiumApiKey,
         assetId: model.id, // Use database asset ID for metadata fetching, not Cesium Ion asset ID
+        cesiumAssetId: (model as any).cesiumAssetId, // Store Cesium Ion asset ID for fly-to matching
         position: [0, 0, 0], // Placeholder, actual position handled by Cesium
         scale: [1, 1, 1],
         rotation: [0, 0, 0],
