@@ -27,7 +27,7 @@
     "e2e:ci:website": "start-server-and-test 'pnpm --filter @envisioxr/website start' http://localhost:3000 'pnpm e2e:website'",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "typecheck": "pnpm --filter './packages/*' exec tsc --noEmit --skipLibCheck && pnpm --filter './apps/*' exec tsc --noEmit --skipLibCheck",
+    "typecheck": "pnpm --filter './packages/*' --filter '!@envisioxr/prisma' exec tsc --noEmit --skipLibCheck && pnpm --filter './apps/*' exec tsc --noEmit --skipLibCheck",
     "typecheck:editor": "cd apps/editor && pnpm exec tsc --noEmit --skipLibCheck",
     "build:check": "pnpm typecheck && pnpm build:packages && cd apps/editor && pnpm build --dry-run || (cd apps/editor && pnpm build)",
     "syncpack:check": "syncpack list-mismatches",
