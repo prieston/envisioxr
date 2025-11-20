@@ -107,9 +107,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const integration = await prisma.cesiumIonIntegration.create({
       data: {
         organizationId: orgId,
-        name: name.trim(),
-        readOnlyToken: readOnlyToken.trim(),
+        label: name.trim(),
+        readToken: readOnlyToken.trim(),
         uploadToken: uploadToken.trim(),
+        readTokenLast4: readOnlyToken.trim().slice(-4),
+        uploadTokenLast4: uploadToken.trim().slice(-4),
       },
     });
 
