@@ -136,6 +136,7 @@ export const useCesiumIon = () => {
         description,
         sourceType,
         accessToken,
+        integrationId,
         longitude,
         latitude,
         height,
@@ -190,7 +191,7 @@ export const useCesiumIon = () => {
         name,
         description,
         type: ionType,
-        accessToken,
+        ...(integrationId ? { integrationId } : { accessToken }),
         options: ionOptions,
       });
 

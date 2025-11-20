@@ -15,7 +15,8 @@ export interface CesiumIonUploadData {
   name: string;
   description: string;
   sourceType: string;
-  accessToken: string;
+  accessToken?: string; // Optional: can use integrationId instead
+  integrationId?: string; // Optional: can use accessToken instead
   longitude?: number;
   latitude?: number;
   height?: number;
