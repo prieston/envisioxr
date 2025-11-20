@@ -27,7 +27,7 @@ export function useDateTimeHandlers({
       setCesiumLightingEnabled(enabled);
 
       if (cesiumViewer.scene) {
-        cesiumViewer.scene.sun.show = enabled;
+        cesiumViewer.scene.sun!.show = enabled;
         cesiumViewer.scene.globe.enableLighting = enabled;
         if (cesiumViewer.scene.skyAtmosphere) {
           cesiumViewer.scene.skyAtmosphere.show = enabled;

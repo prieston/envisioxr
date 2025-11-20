@@ -1,1 +1,19 @@
-pnpm verify:deps
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-push checks..."
+
+# Run build:editor to catch build errors (this includes type checking)
+echo "🏗️  Building editor app..."
+pnpm build:editor || {
+  echo "❌ Build failed. Please fix errors before pushing."
+  exit 1
+}
+
+# Verify dependencies
+pnpm verify:deps || {
+  echo "❌ Dependency verification failed."
+  exit 1
+}
+
+echo "✅ Pre-push checks passed!"
