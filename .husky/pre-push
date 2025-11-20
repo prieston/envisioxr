@@ -3,14 +3,7 @@
 
 echo "🔍 Running pre-push checks..."
 
-# Run type checking before push
-echo "📝 Type checking..."
-pnpm typecheck || {
-  echo "❌ Type checking failed. Please fix errors before pushing."
-  exit 1
-}
-
-# Run build:editor to catch build errors
+# Run build:editor to catch build errors (this includes type checking)
 echo "🏗️  Building editor app..."
 pnpm build:editor || {
   echo "❌ Build failed. Please fix errors before pushing."
