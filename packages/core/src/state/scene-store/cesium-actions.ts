@@ -100,13 +100,14 @@ export function createCesiumActions(set: any, get: any) {
       }
 
       const primitives = (cesiumViewer as any).scene.primitives;
+      const expectedAssetId = parseInt((asset as any).assetId);
       let targetTileset: any = null;
 
       for (let i = 0; i < primitives.length; i++) {
         const primitive = primitives.get(i);
         if (
           primitive &&
-          (primitive as any).assetId === parseInt((asset as any).assetId)
+          (primitive as any).assetId === expectedAssetId
         ) {
           targetTileset = primitive;
           break;
@@ -126,7 +127,7 @@ export function createCesiumActions(set: any, get: any) {
           offset: new (cesiumInstance as any).HeadingPitchRange(0, -0.5, 1000),
         });
       } catch (error) {
-        // Error flying to asset
+        logger.error("Error flying to asset", error);
       }
     },
   };

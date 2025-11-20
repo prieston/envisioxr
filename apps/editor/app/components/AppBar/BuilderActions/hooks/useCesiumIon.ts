@@ -62,6 +62,7 @@ export const useCesiumIon = () => {
         type: "cesium-ion-tileset",
         apiKey: data.apiKey,
         assetId: newAsset.id, // Use database asset ID for metadata fetching, not Cesium Ion asset ID
+        cesiumAssetId: data.assetId, // Store Cesium Ion asset ID for fly-to matching
         position: [0, 0, 0], // Placeholder, actual position handled by Cesium
         scale: [1, 1, 1],
         rotation: [0, 0, 0],
