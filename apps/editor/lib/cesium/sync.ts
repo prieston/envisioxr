@@ -4,6 +4,7 @@
 
 import { decryptToken } from "./encryption";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 const CESIUM_ION_API_BASE = "https://api.cesium.com/v1";
 
@@ -48,9 +49,7 @@ async function fetchCesiumAssets(
     });
 
     if (!response.ok) {
-      throw new Error(
-        `Failed to fetch Cesium assets: ${response.statusText}`
-      );
+      throw new Error(`Failed to fetch Cesium assets: ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -137,9 +136,7 @@ export async function syncCesiumAssets(
   });
 
   // Convert cesiumAsset.id to string for comparison and storage
-  const cesiumAssetIds = new Set(
-    cesiumAssets.map((a) => String(a.id))
-  );
+  const cesiumAssetIds = new Set(cesiumAssets.map((a) => String(a.id)));
   const localCesiumAssetMap = new Map(
     localCesiumAssets.map((a) => [a.cesiumAssetId, a])
   );
@@ -161,8 +158,13 @@ export async function syncCesiumAssets(
     if (existingCesiumAsset) {
       // Check if anything actually changed before updating
       const nameChanged = existingCesiumAsset.name !== cesiumAsset.name;
-      const typeChanged = existingCesiumAsset.type !== (cesiumAsset.type || null);
-      const attributionsChanged = JSON.stringify(existingCesiumAsset.attributions) !== JSON.stringify(cesiumAsset.attributions ? (cesiumAsset.attributions as object) : null);
+      const typeChanged =
+        existingCesiumAsset.type !== (cesiumAsset.type || null);
+      const attributionsChanged =
+        JSON.stringify(existingCesiumAsset.attributions) !==
+        JSON.stringify(
+          cesiumAsset.attributions ? (cesiumAsset.attributions as object) : null
+        );
       const statusChanged = existingCesiumAsset.status !== "active";
 
       if (nameChanged || typeChanged || attributionsChanged || statusChanged) {
@@ -237,25 +239,43 @@ export async function syncCesiumAssets(
           fileUrl: `cesium-ion://${cesiumAssetIdStr}`, // Placeholder URL for Cesium Ion assets
           fileType: cesiumAsset.type || "3DTILES",
           description: cesiumAsset.description || null,
-          metadata: Object.keys(assetMetadata).length > 0 ? assetMetadata : null,
+          metadata:
+            Object.keys(assetMetadata).length > 0
+              ? (assetMetadata as Prisma.InputJsonValue)
+              : null,
           fileSize: cesiumAsset.bytes ? BigInt(cesiumAsset.bytes) : null,
         },
       });
     } else {
       // Check if anything actually changed before updating library asset
       const nameChanged = existingLibraryAsset.name !== cesiumAsset.name;
-      const descriptionChanged = existingLibraryAsset.description !== (cesiumAsset.description || null);
-      const metadataChanged = JSON.stringify(existingLibraryAsset.metadata) !== JSON.stringify(Object.keys(assetMetadata).length > 0 ? assetMetadata : null);
-      const fileSizeChanged = existingLibraryAsset.fileSize?.toString() !== (cesiumAsset.bytes ? BigInt(cesiumAsset.bytes).toString() : null);
+      const descriptionChanged =
+        existingLibraryAsset.description !== (cesiumAsset.description || null);
+      const metadataChanged =
+        JSON.stringify(existingLibraryAsset.metadata) !==
+        JSON.stringify(
+          Object.keys(assetMetadata).length > 0 ? assetMetadata : null
+        );
+      const fileSizeChanged =
+        existingLibraryAsset.fileSize?.toString() !==
+        (cesiumAsset.bytes ? BigInt(cesiumAsset.bytes).toString() : null);
 
-      if (nameChanged || descriptionChanged || metadataChanged || fileSizeChanged) {
+      if (
+        nameChanged ||
+        descriptionChanged ||
+        metadataChanged ||
+        fileSizeChanged
+      ) {
         // Update existing library asset only if something changed
         await prisma.asset.update({
           where: { id: existingLibraryAsset.id },
           data: {
             name: cesiumAsset.name,
             description: cesiumAsset.description || null,
-            metadata: Object.keys(assetMetadata).length > 0 ? assetMetadata : null,
+            metadata:
+              Object.keys(assetMetadata).length > 0
+                ? (assetMetadata as Prisma.InputJsonValue)
+                : null,
             fileSize: cesiumAsset.bytes ? BigInt(cesiumAsset.bytes) : null,
           },
         });
@@ -296,4 +316,3 @@ export async function syncCesiumAssets(
     totalLocalAssets: localCesiumAssets.length,
   };
 }
-
