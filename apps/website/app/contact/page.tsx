@@ -1,7 +1,19 @@
 import { ContactForm } from "@/components/contact-form";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Begin a conversation",
+  description:
+    "Contact Klorad to discuss your spatial operations needs. Every environment carries its own constraints, histories, and operational rhythms. We begin by understanding context, not assumptions.",
+  openGraph: {
+    title: "Begin a conversation | Klorad",
+    description:
+      "Contact Klorad to discuss your spatial operations needs. We begin by understanding context, not assumptions.",
+  },
+  alternates: {
+    canonical: "/contact",
+  },
 };
 
 export default function ContactPage() {

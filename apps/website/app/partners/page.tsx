@@ -1,5 +1,17 @@
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Partners",
+  description:
+    "PSM is the exclusive deployment and stewardship partner for the Roads & Mobility sector. Learn about Klorad's partnership approach and sector-specific collaborations.",
+  openGraph: {
+    title: "Partners | Klorad",
+    description:
+      "PSM is the exclusive deployment and stewardship partner for the Roads & Mobility sector.",
+  },
+  alternates: {
+    canonical: "/partners",
+  },
 };
 
 export default function PartnersPage() {

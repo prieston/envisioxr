@@ -1,5 +1,17 @@
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Platform",
+  description:
+    "Klorad is structured as a spatial operations stack with the Spatial Layer, Klorad Engine, Klorad Studio, and Klorad Viewer. Learn about our architecture and components.",
+  openGraph: {
+    title: "Platform | Klorad",
+    description:
+      "Klorad is structured as a spatial operations stack with the Spatial Layer, Klorad Engine, Klorad Studio, and Klorad Viewer.",
+  },
+  alternates: {
+    canonical: "/platform",
+  },
 };
 
 export default function PlatformPage() {

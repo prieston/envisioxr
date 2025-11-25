@@ -1,7 +1,19 @@
 import Link from "next/link";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Sectors",
+  description:
+    "Klorad serves Roads & Mobility, Construction Lifecycle, and Cultural Heritage & Interpretation sectors. See how our spatial operations platform addresses sector-specific challenges.",
+  openGraph: {
+    title: "Sectors | Klorad",
+    description:
+      "Klorad serves Roads & Mobility, Construction Lifecycle, and Cultural Heritage & Interpretation sectors.",
+  },
+  alternates: {
+    canonical: "/sectors",
+  },
 };
 
 export default function SectorsPage() {
@@ -12,7 +24,7 @@ export default function SectorsPage() {
           Roads &amp; Mobility
         </h2>
         <p className="max-w-[620px]">
-          Delivered with PSMdt, Klorad reveals the lived state of corridors, junctions, and signaling systems. Traffic flow, maintenance windows, sensor outputs, and policy overlays become visible as one continuous environment. Operators can anticipate how a decision will propagate through the mobility network before it is enacted.
+          Delivered with PSM, Klorad reveals the lived state of corridors, junctions, and signaling systems. Traffic flow, maintenance windows, sensor outputs, and policy overlays become visible as one continuous environment. Operators can anticipate how a decision will propagate through the mobility network before it is enacted.
         </p>
       </section>
 
