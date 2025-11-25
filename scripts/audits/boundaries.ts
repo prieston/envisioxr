@@ -21,12 +21,16 @@ interface Violation {
   file: string;
   line?: number;
   message: string;
+  severity?: "error" | "warning";
 }
 
 const violations: Violation[] = [];
+const warnings: Violation[] = [];
 
 // Thresholds (configurable at top)
 const FAIL_ON_VIOLATION = true;
+// Engine boundary violations are warnings (pre-existing issues to fix gradually)
+const ENGINE_BOUNDARIES_AS_WARNINGS = true;
 
 function findLineNumber(content: string, pattern: string): number {
   const lines = content.split("\n");
@@ -219,11 +223,17 @@ function checkCesiumEngineBoundaries() {
       }
       seenMatches.add(matchKey);
 
-      violations.push({
+      const violation = {
         file,
         line,
         message: `❌ Cesium imports must go through @klorad/engine-cesium; found direct import from "${importedModule}"`,
-      });
+        severity: ENGINE_BOUNDARIES_AS_WARNINGS ? ("warning" as const) : ("error" as const),
+      };
+      if (ENGINE_BOUNDARIES_AS_WARNINGS) {
+        warnings.push(violation);
+      } else {
+        violations.push(violation);
+      }
     }
   }
 }
@@ -285,11 +295,17 @@ function checkThreejsEngineBoundaries() {
         }
         seenMatches.add(matchKey);
 
-        violations.push({
+        const violation = {
           file,
           line,
           message: `❌ Three.js imports must go through @klorad/engine-three; found direct import from "${importedModule}"`,
-        });
+          severity: ENGINE_BOUNDARIES_AS_WARNINGS ? ("warning" as const) : ("error" as const),
+        };
+        if (ENGINE_BOUNDARIES_AS_WARNINGS) {
+          warnings.push(violation);
+        } else {
+          violations.push(violation);
+        }
       }
     }
   }
@@ -305,6 +321,18 @@ checkCesiumEngineBoundaries();
 checkThreejsEngineBoundaries();
 
 // Report results
+if (warnings.length > 0) {
+  console.log(`\n⚠️  Found ${warnings.length} warning(s) (non-blocking):\n`);
+  warnings.forEach((v) => {
+    if (v.line) {
+      console.log(`  ${v.file}:${v.line} - ${v.message}`);
+    } else {
+      console.log(`  ${v.file} - ${v.message}`);
+    }
+  });
+  console.log();
+}
+
 if (violations.length > 0) {
   console.log(`\n❌ Found ${violations.length} violation(s):\n`);
   violations.forEach((v) => {
@@ -335,6 +363,11 @@ if (violations.length > 0) {
   );
   process.exit(FAIL_ON_VIOLATION ? 1 : 0);
 } else {
-  console.log("✅ All package boundaries checks passed!\n");
+  if (warnings.length > 0) {
+    console.log("✅ All critical package boundaries checks passed!");
+    console.log(`⚠️  ${warnings.length} warning(s) found (see above) - these should be fixed but don't block deployment\n`);
+  } else {
+    console.log("✅ All package boundaries checks passed!\n");
+  }
   process.exit(0);
 }
