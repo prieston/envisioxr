@@ -1,3 +1,4 @@
+// packages/dev-audits/src/core/reporter.ts
 /**
  * Console reporter for audit results
  */
@@ -93,19 +94,26 @@ function printItem(
   const severityIcon =
     severity === "error" ? "🔴" : severity === "warning" ? "🟡" : "🔵";
 
-  let location = "";
+  let filename = "";
+  let fileLocation = "";
+
   if (item.file) {
-    location = item.file;
+    // Extract filename from path
+    const pathParts = item.file.split("/");
+    filename = pathParts[pathParts.length - 1] || item.file;
+
+    // Build file location string with line/column
+    fileLocation = filename;
     if (item.line !== undefined) {
-      location += `:${item.line}`;
+      fileLocation += `:${item.line}`;
       if (item.column !== undefined) {
-        location += `:${item.column}`;
+        fileLocation += `:${item.column}`;
       }
     }
   }
 
   const codePart = item.code ? ` [${item.code}]` : "";
-  const locationPart = location ? ` ${location}` : "";
+  const locationPart = fileLocation ? ` ${fileLocation}` : "";
 
   console.log(`  ${severityIcon} ${item.message}${codePart}${locationPart}`);
 }

@@ -1,3 +1,4 @@
+// packages/dev-audits/src/profiles/klorad/audits/ssr-rsc.audit.ts
 /**
  * SSR/RSC Audit - Server/client boundary correctness
  * Merges logic from: ssr-guards.ts, hydration.ts

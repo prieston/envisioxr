@@ -1,3 +1,4 @@
+// packages/dev-audits/src/profiles/klorad/advisory/size-complexity.audit.ts
 /**
  * Size & Complexity Audit (Advisory)
  * Based on: size-complexity.ts

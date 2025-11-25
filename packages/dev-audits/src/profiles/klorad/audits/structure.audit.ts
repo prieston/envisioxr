@@ -1,3 +1,4 @@
+// packages/dev-audits/src/profiles/klorad/audits/structure.audit.ts
 /**
  * Structure Audit - Package boundaries, dependency graph, and module organization
  * Merges logic from: boundaries.ts, graph.ts, dependencies.ts, module-boundaries.ts

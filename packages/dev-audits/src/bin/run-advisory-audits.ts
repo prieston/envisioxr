@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// packages/dev-audits/src/bin/run-advisory-audits.ts
 /**
  * Run advisory (non-blocking) audits
  */
@@ -20,11 +21,7 @@ async function main() {
   console.log("🔍 Running advisory audits...\n");
   console.log("=".repeat(80));
 
-  const results = await runProfileAudits(
-    kloradProfile,
-    repoRoot,
-    "advisory"
-  );
+  const results = await runProfileAudits(kloradProfile, repoRoot, "advisory");
   printReport(results);
 
   // Advisory audits always exit 0 (non-blocking)
@@ -35,4 +32,3 @@ main().catch((error) => {
   console.error("Fatal error:", error);
   process.exit(1);
 });
-

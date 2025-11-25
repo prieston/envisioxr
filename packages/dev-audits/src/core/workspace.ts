@@ -1,3 +1,4 @@
+// packages/dev-audits/src/core/workspace.ts
 /**
  * Workspace utilities for monorepo operations
  */

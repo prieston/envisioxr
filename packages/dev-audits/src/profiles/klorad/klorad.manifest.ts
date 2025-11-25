@@ -1,3 +1,4 @@
+// packages/dev-audits/src/profiles/klorad/klorad.manifest.ts
 /**
  * Klorad project manifest - defines architectural invariants
  */

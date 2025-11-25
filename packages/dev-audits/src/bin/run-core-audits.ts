@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// packages/dev-audits/src/bin/run-core-audits.ts
 /**
  * Run core (blocking) audits
  */
