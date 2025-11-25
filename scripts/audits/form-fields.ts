@@ -13,15 +13,22 @@
 
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const workspaceRoot = path.resolve(__dirname, "..");
+const WORKSPACE_ROOT = process.cwd();
 
-let issues = [];
+interface Issue {
+  file: string;
+  line: number;
+  severity: string;
+  element: string;
+  issue: string;
+  fix: string;
+  context: string;
+}
 
-function findReactFiles(dir, fileList = []) {
+const issues: Issue[] = [];
+
+function findReactFiles(dir: string, fileList: string[] = []): string[] {
   const files = fs.readdirSync(dir);
 
   for (const file of files) {
@@ -45,17 +52,16 @@ function findReactFiles(dir, fileList = []) {
   return fileList;
 }
 
-function findLineNumber(content, index) {
+function findLineNumber(content: string, index: number): number {
   return content.substring(0, index).split("\n").length;
 }
 
-function extractElementContext(content, matchIndex, tagName) {
+function extractElementContext(content: string, matchIndex: number, _tagName: string): string {
   // Find the opening tag and extract attributes
-  let depth = 0;
   let start = matchIndex;
   let end = matchIndex;
   let inString = false;
-  let stringChar = null;
+  let stringChar: string | null = null;
 
   // Find the start of the opening tag
   while (start > 0 && content[start] !== "<") {
@@ -89,7 +95,7 @@ function extractElementContext(content, matchIndex, tagName) {
   return content.substring(start, end);
 }
 
-function hasIdOrName(attributes) {
+function hasIdOrName(attributes: string): boolean {
   // Check for id="..." or id={...} or name="..." or name={...}
   const idPattern = /\bid\s*=\s*["'`{]|["'`]id["'`]\s*:/;
   const namePattern = /\bname\s*=\s*["'`{]|["'`]name["'`]\s*:/;
@@ -97,7 +103,7 @@ function hasIdOrName(attributes) {
   return idPattern.test(attributes) || namePattern.test(attributes);
 }
 
-function isInComment(content, index) {
+function isInComment(content: string, index: number): boolean {
   // Get the line containing the index
   const beforeContent = content.substring(0, index);
   const lines = beforeContent.split("\n");
@@ -144,18 +150,18 @@ function isInComment(content, index) {
   return false;
 }
 
-function hasSpreadProps(attributes) {
+function hasSpreadProps(attributes: string): boolean {
   // Check for spread props like {...getInputProps()} which likely include id/name
   return /\{\.\.\.[^}]*\}/.test(attributes);
 }
 
-function analyzeFile(filePath, content) {
-  const relativePath = path.relative(workspaceRoot, filePath);
+function analyzeFile(filePath: string, content: string): void {
+  const relativePath = path.relative(WORKSPACE_ROOT, filePath);
   const lines = content.split("\n");
 
   // Pattern 1: Native HTML input elements (only lowercase, not components)
   const nativeInputPattern = /<input\s+/g;
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = nativeInputPattern.exec(content)) !== null) {
     // Skip if in a comment
     if (isInComment(content, match.index)) continue;
@@ -318,8 +324,8 @@ function analyzeFile(filePath, content) {
 console.log("🔍 Running Form Field Accessibility Audit...\n");
 
 const sourceDirs = [
-  path.join(workspaceRoot, "apps"),
-  path.join(workspaceRoot, "packages"),
+  path.join(WORKSPACE_ROOT, "apps"),
+  path.join(WORKSPACE_ROOT, "packages"),
 ];
 
 for (const dir of sourceDirs) {

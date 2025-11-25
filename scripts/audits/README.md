@@ -236,6 +236,113 @@ This directory contains automated audit scripts to prevent common code quality a
 
 **Usage**: `pnpm audit:rsc`
 
+## Tier D — Domain-Specific Audits (Ad-hoc)
+
+### 20. Cesium Lifecycle & Memory (`cesium-lifecycle.ts`)
+**Goal**: Prevent Cesium memory leaks and resource cleanup issues
+
+**Checks**:
+- Duplicate Viewer instances
+- Ghost entity references
+- Primitive leaks during scene rebuilds
+- Sensors left attached after unmount
+- `viewer.scene.primitives.add()` without `.remove()`
+- Event listeners not cleaned
+- Camera event handlers not cleaned
+- Ion SDK sensors not detached
+- TilesRenderer without dispose()
+- RequestAnimationFrame without cancelAnimationFrame
+
+**Usage**: `pnpm audit:cesium`
+
+### 21. State Management & Render Flow (`state-render.ts`)
+**Goal**: Optimize React render performance and state management
+
+**Checks**:
+- Components subscribing to entire store objects (bad)
+- Hooks that derive state in render path (bad)
+- Missing shallow or structural memoization
+- setState inside useEffect without guards
+- Zustand selector patterns
+- Re-render triggers
+- Conditional hooks (React rules violation)
+- Multiple store subscriptions in one component
+
+**Usage**: `pnpm audit:state`
+
+### 22. Mesh Loading & Asset Pipeline (`mesh-loading.ts`)
+**Goal**: Optimize 3D model loading and prevent resource leaks
+
+**Checks**:
+- Duplicate loader creation
+- Model scale normalization consistency
+- Promise cancellation / disposal on route change
+- LOD strategy existence
+- Redundant network fetch cycles
+- Fetch without AbortController
+- Model loading without loading state
+
+**Usage**: `pnpm audit:mesh`
+
+### 23. Error Boundary & Failure Handling (`error-handling.ts`)
+**Goal**: Prevent white screens and stuck loading states
+
+**Checks**:
+- Components that perform side-effects without fallback
+- Missing try/catch around Cesium async APIs
+- Upload workflows without onError UI recovery
+- White screen risks
+- Stuck loading states
+- Ion SDK operations without error handling
+
+**Usage**: `pnpm audit:errors`
+
+### 24. Module Responsibility Boundaries (`module-boundaries.ts`)
+**Goal**: Enforce clean separation of concerns
+
+**Checks**:
+- Files exceeding 300 lines
+- UI components that also modify state (bad)
+- Hooks that also do fetching (should split)
+- Package boundaries are clean
+- Mixed concerns in single file
+- Store files that are too large
+
+**Usage**: `pnpm audit:modules`
+
+### 25. Form Field Accessibility (`form-fields.ts`)
+**Goal**: Ensure form fields have proper id/name attributes for accessibility
+
+**Checks**:
+- Form input elements without id or name attributes
+- TextField, Select, Input components without id or name props
+- Native input, textarea, select elements without id or name attributes
+
+**Usage**: `pnpm audit:forms`
+
+### 26. Dependency Audit (`dependencies.ts`)
+**Goal**: Ensure consistent dependency versions across monorepo
+
+**Checks**:
+- Version mismatches
+- Unused dependencies
+- Missing dependencies
+- Build artifacts
+- Configuration inconsistencies
+
+**Usage**: `pnpm audit:dependencies`
+
+### 27. Fetch Usage (`fetch-usage.ts`)
+**Goal**: Enforce centralized API calls through api.ts
+
+**Checks**:
+- Direct fetch() calls outside of centralized api.ts
+- fetch() calls in fetcher functions for SWR (should use centralized api.ts)
+- Missing use of SWR for data fetching
+- API routes using fetch (allowed - these are server-side)
+
+**Usage**: `pnpm audit:fetch`
+
 ## Quick Commands
 
 ```bash
@@ -262,6 +369,16 @@ pnpm audit:network    # Network & tiling optimization
 pnpm audit:cpu        # CPU hotspot detection
 pnpm audit:textures   # Image/texture pipeline
 pnpm audit:rsc        # RSC boundaries & bundle size
+
+# Run individual domain-specific audits
+pnpm audit:cesium     # Cesium lifecycle & memory
+pnpm audit:state      # State management & render flow
+pnpm audit:mesh       # Mesh loading & asset pipeline
+pnpm audit:errors     # Error boundary & failure handling
+pnpm audit:modules    # Module responsibility boundaries
+pnpm audit:forms      # Form field accessibility
+pnpm audit:dependencies # Dependency version consistency
+pnpm audit:fetch      # Fetch usage centralization
 ```
 
 ## Integration

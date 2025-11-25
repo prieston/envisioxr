@@ -12,16 +12,22 @@
 
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const workspaceRoot = path.resolve(__dirname, "..");
+const WORKSPACE_ROOT = process.cwd();
+
+interface Issue {
+  file: string;
+  issue: string;
+  description: string;
+  line: number;
+  col: number;
+  fix: string;
+}
 
 const issues = {
-  critical: [],
-  high: [],
-  medium: [],
+  critical: [] as Issue[],
+  high: [] as Issue[],
+  medium: [] as Issue[],
 };
 
 const IGNORE_DIRS = new Set([
@@ -49,11 +55,11 @@ const ALLOWED_PATTERNS = [
   /\/services\/.*\.ts$/, // Service files (server-side)
 ];
 
-function isAllowedFile(filePath) {
+function isAllowedFile(filePath: string): boolean {
   return ALLOWED_PATTERNS.some((pattern) => pattern.test(filePath));
 }
 
-function findFiles(dir, out = []) {
+function findFiles(dir: string, out: string[] = []): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name);
     if (entry.isDirectory()) {
@@ -65,7 +71,7 @@ function findFiles(dir, out = []) {
   return out;
 }
 
-function lineFromIndex(content, index) {
+function lineFromIndex(content: string, index: number | null): number | null {
   if (index == null || index < 0) return null;
   let line = 1;
   let i = 0;
@@ -76,25 +82,25 @@ function lineFromIndex(content, index) {
   return line;
 }
 
-function columnFromIndex(content, index) {
+function columnFromIndex(content: string, index: number | null): number | null {
   if (index == null || index < 0) return null;
   const lastNewline = content.lastIndexOf("\n", index);
   return index - lastNewline;
 }
 
 function pushIssue(
-  bucket,
-  filePath,
-  content,
-  issue,
-  description,
-  index,
-  fix
-) {
+  bucket: keyof typeof issues,
+  filePath: string,
+  content: string,
+  issue: string,
+  description: string,
+  index: number,
+  fix: string
+): void {
   const line = lineFromIndex(content, index);
   const col = columnFromIndex(content, index);
   issues[bucket].push({
-    file: path.relative(workspaceRoot, filePath),
+    file: path.relative(WORKSPACE_ROOT, filePath),
     issue,
     description,
     line: line ?? 1,
@@ -103,7 +109,7 @@ function pushIssue(
   });
 }
 
-function analyzeFile(filePath, content) {
+function analyzeFile(filePath: string, content: string): void {
   // Skip allowed files
   if (isAllowedFile(filePath)) return;
 
@@ -178,7 +184,7 @@ function analyzeFile(filePath, content) {
     // Check if the URL is a variable that likely contains a screenshot/image URL
     const isScreenshotVariable = urlString && (
       urlString === "screenshot" ||
-      urlString.match(/screenshot|thumbnail|image/i) ||
+      urlString.match(/screenshot|thumbnail|image/i) !== null ||
       (beforeContext.match(/if\s*\(.*screenshot/) && afterContext.match(/\.blob/)) ||
       (beforeContext.match(/screenshot/) && afterContext.match(/response\.blob/))
     );
@@ -204,7 +210,7 @@ function analyzeFile(filePath, content) {
         filePath,
         content,
         "HIGH: External API call should use centralized api.ts",
-        `External fetch call to ${apiMatch[1]} should be wrapped in centralized api.ts`,
+        `External fetch call to ${apiMatch![1]} should be wrapped in centralized api.ts`,
         match.index,
         `Move this fetch call to apps/editor/app/utils/api.ts and use it from there`
       );
@@ -225,7 +231,7 @@ function analyzeFile(filePath, content) {
           filePath,
           content,
           "CRITICAL: Direct fetch call to API endpoint",
-          `Direct fetch call to ${apiMatch[1]} should use centralized api.ts`,
+          `Direct fetch call to ${apiMatch![1]} should use centralized api.ts`,
           match.index,
           "Use functions from apps/editor/app/utils/api.ts instead of direct fetch"
         );
@@ -248,9 +254,9 @@ function analyzeFile(filePath, content) {
 // Main execution
 console.log("🔍 Running Fetch Usage Audit...\n");
 
-const editorDir = path.join(workspaceRoot, "apps/editor/app");
+const editorDir = path.join(WORKSPACE_ROOT, "apps/editor/app");
 
-const files = [];
+const files: string[] = [];
 if (fs.existsSync(editorDir)) {
   files.push(...findFiles(editorDir));
 }

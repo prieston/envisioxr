@@ -13,19 +13,24 @@
 
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const workspaceRoot = path.resolve(__dirname, "..");
+const WORKSPACE_ROOT = process.cwd();
 
-let issues = {
-  critical: [],
-  high: [],
-  medium: [],
+interface Issue {
+  file: string;
+  issue: string;
+  description: string;
+  line: number | null;
+  fix: string;
+}
+
+const issues = {
+  critical: [] as Issue[],
+  high: [] as Issue[],
+  medium: [] as Issue[],
 };
 
-function findReactFiles(dir, fileList = []) {
+function findReactFiles(dir: string, fileList: string[] = []): string[] {
   const files = fs.readdirSync(dir);
 
   for (const file of files) {
@@ -44,8 +49,8 @@ function findReactFiles(dir, fileList = []) {
   return fileList;
 }
 
-function analyzeFile(filePath, content) {
-  const relativePath = path.relative(workspaceRoot, filePath);
+function analyzeFile(filePath: string, content: string): void {
+  const relativePath = path.relative(WORKSPACE_ROOT, filePath);
 
   // Check 1: Multiple loader instances (should be singleton or cached)
   const loaderPatterns = [
@@ -157,7 +162,7 @@ function analyzeFile(filePath, content) {
   }
 }
 
-function findLineNumber(content, searchString) {
+function findLineNumber(content: string, searchString: string): number | null {
   const index = content.indexOf(searchString);
   if (index === -1) return null;
   return content.substring(0, index).split("\n").length;
@@ -166,9 +171,9 @@ function findLineNumber(content, searchString) {
 console.log("🔍 Running Mesh Loading & Asset Pipeline Audit...\n");
 
 const assetFiles = [
-  path.join(workspaceRoot, "apps/editor/app/components/Builder"),
-  path.join(workspaceRoot, "apps/editor/app/hooks"),
-  path.join(workspaceRoot, "packages/engine-three/src/components"),
+  path.join(WORKSPACE_ROOT, "apps/editor/app/components/Builder"),
+  path.join(WORKSPACE_ROOT, "apps/editor/app/hooks"),
+  path.join(WORKSPACE_ROOT, "packages/engine-three/src/components"),
 ];
 
 for (const dir of assetFiles) {

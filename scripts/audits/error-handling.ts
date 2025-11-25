@@ -13,19 +13,24 @@
 
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const workspaceRoot = path.resolve(__dirname, "..");
+const WORKSPACE_ROOT = process.cwd();
 
-let issues = {
-  critical: [],
-  high: [],
-  medium: [],
+interface Issue {
+  file: string;
+  issue: string;
+  description: string;
+  line: number | null;
+  fix: string;
+}
+
+const issues = {
+  critical: [] as Issue[],
+  high: [] as Issue[],
+  medium: [] as Issue[],
 };
 
-function findReactFiles(dir, fileList = []) {
+function findReactFiles(dir: string, fileList: string[] = []): string[] {
   const files = fs.readdirSync(dir);
 
   for (const file of files) {
@@ -44,8 +49,8 @@ function findReactFiles(dir, fileList = []) {
   return fileList;
 }
 
-function analyzeFile(filePath, content) {
-  const relativePath = path.relative(workspaceRoot, filePath);
+function analyzeFile(filePath: string, content: string): void {
+  const relativePath = path.relative(WORKSPACE_ROOT, filePath);
 
   // Check 1: Cesium async APIs without try/catch
   const cesiumAsyncPatterns = [
@@ -194,7 +199,7 @@ function analyzeFile(filePath, content) {
   }
 }
 
-function extractContext(content, pattern) {
+function extractContext(content: string, pattern: RegExp): string {
   const index = content.search(pattern);
   if (index === -1) return "";
   const start = Math.max(0, index - 500);
@@ -202,10 +207,10 @@ function extractContext(content, pattern) {
   return content.substring(start, end);
 }
 
-function findLineNumber(content, searchString) {
+function findLineNumber(content: string, searchString: string): number | null {
   const regex = new RegExp(searchString.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   const match = content.match(regex);
-  if (!match) return null;
+  if (!match || match.index === undefined) return null;
   const index = match.index;
   return content.substring(0, index).split("\n").length;
 }
@@ -213,9 +218,9 @@ function findLineNumber(content, searchString) {
 console.log("🔍 Running Error Boundary & Failure Handling Audit...\n");
 
 const criticalFiles = [
-  path.join(workspaceRoot, "apps/editor/app/components"),
-  path.join(workspaceRoot, "apps/editor/app/api"),
-  path.join(workspaceRoot, "packages/engine-cesium/src"),
+  path.join(WORKSPACE_ROOT, "apps/editor/app/components"),
+  path.join(WORKSPACE_ROOT, "apps/editor/app/api"),
+  path.join(WORKSPACE_ROOT, "packages/engine-cesium/src"),
 ];
 
 for (const dir of criticalFiles) {

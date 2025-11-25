@@ -14,11 +14,8 @@
 
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const workspaceRoot = path.resolve(__dirname, "..");
+const WORKSPACE_ROOT = process.cwd();
 
 const CRITICAL_COMPONENTS = [
   "SceneCanvas",
@@ -29,15 +26,23 @@ const CRITICAL_COMPONENTS = [
   "useModelLoader",
 ];
 
-let issues = {
-  critical: [],
-  high: [],
-  medium: [],
-  info: [],
+interface Issue {
+  file: string;
+  issue: string;
+  description: string;
+  line: number | null;
+  fix: string;
+}
+
+const issues = {
+  critical: [] as Issue[],
+  high: [] as Issue[],
+  medium: [] as Issue[],
+  info: [] as Issue[],
 };
 
 // Recursively find all TypeScript/React files
-function findReactFiles(dir, fileList = []) {
+function findReactFiles(dir: string, fileList: string[] = []): string[] {
   const files = fs.readdirSync(dir);
 
   for (const file of files) {
@@ -56,9 +61,8 @@ function findReactFiles(dir, fileList = []) {
   return fileList;
 }
 
-function analyzeFile(filePath, content) {
-  const relativePath = path.relative(workspaceRoot, filePath);
-  const lines = content.split("\n");
+function analyzeFile(filePath: string, content: string): void {
+  const relativePath = path.relative(WORKSPACE_ROOT, filePath);
 
   // Check 1: Entire store subscription (bad)
   const entireStorePattern = /const\s+\w+\s*=\s*use(Scene|World)Store\(\)/g;
@@ -76,7 +80,7 @@ function analyzeFile(filePath, content) {
   const selectorPattern = /use(Scene|World)Store\(\(.*?\)\s*=>\s*\{/gs;
   const selectorMatches = [...content.matchAll(selectorPattern)];
   for (const match of selectorMatches) {
-    const selectorContent = extractSelectorBody(content, match.index);
+    const selectorContent = extractSelectorBody(content, match.index || 0);
     if (selectorContent && !selectorContent.includes("shallow") && selectorContent.includes("return")) {
       // Check if returning object/array (needs shallow)
       if (selectorContent.match(/return\s+\{/) || selectorContent.match(/return\s+\[/)) {
@@ -96,7 +100,6 @@ function analyzeFile(filePath, content) {
   const useEffectMatches = [...content.matchAll(useEffectPattern)];
   for (const match of useEffectMatches) {
     const effectBody = match[0].split("=>")[1]?.split("},")[0] || "";
-    const deps = match[0].match(/\[(.*?)\]/)?.[1] || "";
 
     // Check for setState without guard
     if (effectBody.match(/setState|set[A-Z]\w+\(/)) {
@@ -170,7 +173,7 @@ function analyzeFile(filePath, content) {
     for (const match of componentMatches) {
       // Extract the component body
       let depth = 0;
-      let start = match.index;
+      const start = match.index || 0;
       let inBody = false;
       let body = "";
 
@@ -193,7 +196,7 @@ function analyzeFile(filePath, content) {
       const earlyReturnPattern = /if\s*\([^)]+\)\s*\{[\s\S]*?return[\s\S]*?\}/;
       const returnMatch = body.match(earlyReturnPattern);
       if (returnMatch) {
-        const returnIndex = returnMatch.index;
+        const returnIndex = returnMatch.index || 0;
         // Check if there are hooks AFTER the early return block
         // But exclude hooks that are inside useEffect/useCallback/useMemo (those are fine)
         const afterReturn = body.substring(returnIndex + returnMatch[0].length);
@@ -228,7 +231,7 @@ function analyzeFile(filePath, content) {
   }
 }
 
-function extractSelectorBody(content, startIndex) {
+function extractSelectorBody(content: string, startIndex: number): string {
   let depth = 0;
   let inBody = false;
   let body = "";
@@ -249,7 +252,7 @@ function extractSelectorBody(content, startIndex) {
   return body;
 }
 
-function extractRenderBody(content) {
+function extractRenderBody(content: string): string {
   const renderMatch = content.match(/return\s*\(([\s\S]*?)\)\s*;?\s*$/m);
   if (!renderMatch) {
     // Try without parentheses
@@ -259,43 +262,17 @@ function extractRenderBody(content) {
   return renderMatch[1] || "";
 }
 
-function findLineNumber(content, searchString) {
+function findLineNumber(content: string, searchString: string): number | null {
   const index = content.indexOf(searchString);
   if (index === -1) return null;
   return content.substring(0, index).split("\n").length;
 }
 
-function extractFunctionBodies(content) {
-  const bodies = [];
-  // Match function declarations and arrow functions
-  const functionPattern = /(?:const\s+\w+\s*=\s*|function\s+\w+\s*\([^)]*\)\s*\{|\([^)]*\)\s*=>\s*\{)/g;
-  let match;
-  while ((match = functionPattern.exec(content)) !== null) {
-    let depth = 0;
-    let start = match.index + match[0].length;
-    let body = "";
-
-    for (let i = start; i < content.length; i++) {
-      const char = content[i];
-      if (char === "{") depth++;
-      if (char === "}") {
-        depth--;
-        if (depth === 0) {
-          body = content.substring(start, i);
-          bodies.push(body);
-          break;
-        }
-      }
-    }
-  }
-  return bodies;
-}
-
 // Main execution
 console.log("🔍 Running State Management & Render Flow Audit...\n");
 
-const editorComponentsDir = path.join(workspaceRoot, "apps/editor/app/components");
-const packagesDir = path.join(workspaceRoot, "packages");
+const editorComponentsDir = path.join(WORKSPACE_ROOT, "apps/editor/app/components");
+const packagesDir = path.join(WORKSPACE_ROOT, "packages");
 
 // Analyze editor components
 if (fs.existsSync(editorComponentsDir)) {

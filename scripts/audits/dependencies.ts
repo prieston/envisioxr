@@ -28,8 +28,17 @@ const DEPENDENCIES_TO_CHECK = [
 
 const ROOT_DIR = process.cwd();
 
-function getAllPackages() {
-  const packages = [];
+interface Package {
+  name: string;
+  path: string;
+  packageJson: any;
+  dependencies: Record<string, string>;
+  devDependencies: Record<string, string>;
+  peerDependencies: Record<string, string>;
+}
+
+function getAllPackages(): Package[] {
+  const packages: Package[] = [];
 
   // Root package
   const rootPackagePath = join(ROOT_DIR, 'package.json');
@@ -92,10 +101,10 @@ function getAllPackages() {
   return packages;
 }
 
-function checkVersionMismatches(packages) {
+function checkVersionMismatches(packages: Package[]): void {
   console.log('\n🔍 Checking for version mismatches...\n');
 
-  const versions = {};
+  const versions: Record<string, Set<string>> = {};
 
   for (const dep of DEPENDENCIES_TO_CHECK) {
     versions[dep] = new Set();
@@ -128,7 +137,7 @@ function checkVersionMismatches(packages) {
   }
 }
 
-function checkBuildArtifacts(packages) {
+function checkBuildArtifacts(packages: Package[]): void {
   console.log('\n🔍 Checking for build artifacts...\n');
 
   const artifacts = ['dist', 'dist_test', '.next', 'build', 'out', 'node_modules'];
@@ -149,7 +158,7 @@ function checkBuildArtifacts(packages) {
   }
 }
 
-function checkConfigurationFiles(packages) {
+function checkConfigurationFiles(packages: Package[]): void {
   console.log('\n🔍 Checking for configuration files...\n');
 
   const configFiles = [
@@ -176,10 +185,10 @@ function checkConfigurationFiles(packages) {
   console.log();
 }
 
-function checkPackageMetadata(packages) {
+function checkPackageMetadata(packages: Package[]): void {
   console.log('\n🔍 Checking package metadata...\n');
 
-  const issues = [];
+  const issues: string[] = [];
 
   for (const pkg of packages) {
     // Check package name format
@@ -206,7 +215,7 @@ function checkPackageMetadata(packages) {
   }
 }
 
-function main() {
+function main(): void {
   console.log('🚀 Starting Dependency Audit...\n');
   console.log('=' .repeat(60));
 

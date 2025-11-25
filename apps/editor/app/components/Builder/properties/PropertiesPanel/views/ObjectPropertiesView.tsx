@@ -85,7 +85,7 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
         // Try to match by cesiumAssetId first (if stored in object)
         const cesiumAssetId = (selectedObject as any)?.cesiumAssetId;
         let target = null;
-        
+
         if (cesiumAssetId) {
           // Match by cesiumAssetId stored in object
           target = cesiumIonAssets.find(

@@ -12,19 +12,24 @@
 
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const workspaceRoot = path.resolve(__dirname, "..");
+const WORKSPACE_ROOT = process.cwd();
 
-let issues = {
-  critical: [],
-  high: [],
-  medium: [],
+interface Issue {
+  file: string;
+  issue: string;
+  description: string;
+  line: number | null;
+  fix: string;
+}
+
+const issues = {
+  critical: [] as Issue[],
+  high: [] as Issue[],
+  medium: [] as Issue[],
 };
 
-function findReactFiles(dir, fileList = []) {
+function findReactFiles(dir: string, fileList: string[] = []): string[] {
   const files = fs.readdirSync(dir);
 
   for (const file of files) {
@@ -43,15 +48,15 @@ function findReactFiles(dir, fileList = []) {
   return fileList;
 }
 
-function analyzeFile(filePath, content) {
-  const relativePath = path.relative(workspaceRoot, filePath);
+function analyzeFile(filePath: string, content: string): void {
+  const relativePath = path.relative(WORKSPACE_ROOT, filePath);
   const lines = content.split("\n");
   const lineCount = lines.length;
 
   // Check 1: Files exceeding 300 lines
   if (lineCount > 300) {
     const severity = lineCount > 500 ? "critical" : lineCount > 400 ? "high" : "medium";
-    issues[severity].push({
+    issues[severity as keyof typeof issues].push({
       file: relativePath,
       issue: `${severity.toUpperCase()}: File exceeds ${lineCount > 500 ? "500" : "300"} lines`,
       description: `File has ${lineCount} lines - should be split into smaller modules`,
@@ -152,7 +157,7 @@ function analyzeFile(filePath, content) {
   }
 }
 
-function findLineNumber(content, searchString) {
+function findLineNumber(content: string, searchString: string): number | null {
   const index = content.indexOf(searchString);
   if (index === -1) return null;
   return content.substring(0, index).split("\n").length;
@@ -161,9 +166,9 @@ function findLineNumber(content, searchString) {
 console.log("🔍 Running Folder / Module Responsibility Boundaries Audit...\n");
 
 const allFiles = [
-  path.join(workspaceRoot, "apps/editor/app/components"),
-  path.join(workspaceRoot, "apps/editor/app/hooks"),
-  path.join(workspaceRoot, "packages"),
+  path.join(WORKSPACE_ROOT, "apps/editor/app/components"),
+  path.join(WORKSPACE_ROOT, "apps/editor/app/hooks"),
+  path.join(WORKSPACE_ROOT, "packages"),
 ];
 
 for (const dir of allFiles) {
