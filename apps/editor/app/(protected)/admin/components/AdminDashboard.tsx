@@ -23,26 +23,28 @@ import {
   PageDescription,
   PageContent,
   MetricCard,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,
   GlowingSpan,
 } from "@/app/components/Builder/AdminLayout.styles";
-import PeopleIcon from "@mui/icons-material/People";
-import BusinessIcon from "@mui/icons-material/Business";
-import FolderIcon from "@mui/icons-material/Folder";
-import StorageIcon from "@mui/icons-material/Storage";
-import CreditCardIcon from "@mui/icons-material/CreditCard";
-import ActivityIcon from "@mui/icons-material/Timeline";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import SessionIcon from "@mui/icons-material/VpnKey";
-import ThreeDRotationIcon from "@mui/icons-material/ThreeDRotation";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  PeopleIcon,
+  BusinessIcon,
+  FolderIcon,
+  StorageIcon,
+  CreditCardIcon,
+  TimelineIcon as ActivityIcon,
+  AccountCircleIcon,
+  VpnKeyIcon as SessionIcon,
+  ThreeDRotationIcon,
+  AddIcon,
+  DeleteIcon,
+} from "@klorad/ui";
 import { createOrganization, deleteOrganization } from "@/app/utils/api";
 import { CreateOrganizationDrawer } from "@/app/components/Organizations/CreateOrganizationDrawer";
-import { showToast } from "@envisio/ui";
+import { showToast } from "@klorad/ui";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText } from "@mui/material";
 

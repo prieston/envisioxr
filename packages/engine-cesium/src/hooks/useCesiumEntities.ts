@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { useWorldStore, useSceneStore } from "@envisio/core";
+import { useWorldStore, useSceneStore } from "@klorad/core";
 import {
   isGeographicCoordinates,
   convertLocalToGeographic,

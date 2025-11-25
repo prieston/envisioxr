@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useSpring } from "@react-spring/three";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 
 type Vector3Tuple = [number, number, number];
 

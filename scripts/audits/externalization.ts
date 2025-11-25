@@ -103,7 +103,7 @@ function checkExternalization() {
     // Check that externals are in peerDependencies
     for (const external of externals) {
       // Skip regex patterns and internal packages
-      if (external.startsWith("/") || external.startsWith("@envisio/")) continue;
+      if (external.startsWith("/") || external.startsWith("@klorad/")) continue;
 
       const allDeps = {
         ...pkgJson.dependencies,

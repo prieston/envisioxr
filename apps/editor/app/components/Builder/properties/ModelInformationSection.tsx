@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, TextField } from "@mui/material";
-import { SettingContainer, SettingLabel } from "@envisio/ui";
-import { textFieldStyles } from "@envisio/ui";
+import { SettingContainer, SettingLabel } from "@klorad/ui";
+import { textFieldStyles } from "@klorad/ui";
 import ModelMetadata from "./ModelMetadata";
 import { ModelObject } from "./types";
 

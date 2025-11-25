@@ -6,7 +6,7 @@
  *
  * Checks:
  * - Each workspace package exports only from dist/. Fail if any package.json exports or main/types point to src/
- * - No app imports @envisio packages from src/ or deep internals (chunk-*)
+ * - No app imports @klorad packages from src/ or deep internals (chunk-*)
  * - No forbidden cross-layer imports (apps importing from packages/src or UI importing Cesium directly)
  */
 
@@ -21,12 +21,16 @@ interface Violation {
   file: string;
   line?: number;
   message: string;
+  severity?: "error" | "warning";
 }
 
 const violations: Violation[] = [];
+const warnings: Violation[] = [];
 
 // Thresholds (configurable at top)
 const FAIL_ON_VIOLATION = true;
+// Engine boundary violations are warnings (pre-existing issues to fix gradually)
+const ENGINE_BOUNDARIES_AS_WARNINGS = true;
 
 function findLineNumber(content: string, pattern: string): number {
   const lines = content.split("\n");
@@ -91,7 +95,7 @@ function checkPackageExports() {
   }
 }
 
-// Check 2: No app imports from @envisio/*/src/** or /dist/chunk-*
+// Check 2: No app imports from @klorad/*/src/** or /dist/chunk-*
 function checkAppImports() {
   console.log("🔍 Checking app imports...");
 
@@ -104,8 +108,8 @@ function checkAppImports() {
     const fullPath = path.join(WORKSPACE_ROOT, file);
     const content = fs.readFileSync(fullPath, "utf8");
 
-    // Check for @envisio/*/src/** imports
-    const srcImportPattern = /from\s+['"](@envisio\/[^'"]+\/src\/[^'"]+)['"]/g;
+    // Check for @klorad/*/src/** imports
+    const srcImportPattern = /from\s+['"](@klorad\/[^'"]+\/src\/[^'"]+)['"]/g;
     let match;
     while ((match = srcImportPattern.exec(content)) !== null) {
       violations.push({
@@ -117,7 +121,7 @@ function checkAppImports() {
 
     // Check for deep internals (/dist/chunk-*)
     const chunkImportPattern =
-      /from\s+['"](@envisio\/[^'"]+\/dist\/chunk-[^'"]+)['"]/g;
+      /from\s+['"](@klorad\/[^'"]+\/dist\/chunk-[^'"]+)['"]/g;
     while ((match = chunkImportPattern.exec(content)) !== null) {
       violations.push({
         file,
@@ -157,7 +161,7 @@ function checkCrossLayerImports() {
     // Core should not import engine packages
     if (file.includes("packages/core/")) {
       const engineImportPattern =
-        /from\s+['"](@envisio\/(engine-cesium|engine-three|ion-sdk))[^'"]*['"]/g;
+        /from\s+['"](@klorad\/(engine-cesium|engine-three|ion-sdk))[^'"]*['"]/g;
       let match;
       while ((match = engineImportPattern.exec(content)) !== null) {
         violations.push({
@@ -170,14 +174,165 @@ function checkCrossLayerImports() {
   }
 }
 
+// Check 4: Cesium engine boundaries - only engine-cesium should import Cesium
+function checkCesiumEngineBoundaries() {
+  console.log("🔍 Checking Cesium engine boundaries...");
+
+  const sourceFiles = glob.sync("**/*.{ts,tsx}", {
+    cwd: WORKSPACE_ROOT,
+    ignore: [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**",
+      "**/dev-audits/**",
+      "**/scripts/audits/**",
+    ],
+  });
+
+  for (const file of sourceFiles) {
+    const fullPath = path.join(WORKSPACE_ROOT, file);
+    const content = fs.readFileSync(fullPath, "utf8");
+
+    // Skip files in engine-cesium - they're allowed to import Cesium
+    if (file.includes("packages/engine-cesium/")) {
+      continue;
+    }
+
+    // Track matches to avoid duplicates (same file, line, and module)
+    const seenMatches = new Set<string>();
+
+    // Check for Cesium imports - match "from 'cesium'" or "from '@cesium/...'"
+    const cesiumImportPattern = /from\s+['"](cesium|@cesium\/[^'"]+)['"]/g;
+    let match;
+    while ((match = cesiumImportPattern.exec(content)) !== null) {
+      // Skip type-only imports
+      const beforeMatch = content.substring(
+        Math.max(0, match.index - 20),
+        match.index
+      );
+      if (beforeMatch.includes("type ")) continue;
+
+      // Extract the imported module name
+      const importedModule = match[1];
+      const line = findLineNumber(content, match[0]);
+
+      // Create a unique key to avoid duplicates
+      const matchKey = `${file}:${line}:${importedModule}`;
+      if (seenMatches.has(matchKey)) {
+        continue;
+      }
+      seenMatches.add(matchKey);
+
+      const violation = {
+        file,
+        line,
+        message: `❌ Cesium imports must go through @klorad/engine-cesium; found direct import from "${importedModule}"`,
+        severity: ENGINE_BOUNDARIES_AS_WARNINGS ? ("warning" as const) : ("error" as const),
+      };
+      if (ENGINE_BOUNDARIES_AS_WARNINGS) {
+        warnings.push(violation);
+      } else {
+        violations.push(violation);
+      }
+    }
+  }
+}
+
+// Check 5: Three.js engine boundaries - only engine-three should import Three.js
+function checkThreejsEngineBoundaries() {
+  console.log("🔍 Checking Three.js engine boundaries...");
+
+  const sourceFiles = glob.sync("**/*.{ts,tsx}", {
+    cwd: WORKSPACE_ROOT,
+    ignore: [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**",
+      "**/dev-audits/**",
+      "**/scripts/audits/**",
+    ],
+  });
+
+  for (const file of sourceFiles) {
+    const fullPath = path.join(WORKSPACE_ROOT, file);
+    const content = fs.readFileSync(fullPath, "utf8");
+
+    // Skip files in engine-three - they're allowed to import Three.js
+    if (file.includes("packages/engine-three/")) {
+      continue;
+    }
+
+    // Track matches to avoid duplicates (same file, line, and module)
+    const seenMatches = new Set<string>();
+
+    // Check for Three.js imports
+    const threejsImportPatterns = [
+      /from\s+['"]three['"]/g,
+      /from\s+['"]@react-three\/[^'"]+['"]/g,
+      /from\s+['"]@react-spring\/three['"]/g,
+      /from\s+['"]3d-tiles-renderer['"]/g,
+    ];
+
+    for (const pattern of threejsImportPatterns) {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        // Skip type-only imports
+        const beforeMatch = content.substring(
+          Math.max(0, match.index - 20),
+          match.index
+        );
+        if (beforeMatch.includes("type ")) continue;
+
+        // Extract the imported module name
+        const importMatch = match[0].match(/['"]([^'"]+)['"]/);
+        const importedModule = importMatch ? importMatch[1] : "three";
+        const line = findLineNumber(content, match[0]);
+
+        // Create a unique key to avoid duplicates
+        const matchKey = `${file}:${line}:${importedModule}`;
+        if (seenMatches.has(matchKey)) {
+          continue;
+        }
+        seenMatches.add(matchKey);
+
+        const violation = {
+          file,
+          line,
+          message: `❌ Three.js imports must go through @klorad/engine-three; found direct import from "${importedModule}"`,
+          severity: ENGINE_BOUNDARIES_AS_WARNINGS ? ("warning" as const) : ("error" as const),
+        };
+        if (ENGINE_BOUNDARIES_AS_WARNINGS) {
+          warnings.push(violation);
+        } else {
+          violations.push(violation);
+        }
+      }
+    }
+  }
+}
+
 // Main execution
 console.log("📦 Package Boundaries & Exports Audit\n");
 
 checkPackageExports();
 checkAppImports();
 checkCrossLayerImports();
+checkCesiumEngineBoundaries();
+checkThreejsEngineBoundaries();
 
 // Report results
+if (warnings.length > 0) {
+  console.log(`\n⚠️  Found ${warnings.length} warning(s) (non-blocking):\n`);
+  warnings.forEach((v) => {
+    if (v.line) {
+      console.log(`  ${v.file}:${v.line} - ${v.message}`);
+    } else {
+      console.log(`  ${v.file} - ${v.message}`);
+    }
+  });
+  console.log();
+}
+
 if (violations.length > 0) {
   console.log(`\n❌ Found ${violations.length} violation(s):\n`);
   violations.forEach((v) => {
@@ -198,10 +353,21 @@ if (violations.length > 0) {
     "   - Deep internals: Import public exports only, avoid chunk-* files"
   );
   console.log(
-    "   - Cross-layer: Move imports to allowed layers or use peer dependencies\n"
+    "   - Cross-layer: Move imports to allowed layers or use peer dependencies"
+  );
+  console.log(
+    "   - Cesium imports: All Cesium code must be imported through @klorad/engine-cesium"
+  );
+  console.log(
+    "   - Three.js imports: All Three.js code must be imported through @klorad/engine-three\n"
   );
   process.exit(FAIL_ON_VIOLATION ? 1 : 0);
 } else {
-  console.log("✅ All package boundaries checks passed!\n");
+  if (warnings.length > 0) {
+    console.log("✅ All critical package boundaries checks passed!");
+    console.log(`⚠️  ${warnings.length} warning(s) found (see above) - these should be fixed but don't block deployment\n`);
+  } else {
+    console.log("✅ All package boundaries checks passed!\n");
+  }
   process.exit(0);
 }

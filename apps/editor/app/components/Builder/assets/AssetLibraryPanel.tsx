@@ -14,9 +14,9 @@ import {
   Tooltip,
   TextField,
 } from "@mui/material";
-import ModelPreview from "@envisio/engine-three/components/ModelPreview";
+import ModelPreview from "@klorad/engine-three/components/ModelPreview";
 import ModelMetadataFields from "./ModelMetadataFields";
-import { AddIonAssetTab } from "@envisio/ui";
+import { AddIonAssetTab } from "@klorad/ui";
 
 type Vector3Tuple = [number, number, number];
 

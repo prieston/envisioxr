@@ -2,12 +2,14 @@
 
 import React from "react";
 import { Grid, Box, Chip, alpha } from "@mui/material";
-import { MetricCard } from "@envisio/ui";
-import FolderIcon from "@mui/icons-material/Folder";
-import ThreeDRotationIcon from "@mui/icons-material/ThreeDRotation";
-import SensorsIcon from "@mui/icons-material/Sensors";
-import MapIcon from "@mui/icons-material/Map";
-import StorageIcon from "@mui/icons-material/Storage";
+import { MetricCard } from "@klorad/ui";
+import {
+  FolderIcon,
+  ThreeDRotationIcon,
+  SensorsIcon,
+  MapIcon,
+  StorageIcon,
+} from "@klorad/ui";
 
 interface DashboardMetrics {
   projects: number;

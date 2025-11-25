@@ -8,10 +8,10 @@ import {
   IconButton,
   Divider,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import { UploadToIonTab } from "@envisio/ui";
-import { showToast } from "@envisio/ui";
-import { useCesiumIonUpload } from "@envisio/engine-cesium";
+import { CloseIcon } from "@klorad/ui";
+import { UploadToIonTab } from "@klorad/ui";
+import { showToast } from "@klorad/ui";
+import { useCesiumIonUpload } from "@klorad/engine-cesium";
 import { createIonAsset, completeIonUpload, createCesiumIonAsset, updateModelMetadata, getCesiumIntegrations, type CesiumIonIntegration } from "@/app/utils/api";
 import { useOrgId } from "@/app/hooks/useOrgId";
 import useSWR from "swr";

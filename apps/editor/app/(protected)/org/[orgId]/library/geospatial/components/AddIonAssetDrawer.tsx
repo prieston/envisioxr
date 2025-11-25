@@ -2,9 +2,9 @@
 
 import React from "react";
 import { Box, Drawer, Typography, IconButton, Divider } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import { AddIonAssetTab } from "@envisio/ui";
-import { showToast } from "@envisio/ui";
+import { CloseIcon } from "@klorad/ui";
+import { AddIonAssetTab } from "@klorad/ui";
+import { showToast } from "@klorad/ui";
 import { createCesiumIonAsset } from "@/app/utils/api";
 import { useOrgId } from "@/app/hooks/useOrgId";
 

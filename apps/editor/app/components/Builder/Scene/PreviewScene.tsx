@@ -1,11 +1,11 @@
 "use client";
 import React from "react";
-import Scene, { SceneProps } from "@envisio/engine-three";
+import Scene, { SceneProps } from "@klorad/engine-three";
 import dynamic from "next/dynamic";
-import { useWorldStore } from "@envisio/core";
+import { useWorldStore } from "@klorad/core";
 
 const CesiumViewer = dynamic(
-  () => import("@envisio/engine-cesium").then(m => m.CesiumViewer),
+  () => import("@klorad/engine-cesium").then(m => m.CesiumViewer),
   { ssr: false }
 );
 

@@ -2,8 +2,8 @@
 
 import React, { useEffect } from "react";
 import { useThree } from "@react-three/fiber";
-import { useSceneStore } from "@envisio/core";
-import { localToGeographic } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
+import { localToGeographic } from "@klorad/core";
 import * as THREE from "three";
 
 type Vector3Tuple = [number, number, number];

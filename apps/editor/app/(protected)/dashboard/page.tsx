@@ -10,9 +10,8 @@ import {
   CardContent,
   Alert,
 } from "@mui/material";
-import CancelIcon from "@mui/icons-material/Cancel";
-import BusinessIcon from "@mui/icons-material/Business";
-import { Page, PageContent } from "@envisio/ui";
+import { CancelIcon, BusinessIcon } from "@klorad/ui";
+import { Page, PageContent } from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,

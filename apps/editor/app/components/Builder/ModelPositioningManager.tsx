@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useSceneStore, useWorldStore } from "@envisio/core";
+import { useSceneStore, useWorldStore } from "@klorad/core";
 import ModelPositioningOverlay from "./ModelPositioningOverlay";
 import * as THREE from "three";
-import { setupCesiumClickSelector } from "@envisio/engine-cesium";
+import { setupCesiumClickSelector } from "@klorad/engine-cesium";
 
 interface PendingModel {
   name: string;

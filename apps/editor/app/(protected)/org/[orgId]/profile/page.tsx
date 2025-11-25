@@ -15,16 +15,18 @@ import {
   PageDescription,
   PageContent,
   PageCard,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,
   GlowingSpan,
 } from "@/app/components/Builder/AdminLayout.styles";
-import EmailIcon from "@mui/icons-material/Email";
-import PersonIcon from "@mui/icons-material/Person";
-import BusinessIcon from "@mui/icons-material/Business";
-import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
+import {
+  EmailIcon,
+  PersonIcon,
+  BusinessIcon,
+  VerifiedUserIcon,
+} from "@klorad/ui";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
@@ -34,7 +36,7 @@ import useUser from "@/app/hooks/useUser";
 import useOrganizations from "@/app/hooks/useOrganizations";
 import { createOrganization } from "@/app/utils/api";
 import { CreateOrganizationDrawer } from "@/app/components/Organizations/CreateOrganizationDrawer";
-import { showToast } from "@envisio/ui";
+import { showToast } from "@klorad/ui";
 
 const ADMIN_EMAIL = "theofilos@prieston.gr";
 

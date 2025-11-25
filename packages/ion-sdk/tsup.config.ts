@@ -14,7 +14,7 @@ export default defineConfig({
   bundle: true,
   skipNodeModulesBundle: true,
   external: [
-    /^@envisio\/core$/,
+    /^@klorad\/core$/,
     /^react$/,
     /^react-dom$/,
     /^cesium$/,

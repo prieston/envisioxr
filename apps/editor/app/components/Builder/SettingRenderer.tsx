@@ -14,10 +14,10 @@ import {
   CustomSettingContainer,
   SettingLabel,
   SettingDescription,
-} from "@envisio/ui";
-import { PanelSetting } from "@envisio/core/types";
+} from "@klorad/ui";
+import { PanelSetting } from "@klorad/core/types";
 import { getComponent } from "./ComponentRegistry";
-import { textFieldStyles, selectStyles, menuItemStyles } from "@envisio/ui";
+import { textFieldStyles, selectStyles, menuItemStyles } from "@klorad/ui";
 
 interface SettingRendererProps {
   setting: PanelSetting;

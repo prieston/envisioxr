@@ -3,7 +3,7 @@
  */
 
 import { useMemo, useEffect } from "react";
-import { useSceneStore, useIoTStore } from "@envisio/core";
+import { useSceneStore, useIoTStore } from "@klorad/core";
 import dynamic from "next/dynamic";
 import {
   CesiumPerformanceOptimizer,
@@ -17,7 +17,7 @@ import {
 import { CesiumWeatherData3DDisplay as WeatherData3DDisplay } from "../helpers";
 
 const ViewshedAnalysis = dynamic<any>(
-  () => import("@envisio/ion-sdk").then((m) => m.ViewshedAnalysis as any),
+  () => import("@klorad/ion-sdk").then((m) => m.ViewshedAnalysis as any),
   { ssr: false }
 );
 

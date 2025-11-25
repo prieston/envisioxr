@@ -38,7 +38,7 @@ declare module "3d-tiles-renderer/plugins" {
   }
 }
 
-declare module "@envisio/core/state" {
+declare module "@klorad/core/state" {
   export const useSceneStore: any;
   export const useWorldStore: any;
 }

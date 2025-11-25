@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
-import { useIoTStore } from "@envisio/core";
-import iotService from "../../../../services/IoTService";
+import { useIoTStore } from "@klorad/core";
+import { iotService } from "@klorad/core";
 
 // Re-export WeatherData for backward compatibility
-export type { WeatherData } from "@envisio/core";
+export type { WeatherData } from "@klorad/core";
 
 interface IoTProperties {
   enabled: boolean;

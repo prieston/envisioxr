@@ -3,11 +3,8 @@
 import React from "react";
 import { Box, Grid, Typography, Chip, alpha } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { PageCard } from "@envisio/ui";
-import AddIcon from "@mui/icons-material/Add";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
-import SensorsIcon from "@mui/icons-material/Sensors";
-import MapIcon from "@mui/icons-material/Map";
+import { PageCard } from "@klorad/ui";
+import { AddIcon, UploadFileIcon, SensorsIcon, MapIcon } from "@klorad/ui";
 import { useOrgId } from "@/app/hooks/useOrgId";
 
 export const QuickActions: React.FC = () => {

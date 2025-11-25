@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 import * as THREE from "three";
-import { useWorldStore } from "@envisio/core";
-import { localToGeographic } from "@envisio/core";
+import { useWorldStore } from "@klorad/core";
+import { localToGeographic } from "@klorad/core";
 import { ModelObject, GeographicCoords } from "../../types";
 
 /**

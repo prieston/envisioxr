@@ -10,8 +10,8 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import { SettingContainer, SettingLabel } from "@envisio/ui";
-import { useSceneStore } from "@envisio/core";
+import { SettingContainer, SettingLabel } from "@klorad/ui";
+import { useSceneStore } from "@klorad/core";
 
 export default function CesiumIonAssetsManager() {
   // Combine all scene store subscriptions into a single selector to reduce subscriptions from 5 to 1

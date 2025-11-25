@@ -25,7 +25,7 @@ import {
   PageDescription,
   PageContent,
   showToast,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,
@@ -35,9 +35,7 @@ import useOrganization from "@/app/hooks/useOrganization";
 import { useOrgId } from "@/app/hooks/useOrgId";
 import { getPlans, Plan, createCheckoutSession } from "@/app/utils/api";
 import useSWR from "swr";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
-import StarIcon from "@mui/icons-material/Star";
+import { CheckIcon, CloseIcon, StarIcon } from "@klorad/ui";
 import { CreateOrganizationModal } from "@/app/components/Organizations/CreateOrganizationModal";
 
 interface Feature {

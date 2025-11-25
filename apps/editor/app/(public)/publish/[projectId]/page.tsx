@@ -5,9 +5,9 @@ import { useParams } from "next/navigation";
 import { Typography, Box, Button } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { Lock } from "@mui/icons-material";
-import { useSceneStore, useWorldStore } from "@envisio/core";
-import { LoadingScreen } from "@envisio/ui";
+import { LockIcon } from "@klorad/ui";
+import { useSceneStore, useWorldStore } from "@klorad/core";
+import { LoadingScreen } from "@klorad/ui";
 import useProject from "@/app/hooks/useProject";
 import { signIn } from "next-auth/react";
 // eslint-disable-next-line import/extensions
@@ -207,7 +207,7 @@ const PublishedScenePage = () => {
   if (!fetchedProject.isPublished) {
     return (
       <Box sx={{ p: 5, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, minHeight: "100vh", justifyContent: "center" }}>
-        <Lock sx={{ fontSize: 64, color: (theme) => theme.palette.text.secondary, mb: 2, opacity: 0.5 }} />
+        <LockIcon sx={{ fontSize: 64, color: (theme) => theme.palette.text.secondary, mb: 2, opacity: 0.5 }} />
         <Typography variant="h4" sx={{ fontWeight: 600, mb: 1, color: "text.primary" }}>
           Content Unavailable
         </Typography>

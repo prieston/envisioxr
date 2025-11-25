@@ -11,7 +11,7 @@
   },
   "boundaries": {
     "allowDeep": [
-      "@envisio/ui/dist/styles.css"
+      "@klorad/ui/dist/styles.css"
     ],
     "ignorePatterns": [
       "**/node_modules/**",

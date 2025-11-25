@@ -1,7 +1,9 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 import useModels from "./useModels";
 import { updateModelMetadata } from "@/app/utils/api";
-import { useCesiumIonUpload } from "@envisio/engine-cesium";
+import { useCesiumIonUpload } from "@klorad/engine-cesium";
 
 /**
  * Hook to poll tiling status for Cesium Ion assets that are IN_PROGRESS

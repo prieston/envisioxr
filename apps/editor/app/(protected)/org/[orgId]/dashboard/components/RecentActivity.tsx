@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Box, Typography } from "@mui/material";
-import { PageCard, ActivityItem } from "@envisio/ui";
+import { PageCard, ActivityItem } from "@klorad/ui";
 
 interface Activity {
   icon: React.ReactNode;

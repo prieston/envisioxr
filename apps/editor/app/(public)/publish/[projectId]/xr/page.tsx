@@ -1,7 +1,7 @@
 "use client";
 import PreviewScene from "@/app/components/Builder/Scene/PreviewScene";
-import { useSceneStore } from "@envisio/core";
-import { LoadingScreen } from "@envisio/ui";
+import { useSceneStore } from "@klorad/core";
+import { LoadingScreen } from "@klorad/ui";
 import { Box, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";

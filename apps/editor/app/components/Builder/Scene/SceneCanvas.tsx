@@ -2,20 +2,20 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import { useWorldStore, useSceneStore } from "@envisio/core";
+import { useWorldStore, useSceneStore } from "@klorad/core";
 import PlaybackManager from "./PlaybackManager";
-import type { SceneProps } from "@envisio/engine-three";
+import type { SceneProps } from "@klorad/engine-three";
 
-const Scene = dynamic(() => import("@envisio/engine-three"), {
+const Scene = dynamic(() => import("@klorad/engine-three"), {
   ssr: false,
 });
 const CesiumViewer = dynamic(
-  () => import("@envisio/engine-cesium").then(m => m.CesiumViewer),
+  () => import("@klorad/engine-cesium").then(m => m.CesiumViewer),
   { ssr: false }
 );
 const CesiumObjectTransformEditor = dynamic(
   () =>
-    import("@envisio/engine-cesium").then((m) => ({
+    import("@klorad/engine-cesium").then((m) => ({
       default: m.CesiumObjectTransformEditor,
     })),
   { ssr: false }

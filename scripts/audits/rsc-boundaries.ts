@@ -239,7 +239,7 @@ function analyzeFile(filePath: string, raw: string) {
   }
 
   // 4) Barrel imports heuristic
-  const barrel = /from\s+['"]@envisio\/(engine-cesium|engine-three|ion-sdk)['"];?/g;
+  const barrel = /from\s+['"]@klorad\/(engine-cesium|engine-three|ion-sdk)['"];?/g;
   let mb: RegExpExecArray | null;
   while ((mb = barrel.exec(noiseFree))) {
     // Find the import specifier block near this match

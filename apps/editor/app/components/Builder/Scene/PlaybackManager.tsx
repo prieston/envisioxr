@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 
 /**
  * PlaybackManager handles automatic cycling through observation points

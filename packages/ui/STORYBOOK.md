@@ -1,4 +1,4 @@
-# Storybook for @envisio/ui
+# Storybook for @klorad/ui
 
 This package includes a comprehensive Storybook setup for documenting and showcasing the EnvisioXR UI components.
 

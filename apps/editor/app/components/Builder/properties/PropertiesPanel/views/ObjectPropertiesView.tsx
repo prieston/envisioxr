@@ -2,11 +2,11 @@
 
 import React, { memo, useCallback } from "react";
 import { Alert, Button, Collapse } from "@mui/material";
-import { useSceneStore, useWorldStore } from "@envisio/core";
-import { createLogger } from "@envisio/core";
-import { flyToCesiumPosition } from "@envisio/engine-cesium";
+import { useSceneStore, useWorldStore } from "@klorad/core";
+import { createLogger } from "@klorad/core";
+import { flyToCesiumPosition } from "@klorad/engine-cesium";
 // Import from utils barrel to avoid pulling in 3d-tiles-renderer via components barrel
-import { flyToThreeObject } from "@envisio/engine-three/utils";
+import { flyToThreeObject } from "@klorad/engine-three/utils";
 
 const logger = createLogger("ObjectPropertiesView");
 import { ScrollContainer } from "../components/ScrollContainer";
@@ -85,7 +85,7 @@ export const ObjectPropertiesView: React.FC<ObjectPropertiesViewProps> = memo(
         // Try to match by cesiumAssetId first (if stored in object)
         const cesiumAssetId = (selectedObject as any)?.cesiumAssetId;
         let target = null;
-        
+
         if (cesiumAssetId) {
           // Match by cesiumAssetId stored in object
           target = cesiumIonAssets.find(

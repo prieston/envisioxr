@@ -1,4 +1,4 @@
 /**
- * Re-export centralized logger from @envisio/core
+ * Re-export centralized logger from @klorad/core
  */
-export { logger, createLogger, type Logger } from "@envisio/core";
+export { logger, createLogger, type Logger } from "@klorad/core";

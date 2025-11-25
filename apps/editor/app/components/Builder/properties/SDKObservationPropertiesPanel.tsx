@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Box } from "@mui/material";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import { ModelObject } from "./types";
 import { useRafSchedule } from "./sdk-observation/useRafSchedule";
 import { SectionHeader } from "./sdk-observation/SectionHeader";

@@ -11,12 +11,12 @@ import {
   Divider,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import CloseIcon from "@mui/icons-material/Close";
+import { CloseIcon } from "@klorad/ui";
 import {
   textFieldStyles,
   SettingContainer,
   SettingLabel,
-} from "@envisio/ui";
+} from "@klorad/ui";
 
 interface CreateProjectDrawerProps {
   open: boolean;

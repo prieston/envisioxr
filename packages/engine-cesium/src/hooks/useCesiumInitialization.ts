@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import {
   ensureCesiumBaseUrl,
   setupCesiumIonToken,
@@ -17,12 +17,7 @@ import {
 } from "../utils";
 import { applyBasemapType } from "../utils/basemap";
 import { canSupportViewshed } from "../utils/viewshed-capability";
-
-// IoT service is an editor concern; stub locally for engine usage
-const iotService = {
-  initialize: () => {},
-  stopAll: () => {},
-};
+import { iotService } from "@klorad/core";
 
 export interface UseCesiumInitializationResult {
   viewer: any;
@@ -69,7 +64,7 @@ export function useCesiumInitialization(): UseCesiumInitializationResult {
         setError(null);
 
         // Ensure Ion SDK is loaded before creating viewer
-        const { ensureIonSDKLoaded } = await import("@envisio/ion-sdk");
+        const { ensureIonSDKLoaded } = await import("@klorad/ion-sdk");
         await ensureIonSDKLoaded();
 
         // Dynamic import of Cesium with error handling

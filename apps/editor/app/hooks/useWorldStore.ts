@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { World, Engine } from "@envisio/config";
+import type { World, Engine } from "@klorad/config";
 
 interface WorldState {
   activeWorld: World | null;

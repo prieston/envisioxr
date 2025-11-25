@@ -11,7 +11,7 @@ import {
 import { useParams, useRouter } from "next/navigation";
 // eslint-disable-next-line import/extensions
 import AdminAppBar from "@/app/components/AppBar/AdminAppBar";
-import { showToast } from "@envisio/ui";
+import { showToast } from "@klorad/ui";
 import { ToastContainer } from "react-toastify";
 import useProject from "@/app/hooks/useProject";
 import { updateProject } from "@/app/utils/api";

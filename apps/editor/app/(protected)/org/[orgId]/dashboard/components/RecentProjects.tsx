@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import { Box, Grid, Typography, Button, CircularProgress } from "@mui/material";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PageCard, DashboardProjectCard, DashboardOptionsMenu } from "@envisio/ui";
-import AddIcon from "@mui/icons-material/Add";
+import { PageCard, DashboardProjectCard, DashboardOptionsMenu } from "@klorad/ui";
+import { AddIcon } from "@klorad/ui";
 import { useOrgId } from "@/app/hooks/useOrgId";
 
 interface Project {

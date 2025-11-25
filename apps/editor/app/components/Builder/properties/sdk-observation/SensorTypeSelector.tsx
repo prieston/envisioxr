@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Typography, Select, MenuItem } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { selectStyles, menuItemStyles } from "@envisio/ui";
+import { selectStyles, menuItemStyles } from "@klorad/ui";
 
 interface SensorTypeSelectorProps {
   value: "cone" | "rectangle";

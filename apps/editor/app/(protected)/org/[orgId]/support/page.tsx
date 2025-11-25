@@ -22,16 +22,18 @@ import {
   PageContent,
   textFieldStyles,
   showToast,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,
   GlowingSpan,
 } from "@/app/components/Builder/AdminLayout.styles";
-import SearchIcon from "@mui/icons-material/Search";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import SendIcon from "@mui/icons-material/Send";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import {
+  SearchIcon,
+  ExpandMoreIcon,
+  SendIcon,
+  HelpOutlineIcon,
+} from "@klorad/ui";
 import useUser from "@/app/hooks/useUser";
 
 interface FAQ {

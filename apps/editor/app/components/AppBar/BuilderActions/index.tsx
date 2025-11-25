@@ -2,14 +2,14 @@
 
 import React, { useState } from "react";
 import {
-  Save as SaveIcon,
-  Publish as PublishIcon,
-  Inventory as InventoryIcon,
-  Settings as SettingsIcon,
-} from "@mui/icons-material";
-import { useSceneStore } from "@envisio/core";
-import { showToast, type LibraryAsset } from "@envisio/ui";
-import { ActionButton, AssetManagerModal } from "@envisio/ui";
+  SaveIcon,
+  PublishIcon,
+  InventoryIcon,
+  SettingsIcon,
+} from "@klorad/ui";
+import { useSceneStore } from "@klorad/core";
+import { showToast, type LibraryAsset } from "@klorad/ui";
+import { ActionButton, AssetManagerModal } from "@klorad/ui";
 import ReportGenerator from "../../Report/ReportGenerator";
 import ProjectSettingsModal from "../../Builder/ProjectSettingsModal";
 import { useAssetManager } from "./hooks/useAssetManager";

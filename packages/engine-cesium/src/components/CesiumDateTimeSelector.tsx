@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
-import { SettingContainer, SettingLabel } from "@envisio/ui";
-import { useSceneStore } from "@envisio/core";
+import { SettingContainer, SettingLabel } from "@klorad/ui";
+import { useSceneStore } from "@klorad/core";
 import { LightingControls } from "./datetime-selector/LightingControls";
 import { LockToNowToggle } from "./datetime-selector/LockToNowToggle";
 import { CurrentTimeDisplay } from "./datetime-selector/CurrentTimeDisplay";

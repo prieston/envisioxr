@@ -6,7 +6,7 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import { ScrollContainer } from "../components/ScrollContainer";
 import CesiumFeatureProperties from "../../CesiumFeatureProperties";
 

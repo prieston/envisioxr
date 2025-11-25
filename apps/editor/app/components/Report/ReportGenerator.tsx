@@ -2,13 +2,13 @@
 
 import React from "react";
 import { getModel } from "@/app/utils/api";
-import { showToast } from "@envisio/ui";
-import { useSceneStore } from "@envisio/core";
-import { createLogger } from "@envisio/core";
+import { showToast } from "@klorad/ui";
+import { useSceneStore } from "@klorad/core";
+import { createLogger } from "@klorad/core";
 import * as THREE from "three";
-import { localToGeographic } from "@envisio/core";
-import { Description as DescriptionIcon } from "@mui/icons-material";
-import { ActionButton } from "@envisio/ui";
+import { localToGeographic } from "@klorad/core";
+import { DescriptionIcon } from "@klorad/ui";
+import { ActionButton } from "@klorad/ui";
 
 const logger = createLogger("ReportGenerator");
 

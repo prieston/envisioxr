@@ -8,7 +8,7 @@ import {
   PageDescription,
   PageContent,
   formatTimeAgo,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,
@@ -17,10 +17,8 @@ import {
 import useProjects from "@/app/hooks/useProjects";
 import useModels from "@/app/hooks/useModels";
 import useActivity from "@/app/hooks/useActivity";
-import SensorsIcon from "@mui/icons-material/Sensors";
-import MapIcon from "@mui/icons-material/Map";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { SensorsIcon } from "@klorad/ui";
+import { MapIcon, CloudUploadIcon, PersonAddIcon } from "@klorad/ui";
 import { KeyMetrics } from "./components/KeyMetrics";
 import { QuickActions } from "./components/QuickActions";
 import { RecentActivity } from "./components/RecentActivity";

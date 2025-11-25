@@ -1,4 +1,4 @@
-import { ViewInAr, Landscape } from "@mui/icons-material";
+import { ViewInArIcon as ViewInAr, LandscapeIcon as Landscape } from "@klorad/ui";
 import { PanelConfiguration } from "../types/panelConfig";
 
 export const createThreeJSLeftPanelConfig = (

@@ -8,7 +8,7 @@
     },
     {
       "label": "Ignore workspace protocol variations",
-      "dependencies": ["@envisio/*", "@envisioxr/*"],
+      "dependencies": ["@klorad/*"],
       "isIgnored": true
     },
     {

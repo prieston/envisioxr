@@ -1,9 +1,9 @@
 import { TopBarConfiguration } from "../types/topBarConfig";
 import {
-  OpenWith as OpenWithIcon,
-  RotateRight as RotateRightIcon,
-  AspectRatio as AspectRatioIcon,
-} from "@mui/icons-material";
+  OpenWithIcon,
+  RotateRightIcon,
+  AspectRatioIcon,
+} from "@klorad/ui";
 
 export const createThreeJSTopBarConfig = (
   selectedObject: any,

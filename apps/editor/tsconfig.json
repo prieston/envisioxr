@@ -18,51 +18,51 @@
     "paths": {
       "@/*": ["./*"],
       "@prisma": ["../packages/prisma"],
-      "@envisio/core": [
+      "@klorad/core": [
         "../packages/core/dist/index.d.ts",
         "../packages/core/dist/index.js"
       ],
-      "@envisio/core/*": [
+      "@klorad/core/*": [
         "../packages/core/dist/*",
         "../packages/core/dist/*.js"
       ],
-      "@envisio/ui": [
+      "@klorad/ui": [
         "../packages/ui/dist/index.d.ts",
         "../packages/ui/dist/index.js"
       ],
-      "@envisio/ui/*": [
+      "@klorad/ui/*": [
         "../packages/ui/dist/*",
         "../packages/ui/dist/*.js"
       ],
-      "@envisio/config": [
+      "@klorad/config": [
         "../packages/config/dist/index.d.ts",
         "../packages/config/dist/index.js"
       ],
-      "@envisio/config/*": [
+      "@klorad/config/*": [
         "../packages/config/dist/*",
         "../packages/config/dist/*.js"
       ],
-      "@envisio/engine-three": [
+      "@klorad/engine-three": [
         "../packages/engine-three/dist/index.d.ts",
         "../packages/engine-three/dist/index.js"
       ],
-      "@envisio/engine-three/*": [
+      "@klorad/engine-three/*": [
         "../packages/engine-three/dist/*",
         "../packages/engine-three/dist/*.js"
       ],
-      "@envisio/engine-cesium": [
+      "@klorad/engine-cesium": [
         "../packages/engine-cesium/dist/index.d.ts",
         "../packages/engine-cesium/dist/index.js"
       ],
-      "@envisio/engine-cesium/*": [
+      "@klorad/engine-cesium/*": [
         "../packages/engine-cesium/dist/*",
         "../packages/engine-cesium/dist/*.js"
       ],
-      "@envisio/ion-sdk": [
+      "@klorad/ion-sdk": [
         "../packages/ion-sdk/dist/index.d.ts",
         "../packages/ion-sdk/dist/index.js"
       ],
-      "@envisio/ion-sdk/*": [
+      "@klorad/ion-sdk/*": [
         "../packages/ion-sdk/dist/*",
         "../packages/ion-sdk/dist/*.js"
       ]

@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import { Select, MenuItem, FormControl } from "@mui/material";
-import { SettingContainer, SettingLabel } from "@envisio/ui";
-import { useSceneStore } from "@envisio/core";
+import { SettingContainer, SettingLabel } from "@klorad/ui";
+import { useSceneStore } from "@klorad/core";
 
 interface CesiumBasemapSelectorProps {
   onBasemapChange: (

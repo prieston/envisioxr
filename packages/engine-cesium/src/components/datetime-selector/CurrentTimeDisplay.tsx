@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, IconButton } from "@mui/material";
-import { PlayArrow, Pause } from "@mui/icons-material";
+import { PlayArrowIcon as PlayArrow, PauseIcon as Pause } from "@klorad/ui";
 import {
   CurrentTimeBox,
   CurrentTimeTitle,

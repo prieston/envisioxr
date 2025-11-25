@@ -11,7 +11,7 @@ import {
   alpha,
 } from "@mui/material";
 import { alpha as muiAlpha } from "@mui/material/styles";
-import SearchIcon from "@mui/icons-material/Search";
+import { SearchIcon } from "@klorad/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Page,
@@ -20,19 +20,19 @@ import {
   PageContent,
   textFieldStyles,
   showToast,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,
   GlowingSpan,
 } from "@/app/components/Builder/AdminLayout.styles";
-import type { LibraryAsset, MetadataRow } from "@envisio/ui";
+import type { LibraryAsset, MetadataRow } from "@klorad/ui";
 import {
   AssetCard,
   AssetDetailView,
   DeleteConfirmDialog,
   ModelPreviewDialog,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import { UploadModelDrawer } from "./components/UploadModelDrawer";
 import { deleteModel, updateModelMetadata } from "@/app/utils/api";
 import useModels from "@/app/hooks/useModels";

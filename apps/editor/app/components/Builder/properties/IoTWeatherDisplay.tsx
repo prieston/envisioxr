@@ -2,11 +2,9 @@
 
 import React from "react";
 import { Box, Typography, Button, Alert } from "@mui/material";
-import RefreshIcon from "@mui/icons-material/Refresh";
-import ThermostatIcon from "@mui/icons-material/Thermostat";
-import AirIcon from "@mui/icons-material/Air";
+import { RefreshIcon, ThermostatIcon, AirIcon } from "@klorad/ui";
 import type { WeatherData } from "./hooks/useIoTWeatherData";
-import iotService from "../../../services/IoTService";
+import { iotService } from "@klorad/core";
 
 interface IoTWeatherDisplayProps {
   selectedObjectId: string | undefined;

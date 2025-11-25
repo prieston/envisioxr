@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import { applyBasemapType } from "../utils/basemap";
 
 export function useCesiumBasemap(viewer: any, cesium: any, isLoading: boolean) {

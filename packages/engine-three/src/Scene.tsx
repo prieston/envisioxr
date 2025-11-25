@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, Suspense } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Grid, Sky } from "@react-three/drei";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import * as THREE from "three";
 
 import type { SceneProps, Model } from "./components/Scene/types";

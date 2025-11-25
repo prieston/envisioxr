@@ -8,9 +8,9 @@ import {
   IconButton,
   Divider,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import { UploadModelTab } from "@envisio/ui";
-import { showToast, dataURLtoBlob } from "@envisio/ui";
+import { CloseIcon } from "@klorad/ui";
+import { UploadModelTab } from "@klorad/ui";
+import { showToast, dataURLtoBlob } from "@klorad/ui";
 import {
   getModelUploadUrl,
   getThumbnailUploadUrl,

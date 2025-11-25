@@ -16,7 +16,7 @@ import {
 } from "@cesium/engine";
 // Note: Viewer is imported from @cesium/widgets but we use the viewer from the store
 // TransformEditor is now loaded dynamically via getIonSDKModules() to avoid SSR issues
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 
 interface CesiumObjectTransformEditorProps {
   selectedObject: {
@@ -215,7 +215,7 @@ const CesiumObjectTransformEditor: React.FC<
     // SDK is already loaded by CesiumViewer initialization
     (async () => {
       try {
-        const { getIonSDKModules } = await import("@envisio/ion-sdk");
+        const { getIonSDKModules } = await import("@klorad/ion-sdk");
         const { TransformEditor: TransformEditorClass } =
           await getIonSDKModules();
 

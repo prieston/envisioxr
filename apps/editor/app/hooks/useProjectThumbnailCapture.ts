@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useWorldStore, useSceneStore } from "@envisio/core";
+import { useWorldStore, useSceneStore } from "@klorad/core";
 import { captureThreeJSScreenshot, captureCesiumScreenshot } from "@/app/utils/screenshotCapture";
-import { showToast } from "@envisio/ui";
+import { showToast } from "@klorad/ui";
 import {
   getThumbnailUploadUrl,
   uploadToSignedUrl,

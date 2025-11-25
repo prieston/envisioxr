@@ -1,9 +1,11 @@
-import { showToast } from "@envisio/ui";
-import { useSceneStore } from "@envisio/core";
+"use client";
+
+import { showToast } from "@klorad/ui";
+import { useSceneStore } from "@klorad/core";
 import {
   useCesiumIonUpload,
   type CesiumIonUploadData,
-} from "@envisio/engine-cesium";
+} from "@klorad/engine-cesium";
 import { createIonAsset, completeIonUpload, createCesiumIonAsset, updateModelMetadata } from "@/app/utils/api";
 import { useOrgId } from "@/app/hooks/useOrgId";
 

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { showToast } from "@envisio/ui";
-import { useSceneStore } from "@envisio/core";
-import { dataURLtoBlob } from "@envisio/ui";
+import { showToast } from "@klorad/ui";
+import { useSceneStore } from "@klorad/core";
+import { dataURLtoBlob } from "@klorad/ui";
 import { clientEnv } from "@/lib/env/client";
-import type { LibraryAsset } from "@envisio/ui";
+import type { LibraryAsset } from "@klorad/ui";
 import {
   getModels,
   getModelUploadUrl,

@@ -1,5 +1,5 @@
 {
-  "name": "@envisio/engine-three",
+  "name": "@klorad/engine-three",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -58,9 +58,9 @@
     "three": ">=0.170.0 <1"
   },
   "dependencies": {
-    "@envisio/core": "workspace:*",
-    "@envisio/ui": "workspace:*",
-    "@envisio/engine-cesium": "workspace:*",
+    "@klorad/core": "workspace:*",
+    "@klorad/ui": "workspace:*",
+    "@klorad/engine-cesium": "workspace:*",
     "@types/node": "^20.11.30",
     "@types/three": "^0.170.0",
     "@types/uuid": "^9.0.8",

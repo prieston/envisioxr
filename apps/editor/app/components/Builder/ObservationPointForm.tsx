@@ -2,7 +2,7 @@
 // src/components/ObservationPointForm.js
 import React from "react";
 import { Box, Typography, TextField, Button } from "@mui/material";
-import { showToast } from "@envisio/ui";
+import { showToast } from "@klorad/ui";
 
 const ObservationPointForm = () => {
   return (

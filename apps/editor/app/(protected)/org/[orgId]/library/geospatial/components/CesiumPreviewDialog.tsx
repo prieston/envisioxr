@@ -13,15 +13,15 @@ import {
   IconButton,
   CircularProgress,
 } from "@mui/material";
-import { Close, CameraAlt } from "@mui/icons-material";
+import { CloseIcon, CameraAltIcon } from "@klorad/ui";
 import {
   modalPaperStyles,
   modalTitleStyles,
   modalTitleTextStyles,
   modalCloseButtonStyles,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import { captureCesiumScreenshot } from "@/app/utils/screenshotCapture";
-import { CesiumMinimalViewer } from "@envisio/engine-cesium";
+import { CesiumMinimalViewer } from "@klorad/engine-cesium";
 
 interface CesiumPreviewDialogProps {
   open: boolean;
@@ -83,6 +83,18 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
         cesiumWidgets.forEach((widget) => widget.remove());
       }
     }
+
+    // Cleanup function
+    return () => {
+      if (viewerRef.current) {
+        try {
+          viewerRef.current.destroy();
+        } catch (err) {
+          // Ignore cleanup errors
+        }
+        viewerRef.current = null;
+      }
+    };
   }, [open]);
 
   const handleCapture = async () => {
@@ -138,7 +150,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
           Retake Photo - {assetName}
         </Typography>
         <IconButton onClick={onClose} size="small" sx={modalCloseButtonStyles}>
-          <Close />
+          <CloseIcon />
         </IconButton>
       </DialogTitle>
 
@@ -308,7 +320,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
           onClick={handleCapture}
           disabled={capturing || loading || !!error}
           variant="contained"
-          startIcon={<CameraAlt />}
+          startIcon={<CameraAltIcon />}
           sx={(theme) => ({
             textTransform: "none",
             fontSize: "0.813rem",

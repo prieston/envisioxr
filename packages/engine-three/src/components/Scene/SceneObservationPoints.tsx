@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import ObservationPoint from "../ObservationPoint";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import { SceneObservationPointsProps } from "./types";
 
 const SceneObservationPoints: React.FC<SceneObservationPointsProps> = ({

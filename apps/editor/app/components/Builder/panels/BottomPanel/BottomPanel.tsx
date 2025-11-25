@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { useSceneStore, useWorldStore } from "@envisio/core";
-import { getBottomPanelConfig } from "@envisio/config/factory";
-import { BottomPanelContainer, GenericPanel } from "@envisio/ui";
+import { useSceneStore, useWorldStore } from "@klorad/core";
+import { getBottomPanelConfig } from "@klorad/config/factory";
+import { BottomPanelContainer, GenericPanel } from "@klorad/ui";
 import SettingRenderer from "../../SettingRenderer";
 
 const BottomPanel: React.FC = () => {

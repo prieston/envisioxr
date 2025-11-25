@@ -10,15 +10,15 @@ import {
   Tooltip,
 } from "@mui/material";
 import {
-  Save as SaveIcon,
-  Undo as UndoIcon,
-  Redo as RedoIcon,
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-  Settings as SettingsIcon,
-} from "@mui/icons-material";
+  SaveIcon,
+  UndoIcon,
+  RedoIcon,
+  AddIcon,
+  DeleteIcon,
+  VisibilityIcon,
+  VisibilityOffIcon,
+  SettingsIcon,
+} from "@klorad/ui";
 
 interface AppBarProps {
   onSave: () => void;

@@ -1,16 +1,18 @@
+"use client";
+
 import React, { memo, useCallback, useState, useEffect } from "react";
 import { Box, Button, TextField } from "@mui/material";
-import { Camera, FlightTakeoff } from "@mui/icons-material";
-import { useSceneStore, useWorldStore } from "@envisio/core";
-import { createLogger } from "@envisio/core";
-import { flyToCesiumPosition } from "@envisio/engine-cesium";
-import { textFieldStyles } from "@envisio/ui";
+import { CameraIcon, FlightTakeoffIcon } from "@klorad/ui";
+import { useSceneStore, useWorldStore } from "@klorad/core";
+import { createLogger } from "@klorad/core";
+import { flyToCesiumPosition } from "@klorad/engine-cesium";
+import { textFieldStyles } from "@klorad/ui";
 
 const logger = createLogger("ObservationPointView");
 import {
   SettingContainer,
   SettingLabel,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import { ScrollContainer } from "../components/ScrollContainer";
 import { InputLabel, InfoText } from "../components/PropertyComponents";
 import { ObservationPoint } from "../../types";
@@ -78,6 +80,7 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
       }
 
       if (engine === "cesium" && cesiumViewer) {
+        if (typeof window === "undefined") return;
         const Cesium = (window as any).Cesium;
         if (!Cesium) {
           logger.warn("Cesium not available");
@@ -151,7 +154,7 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
               variant="outlined"
               onClick={handleFlyToObservation}
               disabled={!hasVec3(selectedObservation.position)}
-              startIcon={<FlightTakeoff />}
+              startIcon={<FlightTakeoffIcon />}
               sx={{
                 flex: 1,
                 borderRadius: 4,
@@ -177,7 +180,7 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
             <Button
               variant="outlined"
               onClick={handleCapturePosition}
-              startIcon={<Camera />}
+              startIcon={<CameraIcon />}
               sx={{
                 flex: 1,
                 borderRadius: 4,

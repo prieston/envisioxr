@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import * as THREE from "three";
 
 const DRONE_ACCELERATION = 20; // units/s²

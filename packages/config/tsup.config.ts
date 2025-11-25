@@ -31,7 +31,7 @@ export default defineConfig({
   platform: "browser",
   bundle: true,
   skipNodeModulesBundle: true,
-  external: [/^react$/, /^@mui\/icons-material$/],
+  external: [/^react$/, /^@mui\/icons-material$/, /^@klorad\/ui$/],
   tsconfig: "./tsconfig.json",
   esbuildOptions(options) {
     options.logOverride = { "this-is-undefined-in-esm": "silent" };
