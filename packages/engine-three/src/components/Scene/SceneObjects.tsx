@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import { SceneObjectsProps, Model as ModelType } from "./types";
 import Model from "../Model";
 

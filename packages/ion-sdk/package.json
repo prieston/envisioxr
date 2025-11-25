@@ -1,5 +1,5 @@
 {
-  "name": "@envisio/ion-sdk",
+  "name": "@klorad/ion-sdk",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -25,7 +25,7 @@
     "@types/uuid": "^9.0.8"
   },
   "peerDependencies": {
-    "@envisio/core": "workspace:*",
+    "@klorad/core": "workspace:*",
     "cesium": ">=1.131.0",
     "next": "^14.2.18",
     "react": "^18.3.1"

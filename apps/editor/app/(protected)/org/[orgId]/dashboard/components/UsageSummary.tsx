@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Box, Typography } from "@mui/material";
-import { PageCard } from "@envisio/ui";
+import { PageCard } from "@klorad/ui";
 
 interface UsageSummaryProps {
   storageUsed: string;

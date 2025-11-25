@@ -109,7 +109,7 @@ function analyzeFile(filePath: string, content: string): void {
   // Check if packages import from apps or vice versa incorrectly
   if (relativePath.startsWith("packages/")) {
     // Packages should not import from apps
-    if (content.match(/from\s+["']\.\.\/apps\//) || content.match(/from\s+["']@envisioxr\//)) {
+    if (content.match(/from\s+["']\.\.\/apps\//) || content.match(/from\s+["']@klorad\//)) {
       issues.critical.push({
         file: relativePath,
         issue: "CRITICAL: Package imports from app",

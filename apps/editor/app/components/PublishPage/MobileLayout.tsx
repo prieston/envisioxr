@@ -22,7 +22,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import LogoHeader from "../AppBar/LogoHeader";
-import type { SceneProps } from "@envisio/engine-three";
+import type { SceneProps } from "@klorad/engine-three";
 
 const PreviewScene = dynamic(() => import("../Builder/Scene/PreviewScene"), {
   ssr: false,

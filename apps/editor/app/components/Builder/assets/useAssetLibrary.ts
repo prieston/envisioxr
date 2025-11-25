@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useDropzone } from "react-dropzone";
-import { showToast } from "@envisio/ui";
+import { showToast } from "@klorad/ui";
 import {
   getModels,
   deleteModel,

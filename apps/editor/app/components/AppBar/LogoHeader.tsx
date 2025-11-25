@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Box, Typography } from "@mui/material";
-import { useTenant } from "@envisio/core";
+import { useTenant } from "@klorad/core";
 
 export default function LogoHeader() {
   const tenant = useTenant();

@@ -18,7 +18,7 @@ import {
   PageHeader,
   PageDescription,
   PageContent,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,

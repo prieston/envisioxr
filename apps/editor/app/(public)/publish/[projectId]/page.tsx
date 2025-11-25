@@ -6,8 +6,8 @@ import { Typography, Box, Button } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Lock } from "@mui/icons-material";
-import { useSceneStore, useWorldStore } from "@envisio/core";
-import { LoadingScreen } from "@envisio/ui";
+import { useSceneStore, useWorldStore } from "@klorad/core";
+import { LoadingScreen } from "@klorad/ui";
 import useProject from "@/app/hooks/useProject";
 import { signIn } from "next-auth/react";
 // eslint-disable-next-line import/extensions

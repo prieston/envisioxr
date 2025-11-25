@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Box, Typography, Button, TextField } from "@mui/material";
 import { LocationOn } from "@mui/icons-material";
-import { SettingContainer, SettingLabel } from "@envisio/ui";
-import { googleMapsLinkForLatLon, textFieldStyles } from "@envisio/ui";
+import { SettingContainer, SettingLabel } from "@klorad/ui";
+import { googleMapsLinkForLatLon, textFieldStyles } from "@klorad/ui";
 import { ModelObject, GeographicCoords } from "./types";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 
 interface TransformLocationSectionProps {
   object: ModelObject;

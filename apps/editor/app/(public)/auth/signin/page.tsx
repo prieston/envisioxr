@@ -15,7 +15,7 @@ import {
 import { styled, alpha } from "@mui/material/styles";
 import GoogleIcon from "@mui/icons-material/Google";
 import LogoHeader from "@/app/components/AppBar/LogoHeader";
-import { useTenant } from "@envisio/core";
+import { useTenant } from "@klorad/core";
 import Link from "next/link";
 
 const SignInContainer = styled(Box)(({ theme }) => ({

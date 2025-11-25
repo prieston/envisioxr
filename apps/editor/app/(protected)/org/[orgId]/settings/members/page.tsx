@@ -36,7 +36,7 @@ import {
   PageContent,
   PageCard,
   showToast,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,

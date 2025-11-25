@@ -1,16 +1,16 @@
 import React, { memo, useCallback, useState, useEffect } from "react";
 import { Box, Button, TextField } from "@mui/material";
 import { Camera, FlightTakeoff } from "@mui/icons-material";
-import { useSceneStore, useWorldStore } from "@envisio/core";
-import { createLogger } from "@envisio/core";
-import { flyToCesiumPosition } from "@envisio/engine-cesium";
-import { textFieldStyles } from "@envisio/ui";
+import { useSceneStore, useWorldStore } from "@klorad/core";
+import { createLogger } from "@klorad/core";
+import { flyToCesiumPosition } from "@klorad/engine-cesium";
+import { textFieldStyles } from "@klorad/ui";
 
 const logger = createLogger("ObservationPointView");
 import {
   SettingContainer,
   SettingLabel,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import { ScrollContainer } from "../components/ScrollContainer";
 import { InputLabel, InfoText } from "../components/PropertyComponents";
 import { ObservationPoint } from "../../types";

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { memo } from "react";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import { ModelObject, ObservationPoint } from "../types";
 import { ObjectPropertiesView } from "./views/ObjectPropertiesView";
 import { ObservationPointView } from "./views/ObservationPointView";

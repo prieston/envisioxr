@@ -14,9 +14,9 @@ import {
   Explore,
 } from "@mui/icons-material";
 import { SimulationMode } from "../CesiumControls/types";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import { useCameraControllerManager } from "../CesiumControls/hooks/useCameraControllerManager";
-import { createLogger } from "@envisio/core";
+import { createLogger } from "@klorad/core";
 
 const logger = createLogger("CesiumViewModeControls");
 import {

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import type { ViewshedAnalysisProps, SensorRefs } from "./types";
 import {
   useIonSDKInitialization,

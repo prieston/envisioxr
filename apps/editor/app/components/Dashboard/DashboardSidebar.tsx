@@ -28,7 +28,7 @@ import BusinessIcon from "@mui/icons-material/Business";
 import AddIcon from "@mui/icons-material/Add";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { LeftPanelContainer } from "@envisio/ui";
+import { LeftPanelContainer } from "@klorad/ui";
 import LogoHeader from "@/app/components/AppBar/LogoHeader";
 import UserAccountMenu from "@/app/components/AppBar/UserAccountMenu";
 import useOrganization from "@/app/hooks/useOrganization";

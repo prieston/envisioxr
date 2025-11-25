@@ -6,7 +6,7 @@ import {
   OpenWith,
   RotateRight,
 } from "@mui/icons-material";
-import { SettingContainer, SettingLabel } from "@envisio/ui";
+import { SettingContainer, SettingLabel } from "@klorad/ui";
 
 interface ObjectActionsSectionProps {
   onFlyToObject: () => void;

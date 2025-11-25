@@ -6,7 +6,7 @@
  *
  * Checks:
  * - Each workspace package exports only from dist/. Fail if any package.json exports or main/types point to src/
- * - No app imports @envisio packages from src/ or deep internals (chunk-*)
+ * - No app imports @klorad packages from src/ or deep internals (chunk-*)
  * - No forbidden cross-layer imports (apps importing from packages/src or UI importing Cesium directly)
  */
 
@@ -91,7 +91,7 @@ function checkPackageExports() {
   }
 }
 
-// Check 2: No app imports from @envisio/*/src/** or /dist/chunk-*
+// Check 2: No app imports from @klorad/*/src/** or /dist/chunk-*
 function checkAppImports() {
   console.log("🔍 Checking app imports...");
 
@@ -104,8 +104,8 @@ function checkAppImports() {
     const fullPath = path.join(WORKSPACE_ROOT, file);
     const content = fs.readFileSync(fullPath, "utf8");
 
-    // Check for @envisio/*/src/** imports
-    const srcImportPattern = /from\s+['"](@envisio\/[^'"]+\/src\/[^'"]+)['"]/g;
+    // Check for @klorad/*/src/** imports
+    const srcImportPattern = /from\s+['"](@klorad\/[^'"]+\/src\/[^'"]+)['"]/g;
     let match;
     while ((match = srcImportPattern.exec(content)) !== null) {
       violations.push({
@@ -117,7 +117,7 @@ function checkAppImports() {
 
     // Check for deep internals (/dist/chunk-*)
     const chunkImportPattern =
-      /from\s+['"](@envisio\/[^'"]+\/dist\/chunk-[^'"]+)['"]/g;
+      /from\s+['"](@klorad\/[^'"]+\/dist\/chunk-[^'"]+)['"]/g;
     while ((match = chunkImportPattern.exec(content)) !== null) {
       violations.push({
         file,
@@ -157,7 +157,7 @@ function checkCrossLayerImports() {
     // Core should not import engine packages
     if (file.includes("packages/core/")) {
       const engineImportPattern =
-        /from\s+['"](@envisio\/(engine-cesium|engine-three|ion-sdk))[^'"]*['"]/g;
+        /from\s+['"](@klorad\/(engine-cesium|engine-three|ion-sdk))[^'"]*['"]/g;
       let match;
       while ((match = engineImportPattern.exec(content)) !== null) {
         violations.push({

@@ -22,10 +22,10 @@ const pwa = withPWA({
 
 const nextConfig = {
   transpilePackages: [
-    '@envisio/ui',
-    '@envisio/engine-cesium',
-    '@envisio/engine-three',
-    '@envisio/ion-sdk'
+    '@klorad/ui',
+    '@klorad/engine-cesium',
+    '@klorad/engine-three',
+    '@klorad/ion-sdk'
   ],
   // Optimize output for better performance
   output: 'standalone',

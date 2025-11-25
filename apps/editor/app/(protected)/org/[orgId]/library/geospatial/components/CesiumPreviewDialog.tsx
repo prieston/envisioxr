@@ -19,9 +19,9 @@ import {
   modalTitleStyles,
   modalTitleTextStyles,
   modalCloseButtonStyles,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import { captureCesiumScreenshot } from "@/app/utils/screenshotCapture";
-import { CesiumMinimalViewer } from "@envisio/engine-cesium";
+import { CesiumMinimalViewer } from "@klorad/engine-cesium";
 
 interface CesiumPreviewDialogProps {
   open: boolean;

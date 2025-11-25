@@ -1,5 +1,5 @@
 import { useRef, useCallback } from "react";
-import { createLogger } from "@envisio/core";
+import { createLogger } from "@klorad/core";
 
 /**
  * Hook for managing keyboard input state

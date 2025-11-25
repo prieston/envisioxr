@@ -4,7 +4,7 @@ import {
   CameraControllerConfig,
 } from "../core/BaseCameraController";
 import { MOVEMENT_KEYS, ROTATION_KEYS } from "../constants";
-import { createLogger } from "@envisio/core";
+import { createLogger } from "@klorad/core";
 
 /**
  * Car controller with realistic vehicle physics

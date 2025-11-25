@@ -2,11 +2,11 @@
 
 import React, { memo, useCallback } from "react";
 import { Alert, Button, Collapse } from "@mui/material";
-import { useSceneStore, useWorldStore } from "@envisio/core";
-import { createLogger } from "@envisio/core";
-import { flyToCesiumPosition } from "@envisio/engine-cesium";
+import { useSceneStore, useWorldStore } from "@klorad/core";
+import { createLogger } from "@klorad/core";
+import { flyToCesiumPosition } from "@klorad/engine-cesium";
 // Import from utils barrel to avoid pulling in 3d-tiles-renderer via components barrel
-import { flyToThreeObject } from "@envisio/engine-three/utils";
+import { flyToThreeObject } from "@klorad/engine-three/utils";
 
 const logger = createLogger("ObjectPropertiesView");
 import { ScrollContainer } from "../components/ScrollContainer";

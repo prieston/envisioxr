@@ -14,8 +14,8 @@ import {
 } from "./AdminLayout.styles";
 import { BottomPanel, LeftPanel, RightPanel } from "./panels";
 import ModelPositioningManager from "./ModelPositioningManager";
-import { useSceneStore } from "@envisio/core";
-import { showToast } from "@envisio/ui";
+import { useSceneStore } from "@klorad/core";
+import { showToast } from "@klorad/ui";
 
 interface AdminLayoutProps {
   children: React.ReactNode;

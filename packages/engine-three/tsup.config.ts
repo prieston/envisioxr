@@ -22,9 +22,9 @@ export default defineConfig({
   bundle: true,
   skipNodeModulesBundle: true,
   external: [
-    /^@envisio\/core$/,
-    /^@envisio\/ui$/,
-    /^@envisio\/engine-cesium$/,
+    /^@klorad\/core$/,
+    /^@klorad\/ui$/,
+    /^@klorad\/engine-cesium$/,
     /^react$/,
     /^react-dom$/,
     /^@mui\/material$/,

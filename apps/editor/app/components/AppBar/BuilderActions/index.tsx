@@ -7,9 +7,9 @@ import {
   Inventory as InventoryIcon,
   Settings as SettingsIcon,
 } from "@mui/icons-material";
-import { useSceneStore } from "@envisio/core";
-import { showToast, type LibraryAsset } from "@envisio/ui";
-import { ActionButton, AssetManagerModal } from "@envisio/ui";
+import { useSceneStore } from "@klorad/core";
+import { showToast, type LibraryAsset } from "@klorad/ui";
+import { ActionButton, AssetManagerModal } from "@klorad/ui";
 import ReportGenerator from "../../Report/ReportGenerator";
 import ProjectSettingsModal from "../../Builder/ProjectSettingsModal";
 import { useAssetManager } from "./hooks/useAssetManager";

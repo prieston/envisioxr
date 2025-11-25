@@ -14,13 +14,13 @@ import {
 } from "@mui/material";
 import { Close, PhotoCamera, Refresh } from "@mui/icons-material";
 import { alpha } from "@mui/material/styles";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import {
   modalPaperStyles,
   modalTitleStyles,
   modalTitleTextStyles,
   modalCloseButtonStyles,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import { useProjectThumbnailCapture } from "@/app/hooks/useProjectThumbnailCapture";
 import ProjectThumbnailCaptureModal from "./ProjectThumbnailCaptureModal";
 

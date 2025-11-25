@@ -1,5 +1,5 @@
 {
-  "name": "@envisio/engine-cesium",
+  "name": "@klorad/engine-cesium",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -57,9 +57,9 @@
     "@react-three/rapier": ">=1",
     "@react-three/xr": ">=6",
     "three": ">=0.170.0 <1",
-    "@envisio/core": "workspace:*",
-    "@envisio/ion-sdk": "workspace:*",
-    "@envisio/ui": "workspace:*",
+    "@klorad/core": "workspace:*",
+    "@klorad/ion-sdk": "workspace:*",
+    "@klorad/ui": "workspace:*",
     "@aws-sdk/client-s3": ">=3.884.0"
   },
   "dependencies": {
@@ -71,7 +71,7 @@
     "@types/uuid": "^9.0.8"
   },
   "devDependencies": {
-    "@envisio/ui": "workspace:*"
+    "@klorad/ui": "workspace:*"
   },
   "scripts": {
     "clean": "rimraf dist *.tsbuildinfo",

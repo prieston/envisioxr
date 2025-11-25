@@ -1,9 +1,9 @@
 import React, { useCallback } from "react";
 import { Typography, FormControlLabel, Switch, Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useSceneStore } from "@envisio/core";
-import { LocationSearch } from "@envisio/ui";
-import { CesiumIonAssetsManager } from "@envisio/engine-cesium";
+import { useSceneStore } from "@klorad/core";
+import { LocationSearch } from "@klorad/ui";
+import { CesiumIonAssetsManager } from "@klorad/engine-cesium";
 
 const Container = styled(Box)(({ theme }) => ({
   "& > *:not(:last-child)": {

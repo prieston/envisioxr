@@ -2,9 +2,9 @@
 
 import React, { useMemo } from "react";
 import { Box } from "@mui/material";
-import { useSceneStore, useWorldStore } from "@envisio/core";
-import { getRightPanelConfig } from "@envisio/config/factory";
-import { RightPanelContainer, GenericPanel } from "@envisio/ui";
+import { useSceneStore, useWorldStore } from "@klorad/core";
+import { getRightPanelConfig } from "@klorad/config/factory";
+import { RightPanelContainer, GenericPanel } from "@klorad/ui";
 import SettingRenderer from "../../SettingRenderer";
 import BuilderActions from "@/app/components/AppBar/BuilderActions";
 

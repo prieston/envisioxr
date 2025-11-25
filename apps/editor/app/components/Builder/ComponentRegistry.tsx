@@ -8,7 +8,7 @@ import {
   BottomPanelControls,
   BasemapSelector,
   ObservationPointsList,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import SceneObjectsListWrapper from "../Builder/lists/SceneObjectsListWrapper";
 import PropertiesPanel from "../Builder/properties/PropertiesPanel";
 import AssetLibraryPanel from "../Builder/assets/AssetLibraryPanel";
@@ -17,18 +17,18 @@ import ReportGenerator from "../Report/ReportGenerator";
 import BuilderActions from "../AppBar/BuilderActions";
 // Import directly from component file to avoid pulling in 3d-tiles-renderer via barrel exports
 // Component is a default export, so use default import syntax
-import ThreeJSLocationSearchSection from "@envisio/engine-three/components/ThreeJSLocationSearchSection";
+import ThreeJSLocationSearchSection from "@klorad/engine-three/components/ThreeJSLocationSearchSection";
 import {
   CesiumLocationSearchSection,
   CesiumBasemapSelector,
   CesiumDateTimeSelector,
   CesiumIonAssetsManager,
-} from "@envisio/engine-cesium/components";
+} from "@klorad/engine-cesium/components";
 import {
   CesiumViewModeControls,
   CesiumCameraSettings,
   CesiumSimulationInstructions,
-} from "@envisio/engine-cesium/components";
+} from "@klorad/engine-cesium/components";
 
 export type AnyComponent = React.ComponentType<any>; // intentionally permissive
 

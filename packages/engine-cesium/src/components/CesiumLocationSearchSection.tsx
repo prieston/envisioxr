@@ -1,9 +1,9 @@
 import React, { useCallback } from "react";
 import { Box } from "@mui/material";
-import { SettingContainer, SettingLabel } from "@envisio/ui";
+import { SettingContainer, SettingLabel } from "@klorad/ui";
 import * as Cesium from "cesium";
-import { useSceneStore } from "@envisio/core";
-import { LocationSearch } from "@envisio/ui";
+import { useSceneStore } from "@klorad/core";
+import { LocationSearch } from "@klorad/ui";
 
 interface CesiumLocationSearchSectionProps {
   value?: any;

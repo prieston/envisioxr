@@ -3,7 +3,7 @@
 import React from "react";
 import { Box, Grid, Typography, Chip, alpha } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { PageCard } from "@envisio/ui";
+import { PageCard } from "@klorad/ui";
 import AddIcon from "@mui/icons-material/Add";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import SensorsIcon from "@mui/icons-material/Sensors";

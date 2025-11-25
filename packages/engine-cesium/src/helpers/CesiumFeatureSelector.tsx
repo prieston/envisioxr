@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 
 /**
  * Handles selection of Cesium 3D Tiles features to extract metadata/properties

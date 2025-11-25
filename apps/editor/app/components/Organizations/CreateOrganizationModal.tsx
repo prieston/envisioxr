@@ -19,8 +19,8 @@ import {
 import StarIcon from "@mui/icons-material/Star";
 import { Plan } from "@/app/utils/api";
 import { createOrganizationCheckoutSession } from "@/app/utils/api";
-import { showToast } from "@envisio/ui";
-import { textFieldStyles, SettingContainer, SettingLabel } from "@envisio/ui";
+import { showToast } from "@klorad/ui";
+import { textFieldStyles, SettingContainer, SettingLabel } from "@klorad/ui";
 
 interface CreateOrganizationModalProps {
   open: boolean;

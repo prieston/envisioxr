@@ -14,7 +14,7 @@ import {
   DEFAULT_VISIBLE_ALPHA,
   DEFAULT_OCCLUDED_COLOR_BYTES,
 } from "./constants";
-import { createLogger } from "@envisio/core";
+import { createLogger } from "@klorad/core";
 
 const logger = createLogger("Sensors");
 

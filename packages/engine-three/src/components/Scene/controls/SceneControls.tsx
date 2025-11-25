@@ -2,7 +2,7 @@
 
 import React from "react";
 import { OrbitControls } from "@react-three/drei";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 
 const SceneControls: React.FC = () => {
   const selectedObject = useSceneStore((s) => s.selectedObject);

@@ -1,5 +1,5 @@
 {
-  "name": "envisioxr",
+  "name": "klorad",
   "private": true,
   "version": "1.0.0",
   "workspaces": [
@@ -23,11 +23,11 @@
     "e2e:editor": "playwright test --project=editor --reporter=line",
     "e2e:website": "playwright test --project=website --reporter=line",
     "e2e": "playwright test --reporter=line",
-    "e2e:ci:editor": "start-server-and-test 'pnpm --filter @envisioxr/editor start' http://localhost:3001 'pnpm e2e:editor'",
-    "e2e:ci:website": "start-server-and-test 'pnpm --filter @envisioxr/website start' http://localhost:3000 'pnpm e2e:website'",
+    "e2e:ci:editor": "start-server-and-test 'pnpm --filter @klorad/editor start' http://localhost:3001 'pnpm e2e:editor'",
+    "e2e:ci:website": "start-server-and-test 'pnpm --filter @klorad/website start' http://localhost:3000 'pnpm e2e:website'",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "typecheck": "pnpm --filter './packages/*' --filter '!@envisioxr/prisma' exec bash -c 'if [ -f tsconfig.json ]; then tsc --noEmit --skipLibCheck; else echo \"Skipping - no tsconfig.json\"; fi' && pnpm --filter './apps/*' exec tsc --noEmit --skipLibCheck",
+    "typecheck": "pnpm --filter './packages/*' --filter '!@klorad/prisma' exec bash -c 'if [ -f tsconfig.json ]; then tsc --noEmit --skipLibCheck; else echo \"Skipping - no tsconfig.json\"; fi' && pnpm --filter './apps/*' exec tsc --noEmit --skipLibCheck",
     "typecheck:editor": "cd apps/editor && pnpm exec tsc --noEmit --skipLibCheck",
     "build:check": "pnpm typecheck && pnpm build:packages && cd apps/editor && pnpm build --dry-run || (cd apps/editor && pnpm build)",
     "syncpack:check": "syncpack list-mismatches",
@@ -70,7 +70,7 @@
     "audit:rsc": "tsx scripts/audits/rsc-boundaries.ts",
     "audit:performance": "pnpm audit:renderloop && pnpm audit:webgl && pnpm audit:tiles && pnpm audit:viewer && pnpm audit:hydration && pnpm audit:lists && pnpm audit:network && pnpm audit:cpu && pnpm audit:textures && pnpm audit:rsc",
     "audit:migrations": "tsx scripts/audits/migrations.ts",
-    "prisma:generate": "pnpm --filter @envisioxr/prisma generate",
+    "prisma:generate": "pnpm --filter @klorad/prisma generate",
     "prisma:migrate:deploy": "cd packages/prisma && prisma migrate deploy",
     "prisma:migrate:resolve": "cd packages/prisma && (prisma migrate resolve --rolled-back 20241117010033_add_activity_table || true) && (prisma migrate resolve --rolled-back 20251119124722_add_cesium_ion_integrations || true)",
     "vercel:build:editor": "pnpm prisma:generate && pnpm prisma:migrate:resolve && pnpm prisma:migrate:deploy && pnpm clean && pnpm build:packages && cd apps/editor && pnpm build",
@@ -93,7 +93,7 @@
     }
   },
   "dependencies": {
-    "@envisio/ion-sdk": "workspace:^",
+    "@klorad/ion-sdk": "workspace:^",
     "@types/react": "^18.3.20",
     "@types/react-dom": "^18.3.1",
     "@typescript-eslint/eslint-plugin": "^7.0.0",

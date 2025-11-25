@@ -7,10 +7,10 @@
  * Checks:
  * - Fail on any circular import
  * - Enforce graph rules:
- *   - @envisio/core → no internal deps
- *   - @envisio/ion-sdk → may depend on core only (peer)
- *   - @envisio/engine-cesium|engine-three → may depend on core, ion-sdk, ui
- *   - apps/* → can depend on all @envisio/*, not vice-versa
+ *   - @klorad/core → no internal deps
+ *   - @klorad/ion-sdk → may depend on core only (peer)
+ *   - @klorad/engine-cesium|engine-three → may depend on core, ion-sdk, ui
+ *   - apps/* → can depend on all @klorad/*, not vice-versa
  */
 
 import { execSync } from "child_process";
@@ -21,16 +21,16 @@ const WORKSPACE_ROOT = process.cwd();
 
 // Dependency graph rules
 const ALLOWED_DEPS: Record<string, string[]> = {
-  "@envisio/core": [], // No internal deps
-  "@envisio/ion-sdk": ["@envisio/core"],
-  "@envisio/ui": ["@envisio/core"],
-  "@envisio/engine-cesium": [
-    "@envisio/core",
-    "@envisio/ion-sdk",
-    "@envisio/ui",
+  "@klorad/core": [], // No internal deps
+  "@klorad/ion-sdk": ["@klorad/core"],
+  "@klorad/ui": ["@klorad/core"],
+  "@klorad/engine-cesium": [
+    "@klorad/core",
+    "@klorad/ion-sdk",
+    "@klorad/ui",
   ],
-  "@envisio/engine-three": ["@envisio/core", "@envisio/ui"],
-  "@envisio/config": ["@envisio/core"],
+  "@klorad/engine-three": ["@klorad/core", "@klorad/ui"],
+  "@klorad/config": ["@klorad/core"],
 };
 
 function checkCircularDeps() {
@@ -90,7 +90,7 @@ function checkDependencyDirections() {
     const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
     const pkgId = pkgJson.name;
 
-    if (!pkgId?.startsWith("@envisio/")) continue;
+    if (!pkgId?.startsWith("@klorad/")) continue;
 
     const allowed = ALLOWED_DEPS[pkgId] || [];
     const allDeps = {
@@ -100,7 +100,7 @@ function checkDependencyDirections() {
     };
 
     for (const [depName] of Object.entries(allDeps)) {
-      if (depName.startsWith("@envisio/") && !allowed.includes(depName)) {
+      if (depName.startsWith("@klorad/") && !allowed.includes(depName)) {
         violations.push({
           pkg: pkgId,
           dep: depName,

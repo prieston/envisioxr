@@ -25,7 +25,7 @@ import {
   PageDescription,
   PageContent,
   showToast,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,

@@ -38,13 +38,13 @@ import {
 } from "@mui/icons-material";
 import useSWR from "swr";
 import { projectFetcher, getThumbnailUploadUrl, uploadToSignedUrl, updateProjectThumbnail, updateProjectPublishSettings } from "@/app/utils/api";
-import { showToast } from "@envisio/ui";
+import { showToast } from "@klorad/ui";
 import {
   Page,
   PageHeader,
   PageDescription,
   PageContent,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,

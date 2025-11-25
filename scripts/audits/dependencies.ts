@@ -192,7 +192,7 @@ function checkPackageMetadata(packages: Package[]): void {
 
   for (const pkg of packages) {
     // Check package name format
-    if (pkg.name !== 'root' && pkg.name !== 'website' && !pkg.name.startsWith('@envisio') && !pkg.name.startsWith('@envisioxr')) {
+    if (pkg.name !== 'root' && pkg.name !== 'website' && !pkg.name.startsWith('@klorad')) {
       issues.push(`⚠️  ${pkg.name}: Package name doesn't follow naming convention`);
     }
 

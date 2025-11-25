@@ -3,8 +3,8 @@
 import React, { useMemo, useState } from "react";
 import { Divider, IconButton } from "@mui/material";
 import LogoHeader from "./LogoHeader";
-import { useSceneStore, useWorldStore } from "@envisio/core";
-import { getTopBarConfig } from "@envisio/config/factory";
+import { useSceneStore, useWorldStore } from "@klorad/core";
+import { getTopBarConfig } from "@klorad/config/factory";
 import TopBarToolRenderer from "./TopBarToolRenderer";
 import {
   AppBarContainer,
@@ -12,7 +12,7 @@ import {
   LeftSection,
   RightSection,
 } from "./StyledComponents";
-import { PublishDialog } from "@envisio/ui";
+import { PublishDialog } from "@klorad/ui";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import UserAccountMenu from "./UserAccountMenu";
 

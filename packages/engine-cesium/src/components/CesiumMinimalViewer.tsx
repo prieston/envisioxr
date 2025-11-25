@@ -52,7 +52,7 @@ export function CesiumMinimalViewer({
     const initializeCesium = async () => {
       try {
         // Ensure Ion SDK is loaded before creating viewer
-        const { ensureIonSDKLoaded } = await import("@envisio/ion-sdk");
+        const { ensureIonSDKLoaded } = await import("@klorad/ion-sdk");
         await ensureIonSDKLoaded();
 
         // Dynamic import of Cesium

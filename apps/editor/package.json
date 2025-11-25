@@ -1,5 +1,5 @@
 {
-  "name": "@envisioxr/editor",
+  "name": "@klorad/editor",
   "version": "2.0.0",
   "type": "module",
   "private": true,
@@ -14,7 +14,7 @@
     "analyze": "cross-env ANALYZE=true next build",
     "size": "size-limit --why || (echo 'Bundle over budget' && exit 1)",
     "start": "next start",
-    "vercel:build:editor": "pnpm --filter @envisioxr/prisma generate && pnpm --filter @envisioxr/prisma prisma migrate deploy && pnpm build"
+    "vercel:build:editor": "pnpm --filter @klorad/prisma generate && pnpm --filter @klorad/prisma prisma migrate deploy && pnpm build"
   },
   "dependencies": {
     "3d-tiles-renderer": "^0.4.7",
@@ -25,13 +25,13 @@
     "@ducanh2912/next-pwa": "^10.0.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@envisio/config": "workspace:^",
-    "@envisio/core": "workspace:^",
-    "@envisio/engine-cesium": "workspace:^",
-    "@envisio/engine-three": "workspace:^",
-    "@envisio/ion-sdk": "workspace:^",
-    "@envisio/ui": "workspace:^",
-    "@envisioxr/prisma": "workspace:*",
+    "@klorad/config": "workspace:^",
+    "@klorad/core": "workspace:^",
+    "@klorad/engine-cesium": "workspace:^",
+    "@klorad/engine-three": "workspace:^",
+    "@klorad/ion-sdk": "workspace:^",
+    "@klorad/ui": "workspace:^",
+    "@klorad/prisma": "workspace:*",
     "@mui/icons-material": "^6.4.2",
     "@mui/material": "^6.4.1",
     "@next-auth/prisma-adapter": "^1.0.7",

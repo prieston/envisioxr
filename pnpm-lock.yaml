@@ -15,7 +15,7 @@ importers:
 
   .:
     dependencies:
-      '@envisio/ion-sdk':
+      '@klorad/ion-sdk':
         specifier: workspace:^
         version: link:packages/ion-sdk
       '@types/react':
@@ -148,27 +148,27 @@ importers:
       '@emotion/styled':
         specifier: ^11.14.0
         version: 11.14.1(@emotion/react@11.14.0(@types/react@18.3.26)(react@18.3.1))(@types/react@18.3.26)(react@18.3.1)
-      '@envisio/config':
+      '@klorad/config':
         specifier: workspace:^
         version: link:../../packages/config
-      '@envisio/core':
+      '@klorad/core':
         specifier: workspace:^
         version: link:../../packages/core
-      '@envisio/engine-cesium':
+      '@klorad/engine-cesium':
         specifier: workspace:^
         version: link:../../packages/engine-cesium
-      '@envisio/engine-three':
+      '@klorad/engine-three':
         specifier: workspace:^
         version: link:../../packages/engine-three
-      '@envisio/ion-sdk':
+      '@klorad/ion-sdk':
         specifier: workspace:^
         version: link:../../packages/ion-sdk
-      '@envisio/ui':
-        specifier: workspace:^
-        version: link:../../packages/ui
-      '@envisioxr/prisma':
+      '@klorad/prisma':
         specifier: workspace:*
         version: link:../../packages/prisma
+      '@klorad/ui':
+        specifier: workspace:^
+        version: link:../../packages/ui
       '@mui/icons-material':
         specifier: ^6.4.2
         version: 6.5.0(@mui/material@6.5.0(@emotion/react@11.14.0(@types/react@18.3.26)(react@18.3.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.26)(react@18.3.1))(@types/react@18.3.26)(react@18.3.1))(@types/react@18.3.26)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.26)(react@18.3.1)
@@ -441,10 +441,10 @@ importers:
       '@cesium/engine':
         specifier: ^22.0.0
         version: 22.0.0
-      '@envisio/core':
+      '@klorad/core':
         specifier: workspace:*
         version: link:../core
-      '@envisio/ion-sdk':
+      '@klorad/ion-sdk':
         specifier: workspace:*
         version: link:../ion-sdk
       '@mui/icons-material':
@@ -493,7 +493,7 @@ importers:
         specifier: '>=0.170.0 <1'
         version: 0.170.0
     devDependencies:
-      '@envisio/ui':
+      '@klorad/ui':
         specifier: workspace:*
         version: link:../ui
 
@@ -502,13 +502,13 @@ importers:
       3d-tiles-renderer:
         specifier: ^0.4.7
         version: 0.4.17(@react-three/fiber@8.18.0(@types/react@18.3.26)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.170.0)
-      '@envisio/core':
+      '@klorad/core':
         specifier: workspace:*
         version: link:../core
-      '@envisio/engine-cesium':
+      '@klorad/engine-cesium':
         specifier: workspace:*
         version: link:../engine-cesium
-      '@envisio/ui':
+      '@klorad/ui':
         specifier: workspace:*
         version: link:../ui
       '@mui/material':
@@ -550,7 +550,7 @@ importers:
 
   packages/ion-sdk:
     dependencies:
-      '@envisio/core':
+      '@klorad/core':
         specifier: workspace:*
         version: link:../core
       '@types/three':

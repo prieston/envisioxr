@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import { ModelObject } from "../../types";
 
 interface UsePropertyChangeProps {

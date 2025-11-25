@@ -3,7 +3,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { Button, FormControlLabel, Switch, Typography, Box } from "@mui/material";
-import { LeftPanelContainer } from "@envisio/ui";
+import { LeftPanelContainer } from "@klorad/ui";
 import {
   DesktopContainer,
   SidebarHeader,
@@ -13,7 +13,7 @@ import {
   Separator,
 } from "./DesktopLayout.styles";
 import LogoHeader from "../AppBar/LogoHeader";
-import type { SceneProps } from "@envisio/engine-three";
+import type { SceneProps } from "@klorad/engine-three";
 
 type Observation = {
   id?: string | number;

@@ -32,7 +32,7 @@ This component demonstrates proper separation of concerns across packages:
          │              │
          ▼              ▼
 ┌──────────────┐  ┌────────────────┐
-│ @envisio/ui  │  │ engine-cesium  │
+│ @klorad/ui  │  │ engine-cesium  │
 │ • ActionBtn  │  │ • IonUpload    │
 │ • FileUtils  │  │ • Polling      │
 └──────────────┘  └────────────────┘
@@ -40,13 +40,13 @@ This component demonstrates proper separation of concerns across packages:
 
 ## Package Distribution
 
-### `@envisio/ui` - Generic UI Components
+### `@klorad/ui` - Generic UI Components
 
 - **ActionButton** - Reusable toolbar button
 - **dataURLtoBlob** - File conversion utility
 - **uploadFileWithProgress** - Generic upload with progress
 
-### `@envisio/engine-cesium` - Pure Engine Logic
+### `@klorad/engine-cesium` - Pure Engine Logic
 
 - **useCesiumIonUpload** - Core Cesium Ion operations
 - Asset polling, S3 uploads, type mapping
@@ -82,13 +82,13 @@ BuilderActions/
 ### Using Components from Packages
 
 ```tsx
-// From @envisio/ui
-import { ActionButton } from "@envisio/ui";
+// From @klorad/ui
+import { ActionButton } from "@klorad/ui";
 
 <ActionButton icon={<SaveIcon />} label="Save" onClick={handleSave} />;
 
-// From @envisio/engine-cesium
-import { useCesiumIonUpload } from "@envisio/engine-cesium";
+// From @klorad/engine-cesium
+import { useCesiumIonUpload } from "@klorad/engine-cesium";
 
 const { ionUploading, uploadToS3 } = useCesiumIonUpload();
 ```
@@ -105,8 +105,8 @@ const { ionUploading, uploadToS3 } = useCesiumIonUpload();
 
 ## Dependencies
 
-- `@envisio/core` - State management
-- `@envisio/ui` - UI components
-- `@envisio/engine-cesium` - Cesium logic
+- `@klorad/core` - State management
+- `@klorad/ui` - UI components
+- `@klorad/engine-cesium` - Cesium logic
 - `@mui/material` - Material-UI
 - `@aws-sdk/client-s3` - S3 uploads

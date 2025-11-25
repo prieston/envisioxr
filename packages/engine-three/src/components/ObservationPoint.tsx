@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 
 const ObservationPoint = ({
   id,

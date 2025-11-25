@@ -5,8 +5,8 @@ import { Box, Switch, FormControlLabel } from "@mui/material";
 import {
   SettingContainer,
   SettingLabel,
-} from "@envisio/ui";
-import { useSceneStore } from "@envisio/core";
+} from "@klorad/ui";
+import { useSceneStore } from "@klorad/core";
 import { useIoTWeatherData } from "./hooks/useIoTWeatherData";
 import { IoTDeviceSettings } from "./IoTDeviceSettings";
 import { IoTWeatherDisplay } from "./IoTWeatherDisplay";

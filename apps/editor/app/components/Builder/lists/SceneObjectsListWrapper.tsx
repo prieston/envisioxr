@@ -1,6 +1,6 @@
 import React from "react";
-import { SceneObjectsList } from "@envisio/ui";
-import { useSceneStore } from "@envisio/core";
+import { SceneObjectsList } from "@klorad/ui";
+import { useSceneStore } from "@klorad/core";
 
 /**
  * Wrapper component that connects the generic SceneObjectsList UI component

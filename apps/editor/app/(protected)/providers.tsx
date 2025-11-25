@@ -1,6 +1,6 @@
 "use client";
 
-import { ThemeModeProvider } from "@envisio/ui";
+import { ThemeModeProvider } from "@klorad/ui";
 import DashboardSidebar from "@/app/components/Dashboard/DashboardSidebar";
 
 export function ClientProviders({ children }: { children: React.ReactNode }) {

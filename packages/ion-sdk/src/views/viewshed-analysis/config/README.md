@@ -27,7 +27,7 @@ When multiple viewshed analyses are active, inactive (non-selected) viewsheds ar
 ### Get Current Configuration
 
 ```typescript
-import { getThrottleConfig } from "@envisio/ion-sdk";
+import { getThrottleConfig } from "@klorad/ion-sdk";
 
 const config = getThrottleConfig();
 console.log(config); // { enabled: true, inactiveUpdateIntervalMs: 1000 }
@@ -36,7 +36,7 @@ console.log(config); // { enabled: true, inactiveUpdateIntervalMs: 1000 }
 ### Update Configuration
 
 ```typescript
-import { updateThrottleConfig } from "@envisio/ion-sdk";
+import { updateThrottleConfig } from "@klorad/ion-sdk";
 
 // Disable throttling (all viewsheds update at full speed)
 updateThrottleConfig({ enabled: false });
@@ -47,14 +47,14 @@ updateThrottleConfig({ inactiveUpdateIntervalMs: 500 });
 // Change both
 updateThrottleConfig({
   enabled: true,
-  inactiveUpdateIntervalMs: 2000
+  inactiveUpdateIntervalMs: 2000,
 });
 ```
 
 ### Reset to Defaults
 
 ```typescript
-import { resetThrottleConfig } from "@envisio/ion-sdk";
+import { resetThrottleConfig } from "@klorad/ion-sdk";
 
 resetThrottleConfig();
 ```
@@ -64,7 +64,7 @@ resetThrottleConfig();
 ### Disable Throttling for High-End Devices
 
 ```typescript
-import { updateThrottleConfig } from "@envisio/ion-sdk";
+import { updateThrottleConfig } from "@klorad/ion-sdk";
 
 // Disable throttling to allow all viewsheds to update smoothly
 // Only recommended for powerful devices with few viewsheds
@@ -74,7 +74,7 @@ updateThrottleConfig({ enabled: false });
 ### Aggressive Throttling for Many Viewsheds
 
 ```typescript
-import { updateThrottleConfig } from "@envisio/ion-sdk";
+import { updateThrottleConfig } from "@klorad/ion-sdk";
 
 // Throttle inactive viewsheds to update every 2 seconds
 // Useful when you have 10+ viewsheds active
@@ -84,20 +84,20 @@ updateThrottleConfig({ inactiveUpdateIntervalMs: 2000 });
 ### Balanced Performance (Recommended)
 
 ```typescript
-import { updateThrottleConfig } from "@envisio/ion-sdk";
+import { updateThrottleConfig } from "@klorad/ion-sdk";
 
 // Default: 1 second updates for inactive viewsheds
 // Good balance between performance and visual quality
 updateThrottleConfig({
   enabled: true,
-  inactiveUpdateIntervalMs: 1000
+  inactiveUpdateIntervalMs: 1000,
 });
 ```
 
 ### Fine-Tuned Updates
 
 ```typescript
-import { updateThrottleConfig } from "@envisio/ion-sdk";
+import { updateThrottleConfig } from "@klorad/ion-sdk";
 
 // Update inactive viewsheds every 500ms for smoother visuals
 // Better for presentations/demos, uses more CPU
@@ -116,4 +116,3 @@ updateThrottleConfig({ inactiveUpdateIntervalMs: 500 });
 - Active (selected) viewsheds always update at full speed regardless of configuration
 - Configuration is global and affects all viewshed analysis instances
 - The configuration persists for the lifetime of the application unless reset
-

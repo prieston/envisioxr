@@ -23,7 +23,7 @@ import {
   PageDescription,
   PageContent,
   MetricCard,
-} from "@envisio/ui";
+} from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,
@@ -42,7 +42,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { createOrganization, deleteOrganization } from "@/app/utils/api";
 import { CreateOrganizationDrawer } from "@/app/components/Organizations/CreateOrganizationDrawer";
-import { showToast } from "@envisio/ui";
+import { showToast } from "@klorad/ui";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText } from "@mui/material";
 

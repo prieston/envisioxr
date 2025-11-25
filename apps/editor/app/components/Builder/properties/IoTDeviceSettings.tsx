@@ -14,7 +14,7 @@ import {
   textFieldStyles,
   selectStyles,
   menuItemStyles,
-} from "@envisio/ui";
+} from "@klorad/ui";
 
 interface IoTProperties {
   enabled: boolean;

@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
-import { useSceneStore } from "@envisio/core";
+import { useSceneStore } from "@klorad/core";
 import useModelLoader from "./hooks/useModelLoader";
 import { useModelSelection } from "./hooks/useModelSelection";
 import { useModelMaterials } from "./hooks/useModelMaterials";

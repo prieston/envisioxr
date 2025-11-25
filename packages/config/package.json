@@ -1,5 +1,5 @@
 {
-  "name": "@envisio/config",
+  "name": "@klorad/config",
   "version": "0.0.1",
   "private": true,
   "sideEffects": false,

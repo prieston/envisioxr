@@ -16,7 +16,7 @@ import {
   textFieldStyles,
   SettingContainer,
   SettingLabel,
-} from "@envisio/ui";
+} from "@klorad/ui";
 
 interface CreateOrganizationDrawerProps {
   open: boolean;
