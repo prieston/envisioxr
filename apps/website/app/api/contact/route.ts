@@ -52,10 +52,13 @@ export async function POST(request: NextRequest) {
       from: email,
     });
 
-    return Response.json({
-      status: "received",
-      message: "Your message has been sent successfully.",
-    });
+    return Response.json(
+      {
+        status: "received",
+        message: "Your message has been sent successfully.",
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("[Contact API] Error:", error);
     return Response.json(

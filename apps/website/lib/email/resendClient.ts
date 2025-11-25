@@ -44,7 +44,20 @@ export async function sendEmail(options: {
       // eslint-disable-next-line no-console
       console.error("[Email] Failed to send email:", result.error);
       // eslint-disable-next-line no-console
-      console.error("[Email] Resend error details:", JSON.stringify(result.error, null, 2));
+      console.error(
+        "[Email] Resend error details:",
+        JSON.stringify(result.error, null, 2)
+      );
+
+      // Provide helpful error message for domain verification issues
+      if (result.error.message?.includes("domain is not verified")) {
+        // eslint-disable-next-line no-console
+        console.error(
+          "[Email] Domain verification error: Please verify your domain in Resend. " +
+            "Check EMAIL_FROM environment variable and ensure the domain is verified at https://resend.com/domains"
+        );
+      }
+
       return null;
     }
 
@@ -65,4 +78,3 @@ export async function sendEmail(options: {
     return null;
   }
 }
-
