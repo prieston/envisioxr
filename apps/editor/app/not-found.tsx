@@ -3,7 +3,7 @@
 import React from "react";
 import { Box, Button, Typography, Container, useTheme, alpha } from "@mui/material";
 import { useRouter } from "next/navigation";
-import DashboardIcon from "@mui/icons-material/Dashboard";
+import { DashboardIcon } from "@klorad/ui";
 import {
   AnimatedBackground,
   GlowingContainer,

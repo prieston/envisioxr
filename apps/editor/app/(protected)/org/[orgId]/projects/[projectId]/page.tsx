@@ -20,22 +20,22 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import {
-  ArrowBack,
-  OpenInNew,
-  Public,
-  Lock,
-  Person,
-  CalendarToday,
-  Edit,
-  LocationOn,
-  Memory,
-  Image as ImageIcon,
-  VideoLibrary,
-  Description,
-  History,
-  PhotoCamera,
-  Delete,
-} from "@mui/icons-material";
+  ArrowBackIcon,
+  OpenInNewIcon,
+  PublicIcon,
+  LockIcon,
+  PersonIcon,
+  CalendarTodayIcon,
+  EditIcon,
+  LocationOnIcon,
+  MemoryIcon,
+  ImageIcon,
+  VideoLibraryIcon,
+  DescriptionIcon,
+  HistoryIcon,
+  PhotoCameraIcon,
+  DeleteIcon,
+} from "@klorad/ui";
 import useSWR from "swr";
 import { projectFetcher, getThumbnailUploadUrl, uploadToSignedUrl, updateProjectThumbnail, updateProjectPublishSettings } from "@/app/utils/api";
 import { showToast } from "@klorad/ui";
@@ -337,7 +337,7 @@ const ProjectDetailPage = () => {
             access to it.
           </PageDescription>
           <Button
-            startIcon={<ArrowBack />}
+            startIcon={<ArrowBackIcon />}
             onClick={() => {
               if (orgId) {
                 router.push(`/org/${orgId}/projects`);
@@ -388,7 +388,7 @@ const ProjectDetailPage = () => {
         >
           <Box sx={{ flex: 1 }}>
             <Button
-              startIcon={<ArrowBack />}
+              startIcon={<ArrowBackIcon />}
               onClick={() => {
               if (orgId) {
                 router.push(`/org/${orgId}/projects`);
@@ -411,7 +411,7 @@ const ProjectDetailPage = () => {
           </Box>
           <Button
             variant="contained"
-            startIcon={<OpenInNew />}
+              startIcon={<OpenInNewIcon />}
             onClick={() => {
               if (orgId) {
                 window.open(`/org/${orgId}/projects/${projectId}/builder`, '_blank');
@@ -522,7 +522,7 @@ const ProjectDetailPage = () => {
                       }}
                       size="small"
                     >
-                      <PhotoCamera fontSize="small" />
+                      <PhotoCameraIcon fontSize="small" />
                     </IconButton>
                     {project?.thumbnail && (
                       <IconButton
@@ -537,7 +537,7 @@ const ProjectDetailPage = () => {
                         }}
                         size="small"
                       >
-                        <Delete fontSize="small" />
+                        <DeleteIcon fontSize="small" />
                       </IconButton>
                     )}
                   </Box>
@@ -569,7 +569,7 @@ const ProjectDetailPage = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
                       <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                        <CalendarToday
+                        <CalendarTodayIcon
                           sx={{ fontSize: 18, mr: 1, color: "rgba(255, 255, 255, 0.5)" }}
                         />
                         <Typography variant="body2" color="text.secondary">
@@ -582,7 +582,7 @@ const ProjectDetailPage = () => {
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                        <Edit
+                        <EditIcon
                           sx={{ fontSize: 18, mr: 1, color: "rgba(255, 255, 255, 0.5)" }}
                         />
                         <Typography variant="body2" color="text.secondary">
@@ -595,7 +595,7 @@ const ProjectDetailPage = () => {
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                        <Memory
+                        <MemoryIcon
                           sx={{ fontSize: 18, mr: 1, color: "rgba(255, 255, 255, 0.5)" }}
                         />
                         <Typography variant="body2" color="text.secondary">
@@ -623,7 +623,7 @@ const ProjectDetailPage = () => {
                     {location && (
                       <Grid item xs={12} sm={6}>
                         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                          <LocationOn
+                          <LocationOnIcon
                             sx={{ fontSize: 18, mr: 1, color: "rgba(255, 255, 255, 0.5)" }}
                           />
                           <Typography variant="body2" color="text.secondary">
@@ -662,7 +662,7 @@ const ProjectDetailPage = () => {
                       mb: 2,
                     }}
                   >
-                    <History
+                    <HistoryIcon
                       sx={{ fontSize: 20, mr: 1, color: "rgba(255, 255, 255, 0.7)" }}
                     />
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>
@@ -785,7 +785,7 @@ const ProjectDetailPage = () => {
                         mb: 2,
                       }}
                     >
-                      <VideoLibrary
+                      <VideoLibraryIcon
                         sx={{ fontSize: 20, mr: 1, color: "rgba(255, 255, 255, 0.7)" }}
                       />
                       <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>
@@ -834,7 +834,7 @@ const ProjectDetailPage = () => {
                       mb: 2,
                     }}
                   >
-                    <Description
+                    <DescriptionIcon
                       sx={{ fontSize: 20, mr: 1, color: "rgba(255, 255, 255, 0.7)" }}
                     />
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>
@@ -885,9 +885,9 @@ const ProjectDetailPage = () => {
                         label={
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                             {project.isPublished ? (
-                              <Public sx={{ fontSize: 18, color: "#10b981" }} />
+                              <PublicIcon sx={{ fontSize: 18, color: "#10b981" }} />
                             ) : (
-                              <Lock sx={{ fontSize: 18, color: "rgba(255, 255, 255, 0.5)" }} />
+                              <LockIcon sx={{ fontSize: 18, color: "rgba(255, 255, 255, 0.5)" }} />
                             )}
                             <Typography variant="body2">
                               {project.isPublished ? "Published" : "Unpublished"}
@@ -909,7 +909,7 @@ const ProjectDetailPage = () => {
                         </Typography>
                         <Button
                           size="small"
-                          endIcon={<OpenInNew />}
+                          endIcon={<OpenInNewIcon />}
                           onClick={() => window.open(project.publishedUrl || "", "_blank")}
                           sx={{ textTransform: "none" }}
                         >
@@ -931,9 +931,9 @@ const ProjectDetailPage = () => {
                           label={
                             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                               {project.isPublic ? (
-                                <Public sx={{ fontSize: 18, color: "#10b981" }} />
+                                <PublicIcon sx={{ fontSize: 18, color: "#10b981" }} />
                               ) : (
-                                <Lock sx={{ fontSize: 18, color: "rgba(255, 255, 255, 0.5)" }} />
+                                <LockIcon sx={{ fontSize: 18, color: "rgba(255, 255, 255, 0.5)" }} />
                               )}
                               <Typography variant="body2">
                                 {project.isPublic ? "Public Access" : "Private Access"}
@@ -978,7 +978,7 @@ const ProjectDetailPage = () => {
                       mb: 2,
                     }}
                   >
-                    <Person
+                    <PersonIcon
                       sx={{ fontSize: 20, mr: 1, color: "rgba(255, 255, 255, 0.7)" }}
                     />
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>

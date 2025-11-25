@@ -28,8 +28,7 @@ import { useOrgId } from "@/app/hooks/useOrgId";
 import { getUsageStats, UsageStats } from "@/app/utils/api";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
-import CheckIcon from "@mui/icons-material/Check";
-import WarningIcon from "@mui/icons-material/Warning";
+import { CheckIcon, WarningIcon } from "@klorad/ui";
 
 interface UsageMetricProps {
   label: string;

@@ -7,7 +7,7 @@ import { useSceneStore } from "@klorad/core";
 import { createLogger } from "@klorad/core";
 import * as THREE from "three";
 import { localToGeographic } from "@klorad/core";
-import { Description as DescriptionIcon } from "@mui/icons-material";
+import { DescriptionIcon } from "@klorad/ui";
 import { ActionButton } from "@klorad/ui";
 
 const logger = createLogger("ReportGenerator");

@@ -12,7 +12,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ExpandMoreIcon } from "@klorad/ui";
 import { formatKey, formatValue } from "./CesiumFeaturePropertyFormatter";
 import type { PropertyCategory } from "./CesiumFeaturePropertyCategorizer";
 

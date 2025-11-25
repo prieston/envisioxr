@@ -18,9 +18,7 @@ import {
   TOP_APPBAR_HEIGHT,
   BOTTOM_BAR_HEIGHT,
 } from "./MobileLayout.styles";
-import MenuIcon from "@mui/icons-material/Menu";
-import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import { MenuIcon, NavigateBeforeIcon, NavigateNextIcon } from "@klorad/ui";
 import LogoHeader from "../AppBar/LogoHeader";
 import type { SceneProps } from "@klorad/engine-three";
 

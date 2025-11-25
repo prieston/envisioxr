@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Typography, Button, TextField } from "@mui/material";
-import { LocationOn } from "@mui/icons-material";
+import { LocationOnIcon } from "@klorad/ui";
 import { SettingContainer, SettingLabel } from "@klorad/ui";
 import { googleMapsLinkForLatLon, textFieldStyles } from "@klorad/ui";
 import { ModelObject, GeographicCoords } from "./types";
@@ -46,7 +46,7 @@ const TransformLocationSection: React.FC<TransformLocationSectionProps> =
           {geographicCoords && (
             <Button
               variant="outlined"
-              startIcon={<LocationOn />}
+              startIcon={<LocationOnIcon />}
               href={googleMapsLinkForLatLon(
                 geographicCoords.latitude,
                 geographicCoords.longitude

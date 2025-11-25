@@ -11,7 +11,7 @@ import {
   Alert,
 } from "@mui/material";
 import { styled, alpha } from "@mui/material/styles";
-import GoogleIcon from "@mui/icons-material/Google";
+import { GoogleIcon } from "@klorad/ui";
 import LogoHeader from "@/app/components/AppBar/LogoHeader";
 import Link from "next/link";
 import { signIn } from "next-auth/react";

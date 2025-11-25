@@ -11,7 +11,7 @@ import {
   alpha,
 } from "@mui/material";
 import { alpha as muiAlpha } from "@mui/material/styles";
-import SearchIcon from "@mui/icons-material/Search";
+import { SearchIcon } from "@klorad/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Page,

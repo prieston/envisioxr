@@ -1,6 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
-import { LockClock } from "@mui/icons-material";
+import { LockClockIcon as LockClock } from "@klorad/ui";
 import {
   LockToNowContainer,
   LockToNowLabel,

@@ -15,9 +15,7 @@ import {
   alpha,
   useTheme,
 } from "@mui/material";
-import LogoutIcon from "@mui/icons-material/Logout";
-import PersonIcon from "@mui/icons-material/Person";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { LogoutIcon, PersonIcon, ExpandMoreIcon } from "@klorad/ui";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";

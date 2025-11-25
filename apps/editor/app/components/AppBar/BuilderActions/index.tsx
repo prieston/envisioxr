@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import {
-  Save as SaveIcon,
-  Publish as PublishIcon,
-  Inventory as InventoryIcon,
-  Settings as SettingsIcon,
-} from "@mui/icons-material";
+  SaveIcon,
+  PublishIcon,
+  InventoryIcon,
+  SettingsIcon,
+} from "@klorad/ui";
 import { useSceneStore } from "@klorad/core";
 import { showToast, type LibraryAsset } from "@klorad/ui";
 import { ActionButton, AssetManagerModal } from "@klorad/ui";

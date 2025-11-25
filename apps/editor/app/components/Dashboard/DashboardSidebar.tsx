@@ -19,15 +19,17 @@ import {
 } from "@mui/material";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import FolderIcon from "@mui/icons-material/Folder";
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
-import SettingsIcon from "@mui/icons-material/Settings";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import BusinessIcon from "@mui/icons-material/Business";
-import AddIcon from "@mui/icons-material/Add";
-import CreditCardIcon from "@mui/icons-material/CreditCard";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import {
+  DashboardIcon,
+  FolderIcon,
+  LibraryBooksIcon,
+  SettingsIcon,
+  ExpandMoreIcon,
+  BusinessIcon,
+  AddIcon,
+  CreditCardIcon,
+  HelpOutlineIcon,
+} from "@klorad/ui";
 import { LeftPanelContainer } from "@klorad/ui";
 import LogoHeader from "@/app/components/AppBar/LogoHeader";
 import UserAccountMenu from "@/app/components/AppBar/UserAccountMenu";

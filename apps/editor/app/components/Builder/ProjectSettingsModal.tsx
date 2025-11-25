@@ -12,7 +12,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import { Close, PhotoCamera, Refresh } from "@mui/icons-material";
+import { CloseIcon, PhotoCameraIcon, RefreshIcon } from "@klorad/ui";
 import { alpha } from "@mui/material/styles";
 import { useSceneStore } from "@klorad/core";
 import {
@@ -81,7 +81,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
             size="small"
             sx={modalCloseButtonStyles}
           >
-            <Close />
+            <CloseIcon />
           </IconButton>
         </DialogTitle>
 
@@ -202,7 +202,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                   </Box>
                   <Button
                     variant="outlined"
-                    startIcon={<Refresh />}
+                    startIcon={<RefreshIcon />}
                     onClick={handleCaptureClick}
                     sx={{
                       textTransform: "none",
@@ -214,7 +214,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
               ) : (
                 <Button
                   variant="outlined"
-                  startIcon={<PhotoCamera />}
+                  startIcon={<PhotoCameraIcon />}
                   onClick={handleCaptureClick}
                   sx={{
                     textTransform: "none",

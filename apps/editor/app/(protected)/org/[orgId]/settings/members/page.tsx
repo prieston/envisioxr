@@ -26,9 +26,7 @@ import {
   alpha,
   Tooltip,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import UpgradeIcon from "@mui/icons-material/Upgrade";
+import { DeleteIcon, PersonAddIcon, UpgradeIcon } from "@klorad/ui";
 import {
   Page,
   PageHeader,

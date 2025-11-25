@@ -3,7 +3,7 @@
 import React from "react";
 import { Box, Typography, Button, Paper } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Check, Close, TouchApp } from "@mui/icons-material";
+import { CheckIcon, CloseIcon, TouchAppIcon } from "@klorad/ui";
 
 interface ModelPositioningOverlayProps {
   modelName: string;
@@ -64,7 +64,7 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
             mb: 2,
           }}
         >
-          <TouchApp
+          <TouchAppIcon
             sx={(theme) => ({ color: theme.palette.primary.main, fontSize: "24px" })}
           />
           <Typography
@@ -178,7 +178,7 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
         >
           <Button
             variant="outlined"
-            startIcon={<Close />}
+            startIcon={<CloseIcon />}
             onClick={onCancel}
             sx={(theme) => ({
               textTransform: "none",
@@ -205,7 +205,7 @@ const ModelPositioningOverlay: React.FC<ModelPositioningOverlayProps> = ({
           </Button>
           <Button
             variant="contained"
-            startIcon={<Check />}
+            startIcon={<CheckIcon />}
             onClick={onConfirm}
             disabled={!selectedPosition}
             sx={(theme) => ({

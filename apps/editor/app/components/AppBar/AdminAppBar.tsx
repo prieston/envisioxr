@@ -13,7 +13,7 @@ import {
   RightSection,
 } from "./StyledComponents";
 import { PublishDialog } from "@klorad/ui";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import { HelpOutlineIcon } from "@klorad/ui";
 import UserAccountMenu from "./UserAccountMenu";
 
 interface AdminAppBarProps {

@@ -6,13 +6,13 @@ import {
   ViewModeButton,
 } from "./CesiumViewModeControls.styles";
 import {
-  ThreeSixty,
-  Settings,
-  Person,
-  DirectionsCarFilled,
-  FlightTakeoff,
-  Explore,
-} from "@mui/icons-material";
+  ThreeSixtyIcon as ThreeSixty,
+  SettingsIcon as Settings,
+  PersonIcon as Person,
+  DirectionsCarFilledIcon as DirectionsCarFilled,
+  FlightTakeoffIcon as FlightTakeoff,
+  ExploreIcon as Explore,
+} from "@klorad/ui";
 import { SimulationMode } from "../CesiumControls/types";
 import { useSceneStore } from "@klorad/core";
 import { useCameraControllerManager } from "../CesiumControls/hooks/useCameraControllerManager";

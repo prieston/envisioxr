@@ -13,7 +13,7 @@ import {
   Alert,
 } from "@mui/material";
 import { styled, alpha } from "@mui/material/styles";
-import GoogleIcon from "@mui/icons-material/Google";
+import { GoogleIcon } from "@klorad/ui";
 import LogoHeader from "@/app/components/AppBar/LogoHeader";
 import { useTenant } from "@klorad/core";
 import Link from "next/link";

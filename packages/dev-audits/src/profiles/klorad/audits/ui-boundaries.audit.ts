@@ -126,10 +126,29 @@ export const uiBoundariesAudit: AuditDefinition = {
       // Check if file is under @klorad/ui
       const isUIPackage = fullPath.includes("/packages/ui/") || fullPath.includes("packages\\ui\\");
 
-      // Check for MUI imports
-      const muiImportPattern = /from\s+['"](@mui\/[^'"]+)['"]/g;
+      // Check for MUI icon imports specifically
+      const muiIconPattern = /from\s+['"]@mui\/icons-material[^'"]*['"]/g;
       let match;
+      while ((match = muiIconPattern.exec(content)) !== null) {
+        if (!isUIPackage) {
+          const line = findLineNumber(content, match.index);
+          items.push({
+            message: "MUI icons must be imported from @klorad/ui; use @klorad/ui icons instead of importing from @mui/icons-material directly",
+            file: fullPath,
+            line,
+            severity: "error",
+            code: "MUI_ICON_OUTSIDE_UI",
+          });
+        }
+      }
+
+      // Check for other MUI imports
+      const muiImportPattern = /from\s+['"](@mui\/[^'"]+)['"]/g;
       while ((match = muiImportPattern.exec(content)) !== null) {
+        // Skip icons-material as we already checked it above
+        if (match[1].includes("icons-material")) {
+          continue;
+        }
         if (!isUIPackage) {
           const line = findLineNumber(content, match.index);
           items.push({

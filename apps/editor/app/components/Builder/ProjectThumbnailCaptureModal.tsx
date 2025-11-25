@@ -3,7 +3,7 @@
 import React from "react";
 import { Box, Typography, Button, Paper } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { CameraAlt, Check, Close, Refresh } from "@mui/icons-material";
+import { CameraAltIcon, CheckIcon, CloseIcon, RefreshIcon } from "@klorad/ui";
 
 interface ProjectThumbnailCaptureModalProps {
   open: boolean;
@@ -70,7 +70,7 @@ const ProjectThumbnailCaptureModal: React.FC<ProjectThumbnailCaptureModalProps> 
             mb: 2,
           }}
         >
-          <CameraAlt
+          <CameraAltIcon
             sx={(theme) => ({ color: theme.palette.primary.main, fontSize: "24px" })}
           />
           <Typography
@@ -116,7 +116,7 @@ const ProjectThumbnailCaptureModal: React.FC<ProjectThumbnailCaptureModalProps> 
             >
               <Button
                 variant="outlined"
-                startIcon={<Close />}
+                startIcon={<CloseIcon />}
                 onClick={onCancel}
                 sx={(theme) => ({
                   textTransform: "none",
@@ -143,7 +143,7 @@ const ProjectThumbnailCaptureModal: React.FC<ProjectThumbnailCaptureModalProps> 
               </Button>
               <Button
                 variant="contained"
-                startIcon={<CameraAlt />}
+                startIcon={<CameraAltIcon />}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -223,7 +223,7 @@ const ProjectThumbnailCaptureModal: React.FC<ProjectThumbnailCaptureModalProps> 
             >
               <Button
                 variant="outlined"
-                startIcon={<Refresh />}
+                startIcon={<RefreshIcon />}
                 onClick={onRetake}
                 disabled={uploading}
                 sx={(theme) => ({
@@ -251,7 +251,7 @@ const ProjectThumbnailCaptureModal: React.FC<ProjectThumbnailCaptureModalProps> 
               </Button>
               <Button
                 variant="contained"
-                startIcon={<Check />}
+                startIcon={<CheckIcon />}
                 onClick={onUpload}
                 disabled={uploading}
                 sx={(theme) => ({

@@ -13,9 +13,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { alpha as muiAlpha } from "@mui/material/styles";
-import SearchIcon from "@mui/icons-material/Search";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import AddIcon from "@mui/icons-material/Add";
+import { SearchIcon, CloudUploadIcon, AddIcon } from "@klorad/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Page,

@@ -1,4 +1,4 @@
-import { Settings } from "@mui/icons-material";
+import { SettingsIcon as Settings } from "@klorad/ui";
 import { PanelConfiguration } from "../types/panelConfig";
 
 export const createThreeJSRightPanelConfig = (

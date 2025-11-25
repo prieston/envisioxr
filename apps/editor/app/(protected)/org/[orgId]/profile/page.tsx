@@ -21,10 +21,12 @@ import {
   GlowingContainer,
   GlowingSpan,
 } from "@/app/components/Builder/AdminLayout.styles";
-import EmailIcon from "@mui/icons-material/Email";
-import PersonIcon from "@mui/icons-material/Person";
-import BusinessIcon from "@mui/icons-material/Business";
-import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
+import {
+  EmailIcon,
+  PersonIcon,
+  BusinessIcon,
+  VerifiedUserIcon,
+} from "@klorad/ui";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";

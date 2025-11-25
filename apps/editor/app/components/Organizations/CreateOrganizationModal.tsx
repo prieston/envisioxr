@@ -16,7 +16,7 @@ import {
   Divider,
   alpha,
 } from "@mui/material";
-import StarIcon from "@mui/icons-material/Star";
+import { StarIcon } from "@klorad/ui";
 import { Plan } from "@/app/utils/api";
 import { createOrganizationCheckoutSession } from "@/app/utils/api";
 import { showToast } from "@klorad/ui";

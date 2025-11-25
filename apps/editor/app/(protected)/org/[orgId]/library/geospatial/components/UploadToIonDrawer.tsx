@@ -8,7 +8,7 @@ import {
   IconButton,
   Divider,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { CloseIcon } from "@klorad/ui";
 import { UploadToIonTab } from "@klorad/ui";
 import { showToast } from "@klorad/ui";
 import { useCesiumIonUpload } from "@klorad/engine-cesium";

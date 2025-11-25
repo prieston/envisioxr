@@ -1,11 +1,11 @@
 import React from "react";
 import { Box, Button, Typography } from "@mui/material";
 import {
-  FlightTakeoff,
-  LocationOn,
-  OpenWith,
-  RotateRight,
-} from "@mui/icons-material";
+  FlightTakeoffIcon,
+  LocationOnIcon,
+  OpenWithIcon,
+  RotateRightIcon,
+} from "@klorad/ui";
 import { SettingContainer, SettingLabel } from "@klorad/ui";
 
 interface ObjectActionsSectionProps {
@@ -32,7 +32,7 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
         <Button
           variant="outlined"
           onClick={onFlyToObject}
-          startIcon={<FlightTakeoff />}
+          startIcon={<FlightTakeoffIcon />}
           sx={{
             flex: 1,
             borderRadius: "4px",
@@ -54,7 +54,7 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
           <Button
             variant="outlined"
             onClick={onReposition}
-            startIcon={<LocationOn />}
+            startIcon={<LocationOnIcon />}
             sx={{
               flex: 1,
               borderRadius: "4px",
@@ -96,7 +96,7 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
             <Button
               variant="outlined"
               onClick={() => onTransformModeChange("translate")}
-              startIcon={<OpenWith />}
+              startIcon={<OpenWithIcon />}
               sx={{
                 flex: 1,
                 borderRadius: "4px",
@@ -121,7 +121,7 @@ const ObjectActionsSection: React.FC<ObjectActionsSectionProps> = ({
             <Button
               variant="outlined"
               onClick={() => onTransformModeChange("rotate")}
-              startIcon={<RotateRight />}
+              startIcon={<RotateRightIcon />}
               sx={{
                 flex: 1,
                 borderRadius: "4px",

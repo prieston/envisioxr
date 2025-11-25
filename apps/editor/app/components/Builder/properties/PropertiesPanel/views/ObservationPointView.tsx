@@ -2,7 +2,7 @@
 
 import React, { memo, useCallback, useState, useEffect } from "react";
 import { Box, Button, TextField } from "@mui/material";
-import { Camera, FlightTakeoff } from "@mui/icons-material";
+import { CameraIcon, FlightTakeoffIcon } from "@klorad/ui";
 import { useSceneStore, useWorldStore } from "@klorad/core";
 import { createLogger } from "@klorad/core";
 import { flyToCesiumPosition } from "@klorad/engine-cesium";
@@ -154,7 +154,7 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
               variant="outlined"
               onClick={handleFlyToObservation}
               disabled={!hasVec3(selectedObservation.position)}
-              startIcon={<FlightTakeoff />}
+              startIcon={<FlightTakeoffIcon />}
               sx={{
                 flex: 1,
                 borderRadius: 4,
@@ -180,7 +180,7 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
             <Button
               variant="outlined"
               onClick={handleCapturePosition}
-              startIcon={<Camera />}
+              startIcon={<CameraIcon />}
               sx={{
                 flex: 1,
                 borderRadius: 4,

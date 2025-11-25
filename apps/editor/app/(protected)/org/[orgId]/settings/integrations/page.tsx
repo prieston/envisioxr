@@ -47,11 +47,13 @@ import {
 import useOrganization from "@/app/hooks/useOrganization";
 import { useOrgId } from "@/app/hooks/useOrgId";
 import useSWR from "swr";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import SyncIcon from "@mui/icons-material/Sync";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import ErrorIcon from "@mui/icons-material/Error";
+import {
+  AddIcon,
+  DeleteIcon,
+  SyncIcon,
+  CheckCircleIcon,
+  ErrorIcon,
+} from "@klorad/ui";
 import { AddIntegrationDrawer } from "./components/AddIntegrationDrawer";
 
 const IntegrationsPage = () => {
