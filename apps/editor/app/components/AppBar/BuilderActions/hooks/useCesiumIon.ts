@@ -1,3 +1,5 @@
+"use client";
+
 import { showToast } from "@klorad/ui";
 import { useSceneStore } from "@klorad/core";
 import {

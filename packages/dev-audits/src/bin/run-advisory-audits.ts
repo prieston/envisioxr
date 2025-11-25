@@ -1,0 +1,38 @@
+#!/usr/bin/env node
+/**
+ * Run advisory (non-blocking) audits
+ */
+/* eslint-disable no-console */
+
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
+import { kloradProfile } from "../profiles/klorad/index.js";
+import { runProfileAudits } from "../core/audit-runner.js";
+import { printReport } from "../core/reporter.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Find repo root (go up from packages/dev-audits/dist/bin to repo root)
+const repoRoot = resolve(__dirname, "../../../..");
+
+async function main() {
+  console.log("🔍 Running advisory audits...\n");
+  console.log("=".repeat(80));
+
+  const results = await runProfileAudits(
+    kloradProfile,
+    repoRoot,
+    "advisory"
+  );
+  printReport(results);
+
+  // Advisory audits always exit 0 (non-blocking)
+  process.exit(0);
+}
+
+main().catch((error) => {
+  console.error("Fatal error:", error);
+  process.exit(1);
+});
+

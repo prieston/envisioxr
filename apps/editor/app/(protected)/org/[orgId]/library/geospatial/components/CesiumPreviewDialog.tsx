@@ -83,6 +83,18 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
         cesiumWidgets.forEach((widget) => widget.remove());
       }
     }
+
+    // Cleanup function
+    return () => {
+      if (viewerRef.current) {
+        try {
+          viewerRef.current.destroy();
+        } catch (err) {
+          // Ignore cleanup errors
+        }
+        viewerRef.current = null;
+      }
+    };
   }, [open]);
 
   const handleCapture = async () => {

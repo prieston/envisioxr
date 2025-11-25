@@ -1,3 +1,5 @@
+"use client";
+
 import React, { memo, useCallback, useState, useEffect } from "react";
 import { Box, Button, TextField } from "@mui/material";
 import { Camera, FlightTakeoff } from "@mui/icons-material";
@@ -78,6 +80,7 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
       }
 
       if (engine === "cesium" && cesiumViewer) {
+        if (typeof window === "undefined") return;
         const Cesium = (window as any).Cesium;
         if (!Cesium) {
           logger.warn("Cesium not available");

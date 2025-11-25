@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 import useModels from "./useModels";
 import { updateModelMetadata } from "@/app/utils/api";
