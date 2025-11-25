@@ -170,12 +170,139 @@ function checkCrossLayerImports() {
   }
 }
 
+// Check 4: Cesium engine boundaries - only engine-cesium should import Cesium
+function checkCesiumEngineBoundaries() {
+  console.log("🔍 Checking Cesium engine boundaries...");
+
+  const sourceFiles = glob.sync("**/*.{ts,tsx}", {
+    cwd: WORKSPACE_ROOT,
+    ignore: [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**",
+      "**/dev-audits/**",
+      "**/scripts/audits/**",
+    ],
+  });
+
+  for (const file of sourceFiles) {
+    const fullPath = path.join(WORKSPACE_ROOT, file);
+    const content = fs.readFileSync(fullPath, "utf8");
+
+    // Skip files in engine-cesium - they're allowed to import Cesium
+    if (file.includes("packages/engine-cesium/")) {
+      continue;
+    }
+
+    // Track matches to avoid duplicates (same file, line, and module)
+    const seenMatches = new Set<string>();
+
+    // Check for Cesium imports - match "from 'cesium'" or "from '@cesium/...'"
+    const cesiumImportPattern = /from\s+['"](cesium|@cesium\/[^'"]+)['"]/g;
+    let match;
+    while ((match = cesiumImportPattern.exec(content)) !== null) {
+      // Skip type-only imports
+      const beforeMatch = content.substring(
+        Math.max(0, match.index - 20),
+        match.index
+      );
+      if (beforeMatch.includes("type ")) continue;
+
+      // Extract the imported module name
+      const importedModule = match[1];
+      const line = findLineNumber(content, match[0]);
+
+      // Create a unique key to avoid duplicates
+      const matchKey = `${file}:${line}:${importedModule}`;
+      if (seenMatches.has(matchKey)) {
+        continue;
+      }
+      seenMatches.add(matchKey);
+
+      violations.push({
+        file,
+        line,
+        message: `❌ Cesium imports must go through @klorad/engine-cesium; found direct import from "${importedModule}"`,
+      });
+    }
+  }
+}
+
+// Check 5: Three.js engine boundaries - only engine-three should import Three.js
+function checkThreejsEngineBoundaries() {
+  console.log("🔍 Checking Three.js engine boundaries...");
+
+  const sourceFiles = glob.sync("**/*.{ts,tsx}", {
+    cwd: WORKSPACE_ROOT,
+    ignore: [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**",
+      "**/dev-audits/**",
+      "**/scripts/audits/**",
+    ],
+  });
+
+  for (const file of sourceFiles) {
+    const fullPath = path.join(WORKSPACE_ROOT, file);
+    const content = fs.readFileSync(fullPath, "utf8");
+
+    // Skip files in engine-three - they're allowed to import Three.js
+    if (file.includes("packages/engine-three/")) {
+      continue;
+    }
+
+    // Track matches to avoid duplicates (same file, line, and module)
+    const seenMatches = new Set<string>();
+
+    // Check for Three.js imports
+    const threejsImportPatterns = [
+      /from\s+['"]three['"]/g,
+      /from\s+['"]@react-three\/[^'"]+['"]/g,
+      /from\s+['"]@react-spring\/three['"]/g,
+      /from\s+['"]3d-tiles-renderer['"]/g,
+    ];
+
+    for (const pattern of threejsImportPatterns) {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        // Skip type-only imports
+        const beforeMatch = content.substring(
+          Math.max(0, match.index - 20),
+          match.index
+        );
+        if (beforeMatch.includes("type ")) continue;
+
+        // Extract the imported module name
+        const importMatch = match[0].match(/['"]([^'"]+)['"]/);
+        const importedModule = importMatch ? importMatch[1] : "three";
+        const line = findLineNumber(content, match[0]);
+
+        // Create a unique key to avoid duplicates
+        const matchKey = `${file}:${line}:${importedModule}`;
+        if (seenMatches.has(matchKey)) {
+          continue;
+        }
+        seenMatches.add(matchKey);
+
+        violations.push({
+          file,
+          line,
+          message: `❌ Three.js imports must go through @klorad/engine-three; found direct import from "${importedModule}"`,
+        });
+      }
+    }
+  }
+}
+
 // Main execution
 console.log("📦 Package Boundaries & Exports Audit\n");
 
 checkPackageExports();
 checkAppImports();
 checkCrossLayerImports();
+checkCesiumEngineBoundaries();
+checkThreejsEngineBoundaries();
 
 // Report results
 if (violations.length > 0) {
@@ -198,7 +325,13 @@ if (violations.length > 0) {
     "   - Deep internals: Import public exports only, avoid chunk-* files"
   );
   console.log(
-    "   - Cross-layer: Move imports to allowed layers or use peer dependencies\n"
+    "   - Cross-layer: Move imports to allowed layers or use peer dependencies"
+  );
+  console.log(
+    "   - Cesium imports: All Cesium code must be imported through @klorad/engine-cesium"
+  );
+  console.log(
+    "   - Three.js imports: All Three.js code must be imported through @klorad/engine-three\n"
   );
   process.exit(FAIL_ON_VIOLATION ? 1 : 0);
 } else {
