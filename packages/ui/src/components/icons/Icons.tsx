@@ -111,7 +111,7 @@ export { default as ExploreIcon } from "@mui/icons-material/Explore";
 export { default as ThreeSixtyIcon } from "@mui/icons-material/ThreeSixty";
 
 // Named exports for convenience (matching MUI's export style)
-// These allow imports like: import { Add, Close, Camera } from "@klorad/ui"
+// These allow imports like: import { Add, Close, Camera } from the @klorad/ui package
 export { default as Add } from "@mui/icons-material/Add";
 export { default as Delete } from "@mui/icons-material/Delete";
 export { default as Edit } from "@mui/icons-material/Edit";
