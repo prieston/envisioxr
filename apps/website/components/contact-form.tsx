@@ -26,8 +26,15 @@ export function ContactForm() {
         body: JSON.stringify(payload),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed request");
+        console.error("Contact API error:", {
+          status: response.status,
+          statusText: response.statusText,
+          data,
+        });
+        throw new Error(data.error || "Failed request");
       }
 
       setState("submitted");
