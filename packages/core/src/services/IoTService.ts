@@ -1,5 +1,6 @@
-import { useSceneStore, useIoTStore } from "@envisio/core";
-import type { WeatherData } from "@envisio/core";
+import useSceneStore from "../state/useSceneStore";
+import { useIoTStore, type WeatherData } from "../state/iot-store";
+import type { Model } from "../state/scene-store/types";
 
 interface IoTServiceConfig {
   enabled: boolean;
@@ -41,14 +42,14 @@ class IoTService {
 
     // Find all objects with IoT properties enabled
     const iotObjects = objects.filter(
-      (obj) =>
+      (obj: Model) =>
         obj.iotProperties?.enabled &&
         obj.iotProperties?.autoRefresh &&
         obj.position
     );
 
     // Start/update intervals for each IoT object
-    iotObjects.forEach((obj) => {
+    iotObjects.forEach((obj: Model) => {
       const objectId = obj.id;
       const iotProps = obj.iotProperties!;
 
@@ -71,7 +72,7 @@ class IoTService {
     });
 
     // Clean up intervals for objects that no longer have IoT enabled
-    const iotObjectIds = new Set(iotObjects.map((obj) => obj.id));
+    const iotObjectIds = new Set(iotObjects.map((obj: Model) => obj.id));
     const intervalKeys = Array.from(this.intervals.keys());
     for (const objectId of intervalKeys) {
       if (!iotObjectIds.has(objectId)) {
@@ -85,7 +86,7 @@ class IoTService {
     }
   }
 
-  private async fetchWeatherDataForObject(obj: any) {
+  private async fetchWeatherDataForObject(obj: Model) {
     if (!obj.iotProperties?.enabled) return;
 
     // Rate limiting: Check if we fetched too recently
@@ -199,7 +200,7 @@ class IoTService {
   // Method to manually trigger data fetch for a specific object
   public async fetchDataForObject(objectId: string) {
     const state = useSceneStore.getState();
-    const obj = state.objects.find((o) => o.id === objectId);
+    const obj = state.objects.find((o: Model) => o.id === objectId);
 
     if (obj?.iotProperties?.enabled && obj.position) {
       await this.fetchWeatherDataForObject(obj);
@@ -209,7 +210,7 @@ class IoTService {
   // Method to start IoT for a specific object
   public startIoTForObject(objectId: string) {
     const state = useSceneStore.getState();
-    const obj = state.objects.find((o) => o.id === objectId);
+    const obj = state.objects.find((o: Model) => o.id === objectId);
 
     if (obj?.iotProperties?.enabled && obj.position) {
       this.fetchWeatherDataForObject(obj);
@@ -241,3 +242,4 @@ class IoTService {
 const iotService = new IoTService();
 
 export default iotService;
+

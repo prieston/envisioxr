@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useIoTStore } from "@envisio/core";
-import iotService from "../../../../services/IoTService";
+import { iotService } from "@envisio/core";
 
 // Re-export WeatherData for backward compatibility
 export type { WeatherData } from "@envisio/core";

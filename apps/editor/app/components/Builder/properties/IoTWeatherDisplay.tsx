@@ -6,7 +6,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import ThermostatIcon from "@mui/icons-material/Thermostat";
 import AirIcon from "@mui/icons-material/Air";
 import type { WeatherData } from "./hooks/useIoTWeatherData";
-import iotService from "../../../services/IoTService";
+import { iotService } from "@envisio/core";
 
 interface IoTWeatherDisplayProps {
   selectedObjectId: string | undefined;

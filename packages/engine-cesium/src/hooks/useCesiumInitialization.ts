@@ -17,12 +17,7 @@ import {
 } from "../utils";
 import { applyBasemapType } from "../utils/basemap";
 import { canSupportViewshed } from "../utils/viewshed-capability";
-
-// IoT service is an editor concern; stub locally for engine usage
-const iotService = {
-  initialize: () => {},
-  stopAll: () => {},
-};
+import { iotService } from "@envisio/core";
 
 export interface UseCesiumInitializationResult {
   viewer: any;
