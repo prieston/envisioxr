@@ -63,8 +63,12 @@ for (const pkg of fs.readdirSync(packagesDir)) {
 
   for (const file of sourceFiles) {
     const content = fs.readFileSync(file, "utf8");
+    // Remove comments to avoid false positives
+    const contentWithoutComments = content
+      .replace(/\/\/.*$/gm, "") // Remove single-line comments
+      .replace(/\/\*[\s\S]*?\*\//g, ""); // Remove multi-line comments
     // Match both 'from "@klorad/..."' and 'from '@klorad/...'
-    for (const match of content.matchAll(/from ["'](@klorad\/[^"']+)["']/g)) {
+    for (const match of contentWithoutComments.matchAll(/from ["'](@klorad\/[^"']+)["']/g)) {
       imports.add(match[1]);
     }
   }
