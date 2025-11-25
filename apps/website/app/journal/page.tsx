@@ -1,8 +1,20 @@
 import Link from "next/link";
 import { journalPosts } from "@/lib/journalPosts";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Journal",
+  description:
+    "Notes from the work of building and deploying Klorad across complex environments. Field observations and architectural reasoning.",
+  openGraph: {
+    title: "Journal | Klorad",
+    description:
+      "Notes from the work of building and deploying Klorad across complex environments.",
+  },
+  alternates: {
+    canonical: "/journal",
+  },
 };
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {

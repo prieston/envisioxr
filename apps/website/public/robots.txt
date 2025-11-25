@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://klorad.com/sitemap.xml
+
+# Disallow admin and API routes if they exist
+Disallow: /api/
+

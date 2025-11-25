@@ -1,5 +1,21 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { AmbientField } from "@/components/ambient-field";
+
+export const metadata: Metadata = {
+  title: "Klorad - Spatial Operations Platform",
+  description:
+    "A platform for spatial operations across real-world infrastructure. Model, observe, simulate, and act with unified spatial intelligence. Klorad maintains continuous alignment between the physical world and its digital representation.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Klorad - Spatial Operations Platform",
+    description:
+      "A platform for spatial operations across real-world infrastructure. Model, observe, simulate, and act with unified spatial intelligence.",
+    type: "website",
+  },
+};
 
 export default function HomePage() {
   return (
