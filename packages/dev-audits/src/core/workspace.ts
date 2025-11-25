@@ -9,9 +9,15 @@ import { glob } from "glob";
 import type { Workspace, PackageInfo } from "./types.js";
 
 export function createWorkspace(rootDir: string): Workspace {
+  // File cache to avoid duplicate IO when audits read the same files multiple times
+  const fileCache = new Map<string, string>();
+
   return {
     rootDir,
     async getPackages(): Promise<PackageInfo[]> {
+      // NOTE: This implementation only looks at /packages and /apps directories.
+      // This is Klorad-specific. If you add other package locations (e.g., /tools),
+      // you'll need to update this function.
       const packages: PackageInfo[] = [];
       const packagesDir = path.join(rootDir, "packages");
       const appsDir = path.join(rootDir, "apps");
@@ -81,7 +87,15 @@ export function createWorkspace(rootDir: string): Workspace {
       const fullPath = path.isAbsolute(filePath)
         ? filePath
         : path.join(rootDir, filePath);
-      return fs.readFileSync(fullPath, "utf8");
+
+      // Use cache to avoid duplicate IO
+      if (fileCache.has(fullPath)) {
+        return fileCache.get(fullPath)!;
+      }
+
+      const content = fs.readFileSync(fullPath, "utf8");
+      fileCache.set(fullPath, content);
+      return content;
     },
 
     fileExists(filePath: string): boolean {
@@ -92,4 +106,3 @@ export function createWorkspace(rootDir: string): Workspace {
     },
   };
 }
-

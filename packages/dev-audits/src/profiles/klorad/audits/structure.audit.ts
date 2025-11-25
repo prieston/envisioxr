@@ -4,9 +4,12 @@
  * Merges logic from: boundaries.ts, graph.ts, dependencies.ts, module-boundaries.ts
  */
 
-import { execSync } from "child_process";
 import path from "path";
-import type { AuditDefinition, AuditContext, AuditResult } from "../../../core/types.js";
+import type {
+  AuditDefinition,
+  AuditContext,
+  AuditResult,
+} from "../../../core/types.js";
 import type { KloradManifest } from "../klorad.manifest.js";
 
 export const structureAudit: AuditDefinition = {
@@ -91,42 +94,43 @@ export const structureAudit: AuditDefinition = {
       }
     }
 
-    // Check 3: Circular dependencies
+    // Check 3: Circular dependencies using madge JS API
     try {
-      execSync("npx madge --version", {
-        stdio: "ignore",
-      });
-    } catch {
-      items.push({
-        message: "madge not available. Install with: pnpm add -D madge",
-        severity: "warning",
-        code: "MADGE_MISSING",
-      });
-    }
-
-    try {
-      execSync(
-        `npx madge --circular --extensions ts,tsx apps packages`,
+      // Use madge JS API instead of shelling out to npx (faster and more reliable)
+      // @ts-expect-error - madge doesn't have TypeScript types
+      const madgeModule = await import("madge");
+      const madge = madgeModule.default || madgeModule;
+      const res = await madge(
+        [path.join(ctx.rootDir, "apps"), path.join(ctx.rootDir, "packages")],
         {
-          encoding: "utf8",
-          cwd: ctx.rootDir,
-          stdio: "pipe",
+          fileExtensions: ["ts", "tsx"],
+          excludeRegExp: [/node_modules/, /\.d\.ts$/, /dist/, /\.next/],
         }
       );
-      // If output is empty, no cycles
-    } catch (error: unknown) {
-      const err = error as { stdout?: Buffer; stderr?: Buffer };
-      const output = err.stdout?.toString() || err.stderr?.toString() || "";
-      if (output.includes("Found") || output.includes("circular")) {
-        items.push({
-          message: `Circular dependencies detected:\n${output}`,
-          severity: "error",
-          code: "CIRCULAR_DEPS",
-        });
+
+      const circular = res.circular();
+      if (circular && circular.length > 0) {
+        for (const cycle of circular) {
+          items.push({
+            message: `Circular dependency detected: ${cycle.join(" → ")}`,
+            severity: "error",
+            code: "CIRCULAR_DEPS",
+          });
+        }
       }
+    } catch (error: unknown) {
+      // If madge fails to load or run, warn but don't fail the audit
+      items.push({
+        message: `Failed to check circular dependencies: ${error instanceof Error ? error.message : String(error)}`,
+        severity: "warning",
+        code: "MADGE_ERROR",
+      });
     }
 
     // Check 4: Dependency direction rules
+    // NOTE: This assumes one rule per "from" pattern. If you need multiple allowed "to" patterns
+    // for the same "from", encode them in a single regex (e.g., "@klorad/(core|ui)") or enhance
+    // the logic to merge rules per "from".
     for (const pkg of packages) {
       if (!pkg.packageJson.name?.startsWith("@klorad/")) continue;
 
@@ -209,21 +213,34 @@ export const structureAudit: AuditDefinition = {
       const lineCount = lines.length;
 
       // Skip API client files, admin pages (internal tools), and generated files - they're legitimately large
-      const isApiClient = file.includes("/utils/api.ts") || file.includes("/api/");
-      const isGenerated = file.includes(".generated.") || file.includes(".d.ts");
-      const isAdminPage = file.includes("/admin/") || file.includes("AdminDashboard");
+      const isApiClient =
+        file.includes("/utils/api.ts") || file.includes("/api/");
+      const isGenerated =
+        file.includes(".generated.") || file.includes(".d.ts");
+      const isAdminPage =
+        file.includes("/admin/") || file.includes("AdminDashboard");
       // Detect page components more accurately - they're in app directory and named page.tsx/page.ts
-      const isPageComponent = (file.includes("/page.tsx") || file.includes("/page.ts")) &&
-                              (file.includes("/app/") || file.includes("apps/"));
+      const isPageComponent =
+        (file.includes("/page.tsx") || file.includes("/page.ts")) &&
+        (file.includes("/app/") || file.includes("apps/"));
 
       // Files that are legitimately complex and should have higher thresholds
-      const isHookFile = file.includes("/hooks/") || (file.includes("use") && file.endsWith(".ts"));
-      const isStyleFile = file.includes(".styles.ts") || file.includes(".styles.tsx");
-      const isStoryFile = file.includes(".stories.") || file.includes("/stories/");
+      const isHookFile =
+        file.includes("/hooks/") ||
+        (file.includes("use") && file.endsWith(".ts"));
+      const isStyleFile =
+        file.includes(".styles.ts") || file.includes(".styles.tsx");
+      const isStoryFile =
+        file.includes(".stories.") || file.includes("/stories/");
       // SDK files include sdk/, helpers/, lib/ (utility libraries), and sync files
-      const isSDKFile = file.includes("/sdk/") || file.includes("/helpers/") ||
-                       file.includes("/lib/") || file.includes("sync.ts");
-      const isComponentFile = file.includes("/components/") && (file.endsWith(".tsx") || file.endsWith(".ts"));
+      const isSDKFile =
+        file.includes("/sdk/") ||
+        file.includes("/helpers/") ||
+        file.includes("/lib/") ||
+        file.includes("sync.ts");
+      const isComponentFile =
+        file.includes("/components/") &&
+        (file.endsWith(".tsx") || file.endsWith(".ts"));
 
       // Admin pages and API routes are exempt from strict size limits
       if (isAdminPage || isApiClient || isGenerated) {
@@ -237,7 +254,11 @@ export const structureAudit: AuditDefinition = {
       let infoThreshold = 300;
 
       // Special handling for Cesium control files - they're complex by nature (check first)
-      if (file.includes("CesiumControls") || file.includes("controllers/") || file.includes("CameraController")) {
+      if (
+        file.includes("CesiumControls") ||
+        file.includes("controllers/") ||
+        file.includes("CameraController")
+      ) {
         errorThreshold = 500;
         warningThreshold = 450;
         infoThreshold = 450; // Increased from 400
@@ -264,7 +285,10 @@ export const structureAudit: AuditDefinition = {
       } else if (isComponentFile) {
         // Components can be complex but should still be manageable
         // Dashboard/layout components can be larger due to navigation logic
-        const isDashboardComponent = file.includes("Dashboard") || file.includes("Sidebar") || file.includes("Layout");
+        const isDashboardComponent =
+          file.includes("Dashboard") ||
+          file.includes("Sidebar") ||
+          file.includes("Layout");
         errorThreshold = isDashboardComponent ? 900 : 600;
         warningThreshold = isDashboardComponent ? 900 : 500; // Increased from 700/450
         infoThreshold = isDashboardComponent ? 900 : 500; // Increased from 700 to eliminate false positives
@@ -284,7 +308,13 @@ export const structureAudit: AuditDefinition = {
           severity: "warning",
           code: "FILE_LARGE",
         });
-      } else if (lineCount > infoThreshold && !isHookFile && !isSDKFile && !isStyleFile && !isStoryFile) {
+      } else if (
+        lineCount > infoThreshold &&
+        !isHookFile &&
+        !isSDKFile &&
+        !isStyleFile &&
+        !isStoryFile
+      ) {
         // Only show info-level warnings for non-complex file types
         items.push({
           message: `File exceeds ${infoThreshold} lines (${lineCount} lines) - consider splitting`,
@@ -303,4 +333,3 @@ export const structureAudit: AuditDefinition = {
     };
   },
 };
-

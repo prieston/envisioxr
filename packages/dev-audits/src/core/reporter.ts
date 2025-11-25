@@ -4,7 +4,7 @@
  */
 /* eslint-disable no-console */
 
-import type { AuditResult, AuditSeverity } from "./types.js";
+import type { AuditResult, AuditSeverity, AuditResultItem } from "./types.js";
 
 export interface ReporterResult {
   ok: boolean;
@@ -26,7 +26,9 @@ export function printReport(results: AuditResult[]): ReporterResult {
     }
 
     // Group items by severity
-    const errors = result.items.filter((item) => item.severity === "error" || !item.severity);
+    const errors = result.items.filter(
+      (item) => item.severity === "error" || !item.severity
+    );
     const warnings = result.items.filter((item) => item.severity === "warning");
     const info = result.items.filter((item) => item.severity === "info");
 
@@ -87,7 +89,7 @@ export function printReport(results: AuditResult[]): ReporterResult {
 }
 
 function printItem(
-  item: AuditResult["items"][0],
+  item: AuditResultItem,
   defaultSeverity: AuditSeverity
 ): void {
   const severity = item.severity || defaultSeverity;
@@ -117,4 +119,3 @@ function printItem(
 
   console.log(`  ${severityIcon} ${item.message}${codePart}${locationPart}`);
 }
-

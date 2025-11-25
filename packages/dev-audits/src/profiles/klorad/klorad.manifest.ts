@@ -16,9 +16,13 @@ export interface KloradManifest {
     project: string; // apps/editor/app/(protected)/org/[orgId]/projects
   };
   dependencyRules: {
-    from: string; // package name or pattern
-    to?: string; // allowed target pattern
+    from: string; // package name or pattern (supports * wildcard)
+    to?: string; // allowed target pattern (supports * wildcard and regex groups like (core|ui))
     forbidden?: boolean; // when true: edge is forbidden
+    // NOTE: Rules use "regex-with-star" format, not pure globs:
+    // - * is treated as wildcard (converted to .*)
+    // - Parentheses are interpreted as regex groups
+    // - Example: "@klorad/(core|ui)" is a regex group, not a glob pattern
   }[];
 }
 

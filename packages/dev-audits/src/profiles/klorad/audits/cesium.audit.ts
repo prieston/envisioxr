@@ -4,7 +4,11 @@
  * Based on: cesium-lifecycle.ts
  */
 
-import type { AuditDefinition, AuditContext, AuditResult } from "../../../core/types.js";
+import type {
+  AuditDefinition,
+  AuditContext,
+  AuditResult,
+} from "../../../core/types.js";
 
 function findLineNumber(content: string, searchString: string): number | null {
   const index = content.indexOf(searchString);
@@ -19,19 +23,19 @@ export const cesiumAudit: AuditDefinition = {
     const items: AuditResult["items"] = [];
 
     // Focus on Cesium-related files
-    const cesiumFiles = await ctx.workspace.findFiles(
-      "**/*.{ts,tsx}",
-      {
-        ignore: ["**/node_modules/**", "**/.next/**", "**/dist/**"],
-      }
-    );
+    const cesiumFiles = await ctx.workspace.findFiles("**/*.{ts,tsx}", {
+      ignore: ["**/node_modules/**", "**/.next/**", "**/dist/**"],
+    });
 
+    // Filter to Cesium-related files only (narrowed to avoid false positives)
+    // Note: Removed "Builder" filter as it's too broad and catches non-Cesium files
     const relevantFiles = cesiumFiles.filter(
       (file) =>
         (file.includes("engine-cesium") ||
-        file.includes("cesium") ||
-        file.includes("Cesium") ||
-        file.includes("Builder")) &&
+          file.includes("/cesium") ||
+          file.includes("/Cesium") ||
+          file.includes("CesiumControls") ||
+          file.includes("CesiumIon")) &&
         !file.includes("scripts/audits") && // Skip audit scripts themselves
         !file.includes("dev-audits") && // Skip audit package files
         !file.includes(".d.ts") // Skip type definition files
@@ -42,18 +46,25 @@ export const cesiumAudit: AuditDefinition = {
 
       // Check 1: primitives.add() without matching remove()
       // Only flag if there's a significant mismatch (allows for conditional cleanup)
-      const primitiveAdds = (content.match(/\.primitives\.add\(/g) || []).length;
-      const primitiveRemoves =
-        (content.match(/\.primitives\.remove\(/g) || []).length;
-      const primitiveRemoveAlls =
-        (content.match(/\.primitives\.removeAll\(/g) || []).length;
+      const primitiveAdds = (content.match(/\.primitives\.add\(/g) || [])
+        .length;
+      const primitiveRemoves = (content.match(/\.primitives\.remove\(/g) || [])
+        .length;
+      const primitiveRemoveAlls = (
+        content.match(/\.primitives\.removeAll\(/g) || []
+      ).length;
 
       if (primitiveAdds > 0) {
         const totalRemoves = primitiveRemoves + primitiveRemoveAlls;
         // Only flag if adds significantly exceed removes (allows for conditional cleanup in useEffect)
         // Also skip if there's a cleanup function in useEffect
-        const hasCleanup = content.includes("return () =>") || content.includes("return() =>");
-        if (primitiveAdds > totalRemoves && !hasCleanup && primitiveAdds - totalRemoves > 1) {
+        const hasCleanup =
+          content.includes("return () =>") || content.includes("return() =>");
+        if (
+          primitiveAdds > totalRemoves &&
+          !hasCleanup &&
+          primitiveAdds - totalRemoves > 1
+        ) {
           const line = findLineNumber(content, ".primitives.add(");
           items.push({
             message: `Found ${primitiveAdds} primitives.add() but only ${totalRemoves} remove() calls - memory leak risk`,
@@ -67,9 +78,10 @@ export const cesiumAudit: AuditDefinition = {
 
       // Check 2: viewer.entities.add() without remove()
       const entityAdds = (content.match(/\.entities\.add\(/g) || []).length;
-      const entityRemoves = (content.match(/\.entities\.remove\(/g) || []).length;
-      const entityRemoveAlls =
-        (content.match(/\.entities\.removeAll\(/g) || []).length;
+      const entityRemoves = (content.match(/\.entities\.remove\(/g) || [])
+        .length;
+      const entityRemoveAlls = (content.match(/\.entities\.removeAll\(/g) || [])
+        .length;
 
       if (entityAdds > 0 && entityAdds > entityRemoves + entityRemoveAlls) {
         const line = findLineNumber(content, ".entities.add(");
@@ -83,8 +95,8 @@ export const cesiumAudit: AuditDefinition = {
       }
 
       // Check 3: Multiple viewer instances
-      const viewerInstances =
-        (content.match(/new\s+Cesium\.Viewer\(/g) || []).length;
+      const viewerInstances = (content.match(/new\s+Cesium\.Viewer\(/g) || [])
+        .length;
       if (viewerInstances > 1) {
         const line = findLineNumber(content, "new Cesium.Viewer");
         items.push({
@@ -123,8 +135,9 @@ export const cesiumAudit: AuditDefinition = {
 
       // Check 5: TilesRenderer without cleanup
       if (content.includes("TilesRenderer")) {
-        const tilesRendererInstances =
-          (content.match(/new\s+TilesRenderer\(/g) || []).length;
+        const tilesRendererInstances = (
+          content.match(/new\s+TilesRenderer\(/g) || []
+        ).length;
         const disposePattern = /\.dispose\(/;
 
         if (tilesRendererInstances > 0 && !disposePattern.test(content)) {
@@ -148,4 +161,3 @@ export const cesiumAudit: AuditDefinition = {
     };
   },
 };
-

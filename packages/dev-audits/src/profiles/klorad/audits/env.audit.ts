@@ -5,7 +5,11 @@
  */
 
 import path from "path";
-import type { AuditDefinition, AuditContext, AuditResult } from "../../../core/types.js";
+import type {
+  AuditDefinition,
+  AuditContext,
+  AuditResult,
+} from "../../../core/types.js";
 
 const REQUIRED_ENV_VARS = {
   NEXTAUTH_URL: {
@@ -42,7 +46,10 @@ function parseEnvFile(content: string): Record<string, string> {
     if (trimmed && !trimmed.startsWith("#")) {
       const [key, ...valueParts] = trimmed.split("=");
       if (key && valueParts.length > 0) {
-        env[key.trim()] = valueParts.join("=").trim().replace(/^["']|["']$/g, "");
+        env[key.trim()] = valueParts
+          .join("=")
+          .trim()
+          .replace(/^["']|["']$/g, "");
       }
     }
   }
@@ -59,14 +66,17 @@ export const envAudit: AuditDefinition = {
     const envFile = path.join(ctx.rootDir, "apps/editor/.env.production");
     const envLocalFile = path.join(ctx.rootDir, "apps/editor/.env.local");
     let env: Record<string, string> = {};
+    let actualEnvFile: string | null = null;
 
     if (ctx.workspace.fileExists(envFile)) {
       const content = await ctx.workspace.readFile(envFile);
       env = parseEnvFile(content);
+      actualEnvFile = envFile;
     } else if (ctx.workspace.fileExists(envLocalFile)) {
       // Fallback to .env.local for local development
       const content = await ctx.workspace.readFile(envLocalFile);
       env = parseEnvFile(content);
+      actualEnvFile = envLocalFile;
     }
 
     // Merge with process.env (CI takes precedence)
@@ -74,7 +84,7 @@ export const envAudit: AuditDefinition = {
 
     // In CI, require env vars. In local dev, allow missing if .env.local doesn't exist
     const isCI = !!process.env.CI || !!process.env.VERCEL;
-    const hasEnvFile = ctx.workspace.fileExists(envFile) || ctx.workspace.fileExists(envLocalFile);
+    const hasEnvFile = actualEnvFile !== null;
 
     // Validate required vars
     for (const [key, schema] of Object.entries(REQUIRED_ENV_VARS)) {
@@ -84,7 +94,7 @@ export const envAudit: AuditDefinition = {
       if (schema.required && !value && (isCI || hasEnvFile)) {
         items.push({
           message: `Missing required env var: ${key} (${schema.description})`,
-          file: ctx.workspace.fileExists(envFile) ? envFile : envLocalFile,
+          file: actualEnvFile || envFile, // Use actual file read, fallback to production
           severity: "error",
           code: "MISSING_ENV_VAR",
         });
@@ -95,7 +105,7 @@ export const envAudit: AuditDefinition = {
         const masked = maskSecret(value);
         items.push({
           message: `Invalid ${key}: ${masked} (${schema.description})`,
-          file: envFile,
+          file: actualEnvFile || envFile, // Use actual file read
           severity: "error",
           code: "INVALID_ENV_VAR",
         });
@@ -103,13 +113,15 @@ export const envAudit: AuditDefinition = {
     }
 
     // Check for common mistakes
+    // NOTE: ION_REGION values are hardcoded here. If you add new regions (e.g., ap-southeast-1),
+    // you must update both the REQUIRED_ENV_VARS pattern and this check.
     if (
       finalEnv.ION_REGION &&
       !finalEnv.ION_REGION.match(/^(us-east-1|eu-central-1)$/)
     ) {
       items.push({
         message: `ION_REGION must be 'us-east-1' or 'eu-central-1', got: ${finalEnv.ION_REGION}`,
-        file: envFile,
+        file: actualEnvFile || envFile,
         severity: "error",
         code: "INVALID_ION_REGION",
       });
@@ -123,4 +135,3 @@ export const envAudit: AuditDefinition = {
     };
   },
 };
-

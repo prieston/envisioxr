@@ -4,7 +4,11 @@
  * Merges logic from: ssr-guards.ts, hydration.ts
  */
 
-import type { AuditDefinition, AuditContext, AuditResult } from "../../../core/types.js";
+import type {
+  AuditDefinition,
+  AuditContext,
+  AuditResult,
+} from "../../../core/types.js";
 
 const BANNED_IMPORTS = [
   /^three$/,
@@ -16,19 +20,25 @@ const BANNED_IMPORTS = [
   /^react-dom$/,
 ];
 
-const BANNED_GLOBALS = [
-  /\bwindow\s*[.=]/,
-  /\bdocument\s*[.=]/,
-  /\bnavigator\s*[.=]/,
-  /\blocalStorage\s*[.=]/,
-  /\bsessionStorage\s*[.=]/,
+// Banned browser globals - defined as strings and compiled to global regexes
+const BANNED_GLOBALS_PATTERNS = [
+  "\\bwindow\\s*[.=]",
+  "\\bdocument\\s*[.=]",
+  "\\bnavigator\\s*[.=]",
+  "\\blocalStorage\\s*[.=]",
+  "\\bsessionStorage\\s*[.=]",
 ];
+
+const BANNED_GLOBALS = BANNED_GLOBALS_PATTERNS.map(
+  (pattern) => new RegExp(pattern, "g")
+);
 
 function isServerFile(filePath: string, content: string): boolean {
   const hasUseClient =
     content.includes('"use client"') || content.includes("'use client'");
 
-  const isApiRoute = filePath.includes("/api/") && filePath.endsWith("route.ts");
+  const isApiRoute =
+    filePath.includes("/api/") && filePath.endsWith("route.ts");
   const isLayout = filePath.endsWith("layout.tsx");
   const isPage = filePath.endsWith("page.tsx");
   const isServerComponent =
@@ -84,16 +94,21 @@ export const ssrRscAudit: AuditDefinition = {
       }
 
       // Check for banned globals (but skip if they're in string literals or typeof checks)
+      // BANNED_GLOBALS are already compiled as global regexes, so we can use them directly
       for (const banned of BANNED_GLOBALS) {
-        // Ensure regex is global for matchAll
-        const globalRegex = new RegExp(banned.source, banned.flags.includes('g') ? banned.flags : banned.flags + 'g');
-        const globalMatches = [...content.matchAll(globalRegex)];
+        const globalMatches = [...content.matchAll(banned)];
         for (const globalMatch of globalMatches) {
           if (globalMatch.index === undefined) continue;
 
           // Check if it's in a string literal or typeof check
-          const beforeMatch = content.substring(Math.max(0, globalMatch.index - 50), globalMatch.index);
-          const afterMatch = content.substring(globalMatch.index, Math.min(content.length, globalMatch.index + 50));
+          const beforeMatch = content.substring(
+            Math.max(0, globalMatch.index - 50),
+            globalMatch.index
+          );
+          const afterMatch = content.substring(
+            globalMatch.index,
+            Math.min(content.length, globalMatch.index + 50)
+          );
 
           // Skip if it's in a typeof check or string literal
           if (
@@ -145,7 +160,10 @@ export const ssrRscAudit: AuditDefinition = {
           if (match.index === undefined) continue;
 
           // Skip if in dangerouslySetInnerHTML context
-          const beforeMatch = content.substring(Math.max(0, match.index - 100), match.index);
+          const beforeMatch = content.substring(
+            Math.max(0, match.index - 100),
+            match.index
+          );
           if (beforeMatch.includes("dangerouslySetInnerHTML")) {
             continue;
           }
@@ -197,4 +215,3 @@ export const ssrRscAudit: AuditDefinition = {
     };
   },
 };
-
