@@ -10,6 +10,7 @@ import { ssrRscAudit } from "./audits/ssr-rsc.audit.js";
 import { envAudit } from "./audits/env.audit.js";
 import { cesiumAudit } from "./audits/cesium.audit.js";
 import { apiOrgAudit } from "./audits/api-org.audit.js";
+import { uiBoundariesAudit } from "./audits/ui-boundaries.audit.js";
 
 // Import advisory audits
 import { sizeComplexityAudit } from "./advisory/size-complexity.audit.js";
@@ -26,6 +27,7 @@ export const kloradProfile: ProjectProfile = {
       envAudit,
       cesiumAudit,
       apiOrgAudit,
+      uiBoundariesAudit,
     ];
   },
   async getAdvisoryAudits(_rootDir: string): Promise<AuditDefinition[]> {
@@ -35,4 +37,3 @@ export const kloradProfile: ProjectProfile = {
     ];
   },
 };
-
