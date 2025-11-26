@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm audits:light && pnpm vercel:build:website",
+  "buildCommand": "cd ../.. && pnpm --filter @klorad/dev-audits build && pnpm audits:light && pnpm vercel:build:website",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile --prod=false",
   "framework": "nextjs",
   "regions": ["sfo1"],
