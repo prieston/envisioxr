@@ -38,6 +38,7 @@
     "verify:deps": "node scripts/verify-workspace-deps.mjs",
     "audits": "pnpm --filter @klorad/dev-audits audits:core",
     "audits:advisory": "pnpm --filter @klorad/dev-audits audits:advisory",
+    "audits:light": "pnpm --filter @klorad/dev-audits audits:light",
     "prisma:generate": "pnpm --filter @klorad/prisma generate",
     "prisma:migrate:deploy": "cd packages/prisma && prisma migrate deploy",
     "prisma:migrate:resolve": "cd packages/prisma && (prisma migrate resolve --rolled-back 20241117010033_add_activity_table || true) && (prisma migrate resolve --rolled-back 20251119124722_add_cesium_ion_integrations || true)",

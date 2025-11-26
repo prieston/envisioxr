@@ -3,13 +3,13 @@
  * Audit runner - executes audits for a profile
  */
 
-import type { ProjectProfile, AuditResult, AuditContext } from "./types.js";
+import type { ProjectProfile, AuditResult, AuditContext, AuditDefinition } from "./types.js";
 import { createWorkspace } from "./workspace.js";
 
 export async function runProfileAudits(
   profile: ProjectProfile,
   rootDir: string,
-  mode: "core" | "advisory"
+  mode: "core" | "advisory" | "light"
 ): Promise<AuditResult[]> {
   // Load manifest
   const manifest = await profile.loadManifest(rootDir);
@@ -25,10 +25,16 @@ export async function runProfileAudits(
   };
 
   // Get audits based on mode
-  const audits =
-    mode === "core"
-      ? await profile.getCoreAudits(rootDir)
-      : await profile.getAdvisoryAudits(rootDir);
+  let audits: AuditDefinition[];
+  if (mode === "light") {
+    audits = profile.getLightAudits
+      ? await profile.getLightAudits(rootDir)
+      : await profile.getCoreAudits(rootDir); // Fallback to core if light not implemented
+  } else if (mode === "core") {
+    audits = await profile.getCoreAudits(rootDir);
+  } else {
+    audits = await profile.getAdvisoryAudits(rootDir);
+  }
 
   // Run audits sequentially
   const results: AuditResult[] = [];

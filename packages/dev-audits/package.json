@@ -15,7 +15,8 @@
     "clean": "rimraf dist *.tsbuildinfo",
     "build": "tsc -p tsconfig.json",
     "audits:core": "node dist/bin/run-core-audits.js",
-    "audits:advisory": "node dist/bin/run-advisory-audits.js"
+    "audits:advisory": "node dist/bin/run-advisory-audits.js",
+    "audits:light": "node dist/bin/run-light-audits.js"
   },
   "dependencies": {
     "glob": "^11.0.3",
