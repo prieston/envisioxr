@@ -98,9 +98,15 @@ export async function PUT(
       metadataTransform: savedMetadata?.transform,
     });
 
+    // Convert BigInt fileSize to number for JSON serialization
+    const serializedAsset = {
+      ...updatedAsset,
+      fileSize: updatedAsset.fileSize ? Number(updatedAsset.fileSize) : null,
+    };
+
     return NextResponse.json({
       success: true,
-      asset: updatedAsset,
+      asset: serializedAsset,
     });
   } catch (error) {
     console.error("Error updating transform:", error);
