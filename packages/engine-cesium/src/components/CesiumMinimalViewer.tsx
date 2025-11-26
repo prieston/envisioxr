@@ -479,9 +479,8 @@ export function CesiumMinimalViewer({
 
     const matrix = arrayToMatrix4(Cesium, initialTransform);
 
-    // Debug: Verify the matrix round-trips correctly
-    const verifyMatrix = Cesium.Matrix4.toArray(matrix, new Array(16));
-    const match = verifyMatrix.every(
+    // Verify the matrix round-trips correctly (for debugging, but not used)
+    Cesium.Matrix4.toArray(matrix, new Array(16)).every(
       (val: number, i: number) =>
         Math.abs(val - initialTransform[i]) < 0.0000001
     );
