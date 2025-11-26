@@ -47,6 +47,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
   const [loading, setLoading] = useState(true);
   const [capturing, setCapturing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [locationNotSet, setLocationNotSet] = useState(false);
 
   const handleViewerReady = (viewer: any) => {
     viewerRef.current = viewer;
@@ -58,11 +59,16 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
     setLoading(false);
   };
 
+  const handleLocationNotSet = () => {
+    setLocationNotSet(true);
+  };
+
   // Reset state when dialog closes and clean up any existing canvases
   useEffect(() => {
     if (!open) {
       setLoading(true);
       setError(null);
+      setLocationNotSet(false);
       if (viewerRef.current) {
         try {
           viewerRef.current.destroy();
@@ -235,7 +241,36 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
               assetType={assetType}
               onViewerReady={handleViewerReady}
               onError={handleError}
+              onLocationNotSet={handleLocationNotSet}
             />
+          )}
+
+          {locationNotSet && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: 16,
+                left: 16,
+                right: 16,
+                zIndex: 20,
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                borderRadius: "4px",
+                padding: "8px 12px",
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <Typography
+                sx={{
+                  color: "warning.main",
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                }}
+              >
+                ℹ️ Tileset location has not been set
+              </Typography>
+            </Box>
           )}
 
           {loading && (

@@ -11,7 +11,10 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
 import { serverEnv } from "@/lib/env/server";
-import { getUserOrganizationIds, isUserMemberOfOrganization } from "@/lib/organizations";
+import {
+  getUserOrganizationIds,
+  isUserMemberOfOrganization,
+} from "@/lib/organizations";
 import { logActivity } from "@/lib/activity";
 import { decryptToken } from "@/lib/cesium/encryption";
 
@@ -207,6 +210,48 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Resolve cesiumApiKey: if it starts with "integration:", fetch the read token
+      let finalCesiumApiKey: string | null = cesiumApiKey || null;
+      if (cesiumApiKey && cesiumApiKey.startsWith("integration:")) {
+        const integrationId = cesiumApiKey.replace("integration:", "");
+
+        // Fetch integration and decrypt read token
+        const integration = await prisma.cesiumIonIntegration.findUnique({
+          where: { id: integrationId },
+          select: {
+            id: true,
+            organizationId: true,
+            readToken: true,
+            readTokenValid: true,
+          },
+        });
+
+        if (!integration) {
+          return NextResponse.json(
+            { error: "Integration not found" },
+            { status: 404 }
+          );
+        }
+
+        // Verify integration belongs to the organization
+        if (integration.organizationId !== organizationId) {
+          return NextResponse.json(
+            { error: "Integration does not belong to this organization" },
+            { status: 403 }
+          );
+        }
+
+        if (!integration.readTokenValid) {
+          return NextResponse.json(
+            { error: "Integration read token is not valid" },
+            { status: 400 }
+          );
+        }
+
+        // Decrypt and use the read token
+        finalCesiumApiKey = decryptToken(integration.readToken);
+      }
+
       const asset = await prisma.asset.create({
         data: {
           organizationId,
@@ -218,7 +263,7 @@ export async function POST(request: NextRequest) {
           description: description || null,
           thumbnail: thumbnail || null,
           cesiumAssetId,
-          cesiumApiKey: cesiumApiKey || null,
+          cesiumApiKey: finalCesiumApiKey,
           metadata: metadata || {},
           fileSize: fileSize ? BigInt(fileSize) : null,
         },
@@ -404,29 +449,29 @@ export async function DELETE(request: NextRequest) {
       }
     } else {
       // Delete regular asset from DigitalOcean Spaces
-    // Determine the key from the asset's fileUrl.
-    const bucketName = serverEnv.DO_SPACES_BUCKET;
-    const endpoint = serverEnv.DO_SPACES_ENDPOINT;
-    const fileUrl = asset.fileUrl;
+      // Determine the key from the asset's fileUrl.
+      const bucketName = serverEnv.DO_SPACES_BUCKET;
+      const endpoint = serverEnv.DO_SPACES_ENDPOINT;
+      const fileUrl = asset.fileUrl;
 
       // Only delete from Spaces if it's not a Cesium Ion placeholder URL
       if (!fileUrl.startsWith("cesium-ion://")) {
-    const key = fileUrl.replace(`${endpoint}/${bucketName}/`, "");
-    // Setup S3 client.
-    const s3 = new S3Client({
-      region: serverEnv.DO_SPACES_REGION,
-      endpoint: endpoint,
-      credentials: {
-        accessKeyId: serverEnv.DO_SPACES_KEY,
-        secretAccessKey: serverEnv.DO_SPACES_SECRET,
-      },
-    });
-    // Delete the object from Spaces.
-    const deleteCommand = new DeleteObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    });
-    await s3.send(deleteCommand);
+        const key = fileUrl.replace(`${endpoint}/${bucketName}/`, "");
+        // Setup S3 client.
+        const s3 = new S3Client({
+          region: serverEnv.DO_SPACES_REGION,
+          endpoint: endpoint,
+          credentials: {
+            accessKeyId: serverEnv.DO_SPACES_KEY,
+            secretAccessKey: serverEnv.DO_SPACES_SECRET,
+          },
+        });
+        // Delete the object from Spaces.
+        const deleteCommand = new DeleteObjectCommand({
+          Bucket: bucketName,
+          Key: key,
+        });
+        await s3.send(deleteCommand);
       }
     }
 

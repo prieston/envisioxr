@@ -10,6 +10,7 @@ interface CesiumMinimalViewerProps {
   assetType?: string; // e.g., "IMAGERY", "3DTILES", etc.
   onViewerReady?: (viewer: any) => void;
   onError?: (error: Error) => void;
+  onLocationNotSet?: () => void; // Callback when tileset location is not set
 }
 
 /**
@@ -23,6 +24,7 @@ export function CesiumMinimalViewer({
   assetType,
   onViewerReady,
   onError,
+  onLocationNotSet,
 }: CesiumMinimalViewerProps) {
   const viewerRef = useRef<any>(null);
   const cesiumRef = useRef<any>(null);
@@ -260,14 +262,71 @@ export function CesiumMinimalViewer({
             }
 
             case "3DTILES": {
-              // Show globe for world-scale 3D Tiles datasets like OSM Buildings
-              viewerRef.current.scene.globe.show = true;
-        const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
-          parseInt(cesiumAssetId)
-        );
+              const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
+                parseInt(cesiumAssetId)
+              );
               tilesetRef.current = tileset;
               viewerRef.current.scene.primitives.add(tileset);
-              await viewerRef.current.zoomTo(tileset);
+
+              // Wait for tileset to be ready to check if it's georeferenced
+              const tilesetWithPromise = tileset as typeof tileset & {
+                readyPromise?: Promise<void>;
+              };
+              if (tilesetWithPromise.readyPromise) {
+                await tilesetWithPromise.readyPromise;
+              } else {
+                // If readyPromise doesn't exist, wait a bit for tileset to initialize
+                await new Promise((resolve) => setTimeout(resolve, 500));
+              }
+
+              // Check if tileset is georeferenced by examining its root transform
+              // Non-georeferenced tilesets will have their bounding sphere at or near origin
+              const boundingSphere = tileset.boundingSphere;
+              const center = boundingSphere.center;
+              const radius = boundingSphere.radius;
+
+              // Check if center is at origin (or very close) and radius is reasonable (not Earth-sized)
+              // Earth's radius is ~6,378,137 meters, so if radius is much smaller, it's likely not georeferenced
+              const isAtOrigin =
+                Math.abs(center.x) < 1000 &&
+                Math.abs(center.y) < 1000 &&
+                Math.abs(center.z) < 1000;
+              const isNotEarthSized = radius < 1000000; // Less than 1000km radius
+
+              // Also check root transform - non-georeferenced will have identity or local transform
+              const rootTransform = tileset.root.computedTransform;
+              const hasGeographicTransform =
+                rootTransform &&
+                (Math.abs(rootTransform[12]) > 1000 ||
+                  Math.abs(rootTransform[13]) > 1000 ||
+                  Math.abs(rootTransform[14]) > 1000);
+
+              const isGeoreferenced =
+                !isAtOrigin || !isNotEarthSized || hasGeographicTransform;
+
+              if (isGeoreferenced) {
+                // Show globe for georeferenced datasets
+                viewerRef.current.scene.globe.show = true;
+                await viewerRef.current.zoomTo(tileset);
+              } else {
+                // Hide globe for non-georeferenced models (like GLB files)
+                viewerRef.current.scene.globe.show = false;
+                // Center camera on the model in local space
+                const centerCartesian = Cesium.Cartesian3.fromElements(
+                  center.x,
+                  center.y,
+                  center.z
+                );
+                viewerRef.current.camera.lookAt(
+                  centerCartesian,
+                  new Cesium.HeadingPitchRange(0, -0.5, radius * 2)
+                );
+
+                // Notify parent that location is not set
+                if (onLocationNotSet) {
+                  onLocationNotSet();
+                }
+              }
               break;
             }
 
@@ -318,14 +377,65 @@ export function CesiumMinimalViewer({
                 `Unknown asset type "${assetType}" (normalized: "${normalizedAssetType}"), attempting to load as 3D Tiles`
               );
               try {
-                // Show globe for fallback 3D Tiles (likely world-scale datasets)
-                viewerRef.current.scene.globe.show = true;
                 const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
                   parseInt(cesiumAssetId)
                 );
-        tilesetRef.current = tileset;
-        viewerRef.current.scene.primitives.add(tileset);
-        await viewerRef.current.zoomTo(tileset);
+                tilesetRef.current = tileset;
+                viewerRef.current.scene.primitives.add(tileset);
+
+                // Wait for tileset to be ready to check if it's georeferenced
+                const tilesetWithPromise = tileset as typeof tileset & {
+                  readyPromise?: Promise<void>;
+                };
+                if (tilesetWithPromise.readyPromise) {
+                  await tilesetWithPromise.readyPromise;
+                } else {
+                  // If readyPromise doesn't exist, wait a bit for tileset to initialize
+                  await new Promise((resolve) => setTimeout(resolve, 500));
+                }
+
+                // Check if tileset is georeferenced (same logic as 3DTILES case)
+                const boundingSphere = tileset.boundingSphere;
+                const center = boundingSphere.center;
+                const radius = boundingSphere.radius;
+
+                const isAtOrigin =
+                  Math.abs(center.x) < 1000 &&
+                  Math.abs(center.y) < 1000 &&
+                  Math.abs(center.z) < 1000;
+                const isNotEarthSized = radius < 1000000;
+
+                const rootTransform = tileset.root.computedTransform;
+                const hasGeographicTransform =
+                  rootTransform &&
+                  (Math.abs(rootTransform[12]) > 1000 ||
+                    Math.abs(rootTransform[13]) > 1000 ||
+                    Math.abs(rootTransform[14]) > 1000);
+
+                const isGeoreferenced =
+                  !isAtOrigin || !isNotEarthSized || hasGeographicTransform;
+
+                if (isGeoreferenced) {
+                  // Show globe for georeferenced datasets
+                  viewerRef.current.scene.globe.show = true;
+                  await viewerRef.current.zoomTo(tileset);
+                } else {
+                  // Hide globe for non-georeferenced models
+                  viewerRef.current.scene.globe.show = false;
+                  const centerCartesian = Cesium.Cartesian3.fromElements(
+                    center.x,
+                    center.y,
+                    center.z
+                  );
+                  viewerRef.current.camera.lookAt(
+                    centerCartesian,
+                    new Cesium.HeadingPitchRange(0, -0.5, radius * 2)
+                  );
+                  // Notify parent that location is not set
+                  if (onLocationNotSet) {
+                    onLocationNotSet();
+                  }
+                }
               } catch (err) {
                 throw new Error(
                   `Failed to load asset: ${err instanceof Error ? err.message : "Unknown error"}`

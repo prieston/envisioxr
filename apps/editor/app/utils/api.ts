@@ -64,10 +64,20 @@ async function apiRequest<T>(
 
   if (!response.ok) {
     let errorData: unknown;
+    // Clone the response before reading to avoid "body stream already read" error
+    const clonedForJson = response.clone();
     try {
-      errorData = await response.json();
+      // Try to parse as JSON from the cloned response
+      errorData = await clonedForJson.json();
     } catch {
-      errorData = await response.text();
+      // If JSON parsing fails, clone again and try reading as text
+      try {
+        const clonedForText = response.clone();
+        errorData = await clonedForText.text();
+      } catch {
+        // If both fail, use status text
+        errorData = response.statusText;
+      }
     }
     throw new ApiError(
       `API request failed: ${response.statusText}`,
