@@ -383,11 +383,6 @@ const LibraryGeospatialPage = () => {
         // Find assets in scene store that match this Cesium Ion asset ID
         cesiumIonAssets.forEach((asset) => {
           if (asset.assetId === selectedAsset.cesiumAssetId) {
-            console.log("[Library] Updating scene store asset with new transform:", {
-              sceneStoreAssetId: asset.id,
-              cesiumAssetId: asset.assetId,
-              transform: transformData,
-            });
             updateCesiumIonAsset(asset.id, { transform: transformData });
           }
         });
@@ -898,19 +893,9 @@ const LibraryGeospatialPage = () => {
                   Array.isArray(transform.matrix)
                 ) {
                   const matrix = transform.matrix as number[];
-                  console.log("[Library] 🔵 PASSING initialTransform to dialog:", {
-                    matrixLength: matrix.length,
-                    matrixString: matrix.join(','),
-                    matrix: matrix,
-                    transform: transform,
-                  });
                   return matrix;
                 }
               }
-              console.log("[Library] ⚠️ No initialTransform found in metadata:", {
-                hasMetadata: !!metadata,
-                metadata: metadata,
-              });
               return undefined;
             })()}
             onSave={handleSaveLocation}

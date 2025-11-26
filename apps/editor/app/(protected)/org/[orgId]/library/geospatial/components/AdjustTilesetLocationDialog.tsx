@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
@@ -202,7 +201,8 @@ const AdjustTilesetLocationDialog: React.FC<
     // Hide confirmation dialog AND disable click mode
     setShowPositionConfirm(false);
     setPendingLocation(null);
-    setClickModeEnabled(false); // Disable click mode after confirmation  }, [currentTransform, pendingLocation]);
+    setClickModeEnabled(false); // Disable click mode after confirmation
+  }, [currentTransform, pendingLocation]);
 
   const handleCancelPosition = useCallback(async () => {
     // User clicked Cancel on the confirmation dialog - restore previous transform
