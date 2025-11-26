@@ -514,6 +514,24 @@ export async function getModelMetadata(
   });
 }
 
+export async function updateModelTransform(
+  assetId: string,
+  data: {
+    transform: number[]; // 16-element array
+    longitude: number;
+    latitude: number;
+    height: number;
+  }
+): Promise<{ success: boolean; asset: Asset; warning?: string }> {
+  return apiRequest<{ success: boolean; asset: Asset; warning?: string }>(
+    `/api/models/${encodeURIComponent(assetId)}/transform`,
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
 export async function updateModelMetadata(
   assetId: string,
   data: {

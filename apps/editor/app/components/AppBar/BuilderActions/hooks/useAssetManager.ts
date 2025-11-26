@@ -201,12 +201,40 @@ export const useAssetManager = ({
       (model as any).cesiumAssetId;
 
     if (isCesiumAsset) {
+      // Extract transform from metadata if it exists
+      const metadata = (model as any).metadata as Record<string, unknown> | undefined;
+      const transform = metadata?.transform as
+        | {
+            matrix?: number[];
+            longitude?: number;
+            latitude?: number;
+            height?: number;
+          }
+        | undefined;
+
+      console.log("[useAssetManager] Adding Cesium Ion asset:", {
+        modelId: model.id,
+        name: model.name,
+        cesiumAssetId: (model as any).cesiumAssetId,
+        hasMetadata: !!metadata,
+        hasTransform: !!transform,
+        transform: transform,
+        matrixLength: transform?.matrix?.length,
+      });
+
+      const transformToPass = transform?.matrix && transform.matrix.length === 16
+        ? transform
+        : undefined;
+
+      console.log("[useAssetManager] Transform to pass to scene store:", transformToPass);
+
       // For Cesium Ion assets, add to both cesiumIonAssets and objects arrays
       addCesiumIonAsset({
         name: model.name || model.originalFilename,
         apiKey: (model as any).cesiumApiKey || "",
         assetId: (model as any).cesiumAssetId,
         enabled: true,
+        transform: transformToPass,
       });
 
       // Also add to objects array so it appears in scene objects list

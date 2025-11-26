@@ -81,12 +81,36 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
       if (containerRef.current) {
         const cesiumViewers =
           containerRef.current.querySelectorAll(".cesium-viewer");
-        cesiumViewers.forEach((viewer) => viewer.remove());
+        cesiumViewers.forEach((viewer) => {
+          if (viewer.parentNode) {
+            try {
+              viewer.remove();
+            } catch (err) {
+              // Ignore errors if node was already removed
+            }
+          }
+        });
         const canvases = containerRef.current.querySelectorAll("canvas");
-        canvases.forEach((canvas) => canvas.remove());
+        canvases.forEach((canvas) => {
+          if (canvas.parentNode) {
+            try {
+              canvas.remove();
+            } catch (err) {
+              // Ignore errors if node was already removed
+            }
+          }
+        });
         const cesiumWidgets =
           containerRef.current.querySelectorAll(".cesium-widget");
-        cesiumWidgets.forEach((widget) => widget.remove());
+        cesiumWidgets.forEach((widget) => {
+          if (widget.parentNode) {
+            try {
+              widget.remove();
+            } catch (err) {
+              // Ignore errors if node was already removed
+            }
+          }
+        });
       }
     }
 
@@ -99,6 +123,45 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
           // Ignore cleanup errors
         }
         viewerRef.current = null;
+      }
+      // Clean up DOM nodes after a small delay to let Cesium finish cleanup
+      if (containerRef.current) {
+        setTimeout(() => {
+          if (containerRef.current) {
+            const cesiumViewers =
+              containerRef.current.querySelectorAll(".cesium-viewer");
+            cesiumViewers.forEach((viewer) => {
+              if (viewer.parentNode) {
+                try {
+                  viewer.remove();
+                } catch (err) {
+                  // Ignore errors if node was already removed
+                }
+              }
+            });
+            const canvases = containerRef.current.querySelectorAll("canvas");
+            canvases.forEach((canvas) => {
+              if (canvas.parentNode) {
+                try {
+                  canvas.remove();
+                } catch (err) {
+                  // Ignore errors if node was already removed
+                }
+              }
+            });
+            const cesiumWidgets =
+              containerRef.current.querySelectorAll(".cesium-widget");
+            cesiumWidgets.forEach((widget) => {
+              if (widget.parentNode) {
+                try {
+                  widget.remove();
+                } catch (err) {
+                  // Ignore errors if node was already removed
+                }
+              }
+            });
+          }
+        }, 100);
       }
     };
   }, [open]);
