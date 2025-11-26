@@ -145,26 +145,8 @@ const AdjustTilesetLocationDialog: React.FC<
       height: number,
       matrix: number[] // The actual matrix array that was ALREADY applied in CesiumMinimalViewer
     ) => {
-      console.log(
-        "[AdjustTilesetLocationDialog] handleLocationClick called with matrix:",
-        {
-          longitude,
-          latitude,
-          height,
-          matrixLength: matrix.length,
-          matrix,
-          clickModeEnabled,
-          hasTileset: !!tilesetRef.current,
-          hasCesium: !!cesiumRef.current,
-        }
-      );
-
       // Only process clicks if click mode is enabled
-      if (!clickModeEnabled) {
-        console.log(
-          "[AdjustTilesetLocationDialog] Click mode not enabled, ignoring click"
-        );
-        return;
+      if (!clickModeEnabled) {        return;
       }
 
       // Ensure Cesium is loaded
@@ -187,11 +169,6 @@ const AdjustTilesetLocationDialog: React.FC<
         );
         return;
       }
-
-      console.log(
-        "[AdjustTilesetLocationDialog] Processing click - matrix already applied by CesiumMinimalViewer"
-      );
-
       // Transform is ALREADY applied by CesiumMinimalViewer
       // We just need to store the matrix and show confirmation
 
@@ -202,14 +179,6 @@ const AdjustTilesetLocationDialog: React.FC<
 
       // Show confirmation dialog
       setShowPositionConfirm(true);
-
-      console.log(
-        "[AdjustTilesetLocationDialog] ✅ Stored matrix from click:",
-        {
-          matrixString: matrix.join(","),
-          location: { longitude, latitude, height },
-        }
-      );
     },
     [clickModeEnabled]
   );
@@ -218,15 +187,6 @@ const AdjustTilesetLocationDialog: React.FC<
     // Transform is already applied from handleLocationClick
     // Confirm it and disable click mode
     if (!currentTransform || !pendingLocation) return;
-
-    console.log(
-      "[AdjustTilesetLocationDialog] ✅ Position confirmed, using matrix:",
-      {
-        matrix: currentTransform,
-        matrixString: currentTransform.join(","),
-        location: pendingLocation,
-      }
-    );
 
     // Update the location state (transform is already applied and stored)
     setCurrentLocation(pendingLocation);
@@ -242,19 +202,10 @@ const AdjustTilesetLocationDialog: React.FC<
     // Hide confirmation dialog AND disable click mode
     setShowPositionConfirm(false);
     setPendingLocation(null);
-    setClickModeEnabled(false); // Disable click mode after confirmation
-
-    console.log(
-      "[AdjustTilesetLocationDialog] Click mode disabled after confirmation"
-    );
-  }, [currentTransform, pendingLocation]);
+    setClickModeEnabled(false); // Disable click mode after confirmation  }, [currentTransform, pendingLocation]);
 
   const handleCancelPosition = useCallback(async () => {
     // User clicked Cancel on the confirmation dialog - restore previous transform
-    console.log(
-      "[AdjustTilesetLocationDialog] Canceling position, restoring previous transform"
-    );
-
     if (
       lastConfirmedTransform &&
       tilesetRef.current &&
@@ -341,16 +292,6 @@ const AdjustTilesetLocationDialog: React.FC<
         setError("Invalid position values");
         return;
       }
-
-      console.log("[AdjustTilesetLocationDialog] Applying manual changes:", {
-        longitude,
-        latitude,
-        height,
-        heading,
-        pitch,
-        roll,
-      });
-
       // Create position
       const position = Cesium.Cartesian3.fromDegrees(
         longitude,
@@ -396,10 +337,7 @@ const AdjustTilesetLocationDialog: React.FC<
       // Convert matrix to array and store
       const matrixArray = matrix4ToArray(transformMatrix);
       setCurrentTransform(matrixArray);
-      setCurrentLocation({ longitude, latitude, height });
-
-      console.log("[AdjustTilesetLocationDialog] ✅ Manual changes applied");
-    } catch (err) {
+      setCurrentLocation({ longitude, latitude, height });    } catch (err) {
       console.error(
         "[AdjustTilesetLocationDialog] Failed to apply manual changes:",
         err
@@ -421,13 +359,6 @@ const AdjustTilesetLocationDialog: React.FC<
       return;
     }
 
-    console.log("[AdjustTilesetLocationDialog] 💾 SAVING transform:", {
-      matrix: currentTransform,
-      matrixLength: currentTransform.length,
-      matrixString: currentTransform.join(","),
-      location: currentLocation,
-    });
-
     setSaving(true);
     setError(null);
 
@@ -437,11 +368,7 @@ const AdjustTilesetLocationDialog: React.FC<
         currentLocation.longitude,
         currentLocation.latitude,
         currentLocation.height
-      );
-      console.log(
-        "[AdjustTilesetLocationDialog] ✅ Transform saved successfully"
-      );
-      onClose();
+      );      onClose();
     } catch (err) {
       console.error("[AdjustTilesetLocationDialog] ❌ Failed to save:", err);
       setError(err instanceof Error ? err.message : "Failed to save location");
@@ -599,10 +526,6 @@ const AdjustTilesetLocationDialog: React.FC<
               onClick={async () => {
                 if (clickModeEnabled) {
                   // Cancel click mode - restore previous confirmed transform
-                  console.log(
-                    "[AdjustTilesetLocationDialog] Canceling click mode, restoring previous transform"
-                  );
-
                   if (
                     lastConfirmedTransform &&
                     tilesetRef.current &&

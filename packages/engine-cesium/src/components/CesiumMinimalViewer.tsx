@@ -29,21 +29,13 @@ export interface CesiumMinimalViewerProps {
  */
 async function setupImagery(viewer: any, Cesium: any) {
   try {
-    console.log(
-      "[CesiumMinimalViewer] Adding imagery layer for location editing"
-    );
-
     const imageryProvider = new Cesium.UrlTemplateImageryProvider({
       url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
       credit: "© OpenStreetMap contributors",
       maximumLevel: 19,
     });
 
-    viewer.imageryLayers.addImageryProvider(imageryProvider);
-    console.log(
-      "[CesiumMinimalViewer] OpenStreetMap imagery added successfully"
-    );
-  } catch (err) {
+    viewer.imageryLayers.addImageryProvider(imageryProvider);  } catch (err) {
     console.error("[CesiumMinimalViewer] Failed to add imagery:", err);
   }
 }
@@ -53,8 +45,6 @@ async function setupImagery(viewer: any, Cesium: any) {
  */
 async function setupTerrain(viewer: any, Cesium: any) {
   try {
-    console.log("[CesiumMinimalViewer] Adding Cesium World Terrain");
-
     viewer.terrainProvider = await Cesium.CesiumTerrainProvider.fromIonAssetId(
       1,
       {
@@ -64,12 +54,7 @@ async function setupTerrain(viewer: any, Cesium: any) {
     );
 
     // Enable depth testing against terrain
-    viewer.scene.globe.depthTestAgainstTerrain = true;
-
-    console.log(
-      "[CesiumMinimalViewer] Cesium World Terrain added successfully"
-    );
-  } catch (err) {
+    viewer.scene.globe.depthTestAgainstTerrain = true;  } catch (err) {
     console.error("[CesiumMinimalViewer] Failed to add terrain:", err);
     // Continue without terrain if it fails
   }
@@ -91,21 +76,11 @@ function setupClickHandler(
 ) {
   const canvas = viewer.scene?.canvas;
   if (!canvas) return null;
-
-  console.log(
-    "[CesiumMinimalViewer] Setting up click handler for location editing"
-  );
-
   const handler = new Cesium.ScreenSpaceEventHandler(canvas);
   const prevCursor = canvas.style.cursor;
   canvas.style.cursor = "crosshair";
 
   handler.setInputAction((click: any) => {
-    console.log(
-      "[CesiumMinimalViewer] Click received on canvas",
-      click.position
-    );
-
     // Use the same picking logic as the builder (3-step approach)
     const position = new Cesium.Cartesian2(click.position.x, click.position.y);
 
@@ -115,39 +90,23 @@ function setupClickHandler(
     pickedPosition = viewer.scene.pickPosition(position);
 
     // Step 2: If that fails, try to pick on the globe using ray
-    if (!Cesium.defined(pickedPosition)) {
-      console.log(
-        "[CesiumMinimalViewer] pickPosition failed, trying globe.pick"
-      );
-      const ray = viewer.camera.getPickRay(position);
+    if (!Cesium.defined(pickedPosition)) {      const ray = viewer.camera.getPickRay(position);
       if (ray) {
         pickedPosition = viewer.scene.globe.pick(ray, viewer.scene);
       }
     }
 
     // Step 3: If still no position, try the ellipsoid directly (fallback)
-    if (!Cesium.defined(pickedPosition)) {
-      console.log("[CesiumMinimalViewer] globe.pick failed, using ellipsoid");
-      pickedPosition = viewer.camera.pickEllipsoid(
+    if (!Cesium.defined(pickedPosition)) {      pickedPosition = viewer.camera.pickEllipsoid(
         position,
         viewer.scene.globe.ellipsoid
       );
     }
-
-    console.log("[CesiumMinimalViewer] Picked position:", pickedPosition);
-
     if (pickedPosition) {
       const cartographic = Cesium.Cartographic.fromCartesian(pickedPosition);
       const longitude = Cesium.Math.toDegrees(cartographic.longitude);
       const latitude = Cesium.Math.toDegrees(cartographic.latitude);
       const height = cartographic.height;
-
-      console.log("[CesiumMinimalViewer] Cartographic:", {
-        longitude,
-        latitude,
-        height,
-      });
-
       // Use the picked height directly without offset
       // Users can adjust height manually if needed
       const adjustedHeight = height;
@@ -158,24 +117,8 @@ function setupClickHandler(
         latitude,
         adjustedHeight
       );
-
-      console.log("[CesiumMinimalViewer] Position Cartesian:", {
-        x: positionCartesian.x,
-        y: positionCartesian.y,
-        z: positionCartesian.z,
-      });
-
       const transformMatrix =
         Cesium.Transforms.eastNorthUpToFixedFrame(positionCartesian);
-
-      console.log("[CesiumMinimalViewer] Transform matrix created:", {
-        translation: {
-          x: transformMatrix[12],
-          y: transformMatrix[13],
-          z: transformMatrix[14],
-        },
-      });
-
       // Apply to tileset immediately
       if (tilesetRef.current) {
         tilesetRef.current.modelMatrix = transformMatrix;
@@ -196,26 +139,10 @@ function setupClickHandler(
           if (viewer && !viewer.isDestroyed()) {
             viewer.scene.requestRender();
           }
-        }, 100);
-
-        console.log(
-          "[CesiumMinimalViewer] ✅ ON CLICK - Applied transform immediately and forced renders"
-        );
-      }
+        }, 100);      }
 
       // Convert to array
       const matrixArray = matrix4ToArray(transformMatrix);
-
-      console.log(
-        "[CesiumMinimalViewer] ✅ ON CLICK - Calling onLocationClick with matrix:",
-        {
-          longitude,
-          latitude,
-          height,
-          matrixLength: matrixArray.length,
-          matrixString: matrixArray.join(","),
-        }
-      );
 
       if (onLocationClick) {
         onLocationClick(longitude, latitude, adjustedHeight, matrixArray);
@@ -224,9 +151,6 @@ function setupClickHandler(
       console.warn("[CesiumMinimalViewer] Could not pick position from click");
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
-  console.log("[CesiumMinimalViewer] Click handler set up successfully");
-
   return { handler, prevCursor };
 }
 
@@ -251,19 +175,13 @@ async function loadTileset(
   cesiumAssetId: string,
   initialTransform?: number[]
 ) {
-  console.log("[CesiumMinimalViewer] Loading 3D Tiles asset:", cesiumAssetId);
-
   const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
     parseInt(cesiumAssetId)
   );
-
-  console.log("[CesiumMinimalViewer] Tileset created");
-
   // Apply initial transform BEFORE adding to scene
   if (initialTransform && initialTransform.length === 16) {
-    console.log(
-      "[CesiumMinimalViewer] 🔵 ON LOAD - Applying initialTransform (before adding to scene)",
-      {
+    const transformMatrix = arrayToMatrix4(Cesium, initialTransform);
+    tileset.modelMatrix = transformMatrix;
         transformString: initialTransform.join(","),
         translation: {
           x: initialTransform[12],
@@ -273,18 +191,7 @@ async function loadTileset(
       }
     );
     const transformMatrix = arrayToMatrix4(Cesium, initialTransform);
-    tileset.modelMatrix = transformMatrix;
-    console.log("[CesiumMinimalViewer] 🔵 ON LOAD - Transform applied");
-  } else {
-    console.log(
-      "[CesiumMinimalViewer] ⚠️ ON LOAD - No initialTransform provided",
-      {
-        initialTransform,
-        type: typeof initialTransform,
-        length: initialTransform?.length,
-      }
-    );
-  }
+    tileset.modelMatrix = transformMatrix;  } else {  }
 
   return tileset;
 }
@@ -301,19 +208,6 @@ function positionCamera(viewer: any, Cesium: any, initialTransform?: number[]) {
     });
     return;
   }
-
-  console.log(
-    "[CesiumMinimalViewer] Using initialTransform to position camera",
-    {
-      transform: initialTransform,
-      translation: {
-        x: initialTransform[12],
-        y: initialTransform[13],
-        z: initialTransform[14],
-      },
-    }
-  );
-
   // Extract position from transform matrix
   const translation = new Cesium.Cartesian3(
     initialTransform[12],
@@ -329,15 +223,6 @@ function positionCamera(viewer: any, Cesium: any, initialTransform?: number[]) {
   const radius = 50; // Approximate tileset size
   const idealHeight = Math.max(height + radius * 4, 50);
   const offsetDistance = Math.max(radius * 4, 50);
-
-  console.log("[CesiumMinimalViewer] Camera destination:", {
-    longitude,
-    latitude,
-    height,
-    radius,
-    idealHeight,
-  });
-
   // Fly camera to position
   const destination = Cesium.Cartesian3.fromDegrees(
     longitude,
@@ -355,12 +240,7 @@ function positionCamera(viewer: any, Cesium: any, initialTransform?: number[]) {
     destination,
     orientation,
     duration: 1.5,
-  });
-
-  console.log("[CesiumMinimalViewer] Flying to tileset:", {
-    offsetDistance,
-  });
-}
+  });}
 
 /**
  * Main Cesium Minimal Viewer Component
@@ -460,8 +340,6 @@ export function CesiumMinimalViewer({
           tilesetRef.current = tileset;
 
           viewer.scene.primitives.add(tileset);
-          console.log("[CesiumMinimalViewer] Tileset added to scene");
-
           // Wait for ready
           if ((tileset as any).readyPromise) {
             await (tileset as any).readyPromise;
@@ -470,16 +348,8 @@ export function CesiumMinimalViewer({
           }
 
           // Re-apply transform after ready (sometimes Cesium resets it)
-          if (initialTransform && initialTransform.length === 16) {
-            console.log(
-              "[CesiumMinimalViewer] 🔵 ON LOAD - Re-applying initialTransform after readyPromise"
-            );
-            const transformMatrix = arrayToMatrix4(Cesium, initialTransform);
+          if (initialTransform && initialTransform.length === 16) {            const transformMatrix = arrayToMatrix4(Cesium, initialTransform);
             tileset.modelMatrix = transformMatrix;
-            console.log(
-              "[CesiumMinimalViewer] 🔵 ON LOAD - Transform re-applied"
-            );
-
             // Force Cesium to update and render the tileset at new position
             // Request multiple renders to ensure bounding sphere is recalculated
             viewer.scene.requestRender();
@@ -488,9 +358,7 @@ export function CesiumMinimalViewer({
             for (let i = 0; i < 5; i++) {
               setTimeout(() => {
                 if (viewer && !viewer.isDestroyed()) {
-                  viewer.scene.requestRender();
-                  console.log(`[CesiumMinimalViewer] Force render ${i + 1}/5`);
-                }
+                  viewer.scene.requestRender();                }
               }, i * 100);
             }
           }
@@ -599,34 +467,16 @@ export function CesiumMinimalViewer({
 
   // Effect to apply transform when initialTransform changes OR when tileset becomes ready
   useEffect(() => {
-    console.log("[CesiumMinimalViewer] 🔄 Transform effect triggered:", {
-      hasViewer: !!viewerRef.current,
-      hasTileset: !!tilesetRef.current,
-      hasCesium: !!cesiumRef.current,
-      hasTransform: !!initialTransform,
-      transformLength: initialTransform?.length,
-      isInitialLoad: isInitialLoad.current,
-      hasAppliedInitialCamera: hasAppliedInitialCamera.current,
-    });
-
     if (
       !viewerRef.current ||
       !tilesetRef.current ||
       !cesiumRef.current ||
       !initialTransform ||
       initialTransform.length !== 16
-    ) {
-      console.log(
-        "[CesiumMinimalViewer] ⚠️ Skipping transform - missing requirements"
-      );
-      return;
+    ) {      return;
     }
 
     const Cesium = cesiumRef.current;
-
-    console.log("[CesiumMinimalViewer] 🔄 Applying initialTransform:", {
-      transformString: initialTransform.join(","),
-    });
 
     const matrix = arrayToMatrix4(Cesium, initialTransform);
 
@@ -637,12 +487,6 @@ export function CesiumMinimalViewer({
         Math.abs(val - initialTransform[i]) < 0.0000001
     );
 
-    console.log("[CesiumMinimalViewer] 🔍 LOAD transform verification:", {
-      input: initialTransform,
-      reconstructed: verifyMatrix,
-      match,
-      diff: !match
-        ? verifyMatrix.map((v: number, i: number) => ({
             index: i,
             input: initialTransform[i],
             reconstructed: v,
@@ -661,22 +505,10 @@ export function CesiumMinimalViewer({
       !hasAppliedInitialCamera.current &&
       isInitialLoad.current
     ) {
-      console.log(
-        "[CesiumMinimalViewer] 📷 Positioning camera from transform effect (INITIAL LOAD ONLY)"
-      );
       positionCamera(viewerRef.current, Cesium, initialTransform);
       hasAppliedInitialCamera.current = true;
       isInitialLoad.current = false;
-    } else {
-      console.log(
-        "[CesiumMinimalViewer] ⏭️ Skipping camera fly (not initial load)"
-      );
-    }
-
-    console.log(
-      "[CesiumMinimalViewer] ✅ Transform applied via initialTransform effect"
-    );
-  }, [
+    }  }, [
     initialTransform,
     enableLocationEditing,
     tilesetRef.current,

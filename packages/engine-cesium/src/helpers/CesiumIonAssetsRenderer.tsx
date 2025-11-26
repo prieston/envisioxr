@@ -40,9 +40,6 @@ const CesiumIonAssetsRenderer: React.FC = () => {
     if (!cesiumViewer || !cesiumInstance) {
       return;
     }
-
-    console.log("[CesiumIonAssetsRenderer] Assets or transforms changed, reloading all tilesets");
-
     tilesetRefs.current.forEach((wrapper) => {
       wrapper.dispose();
     });
@@ -57,14 +54,6 @@ const CesiumIonAssetsRenderer: React.FC = () => {
 
   const initializeAsset = async (asset: any) => {
     try {
-      console.log("[CesiumIonAssetsRenderer] Initializing asset:", {
-        id: asset.id,
-        name: asset.name,
-        assetId: asset.assetId,
-        hasTransform: !!asset.transform,
-        transform: asset.transform,
-      });
-
       const originalToken = cesiumInstance.Ion.defaultAccessToken;
       cesiumInstance.Ion.defaultAccessToken = asset.apiKey;
 
@@ -90,15 +79,9 @@ const CesiumIonAssetsRenderer: React.FC = () => {
         }
       );
 
-      if (!transformApplied) {
-        console.log("[CesiumIonAssetsRenderer] No transform applied for asset:", {
-          assetId: asset.assetId,
-        });
-      }
+      if (!transformApplied) {      }
 
       cesiumViewer.scene.primitives.add(tileset);
-      console.log("[CesiumIonAssetsRenderer] Tileset added to scene");
-
       const wrapper: TilesetWrapper = {
         id: asset.id,
         tileset,
