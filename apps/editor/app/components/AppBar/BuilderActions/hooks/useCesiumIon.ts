@@ -56,14 +56,19 @@ export const useCesiumIon = () => {
         const metadata = fetchedAsset.asset?.metadata as Record<string, unknown> | undefined;
         const savedTransform = metadata?.transform as
           | {
-              matrix?: number[];
+              matrix: number[];
               longitude?: number;
               latitude?: number;
               height?: number;
             }
           | undefined;
-        if (savedTransform?.matrix && savedTransform.matrix.length === 16) {
-          transform = savedTransform;
+        if (savedTransform?.matrix && Array.isArray(savedTransform.matrix) && savedTransform.matrix.length === 16) {
+          transform = {
+            matrix: savedTransform.matrix,
+            longitude: savedTransform.longitude,
+            latitude: savedTransform.latitude,
+            height: savedTransform.height,
+          };
         }
       } catch (err) {
         // Ignore errors fetching asset metadata

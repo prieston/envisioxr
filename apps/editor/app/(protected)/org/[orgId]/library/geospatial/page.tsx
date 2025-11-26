@@ -404,11 +404,8 @@ const LibraryGeospatialPage = () => {
       }
 
       // Update selectedAsset with the new data from API
-      setSelectedAsset(result.asset);
-      console.log("[Library] Updated selectedAsset with new transform:", {
-        assetId: result.asset.id,
-        newTransform: (result.asset.metadata as any)?.transform,
-      });
+      // Cast to LibraryAsset since we know the asset has required fields
+      setSelectedAsset(result.asset as LibraryAsset);
 
       mutate(); // Refresh assets list
     } catch (error) {

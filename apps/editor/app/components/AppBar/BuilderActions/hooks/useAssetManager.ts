@@ -205,16 +205,22 @@ export const useAssetManager = ({
       const metadata = (model as any).metadata as Record<string, unknown> | undefined;
       const transform = metadata?.transform as
         | {
-            matrix?: number[];
+            matrix: number[];
             longitude?: number;
             latitude?: number;
             height?: number;
           }
         | undefined;
 
-      const transformToPass = transform?.matrix && transform.matrix.length === 16
-        ? transform
-        : undefined;
+      const transformToPass =
+        transform?.matrix && Array.isArray(transform.matrix) && transform.matrix.length === 16
+          ? {
+              matrix: transform.matrix,
+              longitude: transform.longitude,
+              latitude: transform.latitude,
+              height: transform.height,
+            }
+          : undefined;
 
       // For Cesium Ion assets, add to both cesiumIonAssets and objects arrays
       addCesiumIonAsset({
