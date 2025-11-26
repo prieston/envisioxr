@@ -145,7 +145,8 @@ const AdjustTilesetLocationDialog: React.FC<
       matrix: number[] // The actual matrix array that was ALREADY applied in CesiumMinimalViewer
     ) => {
       // Only process clicks if click mode is enabled
-      if (!clickModeEnabled) {        return;
+      if (!clickModeEnabled) {
+        return;
       }
 
       // Ensure Cesium is loaded
@@ -337,7 +338,8 @@ const AdjustTilesetLocationDialog: React.FC<
       // Convert matrix to array and store
       const matrixArray = matrix4ToArray(transformMatrix);
       setCurrentTransform(matrixArray);
-      setCurrentLocation({ longitude, latitude, height });    } catch (err) {
+      setCurrentLocation({ longitude, latitude, height });
+    } catch (err) {
       console.error(
         "[AdjustTilesetLocationDialog] Failed to apply manual changes:",
         err
@@ -368,7 +370,8 @@ const AdjustTilesetLocationDialog: React.FC<
         currentLocation.longitude,
         currentLocation.latitude,
         currentLocation.height
-      );      onClose();
+      );
+      onClose();
     } catch (err) {
       console.error("[AdjustTilesetLocationDialog] ❌ Failed to save:", err);
       setError(err instanceof Error ? err.message : "Failed to save location");
