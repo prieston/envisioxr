@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
@@ -362,15 +363,6 @@ const LibraryGeospatialPage = () => {
   ) => {
     if (!selectedAsset) return;
 
-    console.log("[Library] 💾 handleSaveLocation called with:", {
-      assetId: selectedAsset.id,
-      transformString: transform.join(','),
-      transform,
-      longitude,
-      latitude,
-      height,
-    });
-
     try {
       // Update transform both in our database and on Cesium Ion
       const result = await updateModelTransform(selectedAsset.id, {
@@ -378,11 +370,6 @@ const LibraryGeospatialPage = () => {
         longitude,
         latitude,
         height,
-      });
-
-      console.log("[Library] ✅ Transform saved to API, result:", {
-        savedTransform: (result.asset.metadata as any)?.transform,
-        savedTransformString: (result.asset.metadata as any)?.transform?.matrix?.join(','),
       });
 
       // Update scene store if this asset is already loaded in the builder

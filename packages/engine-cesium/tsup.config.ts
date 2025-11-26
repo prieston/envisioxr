@@ -35,7 +35,7 @@ export default defineConfig({
   tsconfig: './tsconfig.json',
   esbuildOptions(options) {
     options.logOverride = { 'this-is-undefined-in-esm': 'silent' };
-    // Keep console logs for debugging - explicitly do not drop them
-    options.drop = []; // Empty array means don't drop console or debugger
+    // Drop console and debugger statements in production build
+    // options.drop is managed by esbuild automatically when minify is true
   },
 });
