@@ -187,7 +187,8 @@ const nextConfig = {
           new TerserPlugin({
             terserOptions: {
               compress: {
-                drop_console: true,
+                // drop_console: true, // Commented out so console logs show in build
+                drop_console: false,
               },
             },
           }),

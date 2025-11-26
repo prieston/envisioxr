@@ -883,6 +883,7 @@ const AdjustTilesetLocationDialog: React.FC<
                 onError={handleError}
                 onTilesetReady={handleTilesetReady}
                 initialTransform={currentTransform}
+                metadata={undefined} // Metadata already extracted to initialTransform in parent
                 enableLocationEditing={true}
                 enableClickToPosition={clickModeEnabled}
                 onLocationClick={handleLocationClick}

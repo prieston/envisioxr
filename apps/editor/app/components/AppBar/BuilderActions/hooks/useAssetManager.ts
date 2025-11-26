@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import { showToast } from "@klorad/ui";
 import { useSceneStore } from "@klorad/core";
@@ -14,6 +16,7 @@ import {
   updateModelMetadata,
 } from "@/app/utils/api";
 import { useOrgId } from "@/app/hooks/useOrgId";
+import { extractTransformFromMetadata } from "@klorad/engine-cesium";
 
 interface UseAssetManagerProps {
   setSelectingPosition?: (selecting: boolean) => void;
@@ -201,26 +204,25 @@ export const useAssetManager = ({
       (model as any).cesiumAssetId;
 
     if (isCesiumAsset) {
-      // Extract transform from metadata if it exists
+      // Extract transform from metadata using shared utility function
       const metadata = (model as any).metadata as Record<string, unknown> | undefined;
-      const transform = metadata?.transform as
-        | {
-            matrix: number[];
-            longitude?: number;
-            latitude?: number;
-            height?: number;
-          }
-        | undefined;
+      const transformToPass = extractTransformFromMetadata(metadata);
 
-      const transformToPass =
-        transform?.matrix && Array.isArray(transform.matrix) && transform.matrix.length === 16
+      console.log("[useAssetManager] Cesium asset selected:", {
+        assetId: (model as any).cesiumAssetId,
+        name: model.name,
+        hasMetadata: !!metadata,
+        hasTransform: !!transformToPass,
+        transform: transformToPass
           ? {
-              matrix: transform.matrix,
-              longitude: transform.longitude,
-              latitude: transform.latitude,
-              height: transform.height,
+              hasMatrix: !!transformToPass.matrix,
+              matrixLength: transformToPass.matrix?.length,
+              longitude: transformToPass.longitude,
+              latitude: transformToPass.latitude,
+              height: transformToPass.height,
             }
-          : undefined;
+          : null,
+      });
 
       // For Cesium Ion assets, add to both cesiumIonAssets and objects arrays
       addCesiumIonAsset({

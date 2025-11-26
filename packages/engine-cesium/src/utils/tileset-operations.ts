@@ -5,6 +5,50 @@
 
 import { arrayToMatrix4, matrix4ToArray } from './tileset-transform';
 
+/**
+ * Extract transform from model metadata
+ * @param metadata - Model metadata object
+ * @returns Transform data or undefined if not found
+ */
+export function extractTransformFromMetadata(
+  metadata: Record<string, unknown> | undefined | null
+): TilesetTransformData | undefined {
+  if (!metadata || typeof metadata !== 'object') {
+    return undefined;
+  }
+
+  if (!('transform' in metadata) || metadata.transform === null || metadata.transform === undefined) {
+    return undefined;
+  }
+
+  const transform = metadata.transform as {
+    matrix?: unknown;
+    longitude?: number;
+    latitude?: number;
+    height?: number;
+  } | undefined;
+
+  if (!transform || typeof transform !== 'object') {
+    return undefined;
+  }
+
+  if (!('matrix' in transform) || !Array.isArray(transform.matrix)) {
+    return undefined;
+  }
+
+  const matrix = transform.matrix as number[];
+  if (matrix.length !== 16) {
+    return undefined;
+  }
+
+  return {
+    matrix,
+    longitude: transform.longitude,
+    latitude: transform.latitude,
+    height: transform.height,
+  };
+}
+
 export interface TilesetTransformData {
   matrix: number[];
   longitude?: number;
@@ -170,6 +214,100 @@ export async function waitForTilesetReady(
     ]);
   } else {
     await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+}
+
+/**
+ * Load a Cesium 3D Tileset and apply transform from metadata if available
+ * This function handles the complete flow:
+ * 1. Loads the tileset
+ * 2. Applies transform before adding to scene
+ * 3. Re-applies transform after tileset is ready (Cesium sometimes resets it)
+ * 4. Forces multiple renders to ensure proper update
+ * @param Cesium - Cesium library instance
+ * @param cesiumAssetId - Cesium Ion asset ID
+ * @param metadata - Model metadata (optional, will extract transform from it)
+ * @param transform - Direct transform data (optional, takes precedence over metadata)
+ * @param options - Additional options
+ * @returns The loaded tileset
+ */
+export async function loadTilesetWithTransform(
+  Cesium: any,
+  cesiumAssetId: string,
+  metadata?: Record<string, unknown> | null,
+  transform?: TilesetTransformData,
+  options?: {
+    viewer?: any;
+    log?: boolean;
+  }
+): Promise<any> {
+  // Extract transform from metadata if not provided directly
+  const transformToApply = transform || extractTransformFromMetadata(metadata);
+  const transformMatrix = transformToApply?.matrix;
+
+  // Load tileset
+  const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
+    parseInt(cesiumAssetId)
+  );
+
+  // Apply transform BEFORE adding to scene
+  if (transformMatrix && transformMatrix.length === 16) {
+    const matrix = arrayToMatrix4(Cesium, transformMatrix);
+    tileset.modelMatrix = matrix;
+
+    if (options?.log) {
+      console.log('[TilesetOps] Applied initial transform before adding to scene');
+    }
+  }
+
+  return tileset;
+}
+
+/**
+ * Re-apply transform to a tileset after it's ready
+ * This is necessary because Cesium sometimes resets the modelMatrix after the tileset becomes ready
+ * @param Cesium - Cesium library instance
+ * @param tileset - The Cesium3DTileset
+ * @param transform - Transform data
+ * @param options - Additional options
+ */
+export function reapplyTransformAfterReady(
+  Cesium: any,
+  tileset: any,
+  transform: TilesetTransformData | undefined,
+  options?: {
+    viewer?: any;
+    log?: boolean;
+  }
+): void {
+  if (!transform?.matrix || transform.matrix.length !== 16) {
+    return;
+  }
+
+  try {
+    const matrix = arrayToMatrix4(Cesium, transform.matrix);
+    tileset.modelMatrix = matrix;
+
+    if (options?.viewer) {
+      // Force Cesium to update and render the tileset at new position
+      // Request multiple renders to ensure bounding sphere is recalculated
+      options.viewer.scene.requestRender();
+
+      // Force immediate updates with staggered timeouts
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+          if (options.viewer && !options.viewer.isDestroyed()) {
+            options.viewer.scene.requestRender();
+          }
+        }, i * 100);
+      }
+    }
+
+    if (options?.log) {
+      console.log('[TilesetOps] Re-applied transform after tileset ready');
+    }
+  } catch (err) {
+    console.error('[TilesetOps] Failed to re-apply transform:', err);
   }
 }
 

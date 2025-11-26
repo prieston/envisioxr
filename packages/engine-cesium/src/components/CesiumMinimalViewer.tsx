@@ -3,6 +3,13 @@
 import { useRef, useEffect } from "react";
 import { ensureCesiumBaseUrl } from "../utils/cesium-config";
 import { arrayToMatrix4, matrix4ToArray } from "../utils/tileset-transform";
+import {
+  loadTilesetWithTransform,
+  reapplyTransformAfterReady,
+  waitForTilesetReady,
+  extractTransformFromMetadata,
+  type TilesetTransformData,
+} from "../utils/tileset-operations";
 
 export interface CesiumMinimalViewerProps {
   containerRef: React.RefObject<HTMLDivElement>;
@@ -14,6 +21,7 @@ export interface CesiumMinimalViewerProps {
   onLocationNotSet?: () => void;
   onTilesetReady?: (tileset: any) => void;
   initialTransform?: number[];
+  metadata?: Record<string, unknown> | null; // Model metadata (will extract transform from it)
   enableLocationEditing?: boolean;
   enableClickToPosition?: boolean; // New prop to control if click-to-position is active
   onLocationClick?: (
@@ -173,23 +181,27 @@ function cleanupClickHandler(viewer: any, handlerData: any) {
 }
 
 /**
- * Load a Cesium 3D Tileset
+ * Load a Cesium 3D Tileset with transform
+ * Uses the shared utility function
  */
 async function loadTileset(
   Cesium: any,
   cesiumAssetId: string,
+  metadata?: Record<string, unknown> | null,
   initialTransform?: number[]
 ) {
-  const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
-    parseInt(cesiumAssetId)
-  );
-  // Apply initial transform BEFORE adding to scene
-  if (initialTransform && initialTransform.length === 16) {
-    const transformMatrix = arrayToMatrix4(Cesium, initialTransform);
-    tileset.modelMatrix = transformMatrix;
-  }
+  // Convert initialTransform array to TilesetTransformData if provided
+  const transform: TilesetTransformData | undefined = initialTransform && initialTransform.length === 16
+    ? { matrix: initialTransform }
+    : undefined;
 
-  return tileset;
+  return loadTilesetWithTransform(
+    Cesium,
+    cesiumAssetId,
+    metadata,
+    transform,
+    { log: false }
+  );
 }
 
 /**
@@ -251,6 +263,7 @@ export function CesiumMinimalViewer({
   onLocationNotSet: _onLocationNotSet, // Prefix with _ to indicate intentionally unused
   onTilesetReady,
   initialTransform,
+  metadata,
   enableLocationEditing = false,
   enableClickToPosition = false,
   onLocationClick,
@@ -331,34 +344,29 @@ export function CesiumMinimalViewer({
           const tileset = await loadTileset(
             Cesium,
             cesiumAssetId,
+            metadata,
             initialTransform
           );
           tilesetRef.current = tileset;
 
           viewer.scene.primitives.add(tileset);
+
           // Wait for ready
-          if ((tileset as any).readyPromise) {
-            await (tileset as any).readyPromise;
-          } else {
-            await new Promise((resolve) => setTimeout(resolve, 500));
-          }
+          await waitForTilesetReady(tileset);
+
+          // Extract transform from metadata or use initialTransform
+          const transformFromMetadata = extractTransformFromMetadata(metadata);
+          const transformToApply: TilesetTransformData | undefined =
+            (initialTransform && initialTransform.length === 16)
+              ? { matrix: initialTransform }
+              : transformFromMetadata;
 
           // Re-apply transform after ready (sometimes Cesium resets it)
-          if (initialTransform && initialTransform.length === 16) {
-            const transformMatrix = arrayToMatrix4(Cesium, initialTransform);
-            tileset.modelMatrix = transformMatrix;
-            // Force Cesium to update and render the tileset at new position
-            // Request multiple renders to ensure bounding sphere is recalculated
-            viewer.scene.requestRender();
-
-            // Force immediate update
-            for (let i = 0; i < 5; i++) {
-              setTimeout(() => {
-                if (viewer && !viewer.isDestroyed()) {
-                  viewer.scene.requestRender();
-                }
-              }, i * 100);
-            }
+          if (transformToApply) {
+            reapplyTransformAfterReady(Cesium, tileset, transformToApply, {
+              viewer,
+              log: false,
+            });
           }
 
           viewer.scene.requestRender();
