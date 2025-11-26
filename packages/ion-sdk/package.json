@@ -26,6 +26,7 @@
   },
   "peerDependencies": {
     "@klorad/core": "workspace:*",
+    "@cesium/engine": ">=20.0.0",
     "cesium": ">=1.131.0",
     "next": "^14.2.18",
     "react": "^18.3.1"
