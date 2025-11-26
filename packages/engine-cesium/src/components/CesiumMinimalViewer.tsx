@@ -35,7 +35,8 @@ async function setupImagery(viewer: any, Cesium: any) {
       maximumLevel: 19,
     });
 
-    viewer.imageryLayers.addImageryProvider(imageryProvider);  } catch (err) {
+    viewer.imageryLayers.addImageryProvider(imageryProvider);
+  } catch (err) {
     console.error("[CesiumMinimalViewer] Failed to add imagery:", err);
   }
 }
@@ -54,7 +55,8 @@ async function setupTerrain(viewer: any, Cesium: any) {
     );
 
     // Enable depth testing against terrain
-    viewer.scene.globe.depthTestAgainstTerrain = true;  } catch (err) {
+    viewer.scene.globe.depthTestAgainstTerrain = true;
+  } catch (err) {
     console.error("[CesiumMinimalViewer] Failed to add terrain:", err);
     // Continue without terrain if it fails
   }
@@ -90,14 +92,16 @@ function setupClickHandler(
     pickedPosition = viewer.scene.pickPosition(position);
 
     // Step 2: If that fails, try to pick on the globe using ray
-    if (!Cesium.defined(pickedPosition)) {      const ray = viewer.camera.getPickRay(position);
+    if (!Cesium.defined(pickedPosition)) {
+      const ray = viewer.camera.getPickRay(position);
       if (ray) {
         pickedPosition = viewer.scene.globe.pick(ray, viewer.scene);
       }
     }
 
     // Step 3: If still no position, try the ellipsoid directly (fallback)
-    if (!Cesium.defined(pickedPosition)) {      pickedPosition = viewer.camera.pickEllipsoid(
+    if (!Cesium.defined(pickedPosition)) {
+      pickedPosition = viewer.camera.pickEllipsoid(
         position,
         viewer.scene.globe.ellipsoid
       );
@@ -139,7 +143,8 @@ function setupClickHandler(
           if (viewer && !viewer.isDestroyed()) {
             viewer.scene.requestRender();
           }
-        }, 100);      }
+        }, 100);
+      }
 
       // Convert to array
       const matrixArray = matrix4ToArray(transformMatrix);
@@ -231,7 +236,8 @@ function positionCamera(viewer: any, Cesium: any, initialTransform?: number[]) {
     destination,
     orientation,
     duration: 1.5,
-  });}
+  });
+}
 
 /**
  * Main Cesium Minimal Viewer Component
@@ -339,7 +345,8 @@ export function CesiumMinimalViewer({
           }
 
           // Re-apply transform after ready (sometimes Cesium resets it)
-          if (initialTransform && initialTransform.length === 16) {            const transformMatrix = arrayToMatrix4(Cesium, initialTransform);
+          if (initialTransform && initialTransform.length === 16) {
+            const transformMatrix = arrayToMatrix4(Cesium, initialTransform);
             tileset.modelMatrix = transformMatrix;
             // Force Cesium to update and render the tileset at new position
             // Request multiple renders to ensure bounding sphere is recalculated
@@ -349,7 +356,8 @@ export function CesiumMinimalViewer({
             for (let i = 0; i < 5; i++) {
               setTimeout(() => {
                 if (viewer && !viewer.isDestroyed()) {
-                  viewer.scene.requestRender();                }
+                  viewer.scene.requestRender();
+                }
               }, i * 100);
             }
           }
@@ -464,7 +472,8 @@ export function CesiumMinimalViewer({
       !cesiumRef.current ||
       !initialTransform ||
       initialTransform.length !== 16
-    ) {      return;
+    ) {
+      return;
     }
 
     const Cesium = cesiumRef.current;
