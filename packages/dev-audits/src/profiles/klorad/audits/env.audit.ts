@@ -22,16 +22,8 @@ const REQUIRED_ENV_VARS = {
     pattern: /^postgresql:\/\//,
     description: "PostgreSQL connection string",
   },
-  ION_ACCESS_TOKEN: {
-    required: true,
-    pattern: /^.+$/,
-    description: "Cesium Ion access token",
-  },
-  ION_REGION: {
-    required: true,
-    pattern: /^(us-east-1|eu-central-1)$/,
-    description: "Cesium Ion region (us-east-1 or eu-central-1)",
-  },
+  // Note: NEXT_PUBLIC_CESIUM_ION_KEY is validated in apps/editor/lib/env/client.ts
+  // and apps/editor/lib/env/server.ts, so we don't need to check it here
 };
 
 function maskSecret(value: string): string {
@@ -110,21 +102,6 @@ export const envAudit: AuditDefinition = {
           code: "INVALID_ENV_VAR",
         });
       }
-    }
-
-    // Check for common mistakes
-    // NOTE: ION_REGION values are hardcoded here. If you add new regions (e.g., ap-southeast-1),
-    // you must update both the REQUIRED_ENV_VARS pattern and this check.
-    if (
-      finalEnv.ION_REGION &&
-      !finalEnv.ION_REGION.match(/^(us-east-1|eu-central-1)$/)
-    ) {
-      items.push({
-        message: `ION_REGION must be 'us-east-1' or 'eu-central-1', got: ${finalEnv.ION_REGION}`,
-        file: actualEnvFile || envFile,
-        severity: "error",
-        code: "INVALID_ION_REGION",
-      });
     }
 
     return {
