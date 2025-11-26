@@ -208,22 +208,6 @@ export const useAssetManager = ({
       const metadata = (model as any).metadata as Record<string, unknown> | undefined;
       const transformToPass = extractTransformFromMetadata(metadata);
 
-      console.log("[useAssetManager] Cesium asset selected:", {
-        assetId: (model as any).cesiumAssetId,
-        name: model.name,
-        hasMetadata: !!metadata,
-        hasTransform: !!transformToPass,
-        transform: transformToPass
-          ? {
-              hasMatrix: !!transformToPass.matrix,
-              matrixLength: transformToPass.matrix?.length,
-              longitude: transformToPass.longitude,
-              latitude: transformToPass.latitude,
-              height: transformToPass.height,
-            }
-          : null,
-      });
-
       // For Cesium Ion assets, add to both cesiumIonAssets and objects arrays
       addCesiumIonAsset({
         name: model.name || model.originalFilename,
