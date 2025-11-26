@@ -59,7 +59,6 @@ export const cesiumEngineBoundariesAudit: AuditDefinition = {
         "**/dist/**",
         "**/*.d.ts",
         "**/dev-audits/**",
-        "**/scripts/audits/**",
       ],
     });
 
