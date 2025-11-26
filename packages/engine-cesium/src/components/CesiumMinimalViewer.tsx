@@ -218,7 +218,6 @@ function positionCamera(viewer: any, Cesium: any, initialTransform?: number[]) {
   // Calculate camera position with offset
   const radius = 50; // Approximate tileset size
   const idealHeight = Math.max(height + radius * 4, 50);
-  const offsetDistance = Math.max(radius * 4, 50);
   // Fly camera to position
   const destination = Cesium.Cartesian3.fromDegrees(
     longitude,
