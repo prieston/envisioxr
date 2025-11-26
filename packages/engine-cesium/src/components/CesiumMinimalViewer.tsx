@@ -182,16 +182,7 @@ async function loadTileset(
   if (initialTransform && initialTransform.length === 16) {
     const transformMatrix = arrayToMatrix4(Cesium, initialTransform);
     tileset.modelMatrix = transformMatrix;
-        transformString: initialTransform.join(","),
-        translation: {
-          x: initialTransform[12],
-          y: initialTransform[13],
-          z: initialTransform[14],
-        },
-      }
-    );
-    const transformMatrix = arrayToMatrix4(Cesium, initialTransform);
-    tileset.modelMatrix = transformMatrix;  } else {  }
+  }
 
   return tileset;
 }
@@ -487,14 +478,6 @@ export function CesiumMinimalViewer({
         Math.abs(val - initialTransform[i]) < 0.0000001
     );
 
-            index: i,
-            input: initialTransform[i],
-            reconstructed: v,
-            delta: v - initialTransform[i],
-          }))
-        : "perfect match",
-    });
-
     tilesetRef.current.modelMatrix = matrix;
     viewerRef.current.scene.requestRender();
 
@@ -508,7 +491,8 @@ export function CesiumMinimalViewer({
       positionCamera(viewerRef.current, Cesium, initialTransform);
       hasAppliedInitialCamera.current = true;
       isInitialLoad.current = false;
-    }  }, [
+    }
+  }, [
     initialTransform,
     enableLocationEditing,
     tilesetRef.current,
