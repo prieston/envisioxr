@@ -65,7 +65,9 @@ const nextConfig = {
         ...config.resolve?.alias,
         '@': '.',
         // Force single Three.js instance across workspace
-        'three': path.resolve(process.cwd(), 'node_modules/three')
+        'three': path.resolve(process.cwd(), 'node_modules/three'),
+        // Ensure @cesium/engine resolves from editor app's node_modules when transpiling packages
+        '@cesium/engine': path.resolve(process.cwd(), 'node_modules/@cesium/engine')
       },
       fallback: {
         ...config.resolve?.fallback,
@@ -185,7 +187,8 @@ const nextConfig = {
           new TerserPlugin({
             terserOptions: {
               compress: {
-                drop_console: true,
+                // drop_console: true, // Commented out so console logs show in build
+                drop_console: false,
               },
             },
           }),

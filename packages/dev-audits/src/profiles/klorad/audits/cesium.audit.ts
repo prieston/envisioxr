@@ -36,7 +36,6 @@ export const cesiumAudit: AuditDefinition = {
           file.includes("/Cesium") ||
           file.includes("CesiumControls") ||
           file.includes("CesiumIon")) &&
-        !file.includes("scripts/audits") && // Skip audit scripts themselves
         !file.includes("dev-audits") && // Skip audit package files
         !file.includes(".d.ts") // Skip type definition files
     );

@@ -41,6 +41,7 @@ import { UploadToIonDrawer } from "./components/UploadToIonDrawer";
 import {
   deleteModel,
   updateModelMetadata,
+  updateModelTransform,
   getThumbnailUploadUrl,
   uploadToSignedUrl,
 } from "@/app/utils/api";
@@ -48,6 +49,8 @@ import { AddIonAssetDrawer } from "./components/AddIonAssetDrawer";
 import useModels from "@/app/hooks/useModels";
 import { useTilingStatusPolling } from "@/app/hooks/useTilingStatusPolling";
 import CesiumPreviewDialog from "./components/CesiumPreviewDialog";
+import AdjustTilesetLocationDialog from "./components/AdjustTilesetLocationDialog";
+import { useSceneStore } from "@klorad/core";
 
 const LibraryGeospatialPage = () => {
   const router = useRouter();
@@ -87,6 +90,11 @@ const LibraryGeospatialPage = () => {
   const [uploadToIonDrawerOpen, setUploadToIonDrawerOpen] = useState(false);
   const [addIonAssetDrawerOpen, setAddIonAssetDrawerOpen] = useState(false);
   const [retakePhotoOpen, setRetakePhotoOpen] = useState(false);
+  const [adjustLocationOpen, setAdjustLocationOpen] = useState(false);
+
+  // Access scene store to update assets when transform changes
+  const cesiumIonAssets = useSceneStore((state) => state.cesiumIonAssets);
+  const updateCesiumIonAsset = useSceneStore((state) => state.updateCesiumIonAsset);
 
   // Check for upload query param and open drawer
   useEffect(() => {
@@ -338,6 +346,71 @@ const LibraryGeospatialPage = () => {
     } catch (error) {
       console.error("Failed to retry tiling:", error);
       showToast("Failed to retry tiling status check");
+    }
+  };
+
+  // Handle adjust tileset location
+  const handleAdjustLocation = () => {
+    setAdjustLocationOpen(true);
+  };
+
+  const handleSaveLocation = async (
+    transform: number[],
+    longitude: number,
+    latitude: number,
+    height: number
+  ) => {
+    if (!selectedAsset) return;
+
+    try {
+      // Update transform both in our database and on Cesium Ion
+      const result = await updateModelTransform(selectedAsset.id, {
+        transform,
+        longitude,
+        latitude,
+        height,
+      });
+
+      // Update scene store if this asset is already loaded in the builder
+      if (selectedAsset.cesiumAssetId) {
+        const transformData = {
+          matrix: transform,
+          longitude,
+          latitude,
+          height,
+        };
+
+        // Find assets in scene store that match this Cesium Ion asset ID
+        cesiumIonAssets.forEach((asset) => {
+          if (asset.assetId === selectedAsset.cesiumAssetId) {
+            updateCesiumIonAsset(asset.id, { transform: transformData });
+          }
+        });
+      }
+
+      if (result.warning) {
+        showToast(
+          `Location saved locally. ${result.warning}`,
+          "warning"
+        );
+      } else {
+        showToast("Tileset location updated successfully", "success");
+      }
+
+      // Update selectedAsset with the new data from API
+      // Cast to LibraryAsset since we know the asset has required fields
+      setSelectedAsset(result.asset as LibraryAsset);
+
+      mutate(); // Refresh assets list
+    } catch (error) {
+      console.error("Error saving location:", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "An error occurred while saving location",
+        "error"
+      );
+      throw error; // Re-throw so dialog can handle it
     }
   };
 
@@ -721,6 +794,7 @@ const LibraryGeospatialPage = () => {
                     }}
                     onRetakePhoto={handleRetakePhoto}
                     onRetryTiling={handleRetryTiling}
+                    onAdjustLocation={handleAdjustLocation}
                     canUpdate={true}
                     showAddToScene={false}
                   />
@@ -786,6 +860,45 @@ const LibraryGeospatialPage = () => {
             }
             assetType={selectedAsset.fileType}
             onCapture={handleCaptureScreenshot}
+          />
+        )}
+
+      {/* Adjust Tileset Location Dialog */}
+      {selectedAsset &&
+        selectedAsset.cesiumAssetId &&
+        selectedAsset.cesiumApiKey && (
+          <AdjustTilesetLocationDialog
+            open={adjustLocationOpen}
+            onClose={() => setAdjustLocationOpen(false)}
+            cesiumAssetId={selectedAsset.cesiumAssetId}
+            cesiumApiKey={selectedAsset.cesiumApiKey}
+            assetName={
+              selectedAsset.name || selectedAsset.originalFilename || "Asset"
+            }
+            assetType={selectedAsset.fileType}
+            initialTransform={(() => {
+              const metadata = selectedAsset.metadata;
+              if (
+                metadata &&
+                typeof metadata === "object" &&
+                "transform" in metadata &&
+                metadata.transform !== null &&
+                metadata.transform !== undefined
+              ) {
+                const transform = metadata.transform as { matrix?: unknown };
+                if (
+                  typeof transform === "object" &&
+                  transform !== null &&
+                  "matrix" in transform &&
+                  Array.isArray(transform.matrix)
+                ) {
+                  const matrix = transform.matrix as number[];
+                  return matrix;
+                }
+              }
+              return undefined;
+            })()}
+            onSave={handleSaveLocation}
           />
         )}
     </>

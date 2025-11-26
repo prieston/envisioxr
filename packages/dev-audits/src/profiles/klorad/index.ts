@@ -40,4 +40,19 @@ export const kloradProfile: ProjectProfile = {
       // Add more advisory audits here as needed
     ];
   },
+  // Light audits: fast, critical checks that should pass in CI
+  // Excludes slower/heavier audits and architectural issues that need gradual fixes
+  async getLightAudits(_rootDir: string): Promise<AuditDefinition[]> {
+    return [
+      ssrRscAudit, // Fast: SSR/RSC boundary checks
+      envAudit, // Fast: Environment variable validation
+      cesiumAudit, // Fast: Cesium lifecycle checks
+      apiOrgAudit, // Fast: API organization scoping
+      // Excluded from light:
+      // - structureAudit: includes circular deps and file size checks (architectural issues)
+      // - uiBoundariesAudit: many violations that need gradual fixes
+      // - cesiumEngineBoundariesAudit: architectural boundary violations
+      // - threejsEngineBoundariesAudit: architectural boundary violations
+    ];
+  },
 };

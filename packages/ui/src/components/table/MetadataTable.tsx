@@ -197,7 +197,11 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                   <TextField
                     id={`metadata-table-value-${index}`}
                     name={`metadata-table-value-${index}`}
-                    value={row.value}
+                    value={
+                      typeof row.value === "object" && row.value !== null
+                        ? JSON.stringify(row.value, null, 2)
+                        : String(row.value ?? "")
+                    }
                     onChange={(e) =>
                       handleChange(index, "value", e.target.value)
                     }
@@ -207,7 +211,9 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                     sx={textFieldStyles}
                   />
                 ) : (
-                  row.value
+                  typeof row.value === "object" && row.value !== null
+                    ? JSON.stringify(row.value, null, 2)
+                    : String(row.value ?? "")
                 )}
               </TableCell>
               {editable && (

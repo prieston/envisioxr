@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Button, IconButton, TextField, LinearProgress, Alert } from "@mui/material";
-import { Delete, Edit, Save, Close, AddCircleOutline, CameraAlt, Refresh } from "@mui/icons-material";
+import { Delete, Edit, Save, Close, AddCircleOutline, CameraAlt, Refresh, LocationOn } from "@mui/icons-material";
 import { MetadataTable, type MetadataRow } from "../../../table";
 import type { LibraryAsset } from "../MyLibraryTab";
 import { textFieldStyles } from "../../../../styles/inputStyles";
@@ -21,6 +21,7 @@ interface AssetDetailViewProps {
   onAddToScene: () => void;
   onRetakePhoto: () => void;
   onRetryTiling?: () => void;
+  onAdjustLocation?: () => void; // Callback for adjusting tileset location
   canUpdate?: boolean;
   showAddToScene?: boolean;
 }
@@ -41,6 +42,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
   onAddToScene,
   onRetakePhoto,
   onRetryTiling,
+  onAdjustLocation,
   canUpdate = true,
   showAddToScene = true,
 }) => {
@@ -391,6 +393,47 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
               : "Add to Scene"}
           </Button>
         )}
+
+        {/* Adjust Tileset Location button - only for Cesium Ion 3D Tiles assets */}
+        {isCesiumIonAsset &&
+          (asset.fileType === "cesium-ion-tileset" ||
+            asset.fileType === "3DTILES" ||
+            asset.fileType?.includes("3DTILES")) &&
+          onAdjustLocation && (
+            <Button
+              variant="outlined"
+              startIcon={<LocationOn />}
+              onClick={onAdjustLocation}
+              disabled={!isTilingComplete}
+              sx={(theme) => ({
+                borderRadius: "4px",
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                borderColor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(107, 156, 216, 0.35)"
+                    : "rgba(95, 136, 199, 0.4)",
+                color: theme.palette.primary.main,
+                padding: "6px 16px",
+                boxShadow: "none",
+                "&:hover": {
+                  borderColor: theme.palette.primary.main,
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? "rgba(107, 156, 216, 0.12)"
+                      : "rgba(95, 136, 199, 0.08)",
+                  boxShadow: "none",
+                },
+                "&:disabled": {
+                  borderColor: "rgba(100, 116, 139, 0.2)",
+                  color: "rgba(100, 116, 139, 0.5)",
+                },
+              })}
+            >
+              Adjust Tileset Location
+            </Button>
+          )}
 
         <Box sx={{ flex: 1 }} />
 

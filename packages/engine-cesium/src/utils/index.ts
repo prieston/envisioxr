@@ -5,6 +5,8 @@ export * from "./positioning";
 export * from "./viewshed-capability";
 export * from "./basemap";
 export * from "./cesium-config";
+export * from "./tileset-transform";
+export * from "./tileset-operations";
 export * from "./viewer-config";
 export * from "./entity-rendering";
 

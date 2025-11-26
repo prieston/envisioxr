@@ -7,6 +7,12 @@ export interface CesiumIonAsset {
   apiKey: string;
   assetId: string;
   enabled: boolean;
+  transform?: {
+    matrix: number[]; // 16-element array representing Matrix4
+    longitude?: number;
+    latitude?: number;
+    height?: number;
+  };
 }
 
 export interface Model {

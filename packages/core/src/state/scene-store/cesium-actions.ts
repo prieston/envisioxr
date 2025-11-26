@@ -55,10 +55,25 @@ export function createCesiumActions(set: any, get: any) {
         ],
       })),
 
-    addCesiumIonAsset: (asset: Omit<CesiumIonAsset, "id">) =>
-      set((state: any) => ({
+    addCesiumIonAsset: (asset: Omit<CesiumIonAsset, "id">) => {
+      console.log("[SceneStore] addCesiumIonAsset called:", {
+        name: asset.name,
+        assetId: asset.assetId,
+        hasTransform: !!asset.transform,
+        transform: asset.transform
+          ? {
+              hasMatrix: !!asset.transform.matrix,
+              matrixLength: asset.transform.matrix?.length,
+              longitude: asset.transform.longitude,
+              latitude: asset.transform.latitude,
+              height: asset.transform.height,
+            }
+          : null,
+      });
+      return set((state: any) => ({
         cesiumIonAssets: [...state.cesiumIonAssets, { ...asset, id: uuidv4() }],
-      })),
+      }));
+    },
 
     removeCesiumIonAsset: (id: string) =>
       set((state: any) => ({

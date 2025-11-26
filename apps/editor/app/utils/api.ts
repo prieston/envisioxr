@@ -64,10 +64,20 @@ async function apiRequest<T>(
 
   if (!response.ok) {
     let errorData: unknown;
+    // Clone the response before reading to avoid "body stream already read" error
+    const clonedForJson = response.clone();
     try {
-      errorData = await response.json();
+      // Try to parse as JSON from the cloned response
+      errorData = await clonedForJson.json();
     } catch {
-      errorData = await response.text();
+      // If JSON parsing fails, clone again and try reading as text
+      try {
+        const clonedForText = response.clone();
+        errorData = await clonedForText.text();
+      } catch {
+        // If both fail, use status text
+        errorData = response.statusText;
+      }
     }
     throw new ApiError(
       `API request failed: ${response.statusText}`,
@@ -150,29 +160,36 @@ export async function getOrganization(orgId: string): Promise<{
   if (!orgId) {
     throw new Error("organizationId is required");
   }
-  return apiRequest<{ organization: Organization }>(`/api/organizations/${orgId}`);
+  return apiRequest<{ organization: Organization }>(
+    `/api/organizations/${orgId}`
+  );
 }
 
 export async function updateOrganization(
   data: {
-  name?: string;
-  slug?: string;
+    name?: string;
+    slug?: string;
   },
   orgId: string
 ): Promise<{ organization: Organization }> {
   if (!orgId) {
     throw new Error("organizationId is required");
   }
-  return apiRequest<{ organization: Organization }>(`/api/organizations/${orgId}`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
+  return apiRequest<{ organization: Organization }>(
+    `/api/organizations/${orgId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
 }
 
 export async function getAllOrganizations(): Promise<{
   organizations: Organization[];
 }> {
-  return apiRequest<{ organizations: Organization[] }>("/api/organizations/list");
+  return apiRequest<{ organizations: Organization[] }>(
+    "/api/organizations/list"
+  );
 }
 
 export async function createOrganization(data: {
@@ -497,6 +514,24 @@ export async function getModelMetadata(
   });
 }
 
+export async function updateModelTransform(
+  assetId: string,
+  data: {
+    transform: number[]; // 16-element array
+    longitude: number;
+    latitude: number;
+    height: number;
+  }
+): Promise<{ success: boolean; asset: Asset; warning?: string }> {
+  return apiRequest<{ success: boolean; asset: Asset; warning?: string }>(
+    `/api/models/${encodeURIComponent(assetId)}/transform`,
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
 export async function updateModelMetadata(
   assetId: string,
   data: {
@@ -659,9 +694,7 @@ export async function getActivities(params?: {
   return apiRequest<ActivitiesResponse>("/api/activity", { params });
 }
 
-export const activitiesFetcher = (
-  url: string
-): Promise<ActivitiesResponse> => {
+export const activitiesFetcher = (url: string): Promise<ActivitiesResponse> => {
   return apiRequest<ActivitiesResponse>(url);
 };
 
@@ -725,9 +758,7 @@ export const swrFetcher = <T>(url: string): Promise<T> => {
  * Fetcher for projects list
  */
 export const projectsFetcher = (url: string): Promise<Project[]> => {
-  return apiRequest<{ projects: Project[] }>(url).then(
-    (res) => res.projects
-  );
+  return apiRequest<{ projects: Project[] }>(url).then((res) => res.projects);
 };
 
 /**
@@ -751,9 +782,7 @@ export const modelsFetcher = (
   const hasAssetTypeInUrl = urlObj.searchParams.has("assetType");
 
   // Only add params if URL doesn't already have assetType
-  const params = !hasAssetTypeInUrl && assetType
-    ? { assetType }
-    : undefined;
+  const params = !hasAssetTypeInUrl && assetType ? { assetType } : undefined;
 
   return apiRequest<ModelsResponse>(url, { params });
 };
@@ -818,10 +847,13 @@ export async function createOrganizationCheckoutSession(
   orgName: string,
   orgSlug: string
 ): Promise<{ url: string; bypassed?: boolean }> {
-  return apiRequest<{ url: string; bypassed?: boolean }>("/api/organizations/create-checkout", {
-    method: "POST",
-    body: JSON.stringify({ planCode, billingInterval, orgName, orgSlug }),
-  });
+  return apiRequest<{ url: string; bypassed?: boolean }>(
+    "/api/organizations/create-checkout",
+    {
+      method: "POST",
+      body: JSON.stringify({ planCode, billingInterval, orgName, orgSlug }),
+    }
+  );
 }
 
 // Export ApiError for error handling

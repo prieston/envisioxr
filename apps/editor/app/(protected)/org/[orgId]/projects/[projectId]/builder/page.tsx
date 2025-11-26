@@ -7,7 +7,8 @@ import AdminLayout from "@/app/components/Builder/AdminLayout";
 import SceneCanvas from "@/app/components/Builder/Scene/SceneCanvas";
 import { useSceneStore, useWorldStore } from "@klorad/core";
 import { showToast } from "@klorad/ui";
-import { updateProjectScene, publishProject } from "@/app/utils/api";
+import { updateProjectScene, publishProject, getModel } from "@/app/utils/api";
+import { extractTransformFromMetadata } from "@klorad/engine-cesium";
 import useProject from "@/app/hooks/useProject";
 
 // Function to sanitize scene data before saving
@@ -51,6 +52,7 @@ const sanitizeSceneData = (
         assetId: rest.assetId || undefined,
         apiKey: rest.apiKey || undefined,
         component: rest.component || undefined,
+        cesiumAssetId: rest.cesiumAssetId || undefined, // Include cesiumAssetId for matching
       };
 
       // Include observation model data if present
@@ -206,7 +208,11 @@ const sanitizeSceneData = (
 export default function BuilderPage() {
   const { projectId } = useParams();
   const projectIdStr = Array.isArray(projectId) ? projectId[0] : projectId;
-  const { project: fetchedProject, loadingProject, mutate: mutateProject } = useProject(projectIdStr);
+  const {
+    project: fetchedProject,
+    loadingProject,
+    mutate: mutateProject,
+  } = useProject(projectIdStr);
   const [project, setProject] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const setActiveWorld = useWorldStore((s) => s.setActiveWorld);
@@ -226,81 +232,180 @@ export default function BuilderPage() {
   useEffect(() => {
     if (!fetchedProject) return;
 
-    try {
-      // Reset scene state first
-      useSceneStore.getState().resetScene();
+    const initializeProject = async () => {
+      try {
+        // Reset scene state first
+        useSceneStore.getState().resetScene();
 
-      setProject(fetchedProject);
-      setActiveWorld(fetchedProject);
+        setProject(fetchedProject);
+        setActiveWorld(fetchedProject);
 
-      // Initialize scene data from project
-      if (fetchedProject?.sceneData && typeof fetchedProject.sceneData === 'object') {
-        const sceneData = fetchedProject.sceneData as {
-          objects?: unknown[];
-          observationPoints?: unknown[];
-          selectedAssetId?: string;
-          selectedLocation?: unknown;
-          showTiles?: boolean;
-          basemapType?: string;
-          cesiumIonAssets?: unknown[];
-          cesiumLightingEnabled?: boolean;
-          cesiumShadowsEnabled?: boolean;
-          cesiumCurrentTime?: unknown;
-        };
-        const {
-          objects,
-          observationPoints,
-          selectedAssetId,
-          selectedLocation,
-          showTiles,
-          basemapType,
-          cesiumIonAssets,
-          cesiumLightingEnabled,
-          cesiumShadowsEnabled,
-          cesiumCurrentTime,
-        } = sceneData;
-
-        if (Array.isArray(objects)) {
-          // Restore objects with all their properties including observation model data
-          setObjects(objects as Parameters<typeof setObjects>[0]);
-        }
-        if (Array.isArray(observationPoints)) {
-          setObservationPoints(observationPoints as Parameters<typeof setObservationPoints>[0]);
-        }
-        if (selectedAssetId && typeof selectedAssetId === 'string') {
-          useSceneStore.setState({
+        // Initialize scene data from project
+        if (
+          fetchedProject?.sceneData &&
+          typeof fetchedProject.sceneData === "object"
+        ) {
+          const sceneData = fetchedProject.sceneData as {
+            objects?: unknown[];
+            observationPoints?: unknown[];
+            selectedAssetId?: string;
+            selectedLocation?: unknown;
+            showTiles?: boolean;
+            basemapType?: string;
+            cesiumIonAssets?: unknown[];
+            cesiumLightingEnabled?: boolean;
+            cesiumShadowsEnabled?: boolean;
+            cesiumCurrentTime?: unknown;
+          };
+          const {
+            objects,
+            observationPoints,
             selectedAssetId,
-            showTiles: showTiles ?? false,
-          });
-        }
-        if (selectedLocation && typeof selectedLocation === 'object' && selectedLocation !== null && 'latitude' in selectedLocation && 'longitude' in selectedLocation) {
-          useSceneStore.setState({ selectedLocation: selectedLocation as { latitude: number; longitude: number; altitude?: number } });
-        }
-        if (basemapType && typeof basemapType === 'string') {
-          const validBasemapTypes = ["cesium", "none", "google", "google-photorealistic", "bing"] as const;
-          if (validBasemapTypes.includes(basemapType as typeof validBasemapTypes[number])) {
-            useSceneStore.setState({ basemapType: basemapType as typeof validBasemapTypes[number] });
+            selectedLocation,
+            showTiles,
+            basemapType,
+            cesiumIonAssets,
+            cesiumLightingEnabled,
+            cesiumShadowsEnabled,
+            cesiumCurrentTime,
+          } = sceneData;
+
+          if (Array.isArray(objects)) {
+            // Restore objects with all their properties including observation model data
+            setObjects(objects as Parameters<typeof setObjects>[0]);
+          }
+          if (Array.isArray(observationPoints)) {
+            setObservationPoints(
+              observationPoints as Parameters<typeof setObservationPoints>[0]
+            );
+          }
+          if (selectedAssetId && typeof selectedAssetId === "string") {
+            useSceneStore.setState({
+              selectedAssetId,
+              showTiles: showTiles ?? false,
+            });
+          }
+          if (
+            selectedLocation &&
+            typeof selectedLocation === "object" &&
+            selectedLocation !== null &&
+            "latitude" in selectedLocation &&
+            "longitude" in selectedLocation
+          ) {
+            useSceneStore.setState({
+              selectedLocation: selectedLocation as {
+                latitude: number;
+                longitude: number;
+                altitude?: number;
+              },
+            });
+          }
+          if (basemapType && typeof basemapType === "string") {
+            const validBasemapTypes = [
+              "cesium",
+              "none",
+              "google",
+              "google-photorealistic",
+              "bing",
+            ] as const;
+            if (
+              validBasemapTypes.includes(
+                basemapType as (typeof validBasemapTypes)[number]
+              )
+            ) {
+              useSceneStore.setState({
+                basemapType: basemapType as (typeof validBasemapTypes)[number],
+              });
+            }
+          }
+          if (Array.isArray(cesiumIonAssets)) {
+            // Fetch metadata and extract transforms for cesiumIonAssets
+            // The saved scene data doesn't include metadata, so we need to fetch it
+            const enrichedAssets = await Promise.all(
+              (cesiumIonAssets as any[]).map(async (asset) => {
+                // Try to find the database assetId from the objects array
+                // Objects have assetId (database ID) and cesiumAssetId (Ion ID)
+                // cesiumIonAsset.assetId is the Cesium Ion asset ID (not database ID)
+                const assetIdString = String(asset.assetId);
+
+                // First try to match by cesiumAssetId
+                let matchingObject = Array.isArray(objects)
+                  ? (objects as any[]).find(
+                      (obj) =>
+                        obj.type === "cesium-ion-tileset" &&
+                        obj.cesiumAssetId != null &&
+                        String(obj.cesiumAssetId) === assetIdString
+                    )
+                  : null;
+
+                // Fallback: match by name if cesiumAssetId matching failed
+                // This handles cases where objects were saved before cesiumAssetId was added
+                if (!matchingObject) {
+                  matchingObject = Array.isArray(objects)
+                    ? (objects as any[]).find(
+                        (obj) =>
+                          obj.type === "cesium-ion-tileset" &&
+                          obj.name === asset.name
+                      )
+                    : null;
+                }
+
+                const databaseAssetId = matchingObject?.assetId;
+
+                // Try to fetch metadata if we have a database assetId
+                let transform = asset.transform; // Keep existing transform if present
+                if (!transform && databaseAssetId) {
+                  try {
+                    const fetchedAsset = await getModel(databaseAssetId);
+                    const metadata = fetchedAsset.asset?.metadata as
+                      | Record<string, unknown>
+                      | undefined;
+                    const extractedTransform =
+                      extractTransformFromMetadata(metadata);
+
+                    if (extractedTransform) {
+                      transform = extractedTransform;
+                    }
+                  } catch (err) {
+                    console.warn(
+                      "[BuilderPage] Failed to fetch metadata for asset:",
+                      databaseAssetId,
+                      err
+                    );
+                    // Continue without transform if fetch fails
+                  }
+                }
+
+                return {
+                  ...asset,
+                  transform,
+                };
+              })
+            );
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            useSceneStore.setState({ cesiumIonAssets: enrichedAssets as any });
+          }
+          // Restore time simulation settings
+          if (cesiumLightingEnabled !== undefined) {
+            useSceneStore.setState({ cesiumLightingEnabled });
+          }
+          if (cesiumShadowsEnabled !== undefined) {
+            useSceneStore.setState({ cesiumShadowsEnabled });
+          }
+          if (cesiumCurrentTime !== undefined && cesiumCurrentTime !== null) {
+            useSceneStore.setState({
+              cesiumCurrentTime: String(cesiumCurrentTime),
+            });
           }
         }
-        if (Array.isArray(cesiumIonAssets)) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          useSceneStore.setState({ cesiumIonAssets: cesiumIonAssets as any });
-        }
-        // Restore time simulation settings
-        if (cesiumLightingEnabled !== undefined) {
-          useSceneStore.setState({ cesiumLightingEnabled });
-        }
-        if (cesiumShadowsEnabled !== undefined) {
-          useSceneStore.setState({ cesiumShadowsEnabled });
-        }
-        if (cesiumCurrentTime !== undefined && cesiumCurrentTime !== null) {
-          useSceneStore.setState({ cesiumCurrentTime: String(cesiumCurrentTime) });
-        }
+      } catch (error) {
+        console.error("Error initializing project:", error);
+        showToast("Error loading project");
       }
-    } catch (error) {
-      console.error("Error initializing project:", error);
-      showToast("Error loading project");
-    }
+    };
+
+    initializeProject();
 
     return () => setActiveWorld(null);
   }, [fetchedProject, setObjects, setObservationPoints, setActiveWorld]);

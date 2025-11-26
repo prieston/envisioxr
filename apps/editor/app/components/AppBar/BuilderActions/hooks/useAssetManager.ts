@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import { showToast } from "@klorad/ui";
 import { useSceneStore } from "@klorad/core";
@@ -14,6 +16,7 @@ import {
   updateModelMetadata,
 } from "@/app/utils/api";
 import { useOrgId } from "@/app/hooks/useOrgId";
+import { extractTransformFromMetadata } from "@klorad/engine-cesium";
 
 interface UseAssetManagerProps {
   setSelectingPosition?: (selecting: boolean) => void;
@@ -201,12 +204,17 @@ export const useAssetManager = ({
       (model as any).cesiumAssetId;
 
     if (isCesiumAsset) {
+      // Extract transform from metadata using shared utility function
+      const metadata = (model as any).metadata as Record<string, unknown> | undefined;
+      const transformToPass = extractTransformFromMetadata(metadata);
+
       // For Cesium Ion assets, add to both cesiumIonAssets and objects arrays
       addCesiumIonAsset({
         name: model.name || model.originalFilename,
         apiKey: (model as any).cesiumApiKey || "",
         assetId: (model as any).cesiumAssetId,
         enabled: true,
+        transform: transformToPass,
       });
 
       // Also add to objects array so it appears in scene objects list

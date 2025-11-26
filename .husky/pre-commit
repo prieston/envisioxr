@@ -6,9 +6,9 @@ echo "🔍 Running pre-commit checks..."
 # Set environment variable so audits know they're running in pre-commit
 export HUSKY=1
 
-# Run lightweight audits (fast fail) - skip size audit in pre-commit (too noisy)
-# Size audit runs in CI where it's more appropriate
-pnpm audit:boundaries && pnpm audit:ssr && pnpm audit:types && pnpm audit:dead || exit 1
+# Run core audits (fast fail) - these are blocking and must pass
+# Advisory audits (like size-complexity) run in CI where they're more appropriate
+pnpm audits || exit 1
 
 # Run lint-staged
 pnpm lint-staged || exit 1

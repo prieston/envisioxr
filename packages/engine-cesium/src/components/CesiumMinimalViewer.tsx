@@ -2,48 +2,283 @@
 
 import { useRef, useEffect } from "react";
 import { ensureCesiumBaseUrl } from "../utils/cesium-config";
+import { arrayToMatrix4, matrix4ToArray } from "../utils/tileset-transform";
+import {
+  loadTilesetWithTransform,
+  reapplyTransformAfterReady,
+  waitForTilesetReady,
+  extractTransformFromMetadata,
+  type TilesetTransformData,
+} from "../utils/tileset-operations";
 
-interface CesiumMinimalViewerProps {
+export interface CesiumMinimalViewerProps {
   containerRef: React.RefObject<HTMLDivElement>;
-  cesiumAssetId: string;
-  cesiumApiKey: string;
-  assetType?: string; // e.g., "IMAGERY", "3DTILES", etc.
+  cesiumAssetId?: string;
+  cesiumApiKey?: string;
+  assetType?: string;
   onViewerReady?: (viewer: any) => void;
   onError?: (error: Error) => void;
+  onLocationNotSet?: () => void;
+  onTilesetReady?: (tileset: any) => void;
+  initialTransform?: number[];
+  metadata?: Record<string, unknown> | null; // Model metadata (will extract transform from it)
+  enableLocationEditing?: boolean;
+  enableClickToPosition?: boolean; // New prop to control if click-to-position is active
+  onLocationClick?: (
+    longitude: number,
+    latitude: number,
+    height: number,
+    matrix: number[]
+  ) => void;
 }
 
 /**
- * Minimal Cesium viewer component for preview/thumbnail capture
- * Creates a viewer without globe, basemap, or UI controls
+ * Setup OpenStreetMap imagery for location editing
+ */
+async function setupImagery(viewer: any, Cesium: any) {
+  try {
+    const imageryProvider = new Cesium.UrlTemplateImageryProvider({
+      url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      credit: "© OpenStreetMap contributors",
+      maximumLevel: 19,
+    });
+
+    viewer.imageryLayers.addImageryProvider(imageryProvider);
+  } catch (err) {
+    console.error("[CesiumMinimalViewer] Failed to add imagery:", err);
+  }
+}
+
+/**
+ * Setup Cesium World Terrain for accurate height picking
+ */
+async function setupTerrain(viewer: any, Cesium: any) {
+  try {
+    viewer.terrainProvider = await Cesium.CesiumTerrainProvider.fromIonAssetId(
+      1,
+      {
+        requestVertexNormals: true,
+        requestWaterMask: true,
+      }
+    );
+
+    // Enable depth testing against terrain
+    viewer.scene.globe.depthTestAgainstTerrain = true;
+  } catch (err) {
+    console.error("[CesiumMinimalViewer] Failed to add terrain:", err);
+    // Continue without terrain if it fails
+  }
+}
+
+/**
+ * Setup click handler for location editing - uses same logic as builder
+ */
+function setupClickHandler(
+  viewer: any,
+  Cesium: any,
+  tilesetRef: React.RefObject<any>,
+  onLocationClick?: (
+    lng: number,
+    lat: number,
+    height: number,
+    matrix: number[]
+  ) => void
+) {
+  const canvas = viewer.scene?.canvas;
+  if (!canvas) return null;
+  const handler = new Cesium.ScreenSpaceEventHandler(canvas);
+  const prevCursor = canvas.style.cursor;
+  canvas.style.cursor = "crosshair";
+
+  handler.setInputAction((click: any) => {
+    // Use the same picking logic as the builder (3-step approach)
+    const position = new Cesium.Cartesian2(click.position.x, click.position.y);
+
+    let pickedPosition: any = null;
+
+    // Step 1: Try to pick a 3D position (terrain, models, etc.)
+    pickedPosition = viewer.scene.pickPosition(position);
+
+    // Step 2: If that fails, try to pick on the globe using ray
+    if (!Cesium.defined(pickedPosition)) {
+      const ray = viewer.camera.getPickRay(position);
+      if (ray) {
+        pickedPosition = viewer.scene.globe.pick(ray, viewer.scene);
+      }
+    }
+
+    // Step 3: If still no position, try the ellipsoid directly (fallback)
+    if (!Cesium.defined(pickedPosition)) {
+      pickedPosition = viewer.camera.pickEllipsoid(
+        position,
+        viewer.scene.globe.ellipsoid
+      );
+    }
+    if (pickedPosition) {
+      const cartographic = Cesium.Cartographic.fromCartesian(pickedPosition);
+      const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+      const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+      const height = cartographic.height;
+      // Use the picked height directly without offset
+      // Users can adjust height manually if needed
+      const adjustedHeight = height;
+
+      // Compute the matrix - create position from lon/lat/height
+      const positionCartesian = Cesium.Cartesian3.fromDegrees(
+        longitude,
+        latitude,
+        adjustedHeight
+      );
+      const transformMatrix =
+        Cesium.Transforms.eastNorthUpToFixedFrame(positionCartesian);
+      // Apply to tileset immediately
+      if (tilesetRef.current) {
+        tilesetRef.current.modelMatrix = transformMatrix;
+
+        // Request multiple renders to ensure proper update
+        viewer.scene.requestRender();
+        setTimeout(() => {
+          if (viewer && !viewer.isDestroyed()) {
+            viewer.scene.requestRender();
+          }
+        }, 0);
+        setTimeout(() => {
+          if (viewer && !viewer.isDestroyed()) {
+            viewer.scene.requestRender();
+          }
+        }, 50);
+        setTimeout(() => {
+          if (viewer && !viewer.isDestroyed()) {
+            viewer.scene.requestRender();
+          }
+        }, 100);
+      }
+
+      // Convert to array
+      const matrixArray = matrix4ToArray(transformMatrix);
+
+      if (onLocationClick) {
+        onLocationClick(longitude, latitude, adjustedHeight, matrixArray);
+      }
+    } else {
+      console.warn("[CesiumMinimalViewer] Could not pick position from click");
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  return { handler, prevCursor };
+}
+
+/**
+ * Cleanup click handler
+ */
+function cleanupClickHandler(viewer: any, handlerData: any) {
+  if (handlerData?.handler) {
+    handlerData.handler.destroy();
+    const canvas = viewer?.scene?.canvas;
+    if (canvas && handlerData.prevCursor !== undefined) {
+      canvas.style.cursor = handlerData.prevCursor || "auto";
+    }
+  }
+}
+
+/**
+ * Load a Cesium 3D Tileset with transform
+ * Uses the shared utility function
+ */
+async function loadTileset(
+  Cesium: any,
+  cesiumAssetId: string,
+  metadata?: Record<string, unknown> | null,
+  initialTransform?: number[]
+) {
+  // Convert initialTransform array to TilesetTransformData if provided
+  const transform: TilesetTransformData | undefined = initialTransform && initialTransform.length === 16
+    ? { matrix: initialTransform }
+    : undefined;
+
+  return loadTilesetWithTransform(
+    Cesium,
+    cesiumAssetId,
+    metadata,
+    transform,
+    { log: false }
+  );
+}
+
+/**
+ * Position camera to view the tileset
+ */
+function positionCamera(viewer: any, Cesium: any, initialTransform?: number[]) {
+  if (!initialTransform || initialTransform.length !== 16) {
+    // Default view of Earth (San Francisco area)
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(-122.4194, 37.7749, 10000000),
+      duration: 0,
+    });
+    return;
+  }
+  // Extract position from transform matrix
+  const translation = new Cesium.Cartesian3(
+    initialTransform[12],
+    initialTransform[13],
+    initialTransform[14]
+  );
+  const cartographic = Cesium.Cartographic.fromCartesian(translation);
+  const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+  const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+  const height = cartographic.height;
+
+  // Calculate camera position with offset
+  const radius = 50; // Approximate tileset size
+  const idealHeight = Math.max(height + radius * 4, 50);
+  // Fly camera to position
+  const destination = Cesium.Cartesian3.fromDegrees(
+    longitude,
+    latitude,
+    idealHeight
+  );
+
+  const orientation = {
+    heading: Cesium.Math.toRadians(0),
+    pitch: Cesium.Math.toRadians(-45),
+    roll: 0,
+  };
+
+  viewer.camera.flyTo({
+    destination,
+    orientation,
+    duration: 1.5,
+  });
+}
+
+/**
+ * Main Cesium Minimal Viewer Component
  */
 export function CesiumMinimalViewer({
   containerRef,
   cesiumAssetId,
   cesiumApiKey,
-  assetType,
+  assetType: _assetType, // Prefix with _ to indicate intentionally unused
   onViewerReady,
   onError,
+  onLocationNotSet: _onLocationNotSet, // Prefix with _ to indicate intentionally unused
+  onTilesetReady,
+  initialTransform,
+  metadata,
+  enableLocationEditing = false,
+  enableClickToPosition = false,
+  onLocationClick,
 }: CesiumMinimalViewerProps) {
   const viewerRef = useRef<any>(null);
   const cesiumRef = useRef<any>(null);
-  const isInitializing = useRef(false);
   const tilesetRef = useRef<any>(null);
-  const imageryLayerRef = useRef<any>(null);
-  const dataSourceRef = useRef<any>(null);
-  const modelRef = useRef<any>(null);
-  const rafIdRef = useRef<number | null>(null);
+  const clickHandlerDataRef = useRef<any>(null);
+  const isInitializing = useRef(false);
+  const isInitialLoad = useRef(true); // Track if this is the initial load vs subsequent repositions
+  const hasAppliedInitialCamera = useRef(false); // Track if we've positioned camera initially
 
+  // Main initialization effect
   useEffect(() => {
-    // Check if container exists and if viewer is already initialized
     if (!containerRef.current || viewerRef.current || isInitializing.current) {
-      return;
-    }
-
-    // Check if container already has a Cesium viewer or canvas (prevent duplicates)
-    if (
-      containerRef.current.querySelector(".cesium-viewer") ||
-      containerRef.current.querySelector("canvas")
-    ) {
       return;
     }
 
@@ -51,302 +286,111 @@ export function CesiumMinimalViewer({
 
     const initializeCesium = async () => {
       try {
-        // Ensure Ion SDK is loaded before creating viewer
+        if (!containerRef.current) {
+          throw new Error("Container ref is null");
+        }
+
+        // Load Cesium
         const { ensureIonSDKLoaded } = await import("@klorad/ion-sdk");
         await ensureIonSDKLoaded();
+        ensureCesiumBaseUrl();
 
-        // Dynamic import of Cesium
         const Cesium = await import("cesium");
         cesiumRef.current = Cesium;
 
-        // Make Cesium available globally for Ion SDK
-        (window as typeof window & { Cesium: typeof Cesium }).Cesium = Cesium;
-
-        // Verify CESIUM_BASE_URL is set
-        ensureCesiumBaseUrl();
-
-        // Set custom API key (not the default one)
-        Cesium.Ion.defaultAccessToken = cesiumApiKey;
-
-        const { Viewer } = Cesium;
-
-        // Ensure container has proper dimensions before creating viewer
-        if (!containerRef.current) {
-          throw new Error("Missing container element");
+        // Set Ion token
+        if (cesiumApiKey) {
+          Cesium.Ion.defaultAccessToken = cesiumApiKey;
         }
 
-        const container = containerRef.current;
-        const rect = container.getBoundingClientRect();
-
-        // Wait for container to have dimensions if needed
-        if (rect.width === 0 || rect.height === 0) {
-          // Wait a frame for styles to apply
-          await new Promise<void>((resolve) => {
-            const rafId = requestAnimationFrame(() => {
-              rafIdRef.current = null;
-              resolve();
-            });
-            rafIdRef.current = rafId;
-          });
-          const newRect = container.getBoundingClientRect();
-          if (newRect.width === 0 || newRect.height === 0) {
-            // Still no dimensions, use defaults
-            container.style.width = "100%";
-            container.style.height = "100%";
-          } else {
-            container.style.width = `${newRect.width}px`;
-            container.style.height = `${newRect.height}px`;
-          }
-        } else {
-          // Set explicit dimensions
-          container.style.width = `${rect.width}px`;
-          container.style.height = `${rect.height}px`;
-        }
-
-        // Double-check no viewer was created during async operations
-        if (containerRef.current.querySelector(".cesium-viewer")) {
-          isInitializing.current = false;
-          return;
-        }
-
-        viewerRef.current = new Viewer(containerRef.current, {
+        // Create viewer
+        const viewer = new Cesium.Viewer(containerRef.current, {
           animation: false,
           timeline: false,
           baseLayerPicker: false,
           geocoder: false,
-          sceneModePicker: false,
-          navigationHelpButton: false,
           homeButton: false,
-          fullscreenButton: false,
-          infoBox: false,
+          sceneModePicker: false,
           selectionIndicator: false,
-          // Disable globe + imagery
-          skyBox: false,
-          skyAtmosphere: false,
-          terrainProvider: new Cesium.EllipsoidTerrainProvider(),
-          // Remove credits and attribution
-          creditContainer: undefined,
-          creditViewport: undefined,
+          infoBox: false,
+          navigationHelpButton: false,
+          navigationInstructionsInitiallyVisible: false,
+          scene3DOnly: true,
+          shouldAnimate: false,
+          requestRenderMode: true,
+          maximumRenderTimeChange: Infinity,
         });
 
-        // Hide the globe entirely
-        viewerRef.current.scene.globe.show = false;
+        viewerRef.current = viewer;
+        viewer.scene.globe.enableLighting = false;
 
-        // Black background
-        viewerRef.current.scene.backgroundColor = Cesium.Color.BLACK;
-
-        // Force viewer to resize to container dimensions
-        if (viewerRef.current.cesiumWidget) {
-          // Ensure viewer and widget containers fill the parent
-          const viewerElement = viewerRef.current.cesiumWidget.container;
-          if (viewerElement) {
-            viewerElement.style.width = "100%";
-            viewerElement.style.height = "100%";
-          }
-          const widgetContainer =
-            viewerRef.current.cesiumWidget.container?.parentElement;
-          if (widgetContainer) {
-            widgetContainer.style.width = "100%";
-            widgetContainer.style.height = "100%";
-          }
-          // Force resize
-          viewerRef.current.cesiumWidget.resize();
-          // Also resize after a short delay to ensure dimensions are applied
-          setTimeout(() => {
-            if (viewerRef.current?.cesiumWidget) {
-              viewerRef.current.cesiumWidget.resize();
-            }
-          }, 100);
+        // Setup for location editing
+        if (enableLocationEditing) {
+          viewer.scene.globe.show = true;
+          await setupImagery(viewer, Cesium);
+          await setupTerrain(viewer, Cesium);
+        } else {
+          viewer.scene.globe.show = false;
+          viewer.scene.backgroundColor = Cesium.Color.BLACK;
         }
 
-        // Hide all credit/attribution elements
-        const hideCredits = () => {
-          // Hide credits in the viewer container
-          const viewerContainer = containerRef.current;
-          if (viewerContainer) {
-            const creditElements = viewerContainer.querySelectorAll(
-              ".cesium-viewer-bottom, .cesium-credit-text, .cesium-credit-logoContainer, .cesium-credit-expand-link, .cesium-credit-logo, .cesium-widget-credits"
-            );
-            creditElements.forEach((element: Element) => {
-              (element as HTMLElement).style.display = "none";
-            });
-          }
-          // Also hide in the viewer's widget container
-          const viewerElement = viewerRef.current.cesiumWidget?.container;
-          if (viewerElement) {
-            const creditElements = viewerElement.querySelectorAll(
-              ".cesium-viewer-bottom, .cesium-credit-text, .cesium-credit-logoContainer, .cesium-credit-expand-link, .cesium-credit-logo, .cesium-widget-credits"
-            );
-            creditElements.forEach((element: Element) => {
-              (element as HTMLElement).style.display = "none";
-            });
-          }
-        };
-
-        hideCredits();
-
-        // Also hide after delays to catch dynamically added elements
-        setTimeout(hideCredits, 50);
-        setTimeout(hideCredits, 200);
-        setTimeout(hideCredits, 500);
-
-        // Use MutationObserver to hide credits as they're added
-        const observer = new MutationObserver(() => {
-          hideCredits();
-        });
-        const viewerElement =
-          viewerRef.current.cesiumWidget?.container || containerRef.current;
-        observer.observe(viewerElement, {
-          childList: true,
-          subtree: true,
-        });
-
-        // Store observer for cleanup
-        (viewerRef.current as any)._creditObserver = observer;
-
-        // Handle different asset types
-        // Ensure access token is set before creating providers
-        const originalToken = Cesium.Ion.defaultAccessToken;
-        Cesium.Ion.defaultAccessToken = cesiumApiKey;
-
-        try {
-          // Normalize asset type (handle UI labels like "3D Tiles" -> "3DTILES")
-          const normalizedAssetType = assetType
-            ? assetType.toUpperCase().replace(/\s+/g, "")
-            : undefined;
-
-          switch (normalizedAssetType) {
-            case "IMAGERY": {
-              // IonImageryProvider, show globe
-              const imageryProvider =
-                await Cesium.IonImageryProvider.fromAssetId(
-                  Number(cesiumAssetId)
-                );
-              imageryLayerRef.current =
-                viewerRef.current.imageryLayers.addImageryProvider(
-                  imageryProvider
-                );
-              viewerRef.current.scene.globe.show = true;
-              viewerRef.current.camera.setView({
-                destination: Cesium.Rectangle.fromDegrees(-180, -90, 180, 90),
-              });
-              break;
-            }
-
-            case "TERRAIN": {
-              viewerRef.current.scene.globe.show = true;
-              viewerRef.current.terrainProvider =
-                await Cesium.CesiumTerrainProvider.fromIonAssetId(
-                  parseInt(cesiumAssetId)
-                );
-              viewerRef.current.camera.setView({
-                destination: Cesium.Rectangle.fromDegrees(-180, -90, 180, 90),
-              });
-              break;
-            }
-
-            case "GLTF": {
-              const resource = await Cesium.IonResource.fromAssetId(
-                parseInt(cesiumAssetId)
-              );
-              // Model.fromGltf returns a promise
-              const model = await (Cesium.Model as any).fromGltf({
-                url: resource,
-              });
-              modelRef.current = model;
-              viewerRef.current.scene.primitives.add(model);
-              await viewerRef.current.zoomTo(model);
-              break;
-            }
-
-            case "3DTILES": {
-              // Show globe for world-scale 3D Tiles datasets like OSM Buildings
-              viewerRef.current.scene.globe.show = true;
-        const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
-          parseInt(cesiumAssetId)
-        );
-              tilesetRef.current = tileset;
-              viewerRef.current.scene.primitives.add(tileset);
-              await viewerRef.current.zoomTo(tileset);
-              break;
-            }
-
-            case "CZML": {
-              // Show globe for geospatial data
-              viewerRef.current.scene.globe.show = true;
-              const resource = await Cesium.IonResource.fromAssetId(
-                parseInt(cesiumAssetId)
-              );
-              const ds = await Cesium.CzmlDataSource.load(resource);
-              dataSourceRef.current = ds;
-              viewerRef.current.dataSources.add(ds);
-              await viewerRef.current.zoomTo(ds);
-              break;
-            }
-
-            case "KML": {
-              // Show globe for geospatial data
-              viewerRef.current.scene.globe.show = true;
-              const resource = await Cesium.IonResource.fromAssetId(
-                parseInt(cesiumAssetId)
-              );
-              const ds = await Cesium.KmlDataSource.load(resource, {
-                camera: viewerRef.current.camera,
-              });
-              dataSourceRef.current = ds;
-              viewerRef.current.dataSources.add(ds);
-              await viewerRef.current.zoomTo(ds);
-              break;
-            }
-
-            case "GEOJSON": {
-              // Show globe for geospatial data
-              viewerRef.current.scene.globe.show = true;
-              const resource = await Cesium.IonResource.fromAssetId(
-                parseInt(cesiumAssetId)
-              );
-              const ds = await Cesium.GeoJsonDataSource.load(resource);
-              dataSourceRef.current = ds;
-              viewerRef.current.dataSources.add(ds);
-              await viewerRef.current.zoomTo(ds);
-              break;
-            }
-
-            default: {
-              // Fallback: try as 3D Tiles, but log a warning
-              console.warn(
-                `Unknown asset type "${assetType}" (normalized: "${normalizedAssetType}"), attempting to load as 3D Tiles`
-              );
-              try {
-                // Show globe for fallback 3D Tiles (likely world-scale datasets)
-                viewerRef.current.scene.globe.show = true;
-                const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
-                  parseInt(cesiumAssetId)
-                );
-        tilesetRef.current = tileset;
-        viewerRef.current.scene.primitives.add(tileset);
-        await viewerRef.current.zoomTo(tileset);
-              } catch (err) {
-                throw new Error(
-                  `Failed to load asset: ${err instanceof Error ? err.message : "Unknown error"}`
-                );
-              }
-              break;
-            }
-          }
-        } finally {
-          // Restore original token
-          Cesium.Ion.defaultAccessToken = originalToken;
-        }
-
+        // Notify viewer ready
         if (onViewerReady) {
-          onViewerReady(viewerRef.current);
+          onViewerReady(viewer);
         }
-      } catch (err) {
-        const error =
-          err instanceof Error ? err : new Error("Failed to initialize Cesium");
+
+        // Load tileset if provided
+        if (cesiumAssetId) {
+          const tileset = await loadTileset(
+            Cesium,
+            cesiumAssetId,
+            metadata,
+            initialTransform
+          );
+          tilesetRef.current = tileset;
+
+          viewer.scene.primitives.add(tileset);
+
+          // Wait for ready
+          await waitForTilesetReady(tileset);
+
+          // Extract transform from metadata or use initialTransform
+          const transformFromMetadata = extractTransformFromMetadata(metadata);
+          const transformToApply: TilesetTransformData | undefined =
+            (initialTransform && initialTransform.length === 16)
+              ? { matrix: initialTransform }
+              : transformFromMetadata;
+
+          // Re-apply transform after ready (sometimes Cesium resets it)
+          if (transformToApply) {
+            reapplyTransformAfterReady(Cesium, tileset, transformToApply, {
+              viewer,
+              log: false,
+            });
+          }
+
+          viewer.scene.requestRender();
+
+          // Notify tileset ready
+          if (onTilesetReady) {
+            onTilesetReady(tileset);
+          }
+
+          // Position camera
+          if (enableLocationEditing) {
+            positionCamera(viewer, Cesium, initialTransform);
+          } else {
+            // Just zoom to tileset if not in location editing mode
+            viewer.zoomTo(tileset);
+          }
+        }
+
+        isInitializing.current = false;
+      } catch (error) {
+        console.error("[CesiumMinimalViewer] Initialization error:", error);
+        isInitializing.current = false;
         if (onError) {
-          onError(error);
+          onError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     };
@@ -355,98 +399,121 @@ export function CesiumMinimalViewer({
 
     // Cleanup
     return () => {
-      // Cancel any pending animation frame
-      if (rafIdRef.current !== null) {
-        cancelAnimationFrame(rafIdRef.current);
-        rafIdRef.current = null;
-      }
-
       if (viewerRef.current) {
-        // Remove tileset from primitives if it exists
-        if (tilesetRef.current && viewerRef.current.scene) {
-          try {
-            viewerRef.current.scene.primitives.remove(tilesetRef.current);
-          } catch {
-            // Ignore cleanup errors
-          }
-          tilesetRef.current = null;
-        }
-
-        // Remove model from primitives if it exists
-        if (modelRef.current && viewerRef.current.scene) {
-          try {
-            viewerRef.current.scene.primitives.remove(modelRef.current);
-          } catch {
-            // Ignore cleanup errors
-          }
-          modelRef.current = null;
-        }
-
-        // Remove data source if it exists
-        if (dataSourceRef.current && viewerRef.current.dataSources) {
-          try {
-            viewerRef.current.dataSources.remove(dataSourceRef.current);
-          } catch {
-            // Ignore cleanup errors
-          }
-          dataSourceRef.current = null;
-        }
-
-        // Remove imagery layer if it exists
-        if (imageryLayerRef.current && viewerRef.current.imageryLayers) {
-          try {
-            viewerRef.current.imageryLayers.remove(imageryLayerRef.current);
-          } catch {
-            // Ignore cleanup errors
-          }
-          imageryLayerRef.current = null;
-        }
-
-        // Reset terrain provider to default
-        if (
-          viewerRef.current.scene &&
-          viewerRef.current.scene.globe &&
-          cesiumRef.current
-        ) {
-          try {
-            viewerRef.current.terrainProvider =
-              new cesiumRef.current.EllipsoidTerrainProvider();
-          } catch {
-            // Ignore cleanup errors
-          }
-        }
-
-        // Disconnect credit observer if it exists
-        if ((viewerRef.current as any)._creditObserver) {
-          (viewerRef.current as any)._creditObserver.disconnect();
-        }
         try {
-          viewerRef.current.destroy();
+          // Cleanup click handler
+          cleanupClickHandler(viewerRef.current, clickHandlerDataRef.current);
+
+          // Cleanup tileset
+          if (tilesetRef.current && viewerRef.current.scene) {
+            try {
+              viewerRef.current.scene.primitives.remove(tilesetRef.current);
+            } catch (err) {
+              // Ignore
+            }
+            tilesetRef.current = null;
+          }
+
+          // Cleanup viewer
+          if (!viewerRef.current.isDestroyed()) {
+            viewerRef.current.destroy();
+          }
         } catch (err) {
-          // Ignore cleanup errors
+          console.error("[CesiumMinimalViewer] Cleanup error:", err);
         }
         viewerRef.current = null;
       }
-      // Also clean up any remaining Cesium viewers and elements in the container
+
+      // Cleanup DOM
       if (containerRef.current) {
         const cesiumViewers =
           containerRef.current.querySelectorAll(".cesium-viewer");
-        cesiumViewers.forEach((viewer) => viewer.remove());
-        const canvases = containerRef.current.querySelectorAll("canvas");
-        canvases.forEach((canvas) => canvas.remove());
-        const cesiumWidgets =
-          containerRef.current.querySelectorAll(".cesium-widget");
-        cesiumWidgets.forEach((widget) => widget.remove());
+        cesiumViewers.forEach((viewer) => {
+          if (viewer.parentNode) {
+            try {
+              viewer.remove();
+            } catch (err) {
+              // Ignore
+            }
+          }
+        });
       }
-      cesiumRef.current = null;
-      isInitializing.current = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    // Empty dependency array ensures this only runs once, matching the main viewer pattern
-    // The containerRef is stable and doesn't need to be in dependencies
   }, []);
 
+  // Effect to manage click handler (separate from main init)
+  useEffect(() => {
+    if (!viewerRef.current || !cesiumRef.current) return;
+    if (!enableLocationEditing || !onLocationClick || !enableClickToPosition) {
+      // Cleanup handler if click mode is disabled
+      cleanupClickHandler(viewerRef.current, clickHandlerDataRef.current);
+      clickHandlerDataRef.current = null;
+      return;
+    }
+
+    const Cesium = cesiumRef.current;
+
+    // Cleanup existing handler
+    cleanupClickHandler(viewerRef.current, clickHandlerDataRef.current);
+
+    // Setup new handler
+    clickHandlerDataRef.current = setupClickHandler(
+      viewerRef.current,
+      Cesium,
+      tilesetRef,
+      onLocationClick
+    );
+
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      cleanupClickHandler(viewerRef.current, clickHandlerDataRef.current);
+      clickHandlerDataRef.current = null;
+    };
+  }, [enableLocationEditing, enableClickToPosition, onLocationClick]);
+
+  // Effect to apply transform when initialTransform changes OR when tileset becomes ready
+  useEffect(() => {
+    if (
+      !viewerRef.current ||
+      !tilesetRef.current ||
+      !cesiumRef.current ||
+      !initialTransform ||
+      initialTransform.length !== 16
+    ) {
+      return;
+    }
+
+    const Cesium = cesiumRef.current;
+
+    const matrix = arrayToMatrix4(Cesium, initialTransform);
+
+    // Verify the matrix round-trips correctly (for debugging, but not used)
+    Cesium.Matrix4.toArray(matrix, new Array(16)).every(
+      (val: number, i: number) =>
+        Math.abs(val - initialTransform[i]) < 0.0000001
+    );
+
+    tilesetRef.current.modelMatrix = matrix;
+    viewerRef.current.scene.requestRender();
+
+    // Only position camera on very first load when dialog opens with existing transform
+    // NOT on subsequent clicks/repositions
+    if (
+      enableLocationEditing &&
+      !hasAppliedInitialCamera.current &&
+      isInitialLoad.current
+    ) {
+      positionCamera(viewerRef.current, Cesium, initialTransform);
+      hasAppliedInitialCamera.current = true;
+      isInitialLoad.current = false;
+    }
+  }, [
+    initialTransform,
+    enableLocationEditing,
+    tilesetRef.current,
+    cesiumRef.current,
+  ]);
+
   // This component doesn't render anything - it just initializes the viewer
-  // The parent component handles rendering and uses the viewer via onViewerReady callback
   return null;
 }

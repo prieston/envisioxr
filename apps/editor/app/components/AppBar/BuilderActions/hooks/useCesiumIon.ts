@@ -6,7 +6,7 @@ import {
   useCesiumIonUpload,
   type CesiumIonUploadData,
 } from "@klorad/engine-cesium";
-import { createIonAsset, completeIonUpload, createCesiumIonAsset, updateModelMetadata } from "@/app/utils/api";
+import { createIonAsset, completeIonUpload, createCesiumIonAsset, updateModelMetadata, getModel } from "@/app/utils/api";
 import { useOrgId } from "@/app/hooks/useOrgId";
 
 /**
@@ -49,12 +49,38 @@ export const useCesiumIon = () => {
       });
       showToast(`Saved Cesium Ion asset: ${data.name}`);
 
+      // Fetch the asset to get metadata/transform if it exists
+      let transform: { matrix: number[]; longitude?: number; latitude?: number; height?: number } | undefined;
+      try {
+        const fetchedAsset = await getModel(newAsset.id);
+        const metadata = fetchedAsset.asset?.metadata as Record<string, unknown> | undefined;
+        const savedTransform = metadata?.transform as
+          | {
+              matrix: number[];
+              longitude?: number;
+              latitude?: number;
+              height?: number;
+            }
+          | undefined;
+        if (savedTransform?.matrix && Array.isArray(savedTransform.matrix) && savedTransform.matrix.length === 16) {
+          transform = {
+            matrix: savedTransform.matrix,
+            longitude: savedTransform.longitude,
+            latitude: savedTransform.latitude,
+            height: savedTransform.height,
+          };
+        }
+      } catch (err) {
+        // Ignore errors fetching asset metadata
+      }
+
       // Add to scene store for immediate rendering (both arrays)
       addCesiumIonAsset({
         name: data.name,
         apiKey: data.apiKey || "",
         assetId: data.assetId, // Cesium Ion asset ID for rendering
         enabled: true,
+        transform,
       });
 
       // Also add to objects array so it appears in scene objects list

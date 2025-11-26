@@ -13,7 +13,13 @@ export const sizeComplexityAudit: AuditDefinition = {
     const items: AuditResult["items"] = [];
 
     const sourceFiles = await ctx.workspace.findFiles("**/*.{ts,tsx}", {
-      ignore: ["**/node_modules/**", "**/.next/**", "**/dist/**"],
+      ignore: [
+        "**/node_modules/**",
+        "**/.next/**",
+        "**/dist/**",
+        "**/*.d.ts", // Exclude type definition files (often auto-generated and legitimately large)
+        "**/*.stories.tsx", // Exclude storybook files (documentation/test files)
+      ],
     });
 
     for (const file of sourceFiles) {
@@ -38,26 +44,63 @@ export const sizeComplexityAudit: AuditDefinition = {
         });
       }
 
-      // Check React component complexity
+      // Check React component complexity - only count props in interface/type definitions
       if (file.endsWith(".tsx") || file.endsWith(".jsx")) {
-        const componentMatches = content.match(/export\s+(?:default\s+)?(?:function|const)\s+\w+/g);
-        if (componentMatches) {
-          // Simple heuristic: count props
-          const propsMatches = content.match(/:\s*\{[^}]*\}/g);
-          if (propsMatches) {
-            for (const propsMatch of propsMatches) {
-              const propCount = (propsMatch.match(/:/g) || []).length - 1; // Subtract 1 for the opening brace
-              if (propCount > 16) {
-                const line = content.substring(0, content.indexOf(propsMatch)).split("\n").length;
-                items.push({
-                  message: `Component has ${propCount} props (threshold: 16) - consider splitting`,
-                  file,
-                  line,
-                  severity: "warning",
-                  code: "TOO_MANY_PROPS",
-                });
+        // Find all Props interfaces/types
+        const propsInterfacePattern = /(?:interface|type)\s+(\w+Props)\s*[=:]\s*\{/g;
+        let match;
+
+        while ((match = propsInterfacePattern.exec(content)) !== null) {
+          const startIndex = match.index + match[0].length - 1; // Position after opening brace
+          let braceDepth = 1;
+          let currentIndex = startIndex;
+          let propCount = 0;
+          let inString = false;
+          let stringChar = '';
+
+          // Parse the interface body, handling nested braces and strings
+          while (braceDepth > 0 && currentIndex < content.length) {
+            const char = content[currentIndex];
+
+            // Handle strings
+            if ((char === '"' || char === "'" || char === '`') && content[currentIndex - 1] !== '\\') {
+              if (!inString) {
+                inString = true;
+                stringChar = char;
+              } else if (char === stringChar) {
+                inString = false;
+                stringChar = '';
               }
             }
+
+            if (!inString) {
+              if (char === '{') {
+                braceDepth++;
+              } else if (char === '}') {
+                braceDepth--;
+                if (braceDepth === 0) break;
+              } else if (braceDepth === 1 && char === ':') {
+                // Found a top-level property (prop name : type)
+                // Check if it's a valid prop definition (has identifier before :)
+                const beforeColon = content.substring(Math.max(0, currentIndex - 50), currentIndex).trim();
+                if (beforeColon.match(/[a-zA-Z_$][a-zA-Z0-9_$]*\s*[:?]?\s*$/)) {
+                  propCount++;
+                }
+              }
+            }
+
+            currentIndex++;
+          }
+
+          if (propCount > 16) {
+            const line = content.substring(0, match.index).split("\n").length;
+            items.push({
+              message: `Component has ${propCount} props (threshold: 16) - consider splitting`,
+              file,
+              line,
+              severity: "warning",
+              code: "TOO_MANY_PROPS",
+            });
           }
         }
       }

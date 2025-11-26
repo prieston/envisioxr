@@ -38,6 +38,7 @@ export interface ProjectProfile {
   loadManifest(rootDir: string): Promise<unknown>;
   getCoreAudits(rootDir: string): Promise<AuditDefinition[]>;
   getAdvisoryAudits(rootDir: string): Promise<AuditDefinition[]>;
+  getLightAudits?(rootDir: string): Promise<AuditDefinition[]>;
 }
 
 export interface PackageInfo {

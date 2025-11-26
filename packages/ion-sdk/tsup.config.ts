@@ -18,6 +18,7 @@ export default defineConfig({
     /^react$/,
     /^react-dom$/,
     /^cesium$/,
+    /^@cesium\/engine$/,
     /^react-toastify$/,
   ],
   tsconfig: './tsconfig.json',

@@ -59,7 +59,6 @@ export const threejsEngineBoundariesAudit: AuditDefinition = {
         "**/dist/**",
         "**/*.d.ts",
         "**/dev-audits/**",
-        "**/scripts/audits/**",
       ],
     });
 
