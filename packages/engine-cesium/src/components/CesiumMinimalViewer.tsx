@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+/* eslint-disable no-console */
+import { useRef, useEffect, useState } from "react";
 import { ensureCesiumBaseUrl } from "../utils/cesium-config";
 import { arrayToMatrix4, matrix4ToArray } from "../utils/tileset-transform";
 import {
@@ -8,8 +9,11 @@ import {
   reapplyTransformAfterReady,
   waitForTilesetReady,
   extractTransformFromMetadata,
+  extractTransformFromTileset,
+  positionCameraForTileset,
   type TilesetTransformData,
 } from "../utils/tileset-operations";
+import { CesiumLoadingScreen } from "./CesiumLoadingScreen";
 
 export interface CesiumMinimalViewerProps {
   containerRef: React.RefObject<HTMLDivElement>;
@@ -191,17 +195,14 @@ async function loadTileset(
   initialTransform?: number[]
 ) {
   // Convert initialTransform array to TilesetTransformData if provided
-  const transform: TilesetTransformData | undefined = initialTransform && initialTransform.length === 16
-    ? { matrix: initialTransform }
-    : undefined;
+  const transform: TilesetTransformData | undefined =
+    initialTransform && initialTransform.length === 16
+      ? { matrix: initialTransform }
+      : undefined;
 
-  return loadTilesetWithTransform(
-    Cesium,
-    cesiumAssetId,
-    metadata,
-    transform,
-    { log: false }
-  );
+  return loadTilesetWithTransform(Cesium, cesiumAssetId, metadata, transform, {
+    log: false,
+  });
 }
 
 /**
@@ -275,6 +276,7 @@ export function CesiumMinimalViewer({
   const isInitializing = useRef(false);
   const isInitialLoad = useRef(true); // Track if this is the initial load vs subsequent repositions
   const hasAppliedInitialCamera = useRef(false); // Track if we've positioned camera initially
+  const [isLoading, setIsLoading] = useState(true);
 
   // Main initialization effect
   useEffect(() => {
@@ -283,6 +285,7 @@ export function CesiumMinimalViewer({
     }
 
     isInitializing.current = true;
+    setIsLoading(true);
 
     const initializeCesium = async () => {
       try {
@@ -324,14 +327,36 @@ export function CesiumMinimalViewer({
         viewerRef.current = viewer;
         viewer.scene.globe.enableLighting = false;
 
+        // Remove sun, moon, and other extra elements for clean preview
+        if (viewer.scene.sun) {
+          viewer.scene.sun.show = false;
+        }
+        if (viewer.scene.moon) {
+          viewer.scene.moon.show = false;
+        }
+        if (viewer.scene.skyBox) {
+          viewer.scene.skyBox.show = false;
+        }
+        if (viewer.scene.skyAtmosphere) {
+          viewer.scene.skyAtmosphere.show = false;
+        }
+        // Disable fog for cleaner look
+        viewer.scene.fog.enabled = false;
+        // Set black background for clean preview
+        viewer.scene.backgroundColor = Cesium.Color.BLACK;
+
         // Setup for location editing
         if (enableLocationEditing) {
           viewer.scene.globe.show = true;
           await setupImagery(viewer, Cesium);
           await setupTerrain(viewer, Cesium);
         } else {
-          viewer.scene.globe.show = false;
-          viewer.scene.backgroundColor = Cesium.Color.BLACK;
+          // For IMAGERY assets, show the imagery; for 3D models, hide it
+          if (_assetType === "IMAGERY") {
+            viewer.scene.globe.show = true;
+          } else {
+            viewer.scene.globe.show = false;
+          }
         }
 
         // Notify viewer ready
@@ -339,56 +364,459 @@ export function CesiumMinimalViewer({
           onViewerReady(viewer);
         }
 
-        // Load tileset if provided
+        // Load asset based on type
         if (cesiumAssetId) {
-          const tileset = await loadTileset(
-            Cesium,
-            cesiumAssetId,
-            metadata,
-            initialTransform
-          );
-          tilesetRef.current = tileset;
+          // Handle IMAGERY type assets differently - use IonImageryProvider
+          if (_assetType === "IMAGERY") {
+            try {
+              // Use fromAssetId if available (async method that waits for provider to be ready)
+              // This is the recommended way per Cesium documentation
+              let imageryProvider;
+              if (
+                Cesium.IonImageryProvider &&
+                typeof (Cesium.IonImageryProvider as any).fromAssetId ===
+                  "function"
+              ) {
+                // Use async fromAssetId method - this waits for provider to be ready
+                imageryProvider = await (
+                  Cesium.IonImageryProvider as any
+                ).fromAssetId(parseInt(cesiumAssetId));
+              } else {
+                // Fallback: use constructor and wait for readyPromise
+                imageryProvider = new Cesium.IonImageryProvider({
+                  assetId: parseInt(cesiumAssetId),
+                } as any);
 
-          viewer.scene.primitives.add(tileset);
+                // Wait for readyPromise if it exists
+                if ((imageryProvider as any).readyPromise) {
+                  await (imageryProvider as any).readyPromise;
+                } else {
+                  // Fallback: poll for tilingScheme to be available (up to 5 seconds)
+                  let attempts = 0;
+                  while (!imageryProvider.tilingScheme && attempts < 50) {
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    attempts++;
+                  }
+                }
+              }
 
-          // Wait for ready
-          await waitForTilesetReady(tileset);
+              // Verify tilingScheme is available before adding
+              if (!imageryProvider.tilingScheme) {
+                throw new Error(
+                  "Imagery provider tilingScheme not initialized after waiting"
+                );
+              }
 
-          // Extract transform from metadata or use initialTransform
-          const transformFromMetadata = extractTransformFromMetadata(metadata);
-          const transformToApply: TilesetTransformData | undefined =
-            (initialTransform && initialTransform.length === 16)
-              ? { matrix: initialTransform }
-              : transformFromMetadata;
+              // Add provider to viewer after it's ready
+              viewer.imageryLayers.addImageryProvider(imageryProvider);
 
-          // Re-apply transform after ready (sometimes Cesium resets it)
-          if (transformToApply) {
-            reapplyTransformAfterReady(Cesium, tileset, transformToApply, {
-              viewer,
-              log: false,
-            });
-          }
+              console.log("[CesiumMinimalViewer] Imagery provider added:", {
+                cesiumAssetId,
+                hasTilingScheme: !!imageryProvider.tilingScheme,
+              });
 
-          viewer.scene.requestRender();
+              // For imagery, notify viewer ready and position camera
+              if (onViewerReady) {
+                onViewerReady(viewer);
+              }
 
-          // Notify tileset ready
-          if (onTilesetReady) {
-            onTilesetReady(tileset);
-          }
-
-          // Position camera
-          if (enableLocationEditing) {
-            positionCamera(viewer, Cesium, initialTransform);
+              // Position camera to view the imagery
+              if (enableLocationEditing) {
+                positionCamera(viewer, Cesium, initialTransform);
+              } else {
+                // For preview mode with imagery, fly to a reasonable view of the globe
+                // Default to a view that shows the imagery well
+                viewer.camera.flyTo({
+                  destination: Cesium.Cartesian3.fromDegrees(0, 0, 20000000),
+                  orientation: {
+                    heading: 0,
+                    pitch: Cesium.Math.toRadians(-90), // Look straight down
+                    roll: 0,
+                  },
+                });
+              }
+            } catch (err) {
+              console.error(
+                "[CesiumMinimalViewer] Failed to load imagery:",
+                err
+              );
+              if (onError) {
+                onError(
+                  err instanceof Error
+                    ? err
+                    : new Error("Failed to load imagery asset")
+                );
+              }
+            }
           } else {
-            // Just zoom to tileset if not in location editing mode
-            viewer.zoomTo(tileset);
+            // Handle 3D Tiles and other types as tilesets
+            const tileset = await loadTileset(
+              Cesium,
+              cesiumAssetId,
+              metadata,
+              initialTransform
+            );
+            tilesetRef.current = tileset;
+
+            viewer.scene.primitives.add(tileset);
+
+            // Wait for ready
+            await waitForTilesetReady(tileset);
+            console.log("[CesiumMinimalViewer] Tileset ready:", {
+              cesiumAssetId,
+              hasMetadata: !!metadata,
+              metadataKeys: metadata ? Object.keys(metadata) : [],
+              fullMetadata: metadata, // Log full metadata to see what's actually there
+              metadataTransform: metadata?.transform
+                ? {
+                    type: typeof metadata.transform,
+                    isObject: typeof metadata.transform === "object",
+                    keys:
+                      typeof metadata.transform === "object" &&
+                      metadata.transform !== null
+                        ? Object.keys(metadata.transform)
+                        : [],
+                    hasMatrix:
+                      typeof metadata.transform === "object" &&
+                      metadata.transform !== null &&
+                      "matrix" in metadata.transform,
+                    matrixType:
+                      typeof metadata.transform === "object" &&
+                      metadata.transform !== null &&
+                      "matrix" in metadata.transform
+                        ? typeof (metadata.transform as any).matrix
+                        : null,
+                    matrixIsArray:
+                      typeof metadata.transform === "object" &&
+                      metadata.transform !== null &&
+                      "matrix" in metadata.transform
+                        ? Array.isArray((metadata.transform as any).matrix)
+                        : null,
+                    fullTransform: metadata.transform, // Log full transform object
+                  }
+                : null,
+              hasInitialTransform: !!initialTransform,
+              enableLocationEditing,
+            });
+
+            // Extract transform from metadata or use initialTransform
+            const transformFromMetadata =
+              extractTransformFromMetadata(metadata);
+
+            // If no transform from metadata but tileset has a modelMatrix, extract it from the tileset
+            // This handles cases where transform was applied but not saved in metadata, or metadata doesn't include it
+            let transformFromTileset: TilesetTransformData | undefined =
+              undefined;
+            if (
+              !transformFromMetadata &&
+              !initialTransform &&
+              tileset.modelMatrix
+            ) {
+              try {
+                const extracted = extractTransformFromTileset(Cesium, tileset);
+                if (extracted) {
+                  transformFromTileset = extracted;
+                  console.log(
+                    "[CesiumMinimalViewer] Extracted transform from tileset modelMatrix:",
+                    {
+                      hasMatrix: !!transformFromTileset.matrix,
+                      matrixLength: transformFromTileset.matrix?.length,
+                      longitude: transformFromTileset.longitude,
+                      latitude: transformFromTileset.latitude,
+                      height: transformFromTileset.height,
+                    }
+                  );
+                }
+              } catch (err) {
+                console.warn(
+                  "[CesiumMinimalViewer] Failed to extract transform from tileset:",
+                  err
+                );
+              }
+            }
+
+            const transformToApply: TilesetTransformData | undefined =
+              initialTransform && initialTransform.length === 16
+                ? { matrix: initialTransform }
+                : transformFromMetadata || transformFromTileset;
+
+            console.log("[CesiumMinimalViewer] After extraction:", {
+              transformFromMetadata,
+              transformFromTileset,
+              transformToApply,
+              extractionResult: transformToApply
+                ? {
+                    hasMatrix: !!transformToApply.matrix,
+                    matrixLength: transformToApply.matrix?.length,
+                    hasLongitude: transformToApply.longitude !== undefined,
+                    hasLatitude: transformToApply.latitude !== undefined,
+                    hasHeight: transformToApply.height !== undefined,
+                    source: transformFromMetadata
+                      ? "metadata"
+                      : transformFromTileset
+                        ? "tileset"
+                        : "initialTransform",
+                  }
+                : null,
+            });
+
+            console.log("[CesiumMinimalViewer] Transform extraction:", {
+              hasTransformFromMetadata: !!transformFromMetadata,
+              transformFromMetadata: transformFromMetadata
+                ? {
+                    hasMatrix: !!transformFromMetadata.matrix,
+                    matrixLength: transformFromMetadata.matrix?.length,
+                    hasLongitude: !!transformFromMetadata.longitude,
+                    hasLatitude: !!transformFromMetadata.latitude,
+                    hasHeight: !!transformFromMetadata.height,
+                  }
+                : null,
+              hasInitialTransform: !!initialTransform,
+              transformToApply: transformToApply
+                ? {
+                    hasMatrix: !!transformToApply.matrix,
+                    matrixLength: transformToApply.matrix?.length,
+                    hasLongitude: !!transformToApply.longitude,
+                    hasLatitude: !!transformToApply.latitude,
+                    hasHeight: !!transformToApply.height,
+                    longitude: transformToApply.longitude,
+                    latitude: transformToApply.latitude,
+                    height: transformToApply.height,
+                    matrixPreview: transformToApply.matrix
+                      ?.slice(12, 15)
+                      .map((v: number) => v.toFixed(2))
+                      .join(", "),
+                  }
+                : null,
+            });
+
+            // Re-apply transform after ready (sometimes Cesium resets it)
+            if (transformToApply) {
+              console.log(
+                "[CesiumMinimalViewer] Re-applying transform after tileset ready"
+              );
+              reapplyTransformAfterReady(Cesium, tileset, transformToApply, {
+                viewer,
+                log: true, // Enable logging in reapplyTransformAfterReady
+              });
+              console.log("[CesiumMinimalViewer] Transform re-applied:", {
+                hasModelMatrix: !!tileset.modelMatrix,
+                modelMatrixPreview: tileset.modelMatrix
+                  ? [
+                      tileset.modelMatrix[12],
+                      tileset.modelMatrix[13],
+                      tileset.modelMatrix[14],
+                    ]
+                      .map((v: number) => v.toFixed(2))
+                      .join(", ")
+                  : null,
+              });
+
+              // Force multiple renders to ensure bounding sphere is recalculated with transform
+              // This is critical for transformed models to have correct camera positioning
+              for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                  if (viewer && !viewer.isDestroyed()) {
+                    viewer.scene.requestRender();
+                  }
+                }, i * 100);
+              }
+            }
+
+            viewer.scene.requestRender();
+
+            // Notify tileset ready
+            if (onTilesetReady) {
+              onTilesetReady(tileset);
+            }
+
+            // Position camera
+            if (enableLocationEditing) {
+              console.log(
+                "[CesiumMinimalViewer] Positioning camera for location editing"
+              );
+              positionCamera(viewer, Cesium, initialTransform);
+            } else {
+              console.log(
+                "[CesiumMinimalViewer] Positioning camera for preview mode"
+              );
+              // Use Cesium's zoomTo which automatically handles transforms and bounding sphere
+              // Wait longer for transformed models to ensure bounding sphere is recalculated
+              const waitTime = transformToApply ? 800 : 500;
+              setTimeout(() => {
+                try {
+                  console.log(
+                    "[CesiumMinimalViewer] Attempting to zoom to tileset:",
+                    {
+                      hasTransform: !!transformToApply,
+                      hasModelMatrix: !!tileset.modelMatrix,
+                      boundingSphereBefore: tileset.boundingSphere
+                        ? {
+                            center: tileset.boundingSphere.center
+                              ? [
+                                  tileset.boundingSphere.center.x.toFixed(2),
+                                  tileset.boundingSphere.center.y.toFixed(2),
+                                  tileset.boundingSphere.center.z.toFixed(2),
+                                ].join(", ")
+                              : null,
+                            radius: tileset.boundingSphere.radius?.toFixed(2),
+                          }
+                        : null,
+                    }
+                  );
+
+                  // Use zoomTo - Cesium's standard way to view a tileset (respects modelMatrix)
+                  // For models with transforms, ensure we use the transformed bounding sphere
+                  // Use a standard pitch angle that works well for model inspection
+                  const pitch = -0.5; // ~-28.6 degrees (looking down slightly)
+
+                  // For transformed models, verify bounding sphere is correct
+                  if (transformToApply && tileset.boundingSphere) {
+                    console.log(
+                      "[CesiumMinimalViewer] Transformed tileset bounding sphere:",
+                      {
+                        center: [
+                          tileset.boundingSphere.center.x.toFixed(2),
+                          tileset.boundingSphere.center.y.toFixed(2),
+                          tileset.boundingSphere.center.z.toFixed(2),
+                        ].join(", "),
+                        radius: tileset.boundingSphere.radius?.toFixed(2),
+                      }
+                    );
+                  }
+
+                  viewer.zoomTo(
+                    tileset,
+                    new Cesium.HeadingPitchRange(0, pitch, 0)
+                  );
+
+                  // Wait a bit for zoomTo to complete and camera to stabilize before configuring controller
+                  // This prevents errors when accessing camera properties that might not be initialized yet
+                  setTimeout(() => {
+                    try {
+                      // Configure camera controller for model preview
+                      // zoomTo already sets up proper orbiting around the tileset, so we don't need lookAt
+                      const controller =
+                        viewer.scene?.screenSpaceCameraController;
+                      if (
+                        controller &&
+                        viewer.camera &&
+                        !viewer.isDestroyed()
+                      ) {
+                        // Configure camera controller for model preview
+                        // Set middle mouse button to rotate around the object (like CAD/3D modeling tools)
+                        // Disable panning (translate) to keep model centered - users can rotate and zoom only
+                        controller.enableRotate = true;
+                        controller.enableTranslate = false; // Disable panning for screenshot preview
+                        controller.enableZoom = true;
+                        controller.enableTilt = true;
+
+                        // Configure rotate events: both left and middle mouse button can rotate
+                        // This makes it work like standard 3D modeling tools where middle mouse rotates
+                        controller.rotateEventTypes = [
+                          Cesium.CameraEventType.LEFT_DRAG,
+                          Cesium.CameraEventType.MIDDLE_DRAG,
+                        ];
+
+                        // Adjust zoom sensitivity to prevent model from disappearing
+                        controller.minimumZoomDistance = 1.0;
+                        controller.maximumZoomDistance = 1000000.0;
+
+                        // For transformed models, ensure camera rotates around the transformed bounding sphere
+                        // This is handled automatically by zoomTo, but we can verify the setup
+                        if (transformToApply && tileset.boundingSphere) {
+                          console.log(
+                            "[CesiumMinimalViewer] Transform applied, camera should orbit around transformed center"
+                          );
+                        }
+                      }
+                    } catch (controllerErr) {
+                      console.warn(
+                        "[CesiumMinimalViewer] Error configuring camera controller:",
+                        controllerErr
+                      );
+                    }
+                  }, 100);
+
+                  console.log(
+                    "[CesiumMinimalViewer] zoomTo called successfully"
+                  );
+                } catch (err) {
+                  console.warn(
+                    "[CesiumMinimalViewer] Error zooming to tileset:",
+                    err
+                  );
+                  // Fallback: if zoomTo fails, try manual positioning from transform
+                  if (transformToApply) {
+                    console.log(
+                      "[CesiumMinimalViewer] Falling back to manual camera positioning"
+                    );
+                    let transformWithCoords = transformToApply;
+                    if (
+                      !transformToApply.longitude ||
+                      !transformToApply.latitude
+                    ) {
+                      // Extract position from matrix
+                      const matrix = arrayToMatrix4(
+                        Cesium,
+                        transformToApply.matrix
+                      );
+                      const translation = new Cesium.Cartesian3(
+                        matrix[12],
+                        matrix[13],
+                        matrix[14]
+                      );
+                      const cartographic =
+                        Cesium.Cartographic.fromCartesian(translation);
+                      transformWithCoords = {
+                        ...transformToApply,
+                        longitude: Cesium.Math.toDegrees(
+                          cartographic.longitude
+                        ),
+                        latitude: Cesium.Math.toDegrees(cartographic.latitude),
+                        height: cartographic.height,
+                      };
+                      console.log(
+                        "[CesiumMinimalViewer] Extracted coordinates from matrix:",
+                        {
+                          longitude: transformWithCoords.longitude,
+                          latitude: transformWithCoords.latitude,
+                          height: transformWithCoords.height,
+                        }
+                      );
+                    }
+                    positionCameraForTileset(
+                      viewer,
+                      Cesium,
+                      transformWithCoords,
+                      {
+                        offset: 200,
+                        duration: 1.5,
+                        pitch: -45,
+                      }
+                    );
+                    console.log(
+                      "[CesiumMinimalViewer] Manual camera positioning called"
+                    );
+                  } else {
+                    // Last resort: try zoomTo without options
+                    console.log(
+                      "[CesiumMinimalViewer] Last resort: zoomTo without options"
+                    );
+                    viewer.zoomTo(tileset);
+                  }
+                }
+              }, waitTime);
+            }
           }
         }
 
         isInitializing.current = false;
+        setIsLoading(false);
       } catch (error) {
         console.error("[CesiumMinimalViewer] Initialization error:", error);
         isInitializing.current = false;
+        setIsLoading(false);
         if (onError) {
           onError(error instanceof Error ? error : new Error(String(error)));
         }
@@ -514,6 +942,6 @@ export function CesiumMinimalViewer({
     cesiumRef.current,
   ]);
 
-  // This component doesn't render anything - it just initializes the viewer
-  return null;
+  // Render loading screen while initializing
+  return isLoading ? <CesiumLoadingScreen /> : null;
 }

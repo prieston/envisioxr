@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, Button, IconButton, TextField, LinearProgress, Alert } from "@mui/material";
+import { Box, Typography, Button, IconButton, TextField, LinearProgress, Alert, Tooltip } from "@mui/material";
 import { Delete, Edit, Save, Close, AddCircleOutline, CameraAlt, Refresh, LocationOn } from "@mui/icons-material";
 import { MetadataTable, type MetadataRow } from "../../../table";
 import type { LibraryAsset } from "../MyLibraryTab";
@@ -63,6 +63,74 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
 
   const isTilingInProgress = tilingStatus === "IN_PROGRESS";
   const isTilingError = tilingStatus === "ERROR";
+
+  // Check if model is georeferenced (has a transform in metadata)
+  // A model is georeferenced if metadata.transform.matrix exists and is a valid 16-element array
+  // Note: metadata is typed as Record<string, string> but may actually contain objects
+  const isGeoreferenced = (() => {
+    try {
+      if (!metadata || typeof metadata !== "object") {
+        return false;
+      }
+
+      // Get transform - could be string (if Record<string, string>) or object (if Record<string, unknown>)
+      const transform = (metadata as Record<string, unknown>).transform;
+
+      if (!transform) {
+        return false;
+      }
+
+      // Parse transform if it's a string
+      let transformObj: Record<string, unknown> | null = null;
+      if (typeof transform === "string") {
+        try {
+          transformObj = JSON.parse(transform) as Record<string, unknown>;
+        } catch {
+          // If parsing fails, it's not valid JSON
+          return false;
+        }
+      } else if (transform && typeof transform === "object" && transform !== null) {
+        // Transform is already an object
+        transformObj = transform as Record<string, unknown>;
+      } else {
+        return false;
+      }
+
+      if (!transformObj || !("matrix" in transformObj)) {
+        return false;
+      }
+
+      // Get matrix - could be array or string
+      const matrixValue = transformObj.matrix;
+      let matrix: unknown[] | null = null;
+
+      if (Array.isArray(matrixValue)) {
+        matrix = matrixValue;
+      } else if (typeof matrixValue === "string") {
+        try {
+          const parsed = JSON.parse(matrixValue);
+          if (Array.isArray(parsed)) {
+            matrix = parsed;
+          } else {
+            return false;
+          }
+        } catch {
+          return false;
+        }
+      } else {
+        return false;
+      }
+
+      // Verify matrix is valid: 16 elements, all numbers
+      if (!matrix || matrix.length !== 16) {
+        return false;
+      }
+
+      return matrix.every((val) => typeof val === "number" && !isNaN(val));
+    } catch (error) {
+      return false;
+    }
+  })();
 
   return (
     <>
@@ -400,39 +468,51 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
             asset.fileType === "3DTILES" ||
             asset.fileType?.includes("3DTILES")) &&
           onAdjustLocation && (
-            <Button
-              variant="outlined"
-              startIcon={<LocationOn />}
-              onClick={onAdjustLocation}
-              disabled={!isTilingComplete}
-              sx={(theme) => ({
-                borderRadius: "4px",
-                textTransform: "none",
-                fontWeight: 500,
-                fontSize: "0.75rem",
-                borderColor:
-                  theme.palette.mode === "dark"
-                    ? "rgba(107, 156, 216, 0.35)"
-                    : "rgba(95, 136, 199, 0.4)",
-                color: theme.palette.primary.main,
-                padding: "6px 16px",
-                boxShadow: "none",
-                "&:hover": {
-                  borderColor: theme.palette.primary.main,
-                  backgroundColor:
-                    theme.palette.mode === "dark"
-                      ? "rgba(107, 156, 216, 0.12)"
-                      : "rgba(95, 136, 199, 0.08)",
-                  boxShadow: "none",
-                },
-                "&:disabled": {
-                  borderColor: "rgba(100, 116, 139, 0.2)",
-                  color: "rgba(100, 116, 139, 0.5)",
-                },
-              })}
+            <Tooltip
+              title={
+                isGeoreferenced
+                  ? "This model is already georeferenced. Location adjustment is disabled."
+                  : !isTilingComplete
+                  ? "Tiling must be complete before adjusting location."
+                  : ""
+              }
             >
-              Adjust Tileset Location
-            </Button>
+              <span>
+                <Button
+                  variant="outlined"
+                  startIcon={<LocationOn />}
+                  onClick={onAdjustLocation}
+                  disabled={!isTilingComplete || isGeoreferenced}
+                  sx={(theme) => ({
+                    borderRadius: "4px",
+                    textTransform: "none",
+                    fontWeight: 500,
+                    fontSize: "0.75rem",
+                    borderColor:
+                      theme.palette.mode === "dark"
+                        ? "rgba(107, 156, 216, 0.35)"
+                        : "rgba(95, 136, 199, 0.4)",
+                    color: theme.palette.primary.main,
+                    padding: "6px 16px",
+                    boxShadow: "none",
+                    "&:hover": {
+                      borderColor: theme.palette.primary.main,
+                      backgroundColor:
+                        theme.palette.mode === "dark"
+                          ? "rgba(107, 156, 216, 0.12)"
+                          : "rgba(95, 136, 199, 0.08)",
+                      boxShadow: "none",
+                    },
+                    "&:disabled": {
+                      borderColor: "rgba(100, 116, 139, 0.2)",
+                      color: "rgba(100, 116, 139, 0.5)",
+                    },
+                  })}
+                >
+                  Adjust Tileset Location
+                </Button>
+              </span>
+            </Tooltip>
           )}
 
         <Box sx={{ flex: 1 }} />
