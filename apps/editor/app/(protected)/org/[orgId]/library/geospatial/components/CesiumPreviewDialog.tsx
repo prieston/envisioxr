@@ -305,6 +305,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
               onViewerReady={handleViewerReady}
               onError={handleError}
               onLocationNotSet={handleLocationNotSet}
+              enableLocationEditing={false}
             />
           )}
 
