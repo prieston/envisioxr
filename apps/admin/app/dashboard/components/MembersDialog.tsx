@@ -100,10 +100,13 @@ export default function MembersDialog({
     fetcher
   );
 
-  const { data: usersData } = useSWR<{ users: Array<{ id: string; name: string | null; email: string | null }> }>(
-    "/api/stats",
-    fetcher
-  );
+  // Fetch all users for the "Add Member" dropdown
+  const { data: statsData } = useSWR<{
+    users: {
+      all: Array<{ id: string; name: string | null; email: string | null }>;
+    };
+  }>(open && addMemberOpen ? "/api/stats" : null, fetcher);
+
 
   const handleAddMember = useCallback(async () => {
     if (!selectedUserId || !orgId) return;
@@ -193,11 +196,8 @@ export default function MembersDialog({
         throw new Error(error.error || "Failed to send invitation");
       }
 
-      const result = await response.json();
+      await response.json();
       showToast("Invitation created successfully!", "success");
-      if (result.token) {
-        console.log("Invitation token:", result.token);
-      }
       await mutate();
       setInviteOpen(false);
       setInviteEmail("");
@@ -438,7 +438,7 @@ export default function MembersDialog({
                 onChange={(e) => setSelectedUserId(e.target.value)}
                 label="User"
               >
-                {usersData?.users.all
+                {statsData?.users?.all
                   .filter(
                     (user) =>
                       !data?.members.some((m) => m.userId === user.id)

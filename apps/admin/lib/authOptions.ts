@@ -84,7 +84,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         // Use token.id (database user ID) instead of token.sub (OAuth provider ID)
-        session.user.id = (token.id as string) || (token.sub as string);
+        (session.user as { id?: string }).id = (token.id as string) || (token.sub as string);
       }
       return session;
     },

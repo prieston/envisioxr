@@ -32,10 +32,7 @@ export async function sendEmail(options: {
       return null;
     }
 
-    console.log("[Email] Email sent successfully:", {
-      id: result.data?.id,
-      to: options.to,
-    });
+    // Email sent successfully
 
     return { id: result.data?.id || "unknown" };
   } catch (error) {

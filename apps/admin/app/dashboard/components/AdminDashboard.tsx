@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Grid,
   Box,
@@ -29,7 +29,6 @@ import {
 } from "@mui/material";
 import { PageContainer } from "../../components/PageContainer";
 import {
-  Page,
   PageHeader,
   PageDescription,
   PageContent,
@@ -40,11 +39,8 @@ import {
   BusinessIcon,
   FolderIcon,
   StorageIcon,
-  TimelineIcon as ActivityIcon,
   AddIcon,
   DeleteIcon,
-  BlockIcon,
-  CheckCircleIcon,
 } from "@klorad/ui";
 import MembersDialog from "./MembersDialog";
 import { showToast } from "@klorad/ui";
@@ -304,7 +300,7 @@ export default function AdminDashboard() {
           minHeight="400px"
         >
           <Typography color="error">
-            {statsData.error || "Failed to load statistics"}
+            {typeof statsData.error === 'string' ? statsData.error : "Failed to load statistics"}
           </Typography>
         </Box>
       </PageContainer>

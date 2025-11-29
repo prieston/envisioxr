@@ -24,7 +24,6 @@ export async function GET() {
 
     return NextResponse.json({ plans });
   } catch (error) {
-    console.error("[Admin Plans API] Error:", error);
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Internal Server Error",

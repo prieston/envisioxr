@@ -16,7 +16,7 @@ import {
   Divider,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { LogoutIcon, PersonIcon } from "@klorad/ui";
+import { LogoutIcon } from "@klorad/ui";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   backgroundColor:

@@ -33,7 +33,7 @@ function getTokenExpiration(hours: number): Date {
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -41,7 +41,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const userId = session.user.id;
+  // Get user ID from database
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true },
+  });
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  const userId = user.id;
   const { orgId } = await params;
 
   try {
