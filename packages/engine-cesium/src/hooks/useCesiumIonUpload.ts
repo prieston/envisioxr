@@ -8,6 +8,16 @@ export interface CesiumIonUploadOptions {
   epsgCode?: string;
   makeDownloadable?: boolean;
   tilesetJson?: string;
+  gaussianSplats?: boolean;
+  // 3D Reconstruction options
+  sourceType?: string;
+  meshQuality?: string; // "Low" | "Medium" | "High"
+  useGpsInfo?: boolean;
+  outputs?: {
+    cesium3DTiles?: boolean;
+    las?: boolean;
+    gaussianSplats?: boolean;
+  };
 }
 
 export interface CesiumIonUploadData {
@@ -202,6 +212,9 @@ export const useCesiumIonUpload = () => {
       uploadSourceType = "RASTER_IMAGERY";
     } else if (sourceType === "TERRAIN") {
       uploadSourceType = "RASTER_TERRAIN";
+    } else if (sourceType === "PHOTOS_3D_RECONSTRUCTION") {
+      ionType = "3DTILES";
+      uploadSourceType = "RASTER_IMAGERY";
     }
 
     return { ionType, uploadSourceType };

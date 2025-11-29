@@ -45,6 +45,15 @@ export interface UploadToIonTabProps {
       makeDownloadable?: boolean;
       tilesetJson?: string;
       gaussianSplats?: boolean;
+      // 3D Reconstruction options
+      sourceType?: string;
+      meshQuality?: string;
+      useGpsInfo?: boolean;
+      outputs?: {
+        cesium3DTiles?: boolean;
+        las?: boolean;
+        gaussianSplats?: boolean;
+      };
     };
   }) => Promise<{ assetId: string }>;
   uploading?: boolean;
@@ -81,6 +90,11 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
   const [makeDownloadable, setMakeDownloadable] = useState(false);
   const [tilesetJson, setTilesetJson] = useState("tileset.json");
   const [gaussianSplats, setGaussianSplats] = useState(false);
+  // 3D Reconstruction options
+  const [useGpsInfo, setUseGpsInfo] = useState(false);
+  const [meshQuality, setMeshQuality] = useState("Medium");
+  const [cesium3DTiles, setCesium3DTiles] = useState(true);
+  const [las, setLas] = useState(false);
 
   const handleFileSelected = useCallback((file: File) => {
     setSelectedFile(file);
@@ -118,6 +132,10 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
     setMakeDownloadable(false);
     setTilesetJson("tileset.json");
     setGaussianSplats(false);
+    setUseGpsInfo(false);
+    setMeshQuality("Medium");
+    setCesium3DTiles(true);
+    setLas(false);
   }, []);
 
   const handleUpload = useCallback(async () => {
@@ -128,6 +146,16 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
 
       if (sourceType === "3DTILES_ARCHIVE") {
         uploadOptions.tilesetJson = tilesetJson || "tileset.json";
+      } else if (sourceType === "PHOTOS_3D_RECONSTRUCTION") {
+        // 3D Reconstruction options
+        uploadOptions.sourceType = "RASTER_IMAGERY";
+        uploadOptions.meshQuality = meshQuality;
+        uploadOptions.useGpsInfo = useGpsInfo;
+        uploadOptions.outputs = {
+          cesium3DTiles: cesium3DTiles,
+          las: las,
+          gaussianSplats: gaussianSplats || false,
+        };
       } else {
         if (dracoCompression !== undefined)
           uploadOptions.dracoCompression = dracoCompression;
@@ -177,6 +205,10 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
     makeDownloadable,
     tilesetJson,
     gaussianSplats,
+    useGpsInfo,
+    meshQuality,
+    cesium3DTiles,
+    las,
     onUpload,
   ]);
 
@@ -309,6 +341,14 @@ const UploadToIonTab: React.FC<UploadToIonTabProps> = ({
         onGeometricCompressionChange={setGeometricCompression}
         onEpsgCodeChange={setEpsgCode}
         onGaussianSplatsChange={setGaussianSplats}
+        useGpsInfo={useGpsInfo}
+        meshQuality={meshQuality}
+        cesium3DTiles={cesium3DTiles}
+        las={las}
+        onUseGpsInfoChange={setUseGpsInfo}
+        onMeshQualityChange={setMeshQuality}
+        onCesium3DTilesChange={setCesium3DTiles}
+        onLasChange={setLas}
       />
 
       {/* Make available for download */}

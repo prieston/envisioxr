@@ -31,6 +31,15 @@ interface AdvancedOptionsProps {
   onGeometricCompressionChange: (value: string) => void;
   onEpsgCodeChange: (value: string) => void;
   onGaussianSplatsChange?: (value: boolean) => void;
+  // 3D Reconstruction options
+  useGpsInfo?: boolean;
+  meshQuality?: string;
+  cesium3DTiles?: boolean;
+  las?: boolean;
+  onUseGpsInfoChange?: (value: boolean) => void;
+  onMeshQualityChange?: (value: string) => void;
+  onCesium3DTilesChange?: (value: boolean) => void;
+  onLasChange?: (value: boolean) => void;
 }
 
 export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
@@ -48,6 +57,14 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
   onGeometricCompressionChange,
   onEpsgCodeChange,
   onGaussianSplatsChange,
+  useGpsInfo = false,
+  meshQuality = "Medium",
+  cesium3DTiles = true,
+  las = false,
+  onUseGpsInfoChange,
+  onMeshQualityChange,
+  onCesium3DTilesChange,
+  onLasChange,
 }) => {
   const theme = useTheme();
   const accent = theme.palette.primary.main;
@@ -57,7 +74,8 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
     sourceType === "GLTF" ||
     sourceType === "3DTILES_BIM" ||
     sourceType === "3DTILES_PHOTOGRAMMETRY" ||
-    sourceType === "POINTCLOUD";
+    sourceType === "POINTCLOUD" ||
+    sourceType === "PHOTOS_3D_RECONSTRUCTION";
 
   if (!shouldShowOptions) return null;
 
@@ -71,6 +89,8 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
         return "Model Options";
       case "POINTCLOUD":
         return "Point Cloud Options";
+      case "PHOTOS_3D_RECONSTRUCTION":
+        return "Technology Preview - Reconstruct models from photos";
       default:
         return "3D Model Options";
     }
@@ -256,6 +276,95 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
             <Alert severity="info" sx={{ fontSize: "0.75rem" }}>
               Ion will tile your point cloud data into a 3D Tiles tileset for efficient
               streaming.
+            </Alert>
+          </>
+        )}
+
+        {sourceType === "PHOTOS_3D_RECONSTRUCTION" && (
+          <>
+            {onUseGpsInfoChange && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={useGpsInfo}
+                    onChange={(e) => onUseGpsInfoChange(e.target.checked)}
+                    disabled={uploading}
+                  />
+                }
+                label={
+                  <Typography sx={{ fontSize: "0.875rem" }}>
+                    Use embedded GPS coordinates to georeference the asset
+                  </Typography>
+                }
+              />
+            )}
+            {onMeshQualityChange && (
+              <Box>
+                <Typography
+                  sx={(theme) => ({
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                    mb: 0.5,
+                  })}
+                >
+                  Output quality
+                </Typography>
+                <Select
+                  id="mesh-quality"
+                  name="mesh-quality"
+                  fullWidth
+                  value={meshQuality}
+                  onChange={(e) => onMeshQualityChange(e.target.value)}
+                  disabled={uploading}
+                  size="small"
+                  sx={selectStyles}
+                >
+                  <MenuItem value="Low">Low</MenuItem>
+                  <MenuItem value="Medium">Medium</MenuItem>
+                  <MenuItem value="High">High</MenuItem>
+                </Select>
+              </Box>
+            )}
+            {onCesium3DTilesChange && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={cesium3DTiles}
+                    onChange={(e) => onCesium3DTilesChange(e.target.checked)}
+                    disabled={uploading}
+                  />
+                }
+                label={<Typography sx={{ fontSize: "0.875rem" }}>3D mesh</Typography>}
+              />
+            )}
+            {onGaussianSplatsChange && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={gaussianSplats || false}
+                    onChange={(e) => onGaussianSplatsChange?.(e.target.checked)}
+                    disabled={uploading}
+                  />
+                }
+                label={<Typography sx={{ fontSize: "0.875rem" }}>3D Gaussian splats</Typography>}
+              />
+            )}
+            {onLasChange && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={las}
+                    onChange={(e) => onLasChange(e.target.checked)}
+                    disabled={uploading}
+                  />
+                }
+                label={<Typography sx={{ fontSize: "0.875rem" }}>Point cloud</Typography>}
+              />
+            )}
+            <Alert severity="info" sx={{ fontSize: "0.75rem" }}>
+              Technology Preview: 3D reconstruction from photos is not yet intended for production
+              use. Data may require retiling in the future.
             </Alert>
           </>
         )}
