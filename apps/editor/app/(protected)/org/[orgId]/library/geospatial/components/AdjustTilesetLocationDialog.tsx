@@ -10,10 +10,6 @@ import {
   Box,
   Typography,
   IconButton,
-  CircularProgress,
-  TextField,
-  Grid,
-  Alert,
 } from "@mui/material";
 import { CloseIcon, LocationSearch } from "@klorad/ui";
 import {
@@ -22,8 +18,24 @@ import {
   modalTitleTextStyles,
   modalCloseButtonStyles,
 } from "@klorad/ui";
-import { CesiumMinimalViewer } from "@klorad/engine-cesium";
-import { matrix4ToArray, arrayToMatrix4 } from "@klorad/engine-cesium";
+import {
+  extractLocationFromTransform,
+  extractHPRFromTransform,
+  restoreTransform,
+} from "./AdjustTilesetLocationDialog/utils/transform-utils";
+import { cleanupCesiumViewer } from "./AdjustTilesetLocationDialog/utils/viewer-cleanup";
+import { useTilesetLocationState } from "./AdjustTilesetLocationDialog/hooks/useTilesetLocationState";
+import { useGeoreferencingDetection } from "./AdjustTilesetLocationDialog/hooks/useGeoreferencingDetection";
+import { useManualInputs } from "./AdjustTilesetLocationDialog/hooks/useManualInputs";
+import { useClickMode } from "./AdjustTilesetLocationDialog/hooks/useClickMode";
+import { useDialogLifecycle } from "./AdjustTilesetLocationDialog/hooks/useDialogLifecycle";
+import { useCursorStyle } from "./AdjustTilesetLocationDialog/hooks/useCursorStyle";
+import { GeoreferencingInfoAlert } from "./AdjustTilesetLocationDialog/components/GeoreferencingInfoAlert";
+import { ClickPositionButton } from "./AdjustTilesetLocationDialog/components/ClickPositionButton";
+import { ManualAdjustmentsForm } from "./AdjustTilesetLocationDialog/components/ManualAdjustmentsForm";
+import { CurrentLocationDisplay } from "./AdjustTilesetLocationDialog/components/CurrentLocationDisplay";
+import { CesiumViewerContainer } from "./AdjustTilesetLocationDialog/components/CesiumViewerContainer";
+import { PositionConfirmationDialog } from "./AdjustTilesetLocationDialog/components/PositionConfirmationDialog";
 
 interface AdjustTilesetLocationDialogProps {
   open: boolean;
@@ -60,271 +72,156 @@ const AdjustTilesetLocationDialog: React.FC<
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentTransform, setCurrentTransform] = useState<
-    number[] | undefined
-  >(initialTransform);
-  const [currentLocation, setCurrentLocation] = useState<{
-    longitude: number;
-    latitude: number;
-    height: number;
-  } | null>(null);
-  const [pendingLocation, setPendingLocation] = useState<{
-    longitude: number;
-    latitude: number;
-    height: number;
-  } | null>(null);
-  const [clickModeEnabled, setClickModeEnabled] = useState(false); // Separate state for click-to-position mode
-  const [showPositionConfirm, setShowPositionConfirm] = useState(false); // Only for showing the confirmation dialog
-  const [isGeoreferencedByDefault, setIsGeoreferencedByDefault] = useState(false); // Track if model is georeferenced by default
 
-  // Manual input states
-  const [manualLongitude, setManualLongitude] = useState<string>("");
-  const [manualLatitude, setManualLatitude] = useState<string>("");
-  const [manualHeight, setManualHeight] = useState<string>("");
-  const [manualHeading, setManualHeading] = useState<string>("0");
-  const [manualPitch, setManualPitch] = useState<string>("0");
-  const [manualRoll, setManualRoll] = useState<string>("0");
+  // Location state management
+  const locationState = useTilesetLocationState(initialTransform);
 
-  // Store the last confirmed transform to restore on cancel
-  const [lastConfirmedTransform, setLastConfirmedTransform] = useState<
-    number[] | undefined
-  >(initialTransform);
+  // Georeferencing detection (needs to be created before manual inputs)
+  const georeferencingDetection = useGeoreferencingDetection({
+    initialTransform,
+    onLocationDetected: (location) => {
+      locationState.setCurrentLocation(location);
+    },
+    onHPRDetected: () => {
+      // HPR will be set by manual inputs when location is detected
+    },
+  });
 
+  // Manual inputs
+  const manualInputs = useManualInputs({
+    tilesetRef,
+    cesiumRef,
+    viewerRef,
+    onTransformApplied: (transform, location) => {
+      locationState.setCurrentTransform(transform);
+      locationState.setCurrentLocation(location);
+      locationState.setLastConfirmedTransform(transform);
+      georeferencingDetection.setIsGeoreferencedByDefault(false);
+    },
+    onError: setError,
+  });
+
+  // Initialize manual inputs when location is detected
+  useEffect(() => {
+    if (
+      locationState.currentLocation &&
+      initialTransform &&
+      initialTransform.length === 16
+    ) {
+      const initializeManualInputs = async () => {
+        try {
+          const Cesium = await import("cesium");
+          const hpr = extractHPRFromTransform(Cesium, initialTransform);
+          manualInputs.setValues(locationState.currentLocation!, hpr);
+        } catch (err) {
+          console.error("Failed to initialize manual inputs:", err);
+        }
+      };
+      initializeManualInputs();
+    } else if (locationState.currentLocation) {
+      manualInputs.setValues(locationState.currentLocation);
+    }
+  }, [locationState.currentLocation, initialTransform, manualInputs]);
+
+  // Click mode
+  const clickMode = useClickMode({
+    tilesetRef,
+    cesiumRef,
+    viewerRef,
+    lastConfirmedTransform: locationState.lastConfirmedTransform,
+    onLocationClick: (location, transform) => {
+      locationState.setPendingLocation(location);
+      locationState.setCurrentTransform(transform);
+      locationState.setCurrentLocation(location);
+    },
+    onTransformRestored: (transform, location) => {
+      locationState.setCurrentTransform(transform);
+      locationState.setCurrentLocation(location);
+    },
+  });
+
+  // Dialog lifecycle - use useCallback to stabilize the onReset callback
+  const handleDialogReset = useCallback(() => {
+    locationState.reset(initialTransform);
+    georeferencingDetection.reset();
+    setLoading(true);
+    setError(null);
+  }, [initialTransform, locationState, georeferencingDetection]);
+
+  const { stableInitialTransformRef } = useDialogLifecycle({
+    open,
+    initialTransform,
+    onReset: handleDialogReset,
+  });
+
+  // Cursor style
+  useCursorStyle(viewerRef, clickMode.clickModeEnabled, open);
+
+  // Viewer ready handler
   const handleViewerReady = useCallback((viewer: any) => {
     viewerRef.current = viewer;
     setLoading(false);
   }, []);
 
+  // Tileset ready handler - combines georeferencing detection with manual inputs initialization
   const handleTilesetReady = useCallback(
     async (tileset: any) => {
       tilesetRef.current = tileset;
 
-      // Always load Cesium for location editing
       try {
         const Cesium = await import("cesium");
         cesiumRef.current = Cesium;
 
-        // Check if model is georeferenced by default
-        // A model is georeferenced by default if:
-        // 1. No initialTransform (not set through our system)
-        // 2. AND (modelMatrix has translation OR bounding sphere center is in world coordinates)
-        if (!initialTransform) {
-          let isGeoreferenced = false;
-          let locationToDisplay: { longitude: number; latitude: number; height: number } | null = null;
-
-          // Check modelMatrix translation
-          if (tileset.modelMatrix) {
-            const translation = new Cesium.Cartesian3(
-              tileset.modelMatrix[12],
-              tileset.modelMatrix[13],
-              tileset.modelMatrix[14]
-            );
-            const magnitude = Cesium.Cartesian3.magnitude(translation);
-
-            if (magnitude > 1e-6) {
-              isGeoreferenced = true;
-              try {
-                const cartographic = Cesium.Cartographic.fromCartesian(translation);
-                locationToDisplay = {
-                  longitude: Cesium.Math.toDegrees(cartographic.longitude),
-                  latitude: Cesium.Math.toDegrees(cartographic.latitude),
-                  height: cartographic.height,
-                };
-              } catch (err) {
-                console.warn("Could not extract location from modelMatrix translation:", err);
-              }
-            }
-          }
-
-          // Check bounding sphere center (georeferenced models have world coordinates in bounding sphere)
-          if (!isGeoreferenced && tileset.boundingSphere) {
-            const center = tileset.boundingSphere.center;
-            const centerMagnitude = Cesium.Cartesian3.magnitude(center);
-
-            // If bounding sphere center is far from origin (world coordinates), model is georeferenced
-            // Typical georeferenced models have centers > 6,000,000 meters (Earth radius)
-            if (centerMagnitude > 1000000) {
-              isGeoreferenced = true;
-              try {
-                const cartographic = Cesium.Cartographic.fromCartesian(center);
-                locationToDisplay = {
-                  longitude: Cesium.Math.toDegrees(cartographic.longitude),
-                  latitude: Cesium.Math.toDegrees(cartographic.latitude),
-                  height: cartographic.height,
-                };
-              } catch (err) {
-                console.warn("Could not extract location from bounding sphere center:", err);
-              }
-            }
-          }
-
-          if (isGeoreferenced) {
-            setIsGeoreferencedByDefault(true);
-
-            // Display location if available
-            if (locationToDisplay) {
-              setCurrentLocation(locationToDisplay);
-              setManualLongitude(locationToDisplay.longitude.toFixed(6));
-              setManualLatitude(locationToDisplay.latitude.toFixed(6));
-              setManualHeight(locationToDisplay.height.toFixed(2));
-            }
-            return; // Don't allow editing
-          }
-        }
-
-        // Extract location from initial transform if it exists
-        if (initialTransform && initialTransform.length === 16) {
-          const translation = new Cesium.Cartesian3(
-            initialTransform[12],
-            initialTransform[13],
-            initialTransform[14]
-          );
-          const cartographic = Cesium.Cartographic.fromCartesian(translation);
-          const location = {
-            longitude: Cesium.Math.toDegrees(cartographic.longitude),
-            latitude: Cesium.Math.toDegrees(cartographic.latitude),
-            height: cartographic.height,
-          };
-          setCurrentLocation(location);
-
-          // Initialize manual input fields
-          setManualLongitude(location.longitude.toFixed(6));
-          setManualLatitude(location.latitude.toFixed(6));
-          setManualHeight(location.height.toFixed(2));
-        }
+        // Handle georeferencing detection (this will also initialize manual inputs if needed)
+        await georeferencingDetection.handleTilesetReady(tileset);
       } catch (err) {
         console.error(
-          "Failed to load Cesium or extract location from transform:",
+          "[AdjustTilesetLocationDialog] Failed to handle tileset ready:",
           err
         );
       }
     },
-    [initialTransform]
+    [georeferencingDetection]
   );
 
+  // Error handler
   const handleError = useCallback((err: Error) => {
     setError(err.message);
     setLoading(false);
   }, []);
 
-  const handleLocationClick = useCallback(
-    async (
-      longitude: number,
-      latitude: number,
-      height: number,
-      matrix: number[] // The actual matrix array that was ALREADY applied in CesiumMinimalViewer
-    ) => {
-      // Only process clicks if click mode is enabled
-      if (!clickModeEnabled) {
-        return;
-      }
+  // Reset zoom handler
+  const handleResetZoom = useCallback(async () => {
+    if (!viewerRef.current || !tilesetRef.current) return;
 
-      // Ensure Cesium is loaded
-      if (!cesiumRef.current) {
-        try {
-          const Cesium = await import("cesium");
-          cesiumRef.current = Cesium;
-        } catch (err) {
-          console.error(
-            "[AdjustTilesetLocationDialog] Failed to load Cesium:",
-            err
-          );
-          return;
-        }
-      }
-
-      if (!tilesetRef.current || !cesiumRef.current) {
-        console.warn(
-          "[AdjustTilesetLocationDialog] Missing tileset or cesium ref"
-        );
-        return;
-      }
-      // Transform is ALREADY applied by CesiumMinimalViewer
-      // We just need to store the matrix and show confirmation
-
-      // Store the exact matrix array that was applied and location
-      setPendingLocation({ longitude, latitude, height });
-      setCurrentTransform(matrix); // Store the exact matrix that was applied
-      setCurrentLocation({ longitude, latitude, height });
-
-      // Show confirmation dialog
-      setShowPositionConfirm(true);
-    },
-    [clickModeEnabled]
-  );
-
-  const handleConfirmPosition = useCallback(async () => {
-    // Transform is already applied from handleLocationClick
-    // Confirm it and disable click mode
-    if (!currentTransform || !pendingLocation) return;
-
-    // Update the location state (transform is already applied and stored)
-    setCurrentLocation(pendingLocation);
-
-    // Store as the last confirmed transform
-    setLastConfirmedTransform(currentTransform);
-
-    // Update manual inputs
-    setManualLongitude(pendingLocation.longitude.toFixed(6));
-    setManualLatitude(pendingLocation.latitude.toFixed(6));
-    setManualHeight(pendingLocation.height.toFixed(2));
-
-    // Hide confirmation dialog AND disable click mode
-    setShowPositionConfirm(false);
-    setPendingLocation(null);
-    setClickModeEnabled(false); // Disable click mode after confirmation
-  }, [currentTransform, pendingLocation]);
-
-  const handleCancelPosition = useCallback(async () => {
-    // User clicked Cancel on the confirmation dialog - restore previous transform
-    if (
-      lastConfirmedTransform &&
-      tilesetRef.current &&
-      cesiumRef.current &&
-      viewerRef.current
-    ) {
-      const Cesium = cesiumRef.current;
-      const matrix = arrayToMatrix4(Cesium, lastConfirmedTransform);
-      tilesetRef.current.modelMatrix = matrix;
-
-      if (viewerRef.current && !viewerRef.current.isDestroyed()) {
-        viewerRef.current.scene.requestRender();
-        setTimeout(() => {
-          if (viewerRef.current && !viewerRef.current.isDestroyed()) {
-            viewerRef.current.scene.requestRender();
-          }
-        }, 50);
-      }
-
-      setCurrentTransform(lastConfirmedTransform);
-
-      // Extract location from last confirmed transform
-      const translation = new Cesium.Cartesian3(
-        lastConfirmedTransform[12],
-        lastConfirmedTransform[13],
-        lastConfirmedTransform[14]
+    try {
+      const Cesium = await import("cesium");
+      viewerRef.current.zoomTo(
+        tilesetRef.current,
+        new Cesium.HeadingPitchRange(0, -0.5, 0)
       );
-      const cartographic = Cesium.Cartographic.fromCartesian(translation);
-      const location = {
-        longitude: Cesium.Math.toDegrees(cartographic.longitude),
-        latitude: Cesium.Math.toDegrees(cartographic.latitude),
-        height: cartographic.height,
-      };
-      setCurrentLocation(location);
+    } catch (err) {
+      console.warn("[AdjustTilesetLocationDialog] Error resetting zoom:", err);
+      try {
+        if (viewerRef.current && tilesetRef.current) {
+          viewerRef.current.zoomTo(tilesetRef.current);
+        }
+      } catch (fallbackErr) {
+        console.error(
+          "[AdjustTilesetLocationDialog] Error in fallback zoom:",
+          fallbackErr
+        );
+      }
     }
+  }, []);
 
-    setShowPositionConfirm(false);
-    setPendingLocation(null);
-  }, [lastConfirmedTransform]);
-
+  // Location select handler (for LocationSearch)
   const handleLocationSelect = useCallback(
     async (assetId: string, latitude: number, longitude: number) => {
       if (!viewerRef.current) return;
 
       try {
         const Cesium = await import("cesium");
-
-        // Fly camera to selected location
         viewerRef.current.camera.flyTo({
           destination: Cesium.Cartesian3.fromDegrees(
             longitude,
@@ -343,90 +240,50 @@ const AdjustTilesetLocationDialog: React.FC<
     []
   );
 
-  const handleApplyManualChanges = useCallback(async () => {
-    if (!cesiumRef.current || !tilesetRef.current || !viewerRef.current) {
-      setError("Cesium viewer not ready");
+  // Confirm position handler
+  const handleConfirmPosition = useCallback(() => {
+    if (!locationState.currentTransform || !locationState.pendingLocation)
       return;
-    }
 
-    try {
+    georeferencingDetection.setIsGeoreferencedByDefault(false);
+    locationState.setCurrentLocation(locationState.pendingLocation);
+    locationState.setLastConfirmedTransform(locationState.currentTransform);
+    manualInputs.setValues(locationState.pendingLocation);
+    clickMode.confirmPosition();
+    locationState.setPendingLocation(null);
+  }, [locationState, georeferencingDetection, manualInputs, clickMode]);
+
+  // Cancel position handler
+  const handleCancelPosition = useCallback(async () => {
+    if (
+      locationState.lastConfirmedTransform &&
+      tilesetRef.current &&
+      cesiumRef.current &&
+      viewerRef.current
+    ) {
       const Cesium = cesiumRef.current;
-
-      const longitude = parseFloat(manualLongitude);
-      const latitude = parseFloat(manualLatitude);
-      const height = parseFloat(manualHeight);
-      const heading = parseFloat(manualHeading);
-      const pitch = parseFloat(manualPitch);
-      const roll = parseFloat(manualRoll);
-
-      if (isNaN(longitude) || isNaN(latitude) || isNaN(height)) {
-        setError("Invalid position values");
-        return;
-      }
-      // Create position
-      const position = Cesium.Cartesian3.fromDegrees(
-        longitude,
-        latitude,
-        height
+      restoreTransform(
+        tilesetRef.current,
+        Cesium,
+        locationState.lastConfirmedTransform,
+        viewerRef.current
       );
 
-      // Create rotation matrix from HPR
-      const headingRadians = Cesium.Math.toRadians(heading);
-      const pitchRadians = Cesium.Math.toRadians(pitch);
-      const rollRadians = Cesium.Math.toRadians(roll);
-      const hpr = new Cesium.HeadingPitchRoll(
-        headingRadians,
-        pitchRadians,
-        rollRadians
+      const location = extractLocationFromTransform(
+        Cesium,
+        locationState.lastConfirmedTransform
       );
-
-      // Create transform matrix with rotation
-      const transformMatrix = Cesium.Transforms.headingPitchRollToFixedFrame(
-        position,
-        hpr,
-        Cesium.Ellipsoid.WGS84
-      );
-
-      // Apply to tileset
-      tilesetRef.current.modelMatrix = transformMatrix;
-
-      // Request renders with safety checks
-      if (viewerRef.current && !viewerRef.current.isDestroyed()) {
-        viewerRef.current.scene.requestRender();
-        setTimeout(() => {
-          if (viewerRef.current && !viewerRef.current.isDestroyed()) {
-            viewerRef.current.scene.requestRender();
-          }
-        }, 50);
-        setTimeout(() => {
-          if (viewerRef.current && !viewerRef.current.isDestroyed()) {
-            viewerRef.current.scene.requestRender();
-          }
-        }, 100);
-      }
-
-      // Convert matrix to array and store
-      const matrixArray = matrix4ToArray(transformMatrix);
-      setCurrentTransform(matrixArray);
-      setCurrentLocation({ longitude, latitude, height });
-    } catch (err) {
-      console.error(
-        "[AdjustTilesetLocationDialog] Failed to apply manual changes:",
-        err
-      );
-      setError(err instanceof Error ? err.message : "Failed to apply changes");
+      locationState.setCurrentTransform(locationState.lastConfirmedTransform);
+      locationState.setCurrentLocation(location);
     }
-  }, [
-    manualLongitude,
-    manualLatitude,
-    manualHeight,
-    manualHeading,
-    manualPitch,
-    manualRoll,
-  ]);
 
+    clickMode.cancelPosition();
+    locationState.setPendingLocation(null);
+  }, [locationState, tilesetRef, cesiumRef, viewerRef, clickMode]);
+
+  // Save handler
   const handleSave = useCallback(async () => {
-    if (!currentTransform || !currentLocation) {
+    if (!locationState.currentTransform || !locationState.currentLocation) {
       setError("Please click on the map to set a location first");
       return;
     }
@@ -436,10 +293,10 @@ const AdjustTilesetLocationDialog: React.FC<
 
     try {
       await onSave(
-        currentTransform, // The exact matrix array that was applied
-        currentLocation.longitude,
-        currentLocation.latitude,
-        currentLocation.height
+        locationState.currentTransform,
+        locationState.currentLocation.longitude,
+        locationState.currentLocation.latitude,
+        locationState.currentLocation.height
       );
       onClose();
     } catch (err) {
@@ -448,82 +305,14 @@ const AdjustTilesetLocationDialog: React.FC<
     } finally {
       setSaving(false);
     }
-  }, [currentTransform, currentLocation, onSave, onClose]);
+  }, [locationState, onSave, onClose]);
 
-  // Update cursor when click mode is enabled/disabled
-  useEffect(() => {
-    if (!viewerRef.current || !open) return;
-
-    const canvas = viewerRef.current.scene?.canvas;
-    if (!canvas) return;
-
-    // Crosshair when click mode is enabled, normal cursor otherwise
-    if (clickModeEnabled) {
-      canvas.style.cursor = "crosshair";
-    } else {
-      canvas.style.cursor = "auto";
-    }
-
-    return () => {
-      if (canvas) {
-        canvas.style.cursor = "auto";
-      }
-    };
-  }, [clickModeEnabled, open]);
-
-  // Reset state when dialog closes
+  // Cleanup on dialog close
   useEffect(() => {
     if (!open) {
-      setLoading(true);
-      setError(null);
-      setCurrentTransform(initialTransform);
-      setCurrentLocation(null);
-      setPendingLocation(null);
-      setShowPositionConfirm(false);
-      if (viewerRef.current) {
-        try {
-          viewerRef.current.destroy();
-        } catch (err) {
-          // Ignore cleanup errors
-        }
-        viewerRef.current = null;
-      }
-      if (containerRef.current) {
-        const cesiumViewers =
-          containerRef.current.querySelectorAll(".cesium-viewer");
-        cesiumViewers.forEach((viewer) => {
-          if (viewer.parentNode) {
-            try {
-              viewer.remove();
-            } catch (err) {
-              // Ignore errors if node was already removed
-            }
-          }
-        });
-        const canvases = containerRef.current.querySelectorAll("canvas");
-        canvases.forEach((canvas) => {
-          if (canvas.parentNode) {
-            try {
-              canvas.remove();
-            } catch (err) {
-              // Ignore errors if node was already removed
-            }
-          }
-        });
-        const cesiumWidgets =
-          containerRef.current.querySelectorAll(".cesium-widget");
-        cesiumWidgets.forEach((widget) => {
-          if (widget.parentNode) {
-            try {
-              widget.remove();
-            } catch (err) {
-              // Ignore errors if node was already removed
-            }
-          }
-        });
-      }
+      cleanupCesiumViewer(containerRef, viewerRef);
     }
-  }, [open, initialTransform]);
+  }, [open]);
 
   return (
     <Dialog
@@ -582,13 +371,8 @@ const AdjustTilesetLocationDialog: React.FC<
             pr: 2,
           }}
         >
-          {isGeoreferencedByDefault ? (
-            <Alert severity="info" sx={{ mb: 2 }}>
-              <Typography variant="body2">
-                This model is already georeferenced by default from Cesium Ion.
-                Location adjustment is not available for georeferenced models.
-              </Typography>
-            </Alert>
+          {georeferencingDetection.isGeoreferencedByDefault ? (
+            <GeoreferencingInfoAlert />
           ) : (
             <Typography
               sx={(theme) => ({
@@ -601,88 +385,13 @@ const AdjustTilesetLocationDialog: React.FC<
             </Typography>
           )}
 
-          {/* Click Position Button */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Button
-              variant={clickModeEnabled ? "contained" : "outlined"}
-              disabled={isGeoreferencedByDefault}
-              onClick={async () => {
-                if (clickModeEnabled) {
-                  // Cancel click mode - restore previous confirmed transform
-                  if (
-                    lastConfirmedTransform &&
-                    tilesetRef.current &&
-                    cesiumRef.current &&
-                    viewerRef.current
-                  ) {
-                    const Cesium = cesiumRef.current;
-                    const matrix = arrayToMatrix4(
-                      Cesium,
-                      lastConfirmedTransform
-                    );
-                    tilesetRef.current.modelMatrix = matrix;
+          <ClickPositionButton
+            clickModeEnabled={clickMode.clickModeEnabled}
+            disabled={georeferencingDetection.isGeoreferencedByDefault}
+            onToggle={clickMode.toggleClickMode}
+          />
 
-                    if (viewerRef.current && !viewerRef.current.isDestroyed()) {
-                      viewerRef.current.scene.requestRender();
-                      setTimeout(() => {
-                        if (
-                          viewerRef.current &&
-                          !viewerRef.current.isDestroyed()
-                        ) {
-                          viewerRef.current.scene.requestRender();
-                        }
-                      }, 50);
-                    }
-
-                    setCurrentTransform(lastConfirmedTransform);
-
-                    // Extract location from last confirmed transform
-                    const translation = new Cesium.Cartesian3(
-                      lastConfirmedTransform[12],
-                      lastConfirmedTransform[13],
-                      lastConfirmedTransform[14]
-                    );
-                    const cartographic =
-                      Cesium.Cartographic.fromCartesian(translation);
-                    const location = {
-                      longitude: Cesium.Math.toDegrees(cartographic.longitude),
-                      latitude: Cesium.Math.toDegrees(cartographic.latitude),
-                      height: cartographic.height,
-                    };
-                    setCurrentLocation(location);
-                  }
-
-                  setClickModeEnabled(false);
-                  setShowPositionConfirm(false);
-                  setPendingLocation(null);
-                } else {
-                  // Enable click-to-position mode
-                  setClickModeEnabled(true);
-                }
-              }}
-              sx={{
-                textTransform: "none",
-                fontSize: "0.813rem",
-                fontWeight: 500,
-              }}
-            >
-              {clickModeEnabled ? "Cancel Click" : "Click Position"}
-            </Button>
-            {clickModeEnabled && !showPositionConfirm && (
-              <Typography
-                sx={{
-                  fontSize: "0.75rem",
-                  color: "primary.main",
-                  fontStyle: "italic",
-                }}
-              >
-                Click on the map to set position
-              </Typography>
-            )}
-          </Box>
-
-          {/* Location Search */}
-          {!isGeoreferencedByDefault && (
+          {!georeferencingDetection.isGeoreferencedByDefault && (
             <Box>
               <LocationSearch
                 onAssetSelect={handleLocationSelect}
@@ -691,213 +400,25 @@ const AdjustTilesetLocationDialog: React.FC<
             </Box>
           )}
 
-          {/* Manual Position and Rotation Controls */}
-          <Box
-            sx={{
-              p: 2,
-              backgroundColor: "rgba(255, 255, 255, 0.03)",
-              borderRadius: "4px",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: "0.813rem",
-                fontWeight: 600,
-                mb: 1.5,
-              }}
-            >
-              Manual Adjustments
-            </Typography>
+          <ManualAdjustmentsForm
+            longitude={manualInputs.manualLongitude}
+            latitude={manualInputs.manualLatitude}
+            height={manualInputs.manualHeight}
+            heading={manualInputs.manualHeading}
+            pitch={manualInputs.manualPitch}
+            roll={manualInputs.manualRoll}
+            onLongitudeChange={manualInputs.setManualLongitude}
+            onLatitudeChange={manualInputs.setManualLatitude}
+            onHeightChange={manualInputs.setManualHeight}
+            onHeadingChange={manualInputs.setManualHeading}
+            onPitchChange={manualInputs.setManualPitch}
+            onRollChange={manualInputs.setManualRoll}
+            onApply={manualInputs.applyManualChanges}
+            disabled={georeferencingDetection.isGeoreferencedByDefault}
+          />
 
-            {/* Position Controls */}
-            <Typography
-              sx={{
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                mb: 1,
-                color: "text.secondary",
-              }}
-            >
-              Position
-            </Typography>
-            <Grid container spacing={1.5} sx={{ mb: 2 }}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Longitude"
-                  type="number"
-                  value={manualLongitude}
-                  onChange={(e) => setManualLongitude(e.target.value)}
-                  size="small"
-                  inputProps={{ step: "0.000001" }}
-                  disabled={isGeoreferencedByDefault}
-                  sx={{
-                    "& .MuiInputBase-input": {
-                      fontSize: "0.813rem",
-                    },
-                    "& .MuiInputLabel-root": {
-                      fontSize: "0.75rem",
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Latitude"
-                  type="number"
-                  value={manualLatitude}
-                  onChange={(e) => setManualLatitude(e.target.value)}
-                  size="small"
-                  inputProps={{ step: "0.000001" }}
-                  disabled={isGeoreferencedByDefault}
-                  sx={{
-                    "& .MuiInputBase-input": {
-                      fontSize: "0.813rem",
-                    },
-                    "& .MuiInputLabel-root": {
-                      fontSize: "0.75rem",
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Height (m)"
-                  type="number"
-                  value={manualHeight}
-                  onChange={(e) => setManualHeight(e.target.value)}
-                  size="small"
-                  inputProps={{ step: "0.01" }}
-                  disabled={isGeoreferencedByDefault}
-                  sx={{
-                    "& .MuiInputBase-input": {
-                      fontSize: "0.813rem",
-                    },
-                    "& .MuiInputLabel-root": {
-                      fontSize: "0.75rem",
-                    },
-                  }}
-                />
-              </Grid>
-            </Grid>
-
-            {/* Rotation Controls */}
-            <Typography
-              sx={{
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                mb: 1,
-                color: "text.secondary",
-              }}
-            >
-              Rotation (degrees)
-            </Typography>
-            <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Heading"
-                  type="number"
-                  value={manualHeading}
-                  onChange={(e) => setManualHeading(e.target.value)}
-                  size="small"
-                  inputProps={{ step: "1" }}
-                  disabled={isGeoreferencedByDefault}
-                  sx={{
-                    "& .MuiInputBase-input": {
-                      fontSize: "0.813rem",
-                    },
-                    "& .MuiInputLabel-root": {
-                      fontSize: "0.75rem",
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Pitch"
-                  type="number"
-                  value={manualPitch}
-                  onChange={(e) => setManualPitch(e.target.value)}
-                  size="small"
-                  inputProps={{ step: "1" }}
-                  disabled={isGeoreferencedByDefault}
-                  sx={{
-                    "& .MuiInputBase-input": {
-                      fontSize: "0.813rem",
-                    },
-                    "& .MuiInputLabel-root": {
-                      fontSize: "0.75rem",
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Roll"
-                  type="number"
-                  value={manualRoll}
-                  onChange={(e) => setManualRoll(e.target.value)}
-                  size="small"
-                  inputProps={{ step: "1" }}
-                  disabled={isGeoreferencedByDefault}
-                  sx={{
-                    "& .MuiInputBase-input": {
-                      fontSize: "0.813rem",
-                    },
-                    "& .MuiInputLabel-root": {
-                      fontSize: "0.75rem",
-                    },
-                  }}
-                />
-              </Grid>
-            </Grid>
-
-            <Button
-              variant="outlined"
-              size="small"
-              fullWidth
-              onClick={handleApplyManualChanges}
-              sx={{
-                textTransform: "none",
-                fontSize: "0.75rem",
-                fontWeight: 500,
-              }}
-            >
-              Apply Changes
-            </Button>
-          </Box>
-
-          {/* Current Location Display */}
-          {currentLocation && (
-            <Box
-              sx={{
-                p: 1.5,
-                backgroundColor: "rgba(107, 156, 216, 0.1)",
-                borderRadius: "4px",
-                border: "1px solid rgba(107, 156, 216, 0.2)",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  mb: 0.5,
-                }}
-              >
-                Current Location:
-              </Typography>
-              <Typography sx={{ fontSize: "0.75rem" }}>
-                Longitude: {currentLocation.longitude.toFixed(6)}, Latitude:{" "}
-                {currentLocation.latitude.toFixed(6)}, Height:{" "}
-                {currentLocation.height.toFixed(2)}m
-              </Typography>
-            </Box>
+          {locationState.currentLocation && (
+            <CurrentLocationDisplay location={locationState.currentLocation} />
           )}
         </Box>
 
@@ -909,195 +430,31 @@ const AdjustTilesetLocationDialog: React.FC<
             minWidth: 0,
           }}
         >
-          <Box
-            ref={containerRef}
-            sx={(theme) => ({
-              width: "100%",
-              height: "100%",
-              borderRadius: "4px",
-              overflow: "hidden",
-              backgroundColor: theme.palette.background.default,
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              position: "relative",
-              display: "flex",
-              flexDirection: "column",
-              "& .cesium-viewer-bottom": {
-                display: "none !important",
-              },
-              "& .cesium-credit-text": {
-                display: "none !important",
-              },
-              "& .cesium-credit-logoContainer": {
-                display: "none !important",
-              },
-              "& .cesium-credit-expand-link": {
-                display: "none !important",
-              },
-              "& .cesium-credit-logo": {
-                display: "none !important",
-              },
-              "& .cesium-widget-credits": {
-                display: "none !important",
-              },
-              "& .cesium-viewer": {
-                width: "100% !important",
-                height: "100% !important",
-                flex: "1 1 auto",
-                minHeight: 0,
-              },
-              "& .cesium-viewer-cesiumWidgetContainer": {
-                width: "100% !important",
-                height: "100% !important",
-              },
-              "& .cesium-widget": {
-                width: "100% !important",
-                height: "100% !important",
-              },
-              "& .cesium-widget canvas": {
-                width: "100% !important",
-                height: "100% !important",
-                display: "block",
-              },
-            })}
-          >
-            {open && (
-              <CesiumMinimalViewer
-                key={`location-editor-${cesiumAssetId}`}
-                containerRef={containerRef}
-                cesiumAssetId={cesiumAssetId}
-                cesiumApiKey={cesiumApiKey}
-                assetType={assetType}
-                onViewerReady={handleViewerReady}
-                onError={handleError}
-                onTilesetReady={handleTilesetReady}
-                initialTransform={currentTransform}
-                metadata={undefined} // Metadata already extracted to initialTransform in parent
-                enableLocationEditing={true}
-                enableClickToPosition={clickModeEnabled}
-                onLocationClick={handleLocationClick}
-              />
-            )}
+          <CesiumViewerContainer
+            containerRef={containerRef}
+            open={open}
+            cesiumAssetId={cesiumAssetId}
+            cesiumApiKey={cesiumApiKey}
+            assetType={assetType}
+            initialTransform={stableInitialTransformRef.current}
+            loading={loading}
+            error={error}
+            viewerRef={viewerRef}
+            tilesetRef={tilesetRef}
+            onViewerReady={handleViewerReady}
+            onError={handleError}
+            onTilesetReady={handleTilesetReady}
+            clickModeEnabled={clickMode.clickModeEnabled}
+            onLocationClick={clickMode.handleLocationClick}
+            onResetZoom={handleResetZoom}
+          />
 
-            {loading && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "rgba(0, 0, 0, 0.5)",
-                  zIndex: 10,
-                }}
-              >
-                <CircularProgress />
-              </Box>
-            )}
-
-            {error && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 16,
-                  left: 16,
-                  right: 16,
-                  zIndex: 20,
-                  backgroundColor: "rgba(239, 68, 68, 0.9)",
-                  borderRadius: "4px",
-                  padding: "8px 12px",
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: "white",
-                    fontSize: "0.75rem",
-                    fontWeight: 500,
-                  }}
-                >
-                  {error}
-                </Typography>
-              </Box>
-            )}
-          </Box>
-
-          {/* Position Confirmation Info Box */}
-          {showPositionConfirm && pendingLocation && (
-            <Box
-              sx={{
-                position: "absolute",
-                top: 16,
-                left: 16,
-                right: 16,
-                zIndex: 25,
-                backgroundColor: "rgba(107, 156, 216, 0.95)",
-                borderRadius: "4px",
-                padding: "12px 16px",
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
-              }}
-            >
-              <Typography
-                sx={{
-                  color: "white",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  mb: 1,
-                }}
-              >
-                Confirm Position
-              </Typography>
-              <Typography
-                sx={{
-                  color: "white",
-                  fontSize: "0.75rem",
-                  mb: 2,
-                  fontFamily: "monospace",
-                }}
-              >
-                Longitude: {pendingLocation.longitude.toFixed(6)}
-                <br />
-                Latitude: {pendingLocation.latitude.toFixed(6)}
-                <br />
-                Height: {pendingLocation.height.toFixed(2)}m
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={handleConfirmPosition}
-                  sx={{
-                    textTransform: "none",
-                    fontSize: "0.75rem",
-                    backgroundColor: "white",
-                    color: "primary.main",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.9)",
-                    },
-                  }}
-                >
-                  Confirm
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={handleCancelPosition}
-                  sx={{
-                    textTransform: "none",
-                    fontSize: "0.75rem",
-                    borderColor: "white",
-                    color: "white",
-                    "&:hover": {
-                      borderColor: "white",
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    },
-                  }}
-                >
-                  Cancel
-                </Button>
-              </Box>
-            </Box>
+          {clickMode.showPositionConfirm && locationState.pendingLocation && (
+            <PositionConfirmationDialog
+              location={locationState.pendingLocation}
+              onConfirm={handleConfirmPosition}
+              onCancel={handleCancelPosition}
+            />
           )}
         </Box>
       </DialogContent>
@@ -1133,7 +490,12 @@ const AdjustTilesetLocationDialog: React.FC<
         </Button>
         <Button
           onClick={handleSave}
-          disabled={saving || loading || !currentTransform || isGeoreferencedByDefault}
+          disabled={
+            saving ||
+            loading ||
+            !locationState.currentTransform ||
+            georeferencingDetection.isGeoreferencedByDefault
+          }
           variant="contained"
           sx={(theme) => ({
             textTransform: "none",

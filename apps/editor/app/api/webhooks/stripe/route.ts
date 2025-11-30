@@ -77,10 +77,6 @@ export async function POST(request: NextRequest) {
               role: "owner",
             },
           });
-
-          console.log(
-            `[Stripe Webhook] Created new organization ${organization.id} (${orgName}) with plan ${planCode}`
-          );
         } else {
           // Update existing organization with subscription details
           const organizationId = session.metadata?.organizationId;
@@ -102,10 +98,6 @@ export async function POST(request: NextRequest) {
               subscriptionStatus: "active",
             },
           });
-
-          console.log(
-            `[Stripe Webhook] Organization ${organizationId} upgraded to ${planCode}`
-          );
         }
         break;
       }

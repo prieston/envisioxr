@@ -69,3 +69,61 @@ export function setupConsoleErrorInterceptor(
   };
 }
 
+/**
+ * Setup error handlers for a tileset (Gaussian splatting detection)
+ * @param tileset - The Cesium3DTileset
+ * @param gaussianSplatErrorShown - Ref to track if error was already shown
+ * @param onError - Callback when error occurs
+ * @returns Cleanup function to remove event listeners
+ */
+export function setupTilesetErrorHandlers(
+  tileset: any,
+  gaussianSplatErrorShown: { current: boolean },
+  onError: (error: Error) => void
+): () => void {
+  const handleTileError = (tile: any, tileError: any) => {
+    if (gaussianSplatErrorShown.current) {
+      return;
+    }
+
+    if (isGaussianSplattingError(tileError)) {
+      gaussianSplatErrorShown.current = true;
+      const friendlyError = createGaussianSplattingError();
+      onError(friendlyError);
+    }
+  };
+
+  tileset.tileFailed.addEventListener(handleTileError);
+
+  // Listen for general tileset errors
+  let readyPromiseCleanup: (() => void) | null = null;
+  if (tileset.readyPromise) {
+    const promiseHandler = tileset.readyPromise.catch((readyError: any) => {
+      if (gaussianSplatErrorShown.current) {
+        return;
+      }
+
+      if (isGaussianSplattingError(readyError)) {
+        gaussianSplatErrorShown.current = true;
+        const friendlyError = createGaussianSplattingError();
+        onError(friendlyError);
+      }
+    });
+    readyPromiseCleanup = () => {
+      // Note: Promise handlers can't be removed, but we track via gaussianSplatErrorShown
+    };
+  }
+
+  // Return cleanup function
+  return () => {
+    try {
+      tileset.tileFailed.removeEventListener(handleTileError);
+    } catch (err) {
+      // Ignore cleanup errors
+    }
+    if (readyPromiseCleanup) {
+      readyPromiseCleanup();
+    }
+  };
+}
+

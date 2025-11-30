@@ -3,14 +3,15 @@ import {
   loadTilesetWithTransform,
   waitForTilesetReady,
   reapplyTransformAfterReady,
-  extractTransformFromMetadata,
-  extractTransformFromTileset,
+  extractTilesetGeoreferencing,
+  findExistingTileset,
   type TilesetTransformData,
 } from "../../../utils/tileset-operations";
 import {
   isGaussianSplattingError,
   createGaussianSplattingError,
   setupConsoleErrorInterceptor,
+  setupTilesetErrorHandlers,
 } from "../utils/error-handlers";
 import type { CesiumModule } from "../types";
 
@@ -20,6 +21,7 @@ interface UseTilesetOptions {
   cesiumAssetId: string;
   metadata?: Record<string, unknown> | null;
   initialTransform?: number[];
+  enableLocationEditing?: boolean;
   onTilesetReady?: (tileset: any) => void;
   onError?: (error: Error) => void;
 }
@@ -41,6 +43,7 @@ export function useTileset({
   cesiumAssetId,
   metadata,
   initialTransform,
+  enableLocationEditing = false,
   onTilesetReady,
   onError,
 }: UseTilesetOptions): UseTilesetReturn {
@@ -52,15 +55,96 @@ export function useTileset({
   >(undefined);
   const [isGeoreferenced, setIsGeoreferenced] = useState(false);
   const gaussianSplatErrorShown = useRef(false);
+  const isLoadingRef = useRef(false);
 
   useEffect(() => {
+    console.log("[useTileset] Effect triggered", {
+      hasViewer: !!viewer,
+      hasCesium: !!Cesium,
+      cesiumAssetId,
+      enableLocationEditing,
+      hasTilesetRef: !!tilesetRef.current,
+      isLoading: isLoadingRef.current,
+      initialTransform: initialTransform ? "exists" : "none",
+      metadata: metadata ? "exists" : "none",
+    });
+
     if (!viewer || !Cesium || !cesiumAssetId) {
       return;
     }
 
+    // If we're already loading a tileset, don't start another load
+    // This prevents duplicate tilesets when React StrictMode runs effects twice
+    if (isLoadingRef.current) {
+      console.log(
+        "[useTileset] Already loading tileset, skipping duplicate load"
+      );
+      return;
+    }
+
+    // Check if a tileset for this asset already exists in the scene
+    // This prevents duplicate tilesets from being loaded (important for React StrictMode)
+    if (tilesetRef.current) {
+      const isInScene = viewer.scene.primitives.contains(tilesetRef.current);
+      console.log("[useTileset] Checking existing tileset ref", {
+        hasTilesetRef: true,
+        isInScene,
+        enableLocationEditing,
+      });
+      if (isInScene) {
+        console.log("[useTileset] Tileset already in scene, skipping reload");
+        return;
+      }
+    }
+
+    // Also check if any tileset with this asset ID is already in the scene
+    // This handles the case where tilesetRef might not be set yet
+    const existingTileset = findExistingTileset(viewer, cesiumAssetId);
+    if (existingTileset) {
+      console.log(
+        "[useTileset] Found existing tileset in primitives by _kloradAssetId, reusing it",
+        {
+          assetId: cesiumAssetId,
+        }
+      );
+      tilesetRef.current = existingTileset;
+
+      // Extract transform and georeferencing using utility function
+      const { computedTransform, isGeoreferenced } =
+        extractTilesetGeoreferencing(
+          Cesium,
+          existingTileset,
+          metadata,
+          initialTransform
+        );
+
+      setTransformToApply(computedTransform);
+      setIsGeoreferenced(isGeoreferenced);
+
+      // Notify tileset ready
+      if (onTilesetReady) {
+        onTilesetReady(existingTileset);
+      }
+
+      setIsReady(true);
+      isLoadingRef.current = false;
+
+      return;
+    }
+    console.log("[useTileset] No existing tileset found, will load new one");
+
+    // Set loading flag to prevent concurrent loads
+    isLoadingRef.current = true;
+
     let cleanupConsoleInterceptor: (() => void) | null = null;
+    let cleanupErrorHandlers: (() => void) | null = null;
 
     const loadTileset = async () => {
+      console.log("[useTileset] Starting to load tileset", {
+        cesiumAssetId,
+        enableLocationEditing,
+        hasInitialTransform: !!initialTransform,
+      });
       try {
         gaussianSplatErrorShown.current = false;
 
@@ -89,47 +173,81 @@ export function useTileset({
           transform,
           { log: false }
         );
-        tilesetRef.current = tileset;
 
+        // Add custom property to track asset ID for duplicate detection
+        tileset._kloradAssetId = cesiumAssetId;
+
+        // Check if a tileset with this assetId is already in the scene
+        // This prevents duplicates when React StrictMode runs effects twice
+        const existingTileset = findExistingTileset(viewer, cesiumAssetId);
+
+        console.log(
+          "[useTileset] Tileset loaded, checking if already in scene",
+          {
+            tilesetId: tileset?.assetId,
+            hasExistingTileset: !!existingTileset,
+            isNewTilesetInScene: viewer.scene.primitives.contains(tileset),
+            primitivesLength: viewer.scene.primitives.length,
+          }
+        );
+
+        // If a tileset with this assetId already exists, reuse it instead of adding the new one
+        if (existingTileset) {
+          console.log(
+            "[useTileset] Found existing tileset in scene, reusing it and destroying new one"
+          );
+          tilesetRef.current = existingTileset;
+
+          // Destroy the new tileset we just created to prevent memory leaks
+          try {
+            tileset.destroy();
+          } catch (destroyErr) {
+            console.warn(
+              "[useTileset] Error destroying duplicate tileset:",
+              destroyErr
+            );
+          }
+
+          // Extract transform and georeferencing using utility function
+          const { computedTransform, isGeoreferenced } =
+            extractTilesetGeoreferencing(
+              Cesium,
+              existingTileset,
+              metadata,
+              initialTransform
+            );
+
+          setTransformToApply(computedTransform);
+          setIsGeoreferenced(isGeoreferenced);
+
+          // Notify tileset ready
+          if (onTilesetReady) {
+            onTilesetReady(existingTileset);
+          }
+
+          setIsReady(true);
+          isLoadingRef.current = false;
+
+          return; // Exit early, don't continue with the new tileset
+        }
+
+        // No existing tileset found, add the new one
+        console.log("[useTileset] Adding tileset to scene");
+        tilesetRef.current = tileset;
         viewer.scene.primitives.add(tileset);
 
-        // Set up error handler for tileset tile failures
-        const handleTileError = (tile: any, tileError: any) => {
-          if (gaussianSplatErrorShown.current) {
-            return;
-          }
-
-          if (isGaussianSplattingError(tileError)) {
-            gaussianSplatErrorShown.current = true;
-            const friendlyError = createGaussianSplattingError();
-            setError(friendlyError);
+        // Set up error handlers using utility function
+        cleanupErrorHandlers = setupTilesetErrorHandlers(
+          tileset,
+          gaussianSplatErrorShown,
+          (err) => {
+            setError(err);
             setIsReady(false);
             if (onError) {
-              onError(friendlyError);
+              onError(err);
             }
           }
-        };
-
-        tileset.tileFailed.addEventListener(handleTileError);
-
-        // Listen for general tileset errors
-        if (tileset.readyPromise) {
-          tileset.readyPromise.catch((readyError: any) => {
-            if (gaussianSplatErrorShown.current) {
-              return;
-            }
-
-            if (isGaussianSplattingError(readyError)) {
-              gaussianSplatErrorShown.current = true;
-              const friendlyError = createGaussianSplattingError();
-              setError(friendlyError);
-              setIsReady(false);
-              if (onError) {
-                onError(friendlyError);
-              }
-            }
-          });
-        }
+        );
 
         // Wait for ready
         try {
@@ -164,33 +282,14 @@ export function useTileset({
           throw readyError;
         }
 
-        // Extract transform from metadata or use initialTransform
-        const transformFromMetadata = extractTransformFromMetadata(metadata);
-
-        // If no transform from metadata but tileset has a modelMatrix, extract it
-        let transformFromTileset: TilesetTransformData | undefined = undefined;
-        if (
-          !transformFromMetadata &&
-          !initialTransform &&
-          tileset.modelMatrix
-        ) {
-          try {
-            const extracted = extractTransformFromTileset(Cesium, tileset);
-            if (extracted) {
-              transformFromTileset = extracted;
-            }
-          } catch (err) {
-            console.warn(
-              "[useTileset] Failed to extract transform from tileset:",
-              err
-            );
-          }
-        }
-
-        const computedTransform: TilesetTransformData | undefined =
-          initialTransform && initialTransform.length === 16
-            ? { matrix: initialTransform }
-            : transformFromMetadata || transformFromTileset;
+        // Extract transform and georeferencing using utility function
+        const { computedTransform, isGeoreferenced } =
+          extractTilesetGeoreferencing(
+            Cesium,
+            tileset,
+            metadata,
+            initialTransform
+          );
 
         setTransformToApply(computedTransform);
 
@@ -213,19 +312,7 @@ export function useTileset({
 
         viewer.scene.requestRender();
 
-        // Determine if georeferenced
-        // A model is georeferenced ONLY if:
-        // 1. There's an explicit transform from metadata or initialTransform (always georeferenced), OR
-        // 2. The transform has valid longitude/latitude coordinates (not just a matrix)
-        // We do NOT consider it georeferenced if:
-        // - Only a matrix exists without coordinates (could be local transform)
-        // - ModelMatrix has translation but not at valid Earth coordinates
-        const georeferenced =
-          !!transformFromMetadata || // Transform from metadata is always georeferenced
-          (initialTransform && initialTransform.length === 16) || // Initial transform is always georeferenced
-          (computedTransform && computedTransform.longitude !== undefined && computedTransform.latitude !== undefined); // Must have valid coordinates
-
-        setIsGeoreferenced(georeferenced);
+        setIsGeoreferenced(isGeoreferenced);
 
         // Notify tileset ready
         if (onTilesetReady) {
@@ -233,6 +320,9 @@ export function useTileset({
         }
 
         setIsReady(true);
+
+        // Clear loading flag after successful load
+        isLoadingRef.current = false;
       } catch (loadError: any) {
         if (isGaussianSplattingError(loadError)) {
           gaussianSplatErrorShown.current = true;
@@ -260,22 +350,66 @@ export function useTileset({
 
     // Cleanup
     return () => {
+      console.log("[useTileset] Cleanup function called", {
+        cesiumAssetId,
+        enableLocationEditing,
+        hasTilesetRef: !!tilesetRef.current,
+        hasViewer: !!viewer,
+        isLoading: isLoadingRef.current,
+      });
+
+      // Clear loading flag on cleanup
+      isLoadingRef.current = false;
+
       if (cleanupConsoleInterceptor) {
         cleanupConsoleInterceptor();
       }
 
+      if (cleanupErrorHandlers) {
+        cleanupErrorHandlers();
+      }
+
       if (tilesetRef.current && viewer?.scene) {
         try {
-          viewer.scene.primitives.remove(tilesetRef.current);
+          const wasInScene = viewer.scene.primitives.contains(
+            tilesetRef.current
+          );
+          console.log("[useTileset] Removing tileset from scene", {
+            wasInScene,
+            enableLocationEditing,
+          });
+
+          // In location editing mode, don't remove tileset on cleanup
+          // It should persist across re-renders
+          if (!enableLocationEditing) {
+            viewer.scene.primitives.remove(tilesetRef.current);
+          } else {
+            console.log(
+              "[useTileset] Location editing mode - keeping tileset in scene"
+            );
+          }
         } catch (err) {
-          // Ignore
+          console.error("[useTileset] Error during cleanup:", err);
         }
-        tilesetRef.current = null;
+
+        // Only clear ref if we actually removed it
+        if (!enableLocationEditing) {
+          tilesetRef.current = null;
+        }
       }
 
       gaussianSplatErrorShown.current = false;
     };
-  }, [viewer, Cesium, cesiumAssetId, metadata, initialTransform]);
+  }, [
+    viewer,
+    Cesium,
+    cesiumAssetId,
+    enableLocationEditing,
+    // In location editing mode, exclude metadata and initialTransform from dependencies
+    // to prevent tileset reloads when transforms are applied manually
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    ...(enableLocationEditing ? [] : [metadata, initialTransform]),
+  ]);
 
   return {
     tileset: tilesetRef.current,
@@ -285,4 +419,3 @@ export function useTileset({
     isGeoreferenced,
   };
 }
-

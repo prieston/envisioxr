@@ -44,6 +44,7 @@ export function TilesetRenderer({
     cesiumAssetId,
     metadata,
     initialTransform,
+    enableLocationEditing,
     onTilesetReady,
     onError,
   });
@@ -75,46 +76,91 @@ export function TilesetRenderer({
   // Setup camera positioning
   const { zoomToTileset } = useCameraPosition({ viewer, Cesium });
 
-  // Position camera when tileset is ready
+  // Track previous visibility state to avoid unnecessary updates
+  const visibilityStateRef = useRef<{
+    isGeoreferenced?: boolean;
+    enableAtmosphere?: boolean;
+    hasApplied?: boolean;
+  }>({});
+
+  // Update scene visibility based on georeferencing (separate effect to reduce flashing)
   useEffect(() => {
-    if (!viewer || !Cesium || !tileset || !isReady || enableLocationEditing) {
+    if (!viewer || !Cesium || !tileset || !isReady || enableLocationEditing || assetType === "IMAGERY") {
       return;
     }
 
-    // Update scene visibility based on georeferencing
-    if (assetType !== "IMAGERY") {
-      if (isGeoreferenced) {
-        // Show globe for georeferenced models
-        if (!viewer.scene.globe.show) {
-          viewer.scene.globe.show = true;
-        }
-        // Show skybox and atmosphere based on enableAtmosphere prop
-        if (viewer.scene.skyBox) {
-          viewer.scene.skyBox.show = enableAtmosphere;
-        }
-        if (viewer.scene.skyAtmosphere) {
-          viewer.scene.skyAtmosphere.show = enableAtmosphere;
-        }
-        console.log(
-          "[TilesetRenderer] Showing globe for georeferenced model, atmosphere:",
-          enableAtmosphere
-        );
-      } else {
-        // Hide globe, skybox, and atmosphere for non-georeferenced models
-        viewer.scene.globe.show = false;
-        if (viewer.scene.skyBox) {
-          viewer.scene.skyBox.show = false;
-        }
-        if (viewer.scene.skyAtmosphere) {
-          viewer.scene.skyAtmosphere.show = false;
-        }
-        // Disable terrain for non-georeferenced models
-        viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
-        viewer.scene.globe.depthTestAgainstTerrain = false;
-        console.log(
-          "[TilesetRenderer] Hiding globe, skybox, and atmosphere for non-georeferenced model"
-        );
+    const prevState = visibilityStateRef.current;
+    const shouldUpdate =
+      prevState.isGeoreferenced !== isGeoreferenced ||
+      prevState.enableAtmosphere !== enableAtmosphere ||
+      !prevState.hasApplied;
+
+    if (!shouldUpdate) {
+      return;
+    }
+
+    if (isGeoreferenced) {
+      // Show globe for georeferenced models (only if it's not already shown)
+      if (viewer.scene.globe.show !== true) {
+        viewer.scene.globe.show = true;
       }
+      // Show skybox and atmosphere based on enableAtmosphere prop
+      if (viewer.scene.skyBox && viewer.scene.skyBox.show !== enableAtmosphere) {
+        viewer.scene.skyBox.show = enableAtmosphere;
+      }
+      if (
+        viewer.scene.skyAtmosphere &&
+        viewer.scene.skyAtmosphere.show !== enableAtmosphere
+      ) {
+        viewer.scene.skyAtmosphere.show = enableAtmosphere;
+      }
+      console.log(
+        "[TilesetRenderer] Showing globe for georeferenced model, atmosphere:",
+        enableAtmosphere
+      );
+    } else {
+      // Hide globe, skybox, and atmosphere for non-georeferenced models
+      // Only hide if not already hidden
+      if (viewer.scene.globe.show !== false) {
+        viewer.scene.globe.show = false;
+      }
+      if (viewer.scene.skyBox && viewer.scene.skyBox.show !== false) {
+        viewer.scene.skyBox.show = false;
+      }
+      if (viewer.scene.skyAtmosphere && viewer.scene.skyAtmosphere.show !== false) {
+        viewer.scene.skyAtmosphere.show = false;
+      }
+      // Disable terrain for non-georeferenced models
+      if (!(viewer.terrainProvider instanceof Cesium.EllipsoidTerrainProvider)) {
+        viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
+      }
+      viewer.scene.globe.depthTestAgainstTerrain = false;
+      console.log(
+        "[TilesetRenderer] Hiding globe, skybox, and atmosphere for non-georeferenced model"
+      );
+    }
+
+    // Update tracked state
+    visibilityStateRef.current = {
+      isGeoreferenced,
+      enableAtmosphere,
+      hasApplied: true,
+    };
+  }, [
+    viewer,
+    Cesium,
+    tileset,
+    isReady,
+    enableLocationEditing,
+    enableAtmosphere,
+    isGeoreferenced,
+    assetType,
+  ]);
+
+  // Position camera when tileset is ready (separate effect)
+  useEffect(() => {
+    if (!viewer || !Cesium || !tileset || !isReady || enableLocationEditing) {
+      return;
     }
 
     console.log("[TilesetRenderer] Model georeferencing check:", {
@@ -134,10 +180,8 @@ export function TilesetRenderer({
     tileset,
     isReady,
     enableLocationEditing,
-    enableAtmosphere,
     transformToApply,
     isGeoreferenced,
-    assetType,
     zoomToTileset,
   ]);
 

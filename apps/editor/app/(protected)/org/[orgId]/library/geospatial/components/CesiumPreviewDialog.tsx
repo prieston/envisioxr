@@ -22,12 +22,7 @@ import {
   modalCloseButtonStyles,
 } from "@klorad/ui";
 import { captureCesiumScreenshot } from "@/app/utils/screenshotCapture";
-import {
-  CesiumMinimalViewer,
-  extractTransformFromMetadata,
-  positionCameraForTileset,
-} from "@klorad/engine-cesium";
-import { arrayToMatrix4 } from "@klorad/engine-cesium";
+import { CesiumMinimalViewer } from "@klorad/engine-cesium";
 
 interface CesiumPreviewDialogProps {
   open: boolean;
@@ -50,19 +45,6 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
   metadata,
   onCapture,
 }) => {
-  // Debug: Log metadata when component receives it
-  useEffect(() => {
-    if (open && metadata) {
-      console.log("[CesiumPreviewDialog] Received metadata:", {
-        hasMetadata: !!metadata,
-        metadataKeys: Object.keys(metadata),
-        hasTransform: "transform" in metadata,
-        transform: metadata.transform,
-        fullMetadata: JSON.parse(JSON.stringify(metadata)), // Deep clone to see full structure
-        metadataStringified: JSON.stringify(metadata, null, 2), // Stringified to see everything
-      });
-    }
-  }, [open, metadata]);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<any>(null);
   const tilesetRef = useRef<any>(null);
@@ -88,14 +70,6 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
     try {
       // Dynamically import Cesium
       const Cesium = await import("cesium");
-
-      // Extract transform from metadata (same logic as initial positioning)
-      const transformFromMetadata = extractTransformFromMetadata(metadata);
-      const transformToApply = transformFromMetadata;
-
-      // Check if this is a non-georeferenced model (no transform)
-      const isNonGeoreferenced = !transformToApply;
-      const boundingSphere = tilesetRef.current.boundingSphere;
 
       // Use zoomTo for all cases - this doesn't set a rotation target
       // so left-click drag continues to pan instead of rotating around model

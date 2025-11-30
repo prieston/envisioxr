@@ -23,6 +23,7 @@ export function useTransform({
 }: UseTransformOptions) {
   const hasAppliedInitialCamera = useRef(false);
   const isInitialLoad = useRef(true);
+  const hasAppliedInitialTransform = useRef(false);
 
   useEffect(() => {
     if (
@@ -32,6 +33,14 @@ export function useTransform({
       !initialTransform ||
       initialTransform.length !== 16
     ) {
+      return;
+    }
+
+    // In location editing mode, only apply transform on initial load
+    // Subsequent changes are handled directly by the parent component (handleApplyManualChanges)
+    // This prevents the transform from being re-applied when rotation/position changes,
+    // which would cause the model to appear to be recreated
+    if (enableLocationEditing && hasAppliedInitialTransform.current) {
       return;
     }
 
@@ -46,6 +55,11 @@ export function useTransform({
     tileset.modelMatrix = matrix;
     viewer.scene.requestRender();
 
+    // Mark that we've applied the initial transform
+    if (enableLocationEditing) {
+      hasAppliedInitialTransform.current = true;
+    }
+
     // Only position camera on very first load when dialog opens with existing transform
     // NOT on subsequent clicks/repositions
     if (
@@ -59,4 +73,3 @@ export function useTransform({
     }
   }, [viewer, Cesium, tileset, initialTransform, enableLocationEditing]);
 }
-

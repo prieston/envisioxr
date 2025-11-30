@@ -18,9 +18,6 @@ const __dirname = dirname(__filename);
 const repoRoot = resolve(__dirname, "../../../..");
 
 async function main() {
-  console.log("🔍 Running core audits...\n");
-  console.log("=".repeat(80));
-
   const results = await runProfileAudits(kloradProfile, repoRoot, "core");
   const report = printReport(results);
 
@@ -35,4 +32,3 @@ main().catch((error) => {
   console.error("Fatal error:", error);
   process.exit(1);
 });
-

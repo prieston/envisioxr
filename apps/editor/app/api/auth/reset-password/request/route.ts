@@ -14,10 +14,7 @@ export async function POST(request: NextRequest) {
     const { email } = body;
 
     if (!email) {
-      return NextResponse.json(
-        { error: "Email is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     // Find user
@@ -28,18 +25,9 @@ export async function POST(request: NextRequest) {
     // Don't reveal if user exists or not (security best practice)
     // Always return success message
     if (user) {
-      console.log("[Password Reset Request] User found:", {
-        email: user.email,
-        hasPassword: !!user.password,
-        userId: user.id,
-      });
-
       // Check if user has a password (email/password signup)
       // Users who signed up with OAuth (Google/GitHub) don't have passwords
       if (!user.password) {
-        console.log(
-          "[Password Reset Request] User signed up with OAuth - skipping password reset"
-        );
         // User signed up with OAuth, don't send password reset
         // Still return success to prevent email enumeration
         return NextResponse.json({
@@ -52,11 +40,6 @@ export async function POST(request: NextRequest) {
       const resetCode = generateResetCode();
       const expires = getTokenExpiration(1); // 1 hour
 
-      console.log("[Password Reset Request] Generated reset code:", {
-        code: resetCode,
-        expires: expires.toISOString(),
-      });
-
       // Store reset code on user (we'll store it as the token)
       await prisma.user.update({
         where: { id: user.id },
@@ -66,19 +49,12 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      console.log("[Password Reset Request] Stored reset code in database");
-
       // Send reset email with code (don't await - don't block response)
-      console.log("[Password Reset Request] Attempting to send email...");
       sendPasswordResetEmail(email, resetCode, user.name || undefined)
         .then((result) => {
           if (result === null) {
             console.error(
               "[Password Reset Request] Email sending returned null - check Resend API key and configuration"
-            );
-          } else {
-            console.log(
-              `[Password Reset Request] Password reset email sent successfully. Resend ID: ${result.id}`
             );
           }
         })
@@ -93,8 +69,6 @@ export async function POST(request: NextRequest) {
             stack: error instanceof Error ? error.stack : undefined,
           });
         });
-    } else {
-      console.log("[Password Reset Request] User not found for email:", email);
     }
 
     // Always return success to prevent email enumeration
@@ -106,11 +80,9 @@ export async function POST(request: NextRequest) {
     console.error("[Password Reset Request] Error:", error);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Internal Server Error",
+        error: error instanceof Error ? error.message : "Internal Server Error",
       },
       { status: 500 }
     );
   }
 }
-

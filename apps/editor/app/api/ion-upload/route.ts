@@ -94,7 +94,6 @@ export async function POST(request: NextRequest) {
   try {
     // Unique marker to verify we're hitting the latest code
     // eslint-disable-next-line no-console
-    console.log("🚀 ION ROUTE v2.0 - POST /api/ion-upload");
 
     // Check authentication
     const session = (await getServerSession(authOptions)) as Session;
@@ -103,7 +102,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body: CesiumIonUploadRequest = await request.json();
-    const { name, description, type, accessToken, integrationId, options } = body;
+    const { name, description, type, accessToken, integrationId, options } =
+      body;
 
     if (!name || !type) {
       return NextResponse.json(
@@ -274,10 +274,6 @@ export async function POST(request: NextRequest) {
 
     // Log final payload for debugging
     // eslint-disable-next-line no-console
-    console.log(
-      "🔍 Final assetPayload before sending:",
-      JSON.stringify(assetPayload, null, 2)
-    );
 
     // Ion automatically determines the upload location
     // Do NOT add any query parameters (like assetRegion) - Cesium Ion doesn't support them on this endpoint
@@ -310,24 +306,6 @@ export async function POST(request: NextRequest) {
     logger.debug("[ion] CREATE BODY", JSON.stringify(assetPayload, null, 2)); // as above
 
     // eslint-disable-next-line no-console
-    console.log(
-      "📤 Outgoing Ion Request:",
-      JSON.stringify(
-        {
-          url: endpoint,
-          method: requestInit.method,
-          headers: {
-            Authorization: `Bearer ${finalAccessToken.substring(0, 20)}...`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          hasBody: !!requestInit.body,
-          payloadSize: bodyString.length,
-        },
-        null,
-        2
-      )
-    );
 
     // Step 1: Create a new asset on Cesium Ion using user's token
     const createAssetResponse = await fetch(endpoint, requestInit);
@@ -490,7 +468,6 @@ export async function PUT(request: NextRequest) {
     };
 
     // eslint-disable-next-line no-console
-    console.log("📤 Completing upload to Ion:", onComplete.url);
 
     const completeResponse = await fetch(onComplete.url, requestOptions);
 
