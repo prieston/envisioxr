@@ -1,3 +1,5 @@
+"use client";
+
 import { Box, CircularProgress, IconButton, Typography } from "@mui/material";
 import { FitScreen } from "@mui/icons-material";
 import { CesiumMinimalViewer } from "@klorad/engine-cesium";

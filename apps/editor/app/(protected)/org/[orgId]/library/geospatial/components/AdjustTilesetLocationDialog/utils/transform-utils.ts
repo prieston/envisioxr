@@ -1,3 +1,5 @@
+"use client";
+
 import { arrayToMatrix4 } from "@klorad/engine-cesium";
 
 export interface Location {

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback } from "react";
 import { matrix4ToArray } from "@klorad/engine-cesium";
 import type { Location } from "../utils/transform-utils";

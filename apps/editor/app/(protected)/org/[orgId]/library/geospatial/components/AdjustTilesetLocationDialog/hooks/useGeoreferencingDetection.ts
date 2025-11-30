@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useRef, useCallback } from "react";
 import { extractTilesetGeoreferencing } from "@klorad/engine-cesium";
 import { extractLocationFromTransform, extractHPRFromTransform } from "../utils/transform-utils";
