@@ -44,6 +44,14 @@ interface CesiumIonUploadRequest {
     makeDownloadable?: boolean;
     dracoCompression?: boolean; // For point clouds
     gaussianSplats?: boolean; // For point clouds
+    // 3D Reconstruction options
+    meshQuality?: string; // "Low" | "Medium" | "High"
+    useGpsInfo?: boolean;
+    outputs?: {
+      cesium3DTiles?: boolean;
+      las?: boolean;
+      gaussianSplats?: boolean;
+    };
   };
 }
 
@@ -104,6 +112,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Map source type to Cesium Ion's expected format
+    const mapSourceTypeToIonType = (sourceType: string): string => {
+      if (sourceType === "PHOTOS_3D_RECONSTRUCTION") {
+        return "3DTILES";
+      }
+      if (sourceType === "3DTILES_ARCHIVE") {
+        return "3DTILES";
+      }
+      if (sourceType === "3DTILES_BIM") {
+        return "3DTILES";
+      }
+      if (sourceType === "3DTILES_PHOTOGRAMMETRY") {
+        return "3DTILES";
+      }
+      if (sourceType === "POINTCLOUD") {
+        return "3DTILES";
+      }
+      // For other types, use as-is (GLTF, IMAGERY, TERRAIN, etc.)
+      return sourceType;
+    };
+
+    const ionType = mapSourceTypeToIonType(type);
+
     // Get access token from either direct input or integration
     let finalAccessToken: string;
     if (integrationId) {
@@ -160,7 +191,7 @@ export async function POST(request: NextRequest) {
     const assetPayload: Record<string, any> = {
       name,
       description: description || "", // Cesium Ion requires description field, even if empty
-      type,
+      type: ionType, // Use mapped Ion type instead of source type
     };
 
     // Build options object only with recognized Ion API fields
@@ -216,6 +247,23 @@ export async function POST(request: NextRequest) {
 
       if (typeof options.gaussianSplats === "boolean") {
         cleanOptions.gaussianSplats = options.gaussianSplats;
+      }
+
+      // 3D Reconstruction options
+      if (options.meshQuality) {
+        cleanOptions.meshQuality = options.meshQuality;
+      }
+
+      if (typeof options.useGpsInfo === "boolean") {
+        cleanOptions.useGpsInfo = options.useGpsInfo;
+      }
+
+      if (options.outputs) {
+        cleanOptions.outputs = {
+          cesium3DTiles: options.outputs.cesium3DTiles ?? true,
+          las: options.outputs.las ?? false,
+          gaussianSplats: options.outputs.gaussianSplats ?? false,
+        };
       }
     }
 

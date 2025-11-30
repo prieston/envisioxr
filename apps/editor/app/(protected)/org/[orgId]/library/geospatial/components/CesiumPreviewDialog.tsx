@@ -14,6 +14,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { CloseIcon, CameraAltIcon } from "@klorad/ui";
+import { FitScreen } from "@mui/icons-material";
 import {
   modalPaperStyles,
   modalTitleStyles,
@@ -21,7 +22,12 @@ import {
   modalCloseButtonStyles,
 } from "@klorad/ui";
 import { captureCesiumScreenshot } from "@/app/utils/screenshotCapture";
-import { CesiumMinimalViewer } from "@klorad/engine-cesium";
+import {
+  CesiumMinimalViewer,
+  extractTransformFromMetadata,
+  positionCameraForTileset,
+} from "@klorad/engine-cesium";
+import { arrayToMatrix4 } from "@klorad/engine-cesium";
 
 interface CesiumPreviewDialogProps {
   open: boolean;
@@ -30,6 +36,7 @@ interface CesiumPreviewDialogProps {
   cesiumApiKey: string;
   assetName: string;
   assetType?: string; // e.g., "IMAGERY", "3DTILES", etc.
+  metadata?: Record<string, unknown> | null; // Model metadata (will extract transform from it)
   onCapture: (screenshot: string) => void;
 }
 
@@ -40,18 +47,103 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
   cesiumApiKey,
   assetName,
   assetType,
+  metadata,
   onCapture,
 }) => {
+  // Debug: Log metadata when component receives it
+  useEffect(() => {
+    if (open && metadata) {
+      console.log("[CesiumPreviewDialog] Received metadata:", {
+        hasMetadata: !!metadata,
+        metadataKeys: Object.keys(metadata),
+        hasTransform: "transform" in metadata,
+        transform: metadata.transform,
+        fullMetadata: JSON.parse(JSON.stringify(metadata)), // Deep clone to see full structure
+        metadataStringified: JSON.stringify(metadata, null, 2), // Stringified to see everything
+      });
+    }
+  }, [open, metadata]);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<any>(null);
+  const tilesetRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [capturing, setCapturing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locationNotSet, setLocationNotSet] = useState(false);
+  const [tilesetReady, setTilesetReady] = useState(false);
 
   const handleViewerReady = (viewer: any) => {
     viewerRef.current = viewer;
     setLoading(false);
+  };
+
+  const handleTilesetReady = (tileset: any) => {
+    tilesetRef.current = tileset;
+    setTilesetReady(true);
+  };
+
+  const handleResetZoom = async () => {
+    if (!viewerRef.current || !tilesetRef.current) return;
+
+    try {
+      // Dynamically import Cesium
+      const Cesium = await import("cesium");
+
+      // Extract transform from metadata (same logic as initial positioning)
+      const transformFromMetadata = extractTransformFromMetadata(metadata);
+      const transformToApply = transformFromMetadata;
+
+      // Use the same logic as CesiumMinimalViewer for initial positioning
+      if (transformToApply) {
+        // If there's a transform, extract coordinates and use positionCameraForTileset
+        let transformWithCoords = transformToApply;
+        if (
+          !transformToApply.longitude ||
+          !transformToApply.latitude
+        ) {
+          // Extract position from matrix
+          const matrix = arrayToMatrix4(Cesium, transformToApply.matrix);
+          const translation = new Cesium.Cartesian3(
+            matrix[12],
+            matrix[13],
+            matrix[14]
+          );
+          const cartographic = Cesium.Cartographic.fromCartesian(translation);
+          transformWithCoords = {
+            ...transformToApply,
+            longitude: Cesium.Math.toDegrees(cartographic.longitude),
+            latitude: Cesium.Math.toDegrees(cartographic.latitude),
+            height: cartographic.height,
+          };
+        }
+        positionCameraForTileset(
+          viewerRef.current,
+          Cesium,
+          transformWithCoords,
+          {
+            offset: 200,
+            duration: 1.5,
+            pitch: -45,
+          }
+        );
+      } else {
+        // No transform - use zoomTo (same as initial positioning)
+        viewerRef.current.zoomTo(
+          tilesetRef.current,
+          new Cesium.HeadingPitchRange(0, -0.5, 0)
+        );
+      }
+    } catch (err) {
+      console.warn("Error resetting zoom:", err);
+      // Fallback: try zoomTo without options
+      try {
+        if (viewerRef.current && tilesetRef.current) {
+          viewerRef.current.zoomTo(tilesetRef.current);
+        }
+      } catch (fallbackErr) {
+        console.error("Error in fallback zoom:", fallbackErr);
+      }
+    }
   };
 
   const handleError = (err: Error) => {
@@ -69,6 +161,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
       setLoading(true);
       setError(null);
       setLocationNotSet(false);
+      setTilesetReady(false);
       if (viewerRef.current) {
         try {
           viewerRef.current.destroy();
@@ -77,6 +170,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
         }
         viewerRef.current = null;
       }
+      tilesetRef.current = null;
       // Remove any existing Cesium viewers and elements from container
       if (containerRef.current) {
         const cesiumViewers =
@@ -302,10 +396,37 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
               cesiumAssetId={cesiumAssetId}
               cesiumApiKey={cesiumApiKey}
               assetType={assetType}
+              metadata={metadata}
               onViewerReady={handleViewerReady}
+              onTilesetReady={handleTilesetReady}
               onError={handleError}
               onLocationNotSet={handleLocationNotSet}
+              enableLocationEditing={false}
             />
+          )}
+
+          {/* Reset Zoom Button */}
+          {!loading && !error && tilesetReady && (
+            <IconButton
+              onClick={handleResetZoom}
+              sx={() => ({
+                position: "absolute",
+                top: 16,
+                right: 16,
+                zIndex: 20,
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                color: "white",
+                "&:hover": {
+                  backgroundColor: "rgba(0, 0, 0, 0.9)",
+                },
+                width: 40,
+                height: 40,
+              })}
+              size="small"
+              title="Reset Zoom"
+            >
+              <FitScreen sx={{ fontSize: "1.25rem" }} />
+            </IconButton>
           )}
 
           {locationNotSet && (

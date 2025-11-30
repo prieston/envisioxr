@@ -13,6 +13,7 @@ import {
   CircularProgress,
   TextField,
   Grid,
+  Alert,
 } from "@mui/material";
 import { CloseIcon, LocationSearch } from "@klorad/ui";
 import {
@@ -74,6 +75,7 @@ const AdjustTilesetLocationDialog: React.FC<
   } | null>(null);
   const [clickModeEnabled, setClickModeEnabled] = useState(false); // Separate state for click-to-position mode
   const [showPositionConfirm, setShowPositionConfirm] = useState(false); // Only for showing the confirmation dialog
+  const [isGeoreferencedByDefault, setIsGeoreferencedByDefault] = useState(false); // Track if model is georeferenced by default
 
   // Manual input states
   const [manualLongitude, setManualLongitude] = useState<string>("");
@@ -101,6 +103,74 @@ const AdjustTilesetLocationDialog: React.FC<
       try {
         const Cesium = await import("cesium");
         cesiumRef.current = Cesium;
+
+        // Check if model is georeferenced by default
+        // A model is georeferenced by default if:
+        // 1. No initialTransform (not set through our system)
+        // 2. AND (modelMatrix has translation OR bounding sphere center is in world coordinates)
+        if (!initialTransform) {
+          let isGeoreferenced = false;
+          let locationToDisplay: { longitude: number; latitude: number; height: number } | null = null;
+
+          // Check modelMatrix translation
+          if (tileset.modelMatrix) {
+            const translation = new Cesium.Cartesian3(
+              tileset.modelMatrix[12],
+              tileset.modelMatrix[13],
+              tileset.modelMatrix[14]
+            );
+            const magnitude = Cesium.Cartesian3.magnitude(translation);
+
+            if (magnitude > 1e-6) {
+              isGeoreferenced = true;
+              try {
+                const cartographic = Cesium.Cartographic.fromCartesian(translation);
+                locationToDisplay = {
+                  longitude: Cesium.Math.toDegrees(cartographic.longitude),
+                  latitude: Cesium.Math.toDegrees(cartographic.latitude),
+                  height: cartographic.height,
+                };
+              } catch (err) {
+                console.warn("Could not extract location from modelMatrix translation:", err);
+              }
+            }
+          }
+
+          // Check bounding sphere center (georeferenced models have world coordinates in bounding sphere)
+          if (!isGeoreferenced && tileset.boundingSphere) {
+            const center = tileset.boundingSphere.center;
+            const centerMagnitude = Cesium.Cartesian3.magnitude(center);
+
+            // If bounding sphere center is far from origin (world coordinates), model is georeferenced
+            // Typical georeferenced models have centers > 6,000,000 meters (Earth radius)
+            if (centerMagnitude > 1000000) {
+              isGeoreferenced = true;
+              try {
+                const cartographic = Cesium.Cartographic.fromCartesian(center);
+                locationToDisplay = {
+                  longitude: Cesium.Math.toDegrees(cartographic.longitude),
+                  latitude: Cesium.Math.toDegrees(cartographic.latitude),
+                  height: cartographic.height,
+                };
+              } catch (err) {
+                console.warn("Could not extract location from bounding sphere center:", err);
+              }
+            }
+          }
+
+          if (isGeoreferenced) {
+            setIsGeoreferencedByDefault(true);
+
+            // Display location if available
+            if (locationToDisplay) {
+              setCurrentLocation(locationToDisplay);
+              setManualLongitude(locationToDisplay.longitude.toFixed(6));
+              setManualLatitude(locationToDisplay.latitude.toFixed(6));
+              setManualHeight(locationToDisplay.height.toFixed(2));
+            }
+            return; // Don't allow editing
+          }
+        }
 
         // Extract location from initial transform if it exists
         if (initialTransform && initialTransform.length === 16) {
@@ -512,20 +582,30 @@ const AdjustTilesetLocationDialog: React.FC<
             pr: 2,
           }}
         >
-          <Typography
-            sx={(theme) => ({
-              fontSize: "0.813rem",
-              color: theme.palette.text.secondary,
-            })}
-          >
-            Click on the map to position the tileset. You can search for a
-            location below.
-          </Typography>
+          {isGeoreferencedByDefault ? (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                This model is already georeferenced by default from Cesium Ion.
+                Location adjustment is not available for georeferenced models.
+              </Typography>
+            </Alert>
+          ) : (
+            <Typography
+              sx={(theme) => ({
+                fontSize: "0.813rem",
+                color: theme.palette.text.secondary,
+              })}
+            >
+              Click on the map to position the tileset. You can search for a
+              location below.
+            </Typography>
+          )}
 
           {/* Click Position Button */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button
               variant={clickModeEnabled ? "contained" : "outlined"}
+              disabled={isGeoreferencedByDefault}
               onClick={async () => {
                 if (clickModeEnabled) {
                   // Cancel click mode - restore previous confirmed transform
@@ -602,12 +682,14 @@ const AdjustTilesetLocationDialog: React.FC<
           </Box>
 
           {/* Location Search */}
-          <Box>
-            <LocationSearch
-              onAssetSelect={handleLocationSelect}
-              boxPadding={1}
-            />
-          </Box>
+          {!isGeoreferencedByDefault && (
+            <Box>
+              <LocationSearch
+                onAssetSelect={handleLocationSelect}
+                boxPadding={1}
+              />
+            </Box>
+          )}
 
           {/* Manual Position and Rotation Controls */}
           <Box
@@ -649,6 +731,7 @@ const AdjustTilesetLocationDialog: React.FC<
                   onChange={(e) => setManualLongitude(e.target.value)}
                   size="small"
                   inputProps={{ step: "0.000001" }}
+                  disabled={isGeoreferencedByDefault}
                   sx={{
                     "& .MuiInputBase-input": {
                       fontSize: "0.813rem",
@@ -668,6 +751,7 @@ const AdjustTilesetLocationDialog: React.FC<
                   onChange={(e) => setManualLatitude(e.target.value)}
                   size="small"
                   inputProps={{ step: "0.000001" }}
+                  disabled={isGeoreferencedByDefault}
                   sx={{
                     "& .MuiInputBase-input": {
                       fontSize: "0.813rem",
@@ -687,6 +771,7 @@ const AdjustTilesetLocationDialog: React.FC<
                   onChange={(e) => setManualHeight(e.target.value)}
                   size="small"
                   inputProps={{ step: "0.01" }}
+                  disabled={isGeoreferencedByDefault}
                   sx={{
                     "& .MuiInputBase-input": {
                       fontSize: "0.813rem",
@@ -720,6 +805,7 @@ const AdjustTilesetLocationDialog: React.FC<
                   onChange={(e) => setManualHeading(e.target.value)}
                   size="small"
                   inputProps={{ step: "1" }}
+                  disabled={isGeoreferencedByDefault}
                   sx={{
                     "& .MuiInputBase-input": {
                       fontSize: "0.813rem",
@@ -739,6 +825,7 @@ const AdjustTilesetLocationDialog: React.FC<
                   onChange={(e) => setManualPitch(e.target.value)}
                   size="small"
                   inputProps={{ step: "1" }}
+                  disabled={isGeoreferencedByDefault}
                   sx={{
                     "& .MuiInputBase-input": {
                       fontSize: "0.813rem",
@@ -758,6 +845,7 @@ const AdjustTilesetLocationDialog: React.FC<
                   onChange={(e) => setManualRoll(e.target.value)}
                   size="small"
                   inputProps={{ step: "1" }}
+                  disabled={isGeoreferencedByDefault}
                   sx={{
                     "& .MuiInputBase-input": {
                       fontSize: "0.813rem",
@@ -1045,7 +1133,7 @@ const AdjustTilesetLocationDialog: React.FC<
         </Button>
         <Button
           onClick={handleSave}
-          disabled={saving || loading || !currentTransform}
+          disabled={saving || loading || !currentTransform || isGeoreferencedByDefault}
           variant="contained"
           sx={(theme) => ({
             textTransform: "none",

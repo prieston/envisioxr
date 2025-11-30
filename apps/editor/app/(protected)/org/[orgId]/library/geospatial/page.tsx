@@ -859,6 +859,7 @@ const LibraryGeospatialPage = () => {
               selectedAsset.name || selectedAsset.originalFilename || "Asset"
             }
             assetType={selectedAsset.fileType}
+            metadata={selectedAsset.metadata}
             onCapture={handleCaptureScreenshot}
           />
         )}

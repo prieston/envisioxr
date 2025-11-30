@@ -67,6 +67,15 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
       makeDownloadable?: boolean;
       tilesetJson?: string;
       gaussianSplats?: boolean;
+      // 3D Reconstruction options
+      sourceType?: string;
+      meshQuality?: string;
+      useGpsInfo?: boolean;
+      outputs?: {
+        cesium3DTiles?: boolean;
+        las?: boolean;
+        gaussianSplats?: boolean;
+      };
     };
   }): Promise<{ assetId: string }> => {
     setIonUploading(true);
@@ -97,6 +106,11 @@ export const UploadToIonDrawer: React.FC<UploadToIonDrawerProps> = ({
       if (sourceType === "3DTILES_ARCHIVE") {
         ionOptions.sourceType = "3DTILES";
         ionOptions.tilesetJson = options?.tilesetJson || "tileset.json";
+      } else if (sourceType === "PHOTOS_3D_RECONSTRUCTION") {
+        // Pass through all 3D reconstruction options
+        if (options) {
+          Object.assign(ionOptions, options);
+        }
       } else if (uploadSourceType) {
         ionOptions.sourceType = uploadSourceType;
       }

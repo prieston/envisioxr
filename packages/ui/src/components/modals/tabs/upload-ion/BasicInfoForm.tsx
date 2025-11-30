@@ -331,6 +331,9 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           <MenuItem value="POINTCLOUD">Point Cloud</MenuItem>
           <MenuItem value="IMAGERY">Imagery</MenuItem>
           <MenuItem value="TERRAIN">Terrain</MenuItem>
+          <MenuItem value="PHOTOS_3D_RECONSTRUCTION">
+            Photos (for 3D reconstruction)
+          </MenuItem>
           <MenuItem value="GEOJSON">GeoJSON</MenuItem>
           <MenuItem value="KML">KML/KMZ</MenuItem>
           <MenuItem value="CZML">CZML</MenuItem>

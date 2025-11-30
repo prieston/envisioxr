@@ -137,7 +137,34 @@ export function extractTransformFromTileset(
       tileset.modelMatrix[14]
     );
 
-    const cartographic = Cesium.Cartographic.fromCartesian(translation);
+    // Check if translation is valid (not at origin)
+    const magnitude = Cesium.Cartesian3.magnitude(translation);
+    if (magnitude < 1e-10) {
+      // Translation is at origin, return matrix only without coordinates
+      return {
+        matrix,
+      };
+    }
+
+    // Try to convert to cartographic coordinates
+    // This can fail if the point is not on the ellipsoid or is invalid
+    let cartographic;
+    try {
+      cartographic = Cesium.Cartographic.fromCartesian(translation);
+    } catch (cartErr) {
+      // If conversion fails, return matrix only without coordinates
+      console.warn('[TilesetOps] Could not convert translation to cartographic, returning matrix only:', cartErr);
+      return {
+        matrix,
+      };
+    }
+
+    // Check if cartographic is valid
+    if (!cartographic || cartographic.longitude === undefined) {
+      return {
+        matrix,
+      };
+    }
 
     return {
       matrix,

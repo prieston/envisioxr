@@ -1,0 +1,112 @@
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import GitHubProvider from "next-auth/providers/github";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { prisma } from "./prisma";
+import { NextAuthOptions } from "next-auth";
+import { verifyPassword } from "./auth/password";
+
+export const authOptions: NextAuthOptions = {
+  pages: {
+    signIn: "/auth/signin",
+  },
+  session: {
+    strategy: "jwt" as const,
+  },
+  adapter: PrismaAdapter(prisma),
+  secret: process.env.SECRET,
+
+  providers: [
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
+
+    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+      ? [
+          GitHubProvider({
+            clientId: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+          }),
+        ]
+      : []),
+
+    CredentialsProvider({
+      name: "Email and Password",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        // Find user by email
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+
+        if (!user || !user.password) {
+          return null;
+        }
+
+        // Verify password
+        const isValid = await verifyPassword(
+          credentials.password,
+          user.password
+        );
+
+        if (!isValid) {
+          return null;
+        }
+
+        // Check if email is verified
+        if (!user.emailVerified) {
+          throw new Error("Email not verified. Please check your email.");
+        }
+
+        // Return user object (will be encoded in JWT)
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        };
+      },
+    }),
+  ],
+
+  callbacks: {
+    async session({ session, token }) {
+      if (session.user) {
+        // Use token.id (database user ID) instead of token.sub (OAuth provider ID)
+        (session.user as { id?: string }).id = (token.id as string) || (token.sub as string);
+      }
+      return session;
+    },
+
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+
+      return baseUrl;
+    },
+  },
+};
+

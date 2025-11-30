@@ -183,6 +183,11 @@ export const useCesiumIon = () => {
       if (sourceType === "3DTILES_ARCHIVE") {
         ionOptions.sourceType = "3DTILES";
         ionOptions.tilesetJson = options?.tilesetJson || "tileset.json";
+      } else if (sourceType === "PHOTOS_3D_RECONSTRUCTION") {
+        // Pass through all 3D reconstruction options
+        if (options) {
+          Object.assign(ionOptions, options);
+        }
       } else if (uploadSourceType) {
         ionOptions.sourceType = uploadSourceType;
       }
