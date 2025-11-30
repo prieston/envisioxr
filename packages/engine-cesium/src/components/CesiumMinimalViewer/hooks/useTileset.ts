@@ -58,17 +58,6 @@ export function useTileset({
   const isLoadingRef = useRef(false);
 
   useEffect(() => {
-    console.log("[useTileset] Effect triggered", {
-      hasViewer: !!viewer,
-      hasCesium: !!Cesium,
-      cesiumAssetId,
-      enableLocationEditing,
-      hasTilesetRef: !!tilesetRef.current,
-      isLoading: isLoadingRef.current,
-      initialTransform: initialTransform ? "exists" : "none",
-      metadata: metadata ? "exists" : "none",
-    });
-
     if (!viewer || !Cesium || !cesiumAssetId) {
       return;
     }
@@ -76,9 +65,6 @@ export function useTileset({
     // If we're already loading a tileset, don't start another load
     // This prevents duplicate tilesets when React StrictMode runs effects twice
     if (isLoadingRef.current) {
-      console.log(
-        "[useTileset] Already loading tileset, skipping duplicate load"
-      );
       return;
     }
 
@@ -86,13 +72,7 @@ export function useTileset({
     // This prevents duplicate tilesets from being loaded (important for React StrictMode)
     if (tilesetRef.current) {
       const isInScene = viewer.scene.primitives.contains(tilesetRef.current);
-      console.log("[useTileset] Checking existing tileset ref", {
-        hasTilesetRef: true,
-        isInScene,
-        enableLocationEditing,
-      });
       if (isInScene) {
-        console.log("[useTileset] Tileset already in scene, skipping reload");
         return;
       }
     }
@@ -101,12 +81,6 @@ export function useTileset({
     // This handles the case where tilesetRef might not be set yet
     const existingTileset = findExistingTileset(viewer, cesiumAssetId);
     if (existingTileset) {
-      console.log(
-        "[useTileset] Found existing tileset in primitives by _kloradAssetId, reusing it",
-        {
-          assetId: cesiumAssetId,
-        }
-      );
       tilesetRef.current = existingTileset;
 
       // Extract transform and georeferencing using utility function
@@ -131,7 +105,6 @@ export function useTileset({
 
       return;
     }
-    console.log("[useTileset] No existing tileset found, will load new one");
 
     // Set loading flag to prevent concurrent loads
     isLoadingRef.current = true;
@@ -140,11 +113,6 @@ export function useTileset({
     let cleanupErrorHandlers: (() => void) | null = null;
 
     const loadTileset = async () => {
-      console.log("[useTileset] Starting to load tileset", {
-        cesiumAssetId,
-        enableLocationEditing,
-        hasInitialTransform: !!initialTransform,
-      });
       try {
         gaussianSplatErrorShown.current = false;
 
@@ -181,21 +149,8 @@ export function useTileset({
         // This prevents duplicates when React StrictMode runs effects twice
         const existingTileset = findExistingTileset(viewer, cesiumAssetId);
 
-        console.log(
-          "[useTileset] Tileset loaded, checking if already in scene",
-          {
-            tilesetId: tileset?.assetId,
-            hasExistingTileset: !!existingTileset,
-            isNewTilesetInScene: viewer.scene.primitives.contains(tileset),
-            primitivesLength: viewer.scene.primitives.length,
-          }
-        );
-
         // If a tileset with this assetId already exists, reuse it instead of adding the new one
         if (existingTileset) {
-          console.log(
-            "[useTileset] Found existing tileset in scene, reusing it and destroying new one"
-          );
           tilesetRef.current = existingTileset;
 
           // Destroy the new tileset we just created to prevent memory leaks
@@ -232,7 +187,6 @@ export function useTileset({
         }
 
         // No existing tileset found, add the new one
-        console.log("[useTileset] Adding tileset to scene");
         tilesetRef.current = tileset;
         viewer.scene.primitives.add(tileset);
 
@@ -350,14 +304,6 @@ export function useTileset({
 
     // Cleanup
     return () => {
-      console.log("[useTileset] Cleanup function called", {
-        cesiumAssetId,
-        enableLocationEditing,
-        hasTilesetRef: !!tilesetRef.current,
-        hasViewer: !!viewer,
-        isLoading: isLoadingRef.current,
-      });
-
       // Clear loading flag on cleanup
       isLoadingRef.current = false;
 
@@ -371,22 +317,10 @@ export function useTileset({
 
       if (tilesetRef.current && viewer?.scene) {
         try {
-          const wasInScene = viewer.scene.primitives.contains(
-            tilesetRef.current
-          );
-          console.log("[useTileset] Removing tileset from scene", {
-            wasInScene,
-            enableLocationEditing,
-          });
-
           // In location editing mode, don't remove tileset on cleanup
           // It should persist across re-renders
           if (!enableLocationEditing) {
             viewer.scene.primitives.remove(tilesetRef.current);
-          } else {
-            console.log(
-              "[useTileset] Location editing mode - keeping tileset in scene"
-            );
           }
         } catch (err) {
           console.error("[useTileset] Error during cleanup:", err);

@@ -14,6 +14,9 @@ export function printReport(results: AuditResult[]): ReporterResult {
   let hasErrors = false;
 
   for (const result of results) {
+    const icon = result.ok ? "✅" : "❌";
+    console.log(`\n${icon} ${result.title}`);
+
     if (!result.ok) {
       hasErrors = true;
     }

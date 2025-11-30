@@ -18,6 +18,9 @@ const __dirname = dirname(__filename);
 const repoRoot = resolve(__dirname, "../../../..");
 
 async function main() {
+  console.log("🔍 Running light audits (CI-friendly)...\n");
+  console.log("=".repeat(80));
+
   const results = await runProfileAudits(kloradProfile, repoRoot, "light");
   const report = printReport(results);
 
