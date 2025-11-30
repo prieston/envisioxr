@@ -13,8 +13,7 @@
     "build": "next build",
     "analyze": "cross-env ANALYZE=true next build",
     "size": "size-limit --why || (echo 'Bundle over budget' && exit 1)",
-    "start": "next start",
-    "vercel:build:admin": "cd ../.. && pnpm --filter @klorad/prisma generate && pnpm --filter @klorad/prisma prisma migrate deploy && pnpm --filter './packages/*' --workspace-concurrency=1 run build && cd apps/admin && pnpm build"
+    "start": "next start"
   },
   "dependencies": {
     "@klorad/prisma": "workspace:*",
