@@ -1,7 +1,7 @@
 {
   "buildCommand": "cd ../.. && pnpm vercel:build:admin",
   "devCommand": "pnpm dev:admin",
-  "installCommand": "cd ../.. && pnpm install",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile --prod=false",
   "framework": "nextjs",
   "regions": ["iad1"]
 }
