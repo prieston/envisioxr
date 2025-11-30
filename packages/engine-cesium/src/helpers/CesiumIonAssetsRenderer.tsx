@@ -15,10 +15,23 @@ interface TilesetWrapper {
   dispose: () => void;
 }
 
-const CesiumIonAssetsRenderer: React.FC = () => {
+interface CesiumIonAssetsRendererProps {
+  /**
+   * Whether to automatically fly to tilesets when they're loaded.
+   * Set to false for builder mode (user controls camera manually).
+   * Set to true for minimal viewer/preview mode (auto-fly for better UX).
+   * @default false
+   */
+  autoFlyToTileset?: boolean;
+}
+
+const CesiumIonAssetsRenderer: React.FC<CesiumIonAssetsRendererProps> = ({
+  autoFlyToTileset = false,
+}) => {
   const tilesetRefs = useRef<Map<string, TilesetWrapper>>(new Map());
   const cesiumIonAssets = useSceneStore((state) => state.cesiumIonAssets);
   const { cesiumViewer, cesiumInstance } = useSceneStore();
+  const removeCesiumIonAsset = useSceneStore((state) => state.removeCesiumIonAsset);
 
   // Create a stable key that includes transform data to trigger re-renders
   const assetsKey = React.useMemo(() => {
@@ -46,26 +59,6 @@ const CesiumIonAssetsRenderer: React.FC = () => {
       return;
     }
 
-    console.log("[CesiumIonAssetsRenderer] Effect triggered, cesiumIonAssets:", {
-      count: cesiumIonAssets.length,
-      assets: cesiumIonAssets.map((asset) => ({
-        id: asset.id,
-        name: asset.name,
-        assetId: asset.assetId,
-        enabled: asset.enabled,
-        hasTransform: !!asset.transform,
-        transform: asset.transform
-          ? {
-              hasMatrix: !!asset.transform.matrix,
-              matrixLength: asset.transform.matrix?.length,
-              longitude: asset.transform.longitude,
-              latitude: asset.transform.latitude,
-              height: asset.transform.height,
-            }
-          : null,
-      })),
-    });
-
     tilesetRefs.current.forEach((wrapper) => {
       wrapper.dispose();
     });
@@ -80,25 +73,6 @@ const CesiumIonAssetsRenderer: React.FC = () => {
 
   const initializeAsset = async (asset: any) => {
     try {
-      console.log("[CesiumIonAssetsRenderer] Initializing asset:", {
-        assetId: asset.assetId,
-        name: asset.name,
-        hasTransform: !!asset.transform,
-        transform: asset.transform
-          ? {
-              hasMatrix: !!asset.transform.matrix,
-              matrixLength: asset.transform.matrix?.length,
-              longitude: asset.transform.longitude,
-              latitude: asset.transform.latitude,
-              height: asset.transform.height,
-              matrixPreview: asset.transform.matrix
-                ?.slice(12, 15)
-                .map((v: number) => v.toFixed(2))
-                .join(", "),
-            }
-          : null,
-      });
-
       const originalToken = cesiumInstance.Ion.defaultAccessToken;
       cesiumInstance.Ion.defaultAccessToken = asset.apiKey;
 
@@ -120,19 +94,6 @@ const CesiumIonAssetsRenderer: React.FC = () => {
       }
 
       tileset.assetId = parseInt(asset.assetId);
-
-      console.log("[CesiumIonAssetsRenderer] Tileset loaded, modelMatrix:", {
-        hasModelMatrix: !!tileset.modelMatrix,
-        modelMatrixPreview: tileset.modelMatrix
-          ? [
-              tileset.modelMatrix[12],
-              tileset.modelMatrix[13],
-              tileset.modelMatrix[14],
-            ]
-              .map((v: number) => v.toFixed(2))
-              .join(", ")
-          : null,
-      });
 
       cesiumViewer.scene.primitives.add(tileset);
       const wrapper: TilesetWrapper = {
@@ -159,10 +120,6 @@ const CesiumIonAssetsRenderer: React.FC = () => {
       // (Cesium sometimes resets it after ready)
       waitForTilesetReady(tileset)
         .then(() => {
-          console.log(
-            "[CesiumIonAssetsRenderer] Tileset ready, re-applying transform"
-          );
-
           // Re-apply transform after ready (same logic as CesiumMinimalViewer)
           if (asset.transform) {
             reapplyTransformAfterReady(
@@ -171,38 +128,38 @@ const CesiumIonAssetsRenderer: React.FC = () => {
               asset.transform,
               {
                 viewer: cesiumViewer,
-                log: true,
+                log: false,
               }
             );
 
-            console.log(
-              "[CesiumIonAssetsRenderer] Transform re-applied, positioning camera"
-            );
-
-            // Use positionCameraForTileset instead of flyTo(tileset)
-            // This respects the transform position, not the original tileset location
-            positionCameraForTileset(
-              cesiumViewer,
-              cesiumInstance,
-              asset.transform,
-              {
-                offset: 1000,
-                duration: 2.0,
-                pitch: -45,
-              }
-            );
+            // Only auto-fly to tileset if enabled (for minimal viewer/preview mode)
+            // In builder mode, user controls camera manually
+            if (autoFlyToTileset) {
+              // Use positionCameraForTileset instead of flyTo(tileset)
+              // This respects the transform position, not the original tileset location
+              positionCameraForTileset(
+                cesiumViewer,
+                cesiumInstance,
+                asset.transform,
+                {
+                  offset: 1000,
+                  duration: 2.0,
+                  pitch: -45,
+                }
+              );
+            }
           } else {
-            console.log(
-              "[CesiumIonAssetsRenderer] No transform, using default flyTo"
-            );
-            // Fallback to default flyTo if no transform
-            try {
-              cesiumViewer.flyTo(tileset, {
-                duration: 2.0,
-                offset: new cesiumInstance.HeadingPitchRange(0, -0.5, 1000),
-              });
-            } catch (_error) {
-              // Ignore flyTo errors
+            // Only auto-fly if enabled (for minimal viewer/preview mode)
+            if (autoFlyToTileset) {
+              // Fallback to default flyTo if no transform
+              try {
+                cesiumViewer.flyTo(tileset, {
+                  duration: 2.0,
+                  offset: new cesiumInstance.HeadingPitchRange(0, -0.5, 1000),
+                });
+              } catch (_error) {
+                // Ignore flyTo errors
+              }
             }
           }
         })
@@ -215,12 +172,29 @@ const CesiumIonAssetsRenderer: React.FC = () => {
 
       cesiumInstance.Ion.defaultAccessToken = originalToken;
     } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const is404Error =
+        errorMessage.includes("404") ||
+        errorMessage.includes("Status Code: 404") ||
+        errorMessage.includes("Not Found") ||
+        (error?.statusCode === 404);
+
       console.error("[CesiumIonAssetsRenderer] Error initializing asset:", {
         assetId: asset.assetId,
         name: asset.name,
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage,
         stack: error instanceof Error ? error.stack : undefined,
+        is404Error,
       });
+
+      // If asset doesn't exist (404), remove it from the scene store
+      // This prevents old/invalid assets from cluttering the scene
+      if (is404Error) {
+        console.warn(
+          `[CesiumIonAssetsRenderer] Asset ${asset.assetId} (${asset.name}) not found (404). Removing from scene.`
+        );
+        removeCesiumIonAsset(asset.id);
+      }
     }
   };
 
