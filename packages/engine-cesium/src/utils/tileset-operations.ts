@@ -75,30 +75,12 @@ export function applyTransformToTileset(
   }
 ): boolean {
   if (!transform?.matrix || transform.matrix.length !== 16) {
-    if (options?.log) {
-      console.log('[TilesetOps] No valid transform to apply');
-    }
     return false;
   }
 
   try {
     const matrix = arrayToMatrix4(Cesium, transform.matrix);
 
-    // Verify round-trip if logging is enabled
-    if (options?.log) {
-      const verify = Cesium.Matrix4.toArray(matrix, new Array(16));
-      const match = verify.every(
-        (v: number, i: number) => Math.abs(v - transform.matrix[i]) < 0.0000001
-      );
-
-      console.log('[TilesetOps] Applying transform:', {
-        longitude: transform.longitude,
-        latitude: transform.latitude,
-        height: transform.height,
-        matrixString: transform.matrix.join(',').substring(0, 50) + '...',
-        verified: match,
-      });
-    }
 
     tileset.modelMatrix = matrix;
 
@@ -282,9 +264,6 @@ export async function loadTilesetWithTransform(
     const matrix = arrayToMatrix4(Cesium, transformMatrix);
     tileset.modelMatrix = matrix;
 
-    if (options?.log) {
-      console.log('[TilesetOps] Applied initial transform before adding to scene');
-    }
   }
 
   return tileset;
@@ -330,9 +309,6 @@ export function reapplyTransformAfterReady(
       }
     }
 
-    if (options?.log) {
-      console.log('[TilesetOps] Re-applied transform after tileset ready');
-    }
   } catch (err) {
     console.error('[TilesetOps] Failed to re-apply transform:', err);
   }

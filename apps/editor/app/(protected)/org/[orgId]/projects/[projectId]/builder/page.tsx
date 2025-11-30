@@ -191,6 +191,36 @@ const sanitizeSceneData = (
       }
     : null;
 
+  // Deduplicate cesiumIonAssets by assetId (Cesium Ion asset ID, not name)
+  // Having the same Cesium Ion asset ID multiple times causes duplicate tilesets to load
+  // Keep the entry with transform if duplicates exist (more complete data)
+  const cleanCesiumIonAssets = Array.isArray(cesiumIonAssets)
+    ? (() => {
+        const seen = new Map<string, any>();
+        // Process in reverse to keep the last occurrence of each assetId
+        for (let i = cesiumIonAssets.length - 1; i >= 0; i--) {
+          const asset = cesiumIonAssets[i] as any;
+          if (!asset || !asset.assetId) continue;
+          const assetId = String(asset.assetId);
+          // Only keep if we haven't seen this assetId yet, or if this one has a transform (more complete)
+          if (!seen.has(assetId) || asset.transform) {
+            seen.set(assetId, asset);
+          }
+        }
+        // Return in original order, but deduplicated
+        const deduplicated: any[] = [];
+        const added = new Set<string>();
+        for (const asset of cesiumIonAssets) {
+          const assetId = String((asset as any)?.assetId);
+          if (assetId && !added.has(assetId) && seen.has(assetId)) {
+            deduplicated.push(seen.get(assetId));
+            added.add(assetId);
+          }
+        }
+        return deduplicated;
+      })()
+    : [];
+
   return {
     objects: cleanObjects,
     observationPoints: cleanObservationPoints,
@@ -198,7 +228,7 @@ const sanitizeSceneData = (
     selectedLocation: cleanSelectedLocation,
     showTiles,
     basemapType: basemapType || "cesium",
-    cesiumIonAssets: Array.isArray(cesiumIonAssets) ? cesiumIonAssets : [],
+    cesiumIonAssets: cleanCesiumIonAssets,
     cesiumLightingEnabled: cesiumLightingEnabled || false,
     cesiumShadowsEnabled: cesiumShadowsEnabled || false,
     cesiumCurrentTime: cesiumCurrentTime || null,
@@ -319,10 +349,37 @@ export default function BuilderPage() {
             }
           }
           if (Array.isArray(cesiumIonAssets)) {
+            // First deduplicate by assetId (Cesium Ion asset ID, not name)
+            // Having the same Cesium Ion asset ID multiple times causes duplicate tilesets
+            // Keep the entry with transform if duplicates exist (more complete data)
+            const deduplicatedAssets = (() => {
+              const seen = new Map<string, any>();
+              for (let i = cesiumIonAssets.length - 1; i >= 0; i--) {
+                const asset = cesiumIonAssets[i] as any;
+                if (!asset || !asset.assetId) continue;
+                const assetId = String(asset.assetId);
+                // Keep if we haven't seen this assetId, or if this one has a transform (more complete)
+                if (!seen.has(assetId) || asset.transform) {
+                  seen.set(assetId, asset);
+                }
+              }
+              // Return in original order, but deduplicated
+              const result: any[] = [];
+              const added = new Set<string>();
+              for (const asset of cesiumIonAssets) {
+                const assetId = String((asset as any)?.assetId);
+                if (assetId && !added.has(assetId) && seen.has(assetId)) {
+                  result.push(seen.get(assetId));
+                  added.add(assetId);
+                }
+              }
+              return result;
+            })();
+
             // Fetch metadata and extract transforms for cesiumIonAssets
             // The saved scene data doesn't include metadata, so we need to fetch it
             const enrichedAssets = await Promise.all(
-              (cesiumIonAssets as any[]).map(async (asset) => {
+              deduplicatedAssets.map(async (asset) => {
                 // Try to find the database assetId from the objects array
                 // Objects have assetId (database ID) and cesiumAssetId (Ion ID)
                 // cesiumIonAsset.assetId is the Cesium Ion asset ID (not database ID)
@@ -383,8 +440,16 @@ export default function BuilderPage() {
               })
             );
 
+            // Filter out assets that failed to load (will be caught by error handler in CesiumIonAssetsRenderer)
+            // We keep them here but they'll fail to load and be logged
+            const validAssets = enrichedAssets.filter((asset) => {
+              if (!asset || !asset.assetId) return false;
+              // Keep all assets - let CesiumIonAssetsRenderer handle 404 errors
+              return true;
+            });
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            useSceneStore.setState({ cesiumIonAssets: enrichedAssets as any });
+            useSceneStore.setState({ cesiumIonAssets: validAssets as any });
           }
           // Restore time simulation settings
           if (cesiumLightingEnabled !== undefined) {

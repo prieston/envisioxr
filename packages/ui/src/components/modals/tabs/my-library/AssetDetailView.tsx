@@ -64,69 +64,38 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
   const isTilingInProgress = tilingStatus === "IN_PROGRESS";
   const isTilingError = tilingStatus === "ERROR";
 
-  // Check if model is georeferenced (has a transform in metadata)
-  // A model is georeferenced if metadata.transform.matrix exists and is a valid 16-element array
-  // Note: metadata is typed as Record<string, string> but may actually contain objects
-  const isGeoreferenced = (() => {
+  // Check if model is georeferenced by default (from Cesium Ion, not manually set)
+  // A model is georeferenced by default if:
+  // 1. No transform exists in metadata (not manually set by user)
+  // 2. AND the model likely has world coordinates (we can't check this here without loading the tileset)
+  //
+  // If metadata.transform exists, it means the user manually set it, so they should be able to adjust it.
+  // We only disable the button if there's no transform AND we suspect it's georeferenced by default.
+  // Since we can't check the modelMatrix here, we'll be conservative: only disable if we're certain
+  // it's georeferenced by default. For now, we'll allow adjustment if transform exists (user set it).
+  //
+  // Note: The actual check for georeferenced-by-default happens in AdjustTilesetLocationDialog
+  // where we can inspect the tileset's modelMatrix and bounding sphere.
+  const isGeoreferencedByDefault = (() => {
     try {
       if (!metadata || typeof metadata !== "object") {
+        // No metadata - can't determine, allow adjustment
         return false;
       }
 
       // Get transform - could be string (if Record<string, string>) or object (if Record<string, unknown>)
       const transform = (metadata as Record<string, unknown>).transform;
 
-      if (!transform) {
+      // If transform exists in metadata, it means the user manually set it
+      // So it's NOT georeferenced by default - allow adjustment
+      if (transform) {
         return false;
       }
 
-      // Parse transform if it's a string
-      let transformObj: Record<string, unknown> | null = null;
-      if (typeof transform === "string") {
-        try {
-          transformObj = JSON.parse(transform) as Record<string, unknown>;
-        } catch {
-          // If parsing fails, it's not valid JSON
-          return false;
-        }
-      } else if (transform && typeof transform === "object" && transform !== null) {
-        // Transform is already an object
-        transformObj = transform as Record<string, unknown>;
-      } else {
-        return false;
-      }
-
-      if (!transformObj || !("matrix" in transformObj)) {
-        return false;
-      }
-
-      // Get matrix - could be array or string
-      const matrixValue = transformObj.matrix;
-      let matrix: unknown[] | null = null;
-
-      if (Array.isArray(matrixValue)) {
-        matrix = matrixValue;
-      } else if (typeof matrixValue === "string") {
-        try {
-          const parsed = JSON.parse(matrixValue);
-          if (Array.isArray(parsed)) {
-            matrix = parsed;
-          } else {
-            return false;
-          }
-        } catch {
-          return false;
-        }
-      } else {
-        return false;
-      }
-
-      // Verify matrix is valid: 16 elements, all numbers
-      if (!matrix || matrix.length !== 16) {
-        return false;
-      }
-
-      return matrix.every((val) => typeof val === "number" && !isNaN(val));
+      // No transform in metadata - might be georeferenced by default
+      // But we can't check modelMatrix here, so we'll be conservative and allow adjustment
+      // The AdjustTilesetLocationDialog will do the actual check when opened
+      return false;
     } catch (error) {
       return false;
     }
@@ -470,7 +439,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
           onAdjustLocation && (
             <Tooltip
               title={
-                isGeoreferenced
+                isGeoreferencedByDefault
                   ? "This model is already georeferenced. Location adjustment is disabled."
                   : !isTilingComplete
                   ? "Tiling must be complete before adjusting location."
@@ -482,7 +451,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
                   variant="outlined"
                   startIcon={<LocationOn />}
                   onClick={onAdjustLocation}
-                  disabled={!isTilingComplete || isGeoreferenced}
+                  disabled={!isTilingComplete || isGeoreferencedByDefault}
                   sx={(theme) => ({
                     borderRadius: "4px",
                     textTransform: "none",
