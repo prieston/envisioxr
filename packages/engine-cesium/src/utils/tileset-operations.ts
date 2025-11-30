@@ -254,10 +254,34 @@ export async function loadTilesetWithTransform(
   const transformToApply = transform || extractTransformFromMetadata(metadata);
   const transformMatrix = transformToApply?.matrix;
 
-  // Load tileset
-  const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
-    parseInt(cesiumAssetId)
-  );
+  // Load tileset - wrap in try-catch to catch any errors during loading
+  let tileset: any;
+  try {
+    tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
+      parseInt(cesiumAssetId)
+    );
+  } catch (loadError: any) {
+    // Check if this is a Gaussian splatting error
+    const errorMessage = loadError?.message || String(loadError) || '';
+    const errorStack = loadError?.stack || '';
+
+    if (
+      errorMessage.includes('KHR_spz_gaussian_splats_compression') ||
+      errorMessage.includes('Unsupported glTF Extension') ||
+      errorMessage.includes('gaussian_splats') ||
+      errorMessage.includes('gaussian_splatting') ||
+      errorStack.includes('KHR_spz_gaussian_splats_compression')
+    ) {
+      // Re-throw with a more user-friendly message
+      throw new Error(
+        'This model uses Gaussian splatting with an unsupported extension. ' +
+        'Please re-upload the model to Cesium Ion to generate a compatible version ' +
+        'with the updated Gaussian splatting extensions.'
+      );
+    }
+    // Re-throw other errors as-is
+    throw loadError;
+  }
 
   // Apply transform BEFORE adding to scene
   if (transformMatrix && transformMatrix.length === 16) {

@@ -93,46 +93,16 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
       const transformFromMetadata = extractTransformFromMetadata(metadata);
       const transformToApply = transformFromMetadata;
 
-      // Use the same logic as CesiumMinimalViewer for initial positioning
-      if (transformToApply) {
-        // If there's a transform, extract coordinates and use positionCameraForTileset
-        let transformWithCoords = transformToApply;
-        if (
-          !transformToApply.longitude ||
-          !transformToApply.latitude
-        ) {
-          // Extract position from matrix
-          const matrix = arrayToMatrix4(Cesium, transformToApply.matrix);
-          const translation = new Cesium.Cartesian3(
-            matrix[12],
-            matrix[13],
-            matrix[14]
-          );
-          const cartographic = Cesium.Cartographic.fromCartesian(translation);
-          transformWithCoords = {
-            ...transformToApply,
-            longitude: Cesium.Math.toDegrees(cartographic.longitude),
-            latitude: Cesium.Math.toDegrees(cartographic.latitude),
-            height: cartographic.height,
-          };
-        }
-        positionCameraForTileset(
-          viewerRef.current,
-          Cesium,
-          transformWithCoords,
-          {
-            offset: 200,
-            duration: 1.5,
-            pitch: -45,
-          }
-        );
-      } else {
-        // No transform - use zoomTo (same as initial positioning)
-        viewerRef.current.zoomTo(
-          tilesetRef.current,
-          new Cesium.HeadingPitchRange(0, -0.5, 0)
-        );
-      }
+      // Check if this is a non-georeferenced model (no transform)
+      const isNonGeoreferenced = !transformToApply;
+      const boundingSphere = tilesetRef.current.boundingSphere;
+
+      // Use zoomTo for all cases - this doesn't set a rotation target
+      // so left-click drag continues to pan instead of rotating around model
+      viewerRef.current.zoomTo(
+        tilesetRef.current,
+        new Cesium.HeadingPitchRange(0, -0.5, 0)
+      );
     } catch (err) {
       console.warn("Error resetting zoom:", err);
       // Fallback: try zoomTo without options
@@ -402,6 +372,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
               onError={handleError}
               onLocationNotSet={handleLocationNotSet}
               enableLocationEditing={false}
+              enableAtmosphere={true}
             />
           )}
 
