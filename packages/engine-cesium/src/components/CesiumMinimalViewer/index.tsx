@@ -85,6 +85,7 @@ export function CesiumMinimalViewer({
           metadata={metadata}
           initialTransform={initialTransform}
           enableLocationEditing={enableLocationEditing}
+          enableAtmosphere={enableAtmosphere}
           assetType={assetType}
           onTilesetReady={handleTilesetReady}
           onError={onError}

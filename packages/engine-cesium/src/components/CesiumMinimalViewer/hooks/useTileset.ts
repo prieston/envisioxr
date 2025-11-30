@@ -214,32 +214,17 @@ export function useTileset({
         viewer.scene.requestRender();
 
         // Determine if georeferenced
-        let georeferencedByDefault = false;
+        // A model is georeferenced ONLY if:
+        // 1. There's an explicit transform from metadata or initialTransform (always georeferenced), OR
+        // 2. The transform has valid longitude/latitude coordinates (not just a matrix)
+        // We do NOT consider it georeferenced if:
+        // - Only a matrix exists without coordinates (could be local transform)
+        // - ModelMatrix has translation but not at valid Earth coordinates
+        const georeferenced =
+          !!transformFromMetadata || // Transform from metadata is always georeferenced
+          (initialTransform && initialTransform.length === 16) || // Initial transform is always georeferenced
+          (computedTransform && computedTransform.longitude !== undefined && computedTransform.latitude !== undefined); // Must have valid coordinates
 
-        // Check modelMatrix translation
-        if (tileset.modelMatrix) {
-          const translation = new Cesium.Cartesian3(
-            tileset.modelMatrix[12],
-            tileset.modelMatrix[13],
-            tileset.modelMatrix[14]
-          );
-          const magnitude = Cesium.Cartesian3.magnitude(translation);
-          if (magnitude > 1e-6) {
-            georeferencedByDefault = true;
-          }
-        }
-
-        // Check bounding sphere center
-        if (!georeferencedByDefault && tileset.boundingSphere) {
-          const centerMagnitude = Cesium.Cartesian3.magnitude(
-            tileset.boundingSphere.center
-          );
-          if (centerMagnitude > 1000000) {
-            georeferencedByDefault = true;
-          }
-        }
-
-        const georeferenced = !!computedTransform || georeferencedByDefault;
         setIsGeoreferenced(georeferenced);
 
         // Notify tileset ready
