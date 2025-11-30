@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Box,
   List,
@@ -26,7 +26,6 @@ import {
   SettingsIcon,
   ExpandMoreIcon,
   BusinessIcon,
-  AddIcon,
   CreditCardIcon,
   HelpOutlineIcon,
 } from "@klorad/ui";
@@ -36,10 +35,6 @@ import UserAccountMenu from "@/app/components/AppBar/UserAccountMenu";
 import useOrganization from "@/app/hooks/useOrganization";
 import useOrganizations from "@/app/hooks/useOrganizations";
 import { useOrgId } from "@/app/hooks/useOrgId";
-import { getPlans, Plan } from "@/app/utils/api";
-import { CreateOrganizationModal } from "@/app/components/Organizations/CreateOrganizationModal";
-import useSWR from "swr";
-import useUser from "@/app/hooks/useUser";
 
 interface SubMenuItem {
   label: string;
@@ -103,8 +98,6 @@ const menuItems: MenuItem[] = [
   },
 ];
 
-const ADMIN_EMAIL = "theofilos@prieston.gr";
-
 const DashboardSidebar: React.FC = () => {
   const pathname = usePathname();
   const theme = useTheme();
@@ -112,18 +105,6 @@ const DashboardSidebar: React.FC = () => {
   const { organization: currentOrganization, loadingOrganization } =
     useOrganization(orgId);
   const { organizations, loadingOrganizations } = useOrganizations();
-  const { user } = useUser();
-  const isAdmin = user?.email === ADMIN_EMAIL;
-
-  // Create organization modal state
-  const [createOrgModalOpen, setCreateOrgModalOpen] = useState(false);
-
-  // Fetch plans for the modal
-  const { data: plansData } = useSWR<{ plans: Plan[] }>("/api/plans", getPlans);
-
-  const handleCreateOrganization = useCallback(() => {
-    setCreateOrgModalOpen(true);
-  }, []);
 
   // Build paths with orgId prefix
   const buildPath = useMemo(() => {
@@ -495,59 +476,6 @@ const DashboardSidebar: React.FC = () => {
                         </ListItem>
                       );
                     })}
-                    {/* Create Organization Option - Only for admin */}
-                    {isAdmin && (
-                      <ListItem disablePadding>
-                        <ListItemButton
-                          disableRipple
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCreateOrganization();
-                          }}
-                          sx={(theme) => ({
-                            pl: 6,
-                            borderRadius: 0,
-                            marginBottom: 0,
-                            padding: theme.spacing(1.5, 2),
-                            backgroundColor:
-                              theme.palette.mode === "dark"
-                                ? theme.palette.background.paper
-                                : "rgba(248, 250, 252, 0.6)",
-                            color:
-                              theme.palette.mode === "dark"
-                                ? theme.palette.text.primary
-                                : "rgba(51, 65, 85, 0.95)",
-                            transition:
-                              "background-color 0.15s ease, color 0.15s ease",
-                            "&:hover": {
-                              backgroundColor:
-                                theme.palette.mode === "dark"
-                                  ? alpha(theme.palette.primary.main, 0.1)
-                                  : "rgba(248, 250, 252, 0.9)",
-                              color: theme.palette.primary.main,
-                            },
-                          })}
-                        >
-                          <ListItemIcon
-                            sx={{
-                              minWidth: 40,
-                              color: "inherit",
-                              mr: 1,
-                            }}
-                          >
-                            <AddIcon fontSize="small" />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary="Create Organisation"
-                            primaryTypographyProps={{
-                              fontSize: "0.875rem",
-                              fontWeight: 400,
-                              letterSpacing: "0.01em",
-                            }}
-                          />
-                        </ListItemButton>
-                      </ListItem>
-                    )}
                   </List>
                 </AccordionDetails>
               </Accordion>
@@ -862,14 +790,6 @@ const DashboardSidebar: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Create Organization Modal - Only for admin */}
-      {isAdmin && plansData?.plans && (
-        <CreateOrganizationModal
-          open={createOrgModalOpen}
-          plans={plansData.plans}
-          onClose={() => setCreateOrgModalOpen(false)}
-        />
-      )}
     </LeftPanelContainer>
   );
 };

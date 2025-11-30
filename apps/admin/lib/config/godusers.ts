@@ -10,6 +10,7 @@
 
 export const GOD_USERS = [
   "theofilos@prieston.gr",
+  "kevan70@gmail.com",
   // Add more god users here as needed
 ] as const;
 
