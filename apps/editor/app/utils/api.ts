@@ -192,16 +192,6 @@ export async function getAllOrganizations(): Promise<{
   );
 }
 
-export async function createOrganization(data: {
-  name: string;
-  slug?: string;
-}): Promise<{ organization: Organization }> {
-  return apiRequest<{ organization: Organization }>("/api/organizations", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-
 export async function deleteOrganization(
   orgId: string
 ): Promise<{ success: boolean; message: string }> {

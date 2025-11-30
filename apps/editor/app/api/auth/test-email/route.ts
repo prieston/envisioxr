@@ -6,7 +6,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { sendPasswordResetEmail } from "@/lib/email";
-import { emailConfig } from "@/lib/env/server";
 
 export async function POST(request: NextRequest) {
   // Only allow in development
@@ -22,21 +21,11 @@ export async function POST(request: NextRequest) {
     const { email } = body;
 
     if (!email) {
-      return NextResponse.json(
-        { error: "Email is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     // Generate a test code
     const testCode = "123456";
-
-    console.log("[Test Email] Attempting to send test email:", {
-      email,
-      from: emailConfig.from,
-      hasApiKey: !!emailConfig.apiKey,
-      apiKeyPrefix: emailConfig.apiKey?.substring(0, 7),
-    });
 
     const result = await sendPasswordResetEmail(email, testCode, "Test User");
 
@@ -67,4 +56,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

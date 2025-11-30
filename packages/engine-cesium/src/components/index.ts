@@ -8,4 +8,4 @@ export { default as CesiumIonAssetsManager } from "./CesiumIonAssetsManager";
 export { CesiumLoadingScreen } from "./CesiumLoadingScreen";
 export { CesiumErrorDisplay } from "./CesiumErrorDisplay";
 export { CesiumViewerContent } from "./CesiumViewerContent";
-export { CesiumMinimalViewer } from "./CesiumMinimalViewer";
+export { CesiumMinimalViewer } from "./CesiumMinimalViewer/index";

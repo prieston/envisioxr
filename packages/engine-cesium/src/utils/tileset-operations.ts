@@ -254,10 +254,34 @@ export async function loadTilesetWithTransform(
   const transformToApply = transform || extractTransformFromMetadata(metadata);
   const transformMatrix = transformToApply?.matrix;
 
-  // Load tileset
-  const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
-    parseInt(cesiumAssetId)
-  );
+  // Load tileset - wrap in try-catch to catch any errors during loading
+  let tileset: any;
+  try {
+    tileset = await Cesium.Cesium3DTileset.fromIonAssetId(
+      parseInt(cesiumAssetId)
+    );
+  } catch (loadError: any) {
+    // Check if this is a Gaussian splatting error
+    const errorMessage = loadError?.message || String(loadError) || '';
+    const errorStack = loadError?.stack || '';
+
+    if (
+      errorMessage.includes('KHR_spz_gaussian_splats_compression') ||
+      errorMessage.includes('Unsupported glTF Extension') ||
+      errorMessage.includes('gaussian_splats') ||
+      errorMessage.includes('gaussian_splatting') ||
+      errorStack.includes('KHR_spz_gaussian_splats_compression')
+    ) {
+      // Re-throw with a more user-friendly message
+      throw new Error(
+        'This model uses Gaussian splatting with an unsupported extension. ' +
+        'Please re-upload the model to Cesium Ion to generate a compatible version ' +
+        'with the updated Gaussian splatting extensions.'
+      );
+    }
+    // Re-throw other errors as-is
+    throw loadError;
+  }
 
   // Apply transform BEFORE adding to scene
   if (transformMatrix && transformMatrix.length === 16) {
@@ -312,5 +336,150 @@ export function reapplyTransformAfterReady(
   } catch (err) {
     console.error('[TilesetOps] Failed to re-apply transform:', err);
   }
+}
+
+/**
+ * Extract transform and georeferencing information from a tileset
+ * This consolidates the duplicate logic for extracting transforms from:
+ * - Metadata
+ * - Initial transform
+ * - Tileset modelMatrix
+ * - Tileset bounding sphere (for Cesium Ion georeferenced tilesets)
+ * @param Cesium - Cesium library instance
+ * @param tileset - The Cesium3DTileset
+ * @param metadata - Model metadata (optional)
+ * @param initialTransform - Initial transform array (optional)
+ * @returns Object with computedTransform and isGeoreferenced flag
+ */
+export function extractTilesetGeoreferencing(
+  Cesium: any,
+  tileset: any,
+  metadata?: Record<string, unknown> | null,
+  initialTransform?: number[]
+): {
+  computedTransform: TilesetTransformData | undefined;
+  isGeoreferenced: boolean;
+} {
+  // Extract transform from metadata or use initialTransform
+  const transformFromMetadata = extractTransformFromMetadata(metadata);
+
+  // If no transform from metadata but tileset has a modelMatrix, extract it
+  // Also check bounding sphere center for georeferenced tilesets from Cesium Ion
+  let transformFromTileset: TilesetTransformData | undefined = undefined;
+  if (!transformFromMetadata && !initialTransform) {
+    try {
+      // First try to extract from modelMatrix
+      if (tileset.modelMatrix) {
+        const extracted = extractTransformFromTileset(Cesium, tileset);
+        if (
+          extracted &&
+          extracted.longitude !== undefined &&
+          extracted.latitude !== undefined
+        ) {
+          transformFromTileset = extracted;
+        }
+      }
+
+      // If modelMatrix doesn't have coordinates, check bounding sphere center
+      // This handles tilesets georeferenced by Cesium Ion where the location
+      // is embedded in the tileset's root transform (not in modelMatrix)
+      if (!transformFromTileset || !transformFromTileset.longitude) {
+        const boundingSphere = tileset.boundingSphere;
+        if (boundingSphere && boundingSphere.center) {
+          try {
+            const centerMagnitude = Cesium.Cartesian3.magnitude(
+              boundingSphere.center
+            );
+            // Only check if center is not at origin (has meaningful location)
+            if (centerMagnitude > 1000) {
+              // At least 1km from origin
+              const cartographic = Cesium.Cartographic.fromCartesian(
+                boundingSphere.center
+              );
+              if (cartographic && cartographic.longitude !== undefined) {
+                const longitude = Cesium.Math.toDegrees(
+                  cartographic.longitude
+                );
+                const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+                const height = cartographic.height;
+
+                // Check if coordinates are valid (not at origin or invalid)
+                if (
+                  !isNaN(longitude) &&
+                  !isNaN(latitude) &&
+                  Math.abs(longitude) <= 180 &&
+                  Math.abs(latitude) <= 90 &&
+                  (Math.abs(longitude) > 0.001 || Math.abs(latitude) > 0.001)
+                ) {
+                  const matrix =
+                    tileset.modelMatrix || Cesium.Matrix4.IDENTITY;
+                  transformFromTileset = {
+                    longitude,
+                    latitude,
+                    height,
+                    matrix: matrix4ToArray(matrix),
+                  };
+                }
+              }
+            }
+          } catch (bsErr) {
+            // Ignore bounding sphere extraction errors
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(
+        '[TilesetOps] Failed to extract transform from tileset:',
+        err
+      );
+    }
+  }
+
+  // Compute transform using same logic as normal flow
+  const computedTransform: TilesetTransformData | undefined =
+    initialTransform && initialTransform.length === 16
+      ? { matrix: initialTransform }
+      : transformFromMetadata || transformFromTileset;
+
+  // Determine if georeferenced
+  // A model is georeferenced ONLY if:
+  // 1. There's an explicit transform from metadata or initialTransform (always georeferenced), OR
+  // 2. The transform has valid longitude/latitude coordinates (not just a matrix)
+  const isGeoreferenced: boolean =
+    !!transformFromMetadata ||
+    (initialTransform && initialTransform.length === 16) ||
+    (computedTransform &&
+      computedTransform.longitude !== undefined &&
+      computedTransform.latitude !== undefined) ||
+    false;
+
+  return {
+    computedTransform,
+    isGeoreferenced,
+  };
+}
+
+/**
+ * Find an existing tileset in the scene by asset ID
+ * @param viewer - Cesium Viewer instance
+ * @param cesiumAssetId - Cesium Ion asset ID
+ * @returns Existing tileset if found, null otherwise
+ */
+export function findExistingTileset(
+  viewer: any,
+  cesiumAssetId: string
+): any | null {
+  if (!viewer?.scene) {
+    return null;
+  }
+
+  for (let i = 0; i < viewer.scene.primitives.length; i++) {
+    const primitive = viewer.scene.primitives.get(i);
+    if (primitive && primitive._kloradAssetId === cesiumAssetId) {
+      return primitive;
+    }
+  }
+
+  return null;
 }
 

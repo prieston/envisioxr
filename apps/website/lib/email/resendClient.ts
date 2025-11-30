@@ -24,15 +24,6 @@ export async function sendEmail(options: {
   from?: string;
 }): Promise<{ id: string } | null> {
   try {
-    // eslint-disable-next-line no-console
-    console.log("[Email] Attempting to send email:", {
-      to: options.to,
-      subject: options.subject,
-      from: options.from || emailConfig.from,
-      hasApiKey: !!emailConfig.apiKey,
-      apiKeyPrefix: emailConfig.apiKey?.substring(0, 7),
-    });
-
     const result = await resend.emails.send({
       from: options.from || emailConfig.from,
       to: Array.isArray(options.to) ? options.to : [options.to],
@@ -60,12 +51,6 @@ export async function sendEmail(options: {
 
       return null;
     }
-
-    // eslint-disable-next-line no-console
-    console.log("[Email] Email sent successfully:", {
-      id: result.data?.id,
-      to: options.to,
-    });
 
     return { id: result.data?.id || "unknown" };
   } catch (error) {

@@ -72,13 +72,6 @@ export async function PUT(
       height,
     };
 
-    console.log("[Transform API] Saving transform:", {
-      assetId,
-      cesiumAssetId: asset.cesiumAssetId,
-      transform: transformData,
-      matrixLength: transform.length,
-    });
-
     const updatedAsset = await prisma.asset.update({
       where: { id: assetId },
       data: {
@@ -87,15 +80,6 @@ export async function PUT(
           transform: transformData,
         },
       },
-    });
-
-    const savedMetadata = updatedAsset.metadata as Record<
-      string,
-      unknown
-    > | null;
-    console.log("[Transform API] Transform saved successfully:", {
-      assetId,
-      metadataTransform: savedMetadata?.transform,
     });
 
     // Convert BigInt fileSize to number for JSON serialization

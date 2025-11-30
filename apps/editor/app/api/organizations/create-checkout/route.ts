@@ -26,7 +26,9 @@ export async function POST(request: NextRequest) {
 
     if (!planCode || !billingInterval || !orgName || !orgSlug) {
       return NextResponse.json(
-        { error: "planCode, billingInterval, orgName, and orgSlug are required" },
+        {
+          error: "planCode, billingInterval, orgName, and orgSlug are required",
+        },
         { status: 400 }
       );
     }
@@ -106,7 +108,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingOrg) {
-      return NextResponse.json({ error: "Slug is already taken" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Slug is already taken" },
+        { status: 400 }
+      );
     }
 
     // Get user email for Stripe customer
@@ -117,8 +122,6 @@ export async function POST(request: NextRequest) {
 
     // GOD USER HACK: Bypass billing for god users
     if (isGodUser(user?.email)) {
-      console.log(`[Create Checkout API] God user detected: ${user?.email}. Bypassing billing.`);
-
       // Create organization directly without payment
       const organization = await prisma.organization.create({
         data: {
@@ -141,10 +144,6 @@ export async function POST(request: NextRequest) {
           role: "owner",
         },
       });
-
-      console.log(
-        `[Create Checkout API] Created organization ${organization.id} (${orgName}) for god user ${user?.email}`
-      );
 
       // Return success URL instead of Stripe checkout URL
       return NextResponse.json({
@@ -192,7 +191,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
-    console.error("[Create Checkout API] Error creating checkout session:", error);
+    console.error(
+      "[Create Checkout API] Error creating checkout session:",
+      error
+    );
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Internal Server Error",
@@ -201,4 +203,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

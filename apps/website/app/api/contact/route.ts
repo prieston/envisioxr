@@ -19,10 +19,7 @@ export async function POST(request: NextRequest) {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return Response.json(
-        { error: "Invalid email address" },
-        { status: 400 }
-      );
+      return Response.json({ error: "Invalid email address" }, { status: 400 });
     }
 
     // Send email via Resend
@@ -47,11 +44,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("[Contact API] Email sent successfully:", {
-      id: result.id,
-      from: email,
-    });
-
     return Response.json(
       {
         status: "received",
@@ -72,4 +64,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

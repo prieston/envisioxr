@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useCallback, useState, useEffect } from "react";
+import React, { memo, useCallback, useState, useEffect, useRef } from "react";
 import { Box, Button, TextField } from "@mui/material";
 import { CameraIcon, FlightTakeoffIcon } from "@klorad/ui";
 import { useSceneStore, useWorldStore } from "@klorad/core";
@@ -48,19 +48,26 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
       (selectedObservation.description as string) || ""
     );
 
-    // Sync local state when observation changes (e.g., switching observations)
-    useEffect(() => {
-      // Guard: Only update state if values actually changed to prevent unnecessary re-renders
-      const newTitle = selectedObservation.title || "";
-      const newDescription = (selectedObservation.description as string) || "";
+    // Track if we're currently editing to prevent syncing during user input
+    const isEditingRef = useRef({ title: false, description: false });
+    // Track the last observation ID we synced from
+    const lastSyncedIdRef = useRef(selectedObservation.id);
 
-      if (title !== newTitle) {
+    // Sync local state when observation changes (e.g., switching observations)
+    // Only sync when the observation ID changes, not during active editing
+    useEffect(() => {
+      // Only sync when switching to a different observation
+      if (selectedObservation.id !== lastSyncedIdRef.current) {
+        const newTitle = selectedObservation.title || "";
+        const newDescription = (selectedObservation.description as string) || "";
         setTitle(newTitle);
-      }
-      if (description !== newDescription) {
         setDescription(newDescription);
+        lastSyncedIdRef.current = selectedObservation.id;
+        // Reset editing flags when switching observations
+        isEditingRef.current.title = false;
+        isEditingRef.current.description = false;
       }
-    }, [selectedObservation.id, selectedObservation.title, selectedObservation.description, title, description]);
+    }, [selectedObservation.id, selectedObservation.title, selectedObservation.description]);
 
     // Type-safe property updates
     type ObsKey = "title" | "description" | "position" | "target";
@@ -214,8 +221,14 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
               size="small"
               placeholder="Enter title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => handleObservationChange("title", title)}
+              onChange={(e) => {
+                isEditingRef.current.title = true;
+                setTitle(e.target.value);
+              }}
+              onBlur={() => {
+                handleObservationChange("title", title);
+                isEditingRef.current.title = false;
+              }}
               sx={textFieldStyles}
             />
           </Box>
@@ -232,8 +245,14 @@ export const ObservationPointView: React.FC<ObservationPointViewProps> = memo(
               multiline
               rows={4}
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              onBlur={() => handleObservationChange("description", description)}
+              onChange={(e) => {
+                isEditingRef.current.description = true;
+                setDescription(e.target.value);
+              }}
+              onBlur={() => {
+                handleObservationChange("description", description);
+                isEditingRef.current.description = false;
+              }}
               sx={textFieldStyles}
             />
           </Box>
