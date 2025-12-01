@@ -189,9 +189,18 @@ export function TilesetRenderer({
 
     // Wait for bounding sphere to be calculated
     const waitTime = transformToApply ? 800 : 500;
-    setTimeout(async () => {
+    const timeoutId = setTimeout(async () => {
+      // Check if viewer is still valid before proceeding
+      if (!viewer || (viewer.isDestroyed && viewer.isDestroyed()) || !viewer.scene) {
+        return;
+      }
       await zoomToTileset(tileset, transformToApply, !isGeoreferenced);
     }, waitTime);
+
+    // Cleanup: clear timeout if component unmounts or dependencies change
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [
     viewer,
     Cesium,

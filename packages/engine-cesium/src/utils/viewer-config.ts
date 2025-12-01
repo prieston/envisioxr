@@ -195,9 +195,16 @@ export function waitForSceneReady(
         return;
       }
 
-      // Check if scene exists and is ready (has globe)
-      if (viewer.scene && viewer.scene.globe) {
-        resolve();
+      // Safely check if scene exists and is ready (has globe)
+      // Wrap in try-catch because accessing viewer.scene might throw if viewer was just destroyed
+      try {
+        if (viewer.scene && viewer.scene.globe) {
+          resolve();
+          return;
+        }
+      } catch (err) {
+        // Viewer was destroyed between the isDestroyed check and accessing scene
+        reject(new Error("Viewer has been destroyed"));
         return;
       }
 

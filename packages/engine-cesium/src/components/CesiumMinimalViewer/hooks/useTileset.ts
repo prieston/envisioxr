@@ -428,9 +428,17 @@ export function useTileset({
         cleanupErrorHandlers();
       }
 
-      // Store scene reference to prevent race condition where viewer.scene becomes undefined
-      // between the check and the access
-      const scene = viewer?.scene;
+      // SAFELY access scene: Wrap in try-catch because accessing viewer.scene
+      // might throw if viewer was just destroyed (getter accesses internal state)
+      let scene = null;
+      try {
+        if (viewer && !(viewer.isDestroyed && viewer.isDestroyed())) {
+          scene = viewer.scene;
+        }
+      } catch (err) {
+        // Viewer was likely destroyed, ignore
+      }
+
       // Also check primitives exists - it might be destroyed even if scene exists
       if (tilesetRef.current && scene?.primitives) {
         try {
