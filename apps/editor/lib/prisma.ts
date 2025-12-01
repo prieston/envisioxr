@@ -10,12 +10,12 @@ const globalForPrisma = globalThis as unknown as {
 const getDatabaseUrl = () => {
   const url = process.env.DATABASE_URL;
   if (!url) return url;
-  
+
   // If URL already has connection_limit, use it
   if (url.includes("connection_limit")) {
     return url;
   }
-  
+
   // Add connection pool parameters for serverless
   // connection_limit: max connections per Prisma Client instance
   // pool_timeout: how long to wait for a connection
