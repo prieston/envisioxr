@@ -319,11 +319,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
           setUploading(false);
           isUploadingRef.current = false;
 
-          // Delay closing to ensure React components finish unmounting before viewer is destroyed
-          // This prevents useTileset cleanup from accessing viewer.scene after _cesiumWidget is undefined
-          // setTimeout(() => {
-          //   onClose();
-          // }, 100); // Small delay to let React cleanup complete
+          onClose();
         } catch (uploadErr) {
           // Upload failed, but screenshot was captured
           console.error("Error uploading screenshot:", uploadErr);

@@ -143,7 +143,7 @@ export async function captureCesiumScreenshot(
         // Only try to remove listener if scene still exists
         if (scene && scene.postRender) {
           try {
-            scene.postRender.removeEventListener(renderListener);
+        scene.postRender.removeEventListener(renderListener);
           } catch (err) {
             // Ignore errors if scene was destroyed
           }
@@ -161,7 +161,7 @@ export async function captureCesiumScreenshot(
       // Only try to remove listener if scene still exists
       if (scene && scene.postRender) {
         try {
-          scene.postRender.removeEventListener(renderListener);
+      scene.postRender.removeEventListener(renderListener);
         } catch (err) {
           // Ignore errors if scene was destroyed
         }
