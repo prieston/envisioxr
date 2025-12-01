@@ -76,7 +76,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ project });
+    // Convert BigInt thumbnailSize to number for JSON serialization
+    const serializedProject = {
+      ...project,
+      thumbnailSize: project.thumbnailSize ? Number(project.thumbnailSize) : null,
+    };
+
+    return NextResponse.json({ project: serializedProject });
   } catch (error) {
     console.error("Error creating project:", error);
     return NextResponse.json(
@@ -146,7 +152,13 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ projects });
+    // Convert BigInt thumbnailSize to number for JSON serialization
+    const serializedProjects = projects.map((project) => ({
+      ...project,
+      thumbnailSize: project.thumbnailSize ? Number(project.thumbnailSize) : null,
+    }));
+
+    return NextResponse.json({ projects: serializedProjects });
   } catch (error) {
     console.error("[Projects API] Error:", error);
     return NextResponse.json(

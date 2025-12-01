@@ -116,7 +116,7 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
                 backgroundColor: "rgba(255, 255, 255, 0.05)",
               },
             }}
-          >
+      >
             <Close fontSize="small" />
           </IconButton>
         </Box>
@@ -125,80 +125,80 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
 
         {/* Content */}
         <Box>
-          <Typography
+        <Typography
             sx={{
               fontSize: "0.75rem",
               color: "text.secondary",
-              textAlign: "center",
-              mb: 2,
+            textAlign: "center",
+            mb: 2,
+            }}
+        >
+          Rotate the model to your desired angle, then click &quot;Capture
+          Screenshot&quot;
+        </Typography>
+
+        <Box
+          sx={(theme) => ({
+            width: "600px",
+            height: "400px",
+            borderRadius: "4px",
+            overflow: "hidden",
+            backgroundColor: theme.palette.background.default,
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+          })}
+        >
+          <Canvas
+            camera={{ position: [3, 2, 3], fov: 50 }}
+            gl={{ preserveDrawingBuffer: true }}
+            onCreated={({ gl }) => {
+              canvasRef.current = gl.domElement as HTMLCanvasElement;
             }}
           >
-            Rotate the model to your desired angle, then click &quot;Capture
-            Screenshot&quot;
-          </Typography>
-
-          <Box
-            sx={(theme) => ({
-              width: "600px",
-              height: "400px",
-              borderRadius: "4px",
-              overflow: "hidden",
-              backgroundColor: theme.palette.background.default,
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-            })}
-          >
-            <Canvas
-              camera={{ position: [3, 2, 3], fov: 50 }}
-              gl={{ preserveDrawingBuffer: true }}
-              onCreated={({ gl }) => {
-                canvasRef.current = gl.domElement as HTMLCanvasElement;
-              }}
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[5, 10, 7.5]} intensity={0.8} />
+            <directionalLight position={[-5, 5, -5]} intensity={0.3} />
+            <Suspense
+              fallback={
+                <mesh>
+                  <boxGeometry args={[1, 1, 1]} />
+                  <meshStandardMaterial color="#6B9CD8" wireframe />
+                </mesh>
+              }
             >
-              <ambientLight intensity={0.6} />
-              <directionalLight position={[5, 10, 7.5]} intensity={0.8} />
-              <directionalLight position={[-5, 5, -5]} intensity={0.3} />
-              <Suspense
-                fallback={
-                  <mesh>
-                    <boxGeometry args={[1, 1, 1]} />
-                    <meshStandardMaterial color="#6B9CD8" wireframe />
-                  </mesh>
-                }
-              >
-                <Model url={modelUrl} />
-              </Suspense>
-              <OrbitControls
-                enableDamping
-                dampingFactor={0.05}
-                minDistance={1}
-                maxDistance={50}
-              />
-            </Canvas>
-          </Box>
+              <Model url={modelUrl} />
+            </Suspense>
+            <OrbitControls
+              enableDamping
+              dampingFactor={0.05}
+              minDistance={1}
+              maxDistance={50}
+            />
+          </Canvas>
+        </Box>
         </Box>
 
         {/* Actions */}
         <Box sx={{ display: "flex", gap: 2, mt: 3, justifyContent: "flex-end" }}>
-          <Button
+        <Button
             variant="outlined"
-            onClick={onClose}
-            disabled={capturing}
-            sx={(theme) => ({
+          onClick={onClose}
+          disabled={capturing}
+          sx={(theme) => ({
               borderRadius: `${theme.shape.borderRadius}px`,
-              textTransform: "none",
+            textTransform: "none",
               fontSize: "0.75rem",
-            })}
-          >
-            Cancel
-          </Button>
-          <Button
+          })}
+        >
+          Cancel
+        </Button>
+        <Button
             variant="contained"
-            onClick={handleCapture}
-            disabled={capturing}
-            startIcon={<CameraAlt />}
-            sx={(theme) => ({
+          onClick={handleCapture}
+          disabled={capturing}
+          startIcon={<CameraAlt />}
+          sx={(theme) => ({
               borderRadius: `${theme.shape.borderRadius}px`,
-              textTransform: "none",
+            textTransform: "none",
               fontWeight: 500,
               fontSize: "0.75rem",
               backgroundColor:
@@ -218,11 +218,11 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
               },
               "&:disabled": {
                 opacity: 0.5,
-              },
-            })}
-          >
-            {capturing ? "Capturing..." : "Capture Screenshot"}
-          </Button>
+            },
+          })}
+        >
+          {capturing ? "Capturing..." : "Capture Screenshot"}
+        </Button>
         </Box>
       </Box>
     </Dialog>

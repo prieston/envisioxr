@@ -119,8 +119,10 @@ export const useAssetManager = ({
 
       // Upload thumbnail if available (using presigned URL)
       let thumbnailUrl = null;
+      let thumbnailSize: number | undefined = undefined;
       if (data.screenshot) {
         const thumbnailBlob = dataURLtoBlob(data.screenshot);
+        thumbnailSize = thumbnailBlob.size;
         const thumbnailFileName = `${data.friendlyName}-thumbnail.png`;
 
         // Get presigned URL for thumbnail
@@ -165,6 +167,7 @@ export const useAssetManager = ({
         name: data.friendlyName,
         fileType: data.file.type,
         thumbnail: thumbnailUrl,
+        thumbnailSize: thumbnailSize,
         metadata: metadataObject,
         fileSize: data.file.size,
         organizationId: orgId,

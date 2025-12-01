@@ -24,7 +24,7 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({
     return (
       <Box sx={{ mb: 3 }}>
         <PageCard>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: "1rem" }}>
             Recent Activity
           </Typography>
           <Typography
@@ -45,7 +45,7 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({
     return (
       <Box sx={{ mb: 3 }}>
         <PageCard>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: "1rem" }}>
             Recent Activity
           </Typography>
           <Typography

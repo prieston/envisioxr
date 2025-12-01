@@ -103,33 +103,33 @@ const SupportPage = () => {
           <PageCard>
             {/* Email Section */}
             <Box sx={{ mb: 4 }}>
-              <Typography
-                variant="h6"
-                sx={{
+                <Typography
+                  variant="h6"
+                    sx={{
                   mb: 2,
-                  fontWeight: 600,
+                      fontWeight: 600,
                   fontSize: "1rem",
-                }}
-              >
+                    }}
+                  >
                 Contact Us
-              </Typography>
+                  </Typography>
               <Typography
                 variant="body1"
-                sx={{
+                      sx={{
                   fontSize: "0.875rem",
                   color: "text.secondary",
-                  mb: 1,
+                        mb: 1,
                 }}
               >
                 For support inquiries, please contact us:
               </Typography>
-              <Typography
-                variant="body1"
-                sx={{
+                        <Typography
+                          variant="body1"
+              sx={{
                   fontSize: "0.875rem",
                   color: "text.primary",
-                }}
-              >
+              }}
+            >
                 Email:{" "}
                 <Link
                   href="mailto:support@klorad.com"
@@ -171,7 +171,7 @@ const SupportPage = () => {
                     }}
                   >
                     Name <span style={{ color: "red" }}>*</span>
-                  </Typography>
+                    </Typography>
                   <TextField
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -208,17 +208,17 @@ const SupportPage = () => {
                   />
                 </Box>
 
-                <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
-                  <Button
-                    variant="contained"
+                  <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+                    <Button
+                      variant="contained"
                     type="submit"
-                    startIcon={
+                      startIcon={
                       sending ? (
-                        <CircularProgress size={16} color="inherit" />
-                      ) : (
-                        <SendIcon />
-                      )
-                    }
+                          <CircularProgress size={16} color="inherit" />
+                        ) : (
+                          <SendIcon />
+                        )
+                      }
                     disabled={sending}
                     sx={(theme) => ({
                       borderRadius: `${theme.shape.borderRadius}px`,
@@ -243,9 +243,9 @@ const SupportPage = () => {
                     })}
                   >
                     {sending ? "Sending..." : "Send Message"}
-                  </Button>
+                    </Button>
+                  </Box>
                 </Box>
-              </Box>
             </Box>
 
             {/* Optional Links */}
@@ -274,8 +274,8 @@ const SupportPage = () => {
                     color: "primary.main",
                     textDecoration: "underline",
                   },
-                }}
-              >
+              }}
+            >
                 FAQ
               </Link>
               <Link
@@ -284,9 +284,9 @@ const SupportPage = () => {
                   e.preventDefault();
                   showToast("Documentation coming soon", "info");
                 }}
-                sx={{
+                  sx={{
                   fontSize: "0.75rem",
-                  color: "text.secondary",
+                    color: "text.secondary",
                   textDecoration: "none",
                   "&:hover": {
                     color: "primary.main",

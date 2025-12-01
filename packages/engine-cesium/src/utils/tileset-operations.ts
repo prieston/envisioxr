@@ -357,7 +357,7 @@ export function reapplyTransformAfterReady(
         setTimeout(() => {
           if (options.viewer && !options.viewer.isDestroyed()) {
             try {
-              options.viewer.scene.requestRender();
+            options.viewer.scene.requestRender();
             } catch (err) {
               console.error("[TilesetOps] Error requesting render in setTimeout:", {
                 error: err,

@@ -19,12 +19,12 @@ export async function GET(_request: NextRequest) {
     const organizations = members
       .filter((member) => !member.organization.isPersonal)
       .map((member) => ({
-        id: member.organization.id,
-        name: member.organization.name,
-        slug: member.organization.slug,
-        isPersonal: member.organization.isPersonal,
-        userRole: member.role,
-      }));
+      id: member.organization.id,
+      name: member.organization.name,
+      slug: member.organization.slug,
+      isPersonal: member.organization.isPersonal,
+      userRole: member.role,
+    }));
 
     return NextResponse.json({ organizations });
   } catch (error) {

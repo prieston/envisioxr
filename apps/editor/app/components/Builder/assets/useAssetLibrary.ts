@@ -242,10 +242,12 @@ export const useAssetLibrary = () => {
 
       // Upload thumbnail if available
       let thumbnailUrl = null;
+      let thumbnailSize: number | undefined = undefined;
       if (screenshot) {
         // Fetch screenshot blob - this is an external URL fetch, but we'll keep it simple
         const response = await fetch(screenshot);
         const blob = await response.blob();
+        thumbnailSize = blob.size;
         const { signedUrl: thumbnailSignedUrl, acl: thumbnailAcl } =
           await getThumbnailUploadUrl({
             fileName: `thumbnails/${key.replace(/\.(glb|gltf)$/, ".jpg")}`,
@@ -289,6 +291,7 @@ export const useAssetLibrary = () => {
             : "glb"
           : previewFile.type,
         thumbnail: thumbnailUrl,
+        thumbnailSize: thumbnailSize,
         metadata: metadataWithObservation,
         fileSize: previewFile.size,
         organizationId: orgId,

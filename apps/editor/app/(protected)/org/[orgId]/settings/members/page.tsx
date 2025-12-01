@@ -649,20 +649,20 @@ const SettingsMembersPage = () => {
                                   <MenuItem value="owner">Owner</MenuItem>
                                 </Select>
                               ) : (
-                                <Chip
-                                  label={formatRole(member.role)}
-                                  size="small"
-                                  sx={(theme) => {
-                                    const color = getRoleColor(member.role, theme);
-                                    return {
-                                      backgroundColor: alpha(color, 0.15),
-                                      color: color,
-                                      border: `1px solid ${alpha(color, 0.3)}`,
-                                      fontWeight: 500,
-                                      fontSize: "0.75rem",
-                                    };
-                                  }}
-                                />
+                              <Chip
+                                label={formatRole(member.role)}
+                                size="small"
+                                sx={(theme) => {
+                                  const color = getRoleColor(member.role, theme);
+                                  return {
+                                    backgroundColor: alpha(color, 0.15),
+                                    color: color,
+                                    border: `1px solid ${alpha(color, 0.3)}`,
+                                  fontWeight: 500,
+                                  fontSize: "0.75rem",
+                                  };
+                                }}
+                              />
                               )}
                             </TableCell>
                             <TableCell
@@ -690,21 +690,21 @@ const SettingsMembersPage = () => {
                               >
                                 {member.userId !== session?.user?.id && (
                                   <Box sx={{ display: "flex", gap: 0.5, justifyContent: "flex-end" }}>
-                                    <Tooltip title="Remove member">
-                                      <IconButton
-                                        size="small"
-                                        onClick={() => handleRemoveClick(member)}
-                                        sx={{
-                                          color: "error.main",
-                                          "&:hover": {
-                                            backgroundColor: (theme) =>
-                                              alpha(theme.palette.error.main, 0.1),
-                                          },
-                                        }}
-                                      >
-                                        <DeleteIcon fontSize="small" />
-                                      </IconButton>
-                                    </Tooltip>
+                                  <Tooltip title="Remove member">
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleRemoveClick(member)}
+                                      sx={{
+                                        color: "error.main",
+                                        "&:hover": {
+                                          backgroundColor: (theme) =>
+                                            alpha(theme.palette.error.main, 0.1),
+                                        },
+                                      }}
+                                    >
+                                      <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
                                   </Box>
                                 )}
                               </TableCell>
@@ -822,25 +822,25 @@ const SettingsMembersPage = () => {
                                 }}
                               >
                                 <Box sx={{ display: "flex", gap: 0.5, alignItems: "center", justifyContent: "flex-end" }}>
-                                  <Chip
-                                    label="Pending"
-                                    size="small"
-                                    sx={{
-                                      backgroundColor: (theme) =>
-                                        alpha(
-                                          theme.palette.warning?.main || "#f59e0b",
-                                          0.15
-                                        ),
-                                      color: (theme) =>
+                                <Chip
+                                  label="Pending"
+                                  size="small"
+                                  sx={{
+                                    backgroundColor: (theme) =>
+                                      alpha(
                                         theme.palette.warning?.main || "#f59e0b",
-                                      border: (theme) =>
-                                        `1px solid ${alpha(
-                                          theme.palette.warning?.main || "#f59e0b",
-                                          0.3
-                                        )}`,
-                                      fontSize: "0.75rem",
-                                    }}
-                                  />
+                                        0.15
+                                      ),
+                                    color: (theme) =>
+                                      theme.palette.warning?.main || "#f59e0b",
+                                    border: (theme) =>
+                                      `1px solid ${alpha(
+                                        theme.palette.warning?.main || "#f59e0b",
+                                        0.3
+                                      )}`,
+                                    fontSize: "0.75rem",
+                                  }}
+                                />
                                   <Tooltip title="Cancel invitation">
                                     <IconButton
                                       size="small"
@@ -942,14 +942,14 @@ const SettingsMembersPage = () => {
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <SettingContainer sx={{ borderBottom: "none", padding: 0 }}>
               <SettingLabel>Email Address *</SettingLabel>
-              <TextField
-                autoFocus
-                type="email"
-                fullWidth
+          <TextField
+            autoFocus
+            type="email"
+            fullWidth
                 size="small"
-                variant="outlined"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
+            variant="outlined"
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="Enter email address"
                 sx={textFieldStyles}
               />
@@ -958,39 +958,39 @@ const SettingsMembersPage = () => {
             <SettingContainer sx={{ borderBottom: "none", padding: 0 }}>
               <SettingLabel>Role *</SettingLabel>
               <Select
-                fullWidth
+            fullWidth
                 size="small"
-                value={inviteRole}
-                onChange={(e) => setInviteRole(e.target.value)}
+            value={inviteRole}
+            onChange={(e) => setInviteRole(e.target.value)}
                 sx={textFieldStyles}
-              >
-                <MenuItem value="member">Member</MenuItem>
-                <MenuItem value="admin">Admin</MenuItem>
-                {isOwner && <MenuItem value="owner">Owner</MenuItem>}
+          >
+            <MenuItem value="member">Member</MenuItem>
+            <MenuItem value="admin">Admin</MenuItem>
+            {isOwner && <MenuItem value="owner">Owner</MenuItem>}
               </Select>
             </SettingContainer>
 
             {/* Actions */}
             <Box sx={{ display: "flex", gap: 2, mt: 2, justifyContent: "flex-end" }}>
-              <Button
+          <Button
                 variant="outlined"
-                onClick={() => {
-                  setInviteDialogOpen(false);
-                  setInviteEmail("");
-                  setInviteRole("member");
-                }}
-                disabled={inviting}
+            onClick={() => {
+              setInviteDialogOpen(false);
+              setInviteEmail("");
+              setInviteRole("member");
+            }}
+            disabled={inviting}
                 sx={(theme) => ({
                   borderRadius: `${theme.shape.borderRadius}px`,
                   textTransform: "none",
                 })}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
                 onClick={handleInvite}
-                disabled={!inviteEmail || inviting}
+            disabled={!inviteEmail || inviting}
                 sx={(theme) => ({
                   borderRadius: `${theme.shape.borderRadius}px`,
                   textTransform: "none",
@@ -1012,7 +1012,7 @@ const SettingsMembersPage = () => {
                     opacity: 0.5,
                   },
                 })}
-              >
+          >
                 {inviting ? (
                   <>
                     <CircularProgress size={16} sx={{ mr: 1 }} />
@@ -1021,7 +1021,7 @@ const SettingsMembersPage = () => {
                 ) : (
                   "Send Invitation"
                 )}
-              </Button>
+          </Button>
             </Box>
           </Box>
         </Box>
@@ -1093,34 +1093,34 @@ const SettingsMembersPage = () => {
           {/* Content */}
           <Box sx={{ mb: 3 }}>
             <Typography sx={{ fontSize: "0.75rem", color: "text.primary" }}>
-              Are you sure you want to remove{" "}
-              <strong>
-                {memberToRemove?.user.name || memberToRemove?.user.email}
-              </strong>{" "}
-              from this organization? This action cannot be undone.
-            </Typography>
+            Are you sure you want to remove{" "}
+            <strong>
+              {memberToRemove?.user.name || memberToRemove?.user.email}
+            </strong>{" "}
+            from this organization? This action cannot be undone.
+          </Typography>
           </Box>
 
           {/* Actions */}
           <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
-            <Button
+          <Button
               variant="outlined"
-              onClick={() => {
-                setRemoveDialogOpen(false);
-                setMemberToRemove(null);
-              }}
-              disabled={removing}
+            onClick={() => {
+              setRemoveDialogOpen(false);
+              setMemberToRemove(null);
+            }}
+            disabled={removing}
               sx={(theme) => ({
                 borderRadius: `${theme.shape.borderRadius}px`,
                 textTransform: "none",
               })}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleRemoveConfirm}
-              variant="contained"
-              disabled={removing}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleRemoveConfirm}
+            variant="contained"
+            disabled={removing}
               sx={(theme) => ({
                 borderRadius: `${theme.shape.borderRadius}px`,
                 textTransform: "none",
@@ -1151,7 +1151,7 @@ const SettingsMembersPage = () => {
               ) : (
                 "Remove"
               )}
-            </Button>
+          </Button>
           </Box>
         </Box>
       </Dialog>

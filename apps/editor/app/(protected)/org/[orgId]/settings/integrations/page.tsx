@@ -436,7 +436,7 @@ const IntegrationsPage = () => {
             <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, fontSize: "1rem" }}>
               Cesium Ion Integration
             </Typography>
-            {integrations.length === 0 ? (
+              {integrations.length === 0 ? (
                 <Box
                   sx={{
                     textAlign: "center",
@@ -850,7 +850,7 @@ const IntegrationsPage = () => {
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Delete Integration
+          Delete Integration
             </Typography>
             <IconButton
               size="small"
@@ -871,31 +871,31 @@ const IntegrationsPage = () => {
           {/* Content */}
           <Box sx={{ mb: 3 }}>
             <Typography sx={{ fontSize: "0.75rem", color: "text.primary" }}>
-              Are you sure you want to delete the integration &quot;
-              {selectedIntegration?.label}&quot;? This action cannot be undone.
-            </Typography>
+            Are you sure you want to delete the integration &quot;
+            {selectedIntegration?.label}&quot;? This action cannot be undone.
+          </Typography>
           </Box>
 
           {/* Actions */}
           <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
-            <Button
+          <Button
               variant="outlined"
-              onClick={handleCloseDeleteDialog}
-              disabled={saving}
+            onClick={handleCloseDeleteDialog}
+            disabled={saving}
               sx={(theme) => ({
                 borderRadius: `${theme.shape.borderRadius}px`,
                 textTransform: "none",
               })}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleDeleteIntegration}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteIntegration}
               variant="contained"
-              disabled={saving}
+            disabled={saving}
               sx={(theme) => ({
                 borderRadius: `${theme.shape.borderRadius}px`,
-                textTransform: "none",
+              textTransform: "none",
                 fontWeight: 500,
                 backgroundColor:
                   theme.palette.mode === "dark"
@@ -914,7 +914,7 @@ const IntegrationsPage = () => {
                   opacity: 0.5,
                 },
               })}
-            >
+          >
               {saving ? (
                 <>
                   <CircularProgress size={16} sx={{ mr: 1 }} />
@@ -923,7 +923,7 @@ const IntegrationsPage = () => {
               ) : (
                 "Delete"
               )}
-            </Button>
+          </Button>
           </Box>
         </Box>
       </Dialog>

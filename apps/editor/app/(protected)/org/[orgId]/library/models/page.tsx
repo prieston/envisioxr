@@ -36,10 +36,12 @@ import {
 import { UploadModelDrawer } from "./components/UploadModelDrawer";
 import { deleteModel, updateModelMetadata } from "@/app/utils/api";
 import useModels from "@/app/hooks/useModels";
+import { useOrgId } from "@/app/hooks/useOrgId";
 
 const LibraryModelsPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const orgId = useOrgId();
   const {
     models: fetchedModels,
     loadingModels,
@@ -65,9 +67,11 @@ const LibraryModelsPage = () => {
     if (searchParams.get("upload") === "true" && !uploadDrawerOpen) {
       setUploadDrawerOpen(true);
       // Remove the query param from URL
-      router.replace("/library/models");
+      if (orgId) {
+        router.replace(`/org/${orgId}/library/models`);
+      }
     }
-  }, [searchParams, uploadDrawerOpen, router]);
+  }, [searchParams, uploadDrawerOpen, router, orgId]);
 
   // Memoize mapped models to prevent unnecessary re-renders
   const mappedModels = useMemo(() => {
@@ -83,6 +87,7 @@ const LibraryModelsPage = () => {
         description: model.description,
         metadata: model.metadata as Record<string, string> | undefined,
         assetType: model.assetType || "model", // Default to "model" if null
+        fileSize: model.fileSize ? (typeof model.fileSize === 'bigint' ? Number(model.fileSize) : model.fileSize) : null,
       }));
   }, [fetchedModels]);
 

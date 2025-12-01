@@ -25,15 +25,15 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           height: 260,
           position: "relative",
           overflow: "hidden",
-          cursor: "pointer",
+        cursor: "pointer",
           backgroundColor: "#161B20",
           border: "1px solid rgba(255, 255, 255, 0.05)",
-          borderRadius: "4px",
-          boxShadow: "none",
+        borderRadius: "4px",
+        boxShadow: "none",
           display: "flex",
           flexDirection: "column",
-          transition: "all 0.2s ease",
-          "&:hover": {
+        transition: "all 0.2s ease",
+        "&:hover": {
             borderColor: alpha(theme.palette.primary.main, 0.5),
             backgroundColor: alpha(theme.palette.primary.main, 0.04),
           },
@@ -45,26 +45,26 @@ export const AssetCard: React.FC<AssetCardProps> = ({
       }}
     >
       {/* Thumbnail */}
-      <Box
-        sx={{
+        <Box
+          sx={{
           width: "100%",
           height: "140px",
           backgroundColor: "rgba(107, 156, 216, 0.1)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           position: "relative",
           overflow: "hidden",
           flexShrink: 0,
-        }}
-      >
+          }}
+        >
         {asset.thumbnailUrl || asset.thumbnail ? (
           <Box
             component="img"
             src={asset.thumbnailUrl || asset.thumbnail}
             alt={asset.name || asset.originalFilename}
             loading="lazy"
-            sx={{
+              sx={{
               width: "100%",
               height: "100%",
               objectFit: "cover",
@@ -79,29 +79,29 @@ export const AssetCard: React.FC<AssetCardProps> = ({
             {asset.assetType === "cesiumIonAsset" ? (
               <Public
                 sx={{ fontSize: 48, color: "#6B9CD8", opacity: 0.5, zIndex: 0 }}
-              />
-            ) : (
-              <ViewInAr
+            />
+          ) : (
+            <ViewInAr
                 sx={{ fontSize: 48, color: "#6B9CD8", opacity: 0.5, zIndex: 0 }}
-              />
+            />
             )}
           </>
-        )}
-      </Box>
+          )}
+        </Box>
 
       {/* Content */}
       <CardContent
-        sx={{
+          sx={{
           flex: 1,
-          display: "flex",
-          flexDirection: "column",
+            display: "flex",
+            flexDirection: "column",
           p: 2,
           pb: 1.5,
-        }}
-      >
-        <Typography
+          }}
+        >
+          <Typography
           variant="h6"
-          sx={{
+            sx={{
             fontWeight: 600,
             fontSize: "14px",
             mb: 0.5,
@@ -112,15 +112,15 @@ export const AssetCard: React.FC<AssetCardProps> = ({
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
             wordBreak: "break-all",
-          }}
-        >
-          {asset.name || asset.originalFilename}
-        </Typography>
+            }}
+          >
+            {asset.name || asset.originalFilename}
+          </Typography>
         <Typography
           variant="body2"
-          sx={{
+              sx={{
             color: "rgba(255, 255, 255, 0.6)",
-            fontSize: "0.75rem",
+                  fontSize: "0.75rem",
             mb: 1.5,
             display: "-webkit-box",
             WebkitLineClamp: 2,

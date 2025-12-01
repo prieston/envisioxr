@@ -1,10 +1,29 @@
-import React from "react";
-import { Box, Typography, Button, IconButton, TextField, LinearProgress, Alert, Tooltip } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Typography, Button, IconButton, TextField, LinearProgress, Alert, Tooltip, Menu, MenuItem } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Delete, Edit, Save, Close, AddCircleOutline, CameraAlt, Refresh, LocationOn } from "@mui/icons-material";
+import { Delete, Edit, Save, Close, AddCircleOutline, CameraAlt, Refresh, LocationOn, MoreVert } from "@mui/icons-material";
 import { MetadataTable, type MetadataRow } from "../../../table";
 import type { LibraryAsset } from "../MyLibraryTab";
 import { textFieldStyles } from "../../../../styles/inputStyles";
+
+// Format file size from bytes to human-readable string
+const formatFileSize = (bytes: number | null | undefined): string => {
+  if (!bytes || bytes === 0) {
+    return "";
+  }
+
+  // Convert bytes to GB
+  const gb = bytes / (1024 * 1024 * 1024);
+
+  // If less than 0.01 GB (about 10 MB), show in MB
+  if (gb < 0.01) {
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(2)} MB`;
+  }
+
+  // Otherwise show in GB
+  return `${gb.toFixed(2)} GB`;
+};
 
 interface AssetDetailViewProps {
   asset: LibraryAsset;
@@ -47,6 +66,27 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
   canUpdate = true,
   showAddToScene = true,
 }) => {
+  // Menu state
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+
+  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchor(e.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
+
+  const handleEditClick = () => {
+    handleMenuClose();
+    onEditClick();
+  };
+
+  const handleRemoveClick = () => {
+    handleMenuClose();
+    onDeleteClick();
+  };
+
   // Check tiling status for Cesium Ion assets
   const metadata = asset.metadata as Record<string, any> | undefined;
   const tilingStatus = metadata?.tilingStatus as string | undefined;
@@ -141,7 +181,26 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
         })}
       >
         {/* Asset Info */}
-        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <Box sx={{ display: "flex", gap: 2, mb: 2, position: "relative" }}>
+          {/* Three-Dot Menu Button - Top Right */}
+          <IconButton
+            onClick={handleMenuOpen}
+            size="small"
+            sx={(theme) => ({
+              position: "absolute",
+              top: 0,
+              right: 0,
+              color: theme.palette.text.secondary,
+              padding: "4px",
+              zIndex: 1,
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                color: theme.palette.text.primary,
+              },
+            })}
+          >
+            <MoreVert fontSize="small" />
+          </IconButton>
           {/* Thumbnail */}
           <Box
             sx={(theme) => ({
@@ -300,7 +359,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
                     color: "text.secondary",
                   }}
                 >
-                  {asset.fileType}
+                  {asset.fileType}{asset.fileSize ? ` • ${formatFileSize(asset.fileSize)}` : ""}
                 </Typography>
               </>
             )}
@@ -327,6 +386,58 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
           />
         </Box>
       </Box>
+
+      {/* Three-Dot Menu */}
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        sx={{
+          "& .MuiPaper-root": {
+            backgroundColor: "#14171A",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "none",
+            borderRadius: "4px",
+            minWidth: "120px",
+          },
+        }}
+      >
+        <MenuItem
+          onClick={handleEditClick}
+          sx={{
+            fontSize: "0.75rem",
+            color: "text.primary",
+            padding: "8px 16px",
+            "&:hover": {
+              backgroundColor: "rgba(107, 156, 216, 0.12)",
+            },
+          }}
+        >
+          Edit
+        </MenuItem>
+        <MenuItem
+          onClick={handleRemoveClick}
+          sx={{
+            fontSize: "0.75rem",
+            color: "text.primary",
+            padding: "8px 16px",
+            "&:hover": {
+              backgroundColor: "rgba(239, 68, 68, 0.12)",
+              color: "#ef4444",
+            },
+          }}
+        >
+          Remove
+        </MenuItem>
+      </Menu>
 
       {/* Tiling Status Banner */}
       {isCesiumIonAsset && isTilingInProgress && (
@@ -485,37 +596,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
 
         <Box sx={{ flex: 1 }} />
 
-        {!isEditing ? (
-          <Button
-            variant="contained"
-            startIcon={<Edit />}
-            onClick={onEditClick}
-            size="small"
-            sx={(theme) => ({
-              borderRadius: `${theme.shape.borderRadius}px`,
-              textTransform: "none",
-              fontWeight: 500,
-              fontSize: "0.75rem",
-              backgroundColor:
-                theme.palette.mode === "dark"
-                  ? "#161B20"
-                  : theme.palette.background.paper,
-              color: theme.palette.primary.main,
-              border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-              padding: "6px 16px",
-              boxShadow: "none",
-              "&:hover": {
-                backgroundColor:
-                  theme.palette.mode === "dark"
-                    ? "#1a1f26"
-                    : alpha(theme.palette.primary.main, 0.05),
-                borderColor: alpha(theme.palette.primary.main, 0.5),
-              },
-            })}
-          >
-            Edit
-          </Button>
-        ) : (
+        {isEditing && (
           <>
             <Button
               variant="contained"
@@ -562,35 +643,6 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
             </Button>
           </>
         )}
-        <Button
-          variant="contained"
-          startIcon={<Delete />}
-          onClick={onDeleteClick}
-          size="small"
-          sx={(theme) => ({
-            borderRadius: `${theme.shape.borderRadius}px`,
-            textTransform: "none",
-            fontWeight: 500,
-            fontSize: "0.75rem",
-            backgroundColor:
-              theme.palette.mode === "dark"
-                ? "#161B20"
-                : theme.palette.background.paper,
-            color: theme.palette.error.main,
-            border: `1px solid ${alpha(theme.palette.error.main, 0.3)}`,
-            padding: "6px 16px",
-            boxShadow: "none",
-            "&:hover": {
-              backgroundColor:
-                theme.palette.mode === "dark"
-                  ? "#1a1f26"
-                  : alpha(theme.palette.error.main, 0.05),
-              borderColor: alpha(theme.palette.error.main, 0.5),
-            },
-          })}
-        >
-          Delete
-        </Button>
       </Box>
     </>
   );

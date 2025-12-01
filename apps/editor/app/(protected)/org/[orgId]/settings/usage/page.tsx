@@ -58,20 +58,20 @@ const UsageMetric: React.FC<UsageMetricProps> = ({
 
   return (
     <PageCard>
-      <Box sx={{ mb: 2 }}>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            mb: 1,
-          }}
-        >
-          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-            {label}
-          </Typography>
-          {isUnlimited ? (
-            <Chip
+        <Box sx={{ mb: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 1,
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              {label}
+            </Typography>
+            {isUnlimited ? (
+              <Chip
               icon={
                 <CheckIcon
                   sx={{
@@ -79,22 +79,22 @@ const UsageMetric: React.FC<UsageMetricProps> = ({
                   }}
                 />
               }
-              label="Unlimited"
-              size="small"
+                label="Unlimited"
+                size="small"
               sx={(theme) => ({
-                height: 20,
+                  height: 20,
                 fontSize: "0.688rem",
                 backgroundColor: alpha(theme.palette.primary.main, 0.15),
                 color: theme.palette.primary.main,
                 border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
                 fontWeight: 500,
-                "& .MuiChip-icon": {
+                  "& .MuiChip-icon": {
                   color: theme.palette.primary.main,
-                },
+                  },
               })}
-            />
-          ) : isOverLimit ? (
-            <Chip
+              />
+            ) : isOverLimit ? (
+              <Chip
               icon={
                 <WarningIcon
                   sx={{
@@ -103,10 +103,10 @@ const UsageMetric: React.FC<UsageMetricProps> = ({
                   }}
                 />
               }
-              label="Over Limit"
-              size="small"
+                label="Over Limit"
+                size="small"
               sx={(theme) => ({
-                height: 20,
+                  height: 20,
                 fontSize: "0.688rem",
                 backgroundColor: alpha(
                   theme.palette.mode === "dark" ? "#ff5656" : "#ef4444",
@@ -118,13 +118,13 @@ const UsageMetric: React.FC<UsageMetricProps> = ({
                   0.3
                 )}`,
                 fontWeight: 500,
-                "& .MuiChip-icon": {
+                  "& .MuiChip-icon": {
                   color: theme.palette.mode === "dark" ? "#ff5656" : "#ef4444",
-                },
+                  },
               })}
-            />
-          ) : isNearLimit ? (
-            <Chip
+              />
+            ) : isNearLimit ? (
+              <Chip
               icon={
                 <WarningIcon
                   sx={{
@@ -133,10 +133,10 @@ const UsageMetric: React.FC<UsageMetricProps> = ({
                   }}
                 />
               }
-              label="Near Limit"
-              size="small"
+                label="Near Limit"
+                size="small"
               sx={(theme) => ({
-                height: 20,
+                  height: 20,
                 fontSize: "0.688rem",
                 backgroundColor: alpha(
                   theme.palette.mode === "dark" ? "#ff5656" : "#ef4444",
@@ -148,67 +148,67 @@ const UsageMetric: React.FC<UsageMetricProps> = ({
                   0.3
                 )}`,
                 fontWeight: 500,
-                "& .MuiChip-icon": {
+                  "& .MuiChip-icon": {
                   color: theme.palette.mode === "dark" ? "#ff5656" : "#ef4444",
-                },
+                  },
               })}
-            />
-          ) : null}
+              />
+            ) : null}
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: 1,
+              mb: 1,
+            }}
+          >
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+              {displayValue(used)}
+            </Typography>
+            {!isUnlimited && (
+              <>
+                <Typography variant="body2" color="text.secondary">
+                  /
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {displayValue(limit)}
+                </Typography>
+              </>
+            )}
+          </Box>
         </Box>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "baseline",
-            gap: 1,
-            mb: 1,
-          }}
-        >
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            {displayValue(used)}
-          </Typography>
-          {!isUnlimited && (
-            <>
-              <Typography variant="body2" color="text.secondary">
-                /
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {displayValue(limit)}
-              </Typography>
-            </>
-          )}
-        </Box>
-      </Box>
-      {!isUnlimited && (
-        <LinearProgress
-          variant="determinate"
-          value={Math.min(percentage, 100)}
+        {!isUnlimited && (
+          <LinearProgress
+            variant="determinate"
+            value={Math.min(percentage, 100)}
           sx={(theme) => ({
-            height: 8,
-            borderRadius: 1,
+              height: 8,
+              borderRadius: 1,
             backgroundColor: alpha(theme.palette.primary.main, 0.1),
-            "& .MuiLinearProgress-bar": {
+              "& .MuiLinearProgress-bar": {
               backgroundColor: isOverLimit
                 ? theme.palette.mode === "dark"
                   ? "#ff5656"
                   : "#ef4444"
-                : isNearLimit
+                    : isNearLimit
                   ? theme.palette.mode === "dark"
                     ? "#ff5656"
                     : "#ef4444"
-                  : theme.palette.primary.main,
-            },
+                    : theme.palette.primary.main,
+              },
           })}
-        />
-      )}
-      {isUnlimited && (
-        <Box
+          />
+        )}
+        {isUnlimited && (
+          <Box
           sx={(theme) => ({
-            height: 8,
-            borderRadius: 1,
+              height: 8,
+              borderRadius: 1,
             backgroundColor: alpha(theme.palette.primary.main, 0.1),
           })}
-        />
-      )}
+          />
+        )}
     </PageCard>
   );
 };
@@ -231,14 +231,14 @@ const SettingsUsagePage = () => {
   );
 
   if (isLoading) {
-    return (
-      <>
-        <AnimatedBackground>
-          <GlowingContainer>
-            <GlowingSpan index={1} />
-            <GlowingSpan index={2} />
-            <GlowingSpan index={3} />
-          </GlowingContainer>
+  return (
+    <>
+      <AnimatedBackground>
+        <GlowingContainer>
+          <GlowingSpan index={1} />
+          <GlowingSpan index={2} />
+          <GlowingSpan index={3} />
+        </GlowingContainer>
         </AnimatedBackground>
         <Page>
           <PageContent>
@@ -262,11 +262,11 @@ const SettingsUsagePage = () => {
     return (
       <>
         <AnimatedBackground>
-          <GlowingContainer>
-            <GlowingSpan index={1} />
-            <GlowingSpan index={2} />
-            <GlowingSpan index={3} />
-          </GlowingContainer>
+        <GlowingContainer>
+          <GlowingSpan index={1} />
+          <GlowingSpan index={2} />
+          <GlowingSpan index={3} />
+        </GlowingContainer>
         </AnimatedBackground>
         <Page>
           <PageHeader title="Usage" />
@@ -308,27 +308,27 @@ const SettingsUsagePage = () => {
           <Box sx={{ mb: 3 }}>
             <PageCard>
             <Box
-              sx={{
+        sx={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
               }}
             >
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  Current Plan: {plan.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {plan.code === "free"
-                    ? "Solo Workspace"
-                    : plan.code === "pro"
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                    Current Plan: {plan.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {plan.code === "free"
+                      ? "Solo Workspace"
+                      : plan.code === "pro"
                       ? "Organisation Workspace"
                       : "Enterprise"}
-                </Typography>
-              </Box>
-              <Chip
-                label={plan.code === "free" ? "Free Plan" : "Active"}
-                size="small"
+            </Typography>
+                </Box>
+            <Chip
+                  label={plan.code === "free" ? "Free Plan" : "Active"}
+              size="small"
                 sx={(theme) => ({
                   backgroundColor:
                     plan.code === "free"
@@ -347,8 +347,8 @@ const SettingsUsagePage = () => {
                   fontSize: "0.688rem",
                   height: 20,
                 })}
-              />
-            </Box>
+                />
+              </Box>
             </PageCard>
           </Box>
 
@@ -431,25 +431,25 @@ const SettingsUsagePage = () => {
           {plan.code === "free" && (
             <Box sx={{ mt: 4 }}>
               <PageCard>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-                    Need More?
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Upgrade to Organisation Workspace for unlimited projects,
-                    members, and advanced features.
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained"
-                  onClick={() => router.push(`/org/${orgId}/billing`)}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+              }}
+                >
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                      Need More?
+          </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Upgrade to Organisation Workspace for unlimited projects,
+                      members, and advanced features.
+          </Typography>
+        </Box>
+                  <Button
+                    variant="contained"
+                    onClick={() => router.push(`/org/${orgId}/billing`)}
                   sx={(theme) => ({
                     borderRadius: `${theme.shape.borderRadius}px`,
                     textTransform: "none",
@@ -471,10 +471,10 @@ const SettingsUsagePage = () => {
                       borderColor: alpha(theme.palette.primary.main, 0.5),
                     },
                   })}
-                >
-                  Upgrade
-                </Button>
-              </Box>
+                  >
+                    Upgrade
+                  </Button>
+      </Box>
               </PageCard>
             </Box>
           )}

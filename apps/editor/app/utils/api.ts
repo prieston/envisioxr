@@ -380,11 +380,12 @@ export async function updateProject(
 
 export async function updateProjectThumbnail(
   projectId: string,
-  thumbnailUrl: string | null
+  thumbnailUrl: string | null,
+  thumbnailSize?: number // Thumbnail file size in bytes
 ): Promise<{ project: Project }> {
   return apiRequest<{ project: Project }>(`/api/projects/${projectId}`, {
     method: "PATCH",
-    body: JSON.stringify({ thumbnail: thumbnailUrl }),
+    body: JSON.stringify({ thumbnail: thumbnailUrl, thumbnailSize }),
   });
 }
 
@@ -529,6 +530,7 @@ export async function updateModelMetadata(
     description?: string;
     metadata?: Asset["metadata"];
     thumbnail?: string;
+    thumbnailSize?: number; // Thumbnail file size in bytes
   }
 ): Promise<{ asset: Asset }> {
   return apiRequest<{ asset: Asset }>(`/api/models/metadata`, {
@@ -629,6 +631,7 @@ export async function createModelAsset(data: {
   name?: string;
   fileType: string;
   thumbnail?: string | null;
+  thumbnailSize?: number; // Thumbnail file size in bytes
   metadata?: Record<string, unknown>;
   description?: string;
   organizationId?: string;

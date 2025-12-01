@@ -36,8 +36,8 @@ export default async function HomePage() {
 
   // If user only has personal orgs AND no pending invites, show blocking screen
   if (hasOnlyPersonalOrgs && !hasPendingInvites) {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
       select: { name: true },
     });
 

@@ -93,7 +93,12 @@ export async function GET(request: NextRequest, { params }: ProjectParams) {
     });
 
     if (canView) {
-      return NextResponse.json({ project });
+      // Convert BigInt thumbnailSize to number for JSON serialization
+      const serializedProject = {
+        ...project,
+        thumbnailSize: project.thumbnailSize ? Number(project.thumbnailSize) : null,
+      };
+      return NextResponse.json({ project: serializedProject });
     }
 
     // For unpublished projects, require a valid session and that the user is a member of the project's organization.
@@ -167,7 +172,14 @@ export async function POST(request: NextRequest, { params }: ProjectParams) {
         updatedAt: new Date(),
       },
     });
-    return NextResponse.json({ project: updatedProject });
+
+    // Convert BigInt thumbnailSize to number for JSON serialization
+    const serializedProject = {
+      ...updatedProject,
+      thumbnailSize: updatedProject.thumbnailSize ? Number(updatedProject.thumbnailSize) : null,
+    };
+
+    return NextResponse.json({ project: serializedProject });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
@@ -255,7 +267,14 @@ export async function PUT(request: NextRequest, { params }: ProjectParams) {
       where: { id: projectId },
       data: updateData,
     });
-    return NextResponse.json({ project: updatedProject });
+
+    // Convert BigInt thumbnailSize to number for JSON serialization
+    const serializedProject = {
+      ...updatedProject,
+      thumbnailSize: updatedProject.thumbnailSize ? Number(updatedProject.thumbnailSize) : null,
+    };
+
+    return NextResponse.json({ project: serializedProject });
   } catch (error) {
     return NextResponse.json(
       {
@@ -303,6 +322,7 @@ export async function PATCH(request: NextRequest, { params }: ProjectParams) {
       isPublic?: boolean;
       publishedUrl?: string;
       thumbnail?: string | null;
+      thumbnailSize?: bigint | null;
     } = {};
 
     // Handle publish/unpublish toggle
@@ -327,6 +347,14 @@ export async function PATCH(request: NextRequest, { params }: ProjectParams) {
     // Handle thumbnail update
     if (body.thumbnail !== undefined) {
       updateData.thumbnail = body.thumbnail;
+      // If thumbnailSize is explicitly provided, include it in the update
+      if (body.thumbnailSize !== undefined) {
+        updateData.thumbnailSize = body.thumbnailSize ? BigInt(body.thumbnailSize) : null;
+      }
+      // If thumbnail is being removed (set to null), also remove thumbnailSize
+      if (body.thumbnail === null && body.thumbnailSize === undefined) {
+        updateData.thumbnailSize = null;
+      }
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -340,7 +368,14 @@ export async function PATCH(request: NextRequest, { params }: ProjectParams) {
       where: { id: projectId },
       data: updateData,
     });
-    return NextResponse.json({ project: updatedProject });
+
+    // Convert BigInt thumbnailSize to number for JSON serialization
+    const serializedProject = {
+      ...updatedProject,
+      thumbnailSize: updatedProject.thumbnailSize ? Number(updatedProject.thumbnailSize) : null,
+    };
+
+    return NextResponse.json({ project: serializedProject });
   } catch (error) {
     console.error("PATCH /api/projects/[projectId] error:", error);
     return NextResponse.json(

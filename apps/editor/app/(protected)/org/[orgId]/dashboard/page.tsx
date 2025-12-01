@@ -24,7 +24,6 @@ import { QuickActions } from "./components/QuickActions";
 import { RecentActivity } from "./components/RecentActivity";
 import { UsageSummary } from "./components/UsageSummary";
 import { RecentProjects } from "./components/RecentProjects";
-import { Changelog } from "./components/Changelog";
 
 interface DashboardMetrics {
   projects: number;
@@ -138,19 +137,6 @@ const DashboardPage = () => {
     };
   });
 
-  // Mock announcements
-  const announcements = [
-    {
-      title: "Viewshed 2.0 Released",
-    },
-    {
-      title: "Cesium Terrain Clipping",
-    },
-    {
-      title: "Performance Improvements",
-    },
-  ];
-
   const recentProjects = projects.slice(0, 6);
 
   return (
@@ -192,7 +178,7 @@ const DashboardPage = () => {
           {/* Row 2: Quick Actions */}
           <QuickActions />
 
-          {/* Two Column Layout: Left (Activity + Usage) | Right (Projects + Changelog) */}
+          {/* Two Column Layout: Left (Activity + Usage) | Right (Projects) */}
           <Grid container spacing={3}>
             {/* Left Column */}
             <Grid item xs={12} md={5}>
@@ -200,13 +186,12 @@ const DashboardPage = () => {
                 activities={recentActivity}
                 loading={loadingActivity}
               />
-              <UsageSummary storageUsed={metrics.storageUsed} />
+              <UsageSummary />
             </Grid>
 
             {/* Right Column */}
             <Grid item xs={12} md={7}>
               <RecentProjects projects={recentProjects} loading={loadingProjects} />
-              <Changelog announcements={announcements} />
             </Grid>
           </Grid>
         </PageContent>

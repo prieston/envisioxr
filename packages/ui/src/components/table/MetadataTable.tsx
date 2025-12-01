@@ -195,7 +195,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 ) : (
                   <Typography sx={{ fontSize: "0.75rem" }}>
                     {typeof row.value === "object" && row.value !== null
-                      ? JSON.stringify(row.value, null, 2)
+                    ? JSON.stringify(row.value, null, 2)
                       : String(row.value ?? "")}
                   </Typography>
                 )}

@@ -60,7 +60,7 @@ export const QuickActions: React.FC = () => {
             mb: 2,
             fontWeight: 600,
             color: "#FFFFFF",
-            fontSize: "18px",
+            fontSize: "1rem",
           }}
         >
           Quick Actions

@@ -169,6 +169,7 @@ export async function POST(request: NextRequest) {
       name,
       fileType,
       thumbnail,
+      thumbnailSize, // Thumbnail file size in bytes
       metadata,
       assetType,
       cesiumAssetId,
@@ -262,6 +263,7 @@ export async function POST(request: NextRequest) {
           name,
           description: description || null,
           thumbnail: thumbnail || null,
+          thumbnailSize: thumbnailSize ? BigInt(thumbnailSize) : null,
           cesiumAssetId,
           cesiumApiKey: finalCesiumApiKey,
           metadata: metadata || {},
@@ -339,6 +341,7 @@ export async function POST(request: NextRequest) {
         description: description || null,
         fileType,
         thumbnail: thumbnail || null,
+        thumbnailSize: thumbnailSize ? BigInt(thumbnailSize) : null,
         metadata: metadataObject,
         fileSize: fileSize ? BigInt(fileSize) : null,
       },
