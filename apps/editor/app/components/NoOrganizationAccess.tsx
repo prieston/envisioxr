@@ -20,7 +20,7 @@ export default function NoOrganizationAccess({
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://klorad.com";
   const contactUrl = `${siteUrl}/contact`;
 
-  const handleRequestQuote = () => {
+  const handleBookDemo = () => {
     window.open(contactUrl, "_blank");
   };
 
@@ -143,7 +143,7 @@ export default function NoOrganizationAccess({
               • Ask your team to invite you if you already have an active organization, or
               <br />
               <br />
-              • Contact the Klorad team to request access or an enterprise quote. We&apos;ll work with you to set up the right solution for your organization&apos;s needs.
+              • Contact the Klorad team to request access or book a demo. We&apos;ll work with you to set up the right solution for your organization&apos;s needs.
             </Typography>
 
             <Box
@@ -193,7 +193,7 @@ export default function NoOrganizationAccess({
               >
                 <Button
                   variant="contained"
-                  onClick={handleRequestQuote}
+                  onClick={handleBookDemo}
                   sx={(theme) => ({
                     borderRadius: `${theme.shape.borderRadius}px`,
                     textTransform: "none",
@@ -216,7 +216,7 @@ export default function NoOrganizationAccess({
                     },
                   })}
                 >
-                  Request a Quote
+                  Book a demo
                 </Button>
                 <Button
                   variant="outlined"
