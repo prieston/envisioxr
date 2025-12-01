@@ -21,7 +21,9 @@ export default function NoOrganizationAccess({
   const contactUrl = `${siteUrl}/contact`;
 
   const handleBookDemo = () => {
-    window.open(contactUrl, "_blank");
+    if (typeof window !== "undefined") {
+      window.open(contactUrl, "_blank");
+    }
   };
 
   const handleContactUs = async () => {
@@ -39,15 +41,21 @@ export default function NoOrganizationAccess({
       });
 
       if (response.ok) {
-        alert("Your message has been sent. We'll get back to you soon!");
+        if (typeof window !== "undefined") {
+          alert("Your message has been sent. We'll get back to you soon!");
+        }
       } else {
         // Fallback to opening contact page if API fails
-        window.open(contactUrl, "_blank");
+        if (typeof window !== "undefined") {
+          window.open(contactUrl, "_blank");
+        }
       }
     } catch (error) {
       console.error("Failed to send support request:", error);
       // Fallback to opening contact page
-      window.open(contactUrl, "_blank");
+      if (typeof window !== "undefined") {
+        window.open(contactUrl, "_blank");
+      }
     }
   };
 
