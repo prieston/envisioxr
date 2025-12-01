@@ -11,13 +11,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Chip,
   IconButton,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Select,
   MenuItem,
@@ -26,7 +22,6 @@ import {
   Avatar,
   alpha,
   Tooltip,
-  Menu,
   Divider,
 } from "@mui/material";
 import { DeleteIcon, PersonAddIcon, UpgradeIcon, OpenInNewIcon, CancelIcon, CloseIcon } from "@klorad/ui";
