@@ -4,6 +4,7 @@
  */
 
 import { arrayToMatrix4, matrix4ToArray } from "./tileset-transform";
+import { waitForSceneReady } from "./viewer-config";
 
 /**
  * Extract transform from model metadata
@@ -175,7 +176,7 @@ export function extractTransformFromTileset(
  * @param transform - Transform data with coordinates
  * @param options - Camera positioning options
  */
-export function positionCameraForTileset(
+export async function positionCameraForTileset(
   viewer: any,
   Cesium: any,
   transform?: TilesetTransformData,
@@ -184,7 +185,24 @@ export function positionCameraForTileset(
     duration?: number;
     pitch?: number;
   }
-): void {
+): Promise<void> {
+  // Wait for scene to be ready before accessing viewer.camera
+  try {
+    await waitForSceneReady(viewer, 20, 50);
+  } catch (err) {
+    console.warn("[positionCameraForTileset] Scene not ready:", err);
+    return;
+  }
+
+  // Double-check viewer is still valid
+  if (
+    !viewer ||
+    (viewer.isDestroyed && viewer.isDestroyed()) ||
+    !viewer.scene
+  ) {
+    return;
+  }
+
   if (!transform?.longitude || !transform?.latitude) {
     // Default view if no transform
     viewer.camera.flyTo({

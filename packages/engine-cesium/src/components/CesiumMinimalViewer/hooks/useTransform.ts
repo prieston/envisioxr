@@ -71,7 +71,9 @@ export function useTransform({
       !hasAppliedInitialCamera.current &&
       isInitialLoad.current
     ) {
-      positionCameraBasic(viewer, Cesium, initialTransform);
+      positionCameraBasic(viewer, Cesium, initialTransform).catch((err) => {
+        console.warn("[useTransform] Error positioning camera:", err);
+      });
       hasAppliedInitialCamera.current = true;
       isInitialLoad.current = false;
     }

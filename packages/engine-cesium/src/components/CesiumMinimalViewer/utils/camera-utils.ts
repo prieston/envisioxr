@@ -1,13 +1,27 @@
 import type { CesiumModule } from "../types";
+import { waitForSceneReady } from "../../../utils/viewer-config";
 
 /**
  * Position camera to view a tileset based on transform
  */
-export function positionCameraBasic(
+export async function positionCameraBasic(
   viewer: any,
   Cesium: CesiumModule,
   initialTransform?: number[]
-) {
+): Promise<void> {
+  // Wait for scene to be ready before accessing viewer.camera
+  try {
+    await waitForSceneReady(viewer, 20, 50);
+  } catch (err) {
+    console.warn("[positionCameraBasic] Scene not ready:", err);
+    return;
+  }
+
+  // Double-check viewer is still valid
+  if (!viewer || (viewer.isDestroyed && viewer.isDestroyed()) || !viewer.scene) {
+    return;
+  }
+
   if (!initialTransform || initialTransform.length !== 16) {
     // Default view of Earth (San Francisco area)
     viewer.camera.flyTo({

@@ -168,3 +168,49 @@ export function setViewerResolutionScale(viewer: any): void {
     viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 1.25);
   }
 }
+
+/**
+ * Wait for the viewer scene to be fully initialized
+ * This is necessary because Cesium's viewer properties (like camera, zoomTo, etc.)
+ * internally access viewer.scene, which may not be ready immediately after viewer creation.
+ * @param viewer - Cesium Viewer instance
+ * @param maxAttempts - Maximum number of attempts to check (default: 10)
+ * @param delayMs - Delay between attempts in milliseconds (default: 100)
+ * @returns Promise that resolves when scene is ready, or rejects if scene doesn't become ready
+ */
+export function waitForSceneReady(
+  viewer: any,
+  maxAttempts = 10,
+  delayMs = 100
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+
+    const checkScene = () => {
+      attempts++;
+
+      // Check if viewer is destroyed
+      if (viewer.isDestroyed && viewer.isDestroyed()) {
+        reject(new Error("Viewer has been destroyed"));
+        return;
+      }
+
+      // Check if scene exists and is ready (has globe)
+      if (viewer.scene && viewer.scene.globe) {
+        resolve();
+        return;
+      }
+
+      // If max attempts reached, reject
+      if (attempts >= maxAttempts) {
+        reject(new Error("Scene not ready after maximum attempts"));
+        return;
+      }
+
+      // Try again after delay
+      setTimeout(checkScene, delayMs);
+    };
+
+    checkScene();
+  });
+}

@@ -119,7 +119,7 @@ const CesiumIonAssetsRenderer: React.FC<CesiumIonAssetsRendererProps> = ({
       // Wait for tileset to be ready, then re-apply transform
       // (Cesium sometimes resets it after ready)
       waitForTilesetReady(tileset)
-        .then(() => {
+        .then(async () => {
           // Re-apply transform after ready (same logic as CesiumMinimalViewer)
           if (asset.transform) {
             reapplyTransformAfterReady(
@@ -137,7 +137,7 @@ const CesiumIonAssetsRenderer: React.FC<CesiumIonAssetsRendererProps> = ({
             if (autoFlyToTileset) {
               // Use positionCameraForTileset instead of flyTo(tileset)
               // This respects the transform position, not the original tileset location
-              positionCameraForTileset(
+              await positionCameraForTileset(
                 cesiumViewer,
                 cesiumInstance,
                 asset.transform,
