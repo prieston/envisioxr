@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import { PageCard, ActivityItem } from "@klorad/ui";
+import { useRouter } from "next/navigation";
+import { useOrgId } from "@/app/hooks/useOrgId";
 
 interface Activity {
   icon: React.ReactNode;
@@ -20,13 +22,25 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({
   activities,
   loading = false,
 }) => {
+  const router = useRouter();
+  const orgId = useOrgId();
+
   if (loading) {
     return (
       <Box sx={{ mb: 3 }}>
         <PageCard>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: "1rem" }}>
-            Recent Activity
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>
+              Recent Activity
+            </Typography>
+          </Box>
           <Typography
             sx={{
               fontSize: "0.875rem",
@@ -45,9 +59,18 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({
     return (
       <Box sx={{ mb: 3 }}>
         <PageCard>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: "1rem" }}>
-            Recent Activity
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>
+              Recent Activity
+            </Typography>
+          </Box>
           <Typography
             sx={{
               fontSize: "0.875rem",
@@ -64,9 +87,34 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({
   return (
     <Box sx={{ mb: 3 }}>
       <PageCard>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-          Recent Activity
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>
+            Recent Activity
+          </Typography>
+          <Button
+            onClick={() => router.push(orgId ? `/org/${orgId}/settings/activity` : "/settings/activity")}
+            sx={{
+              textTransform: "none",
+              fontSize: "0.75rem",
+              fontWeight: 500,
+              color: "#6B9CD8",
+              minWidth: "auto",
+              padding: "4px 8px",
+              "&:hover": {
+                backgroundColor: "rgba(107, 156, 216, 0.1)",
+              },
+            }}
+          >
+            View All
+          </Button>
+        </Box>
         <Box
           sx={{
             maxHeight: "300px",

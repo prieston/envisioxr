@@ -678,10 +678,13 @@ export async function getAssetTypes(params?: {
 
 export interface ActivitiesResponse {
   activities: Activity[];
+  total?: number;
 }
 
 export async function getActivities(params?: {
   limit?: number;
+  skip?: number;
+  take?: number;
   organizationId?: string;
 }): Promise<ActivitiesResponse> {
   return apiRequest<ActivitiesResponse>("/api/activity", { params });

@@ -82,6 +82,7 @@ const menuItems: MenuItem[] = [
       { label: "General", path: "/settings/general" },
       { label: "Members", path: "/settings/members" },
       { label: "Usage", path: "/settings/usage" },
+      { label: "Activity", path: "/settings/activity" },
       { label: "Integrations", path: "/settings/integrations" },
     ],
   },

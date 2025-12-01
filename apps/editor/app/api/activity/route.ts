@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const skip = parseInt(searchParams.get("skip") || "0", 10);
+    const take = parseInt(searchParams.get("take") || limit.toString(), 10);
     const organizationId = searchParams.get("organizationId");
     const projectId = searchParams.get("projectId");
     const entityType = searchParams.get("entityType");
@@ -55,10 +57,16 @@ export async function GET(request: NextRequest) {
       whereClause.entityId = entityId;
     }
 
+    // Get total count for pagination
+    const total = await prisma.activity.count({
+      where: whereClause,
+    });
+
     const activities = await prisma.activity.findMany({
       where: whereClause,
       orderBy: { createdAt: "desc" },
-      take: limit,
+      skip: skip,
+      take: take,
       include: {
         actor: {
           select: {
@@ -77,7 +85,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ activities });
+    return NextResponse.json({ activities, total });
   } catch (error) {
     console.error("Error fetching activities:", error);
     return NextResponse.json(

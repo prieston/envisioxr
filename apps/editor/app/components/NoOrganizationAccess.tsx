@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { Box, Typography, Button, Card, CardContent } from "@mui/material";
-import { Page, PageContent } from "@klorad/ui";
+import { Box, Typography, Button, Link, alpha } from "@mui/material";
+import Image from "next/image";
+import { signOut } from "next-auth/react";
 import {
   AnimatedBackground,
   GlowingContainer,
@@ -50,6 +51,10 @@ export default function NoOrganizationAccess({
     }
   };
 
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/auth/signin" });
+  };
+
   const displayName = firstName || "there";
 
   return (
@@ -62,112 +67,190 @@ export default function NoOrganizationAccess({
         </GlowingContainer>
       </AnimatedBackground>
 
-      <Page>
-        <PageContent>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: "80vh",
-              textAlign: "center",
-              gap: 3,
-            }}
-          >
-            <Card
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+          textAlign: "center",
+          padding: 3,
+          backgroundColor: "transparent",
+        }}
+      >
+        <Box
+          sx={(theme) => ({
+            maxWidth: 700,
+            p: 5,
+            backgroundColor: "#161B20",
+            border: "1px solid rgba(255, 255, 255, 0.05)",
+            borderRadius: `${theme.shape.borderRadius}px`,
+            boxShadow: "none",
+            color: theme.palette.text.primary,
+          })}
+        >
+            <Box
               sx={{
-                maxWidth: 700,
-                backgroundColor: (theme) =>
-                  theme.palette.mode === "dark" ? "#14171A" : "#ffffff",
-                border: (theme) =>
-                  `1px solid ${
-                    theme.palette.mode === "dark"
-                      ? "rgba(255, 255, 255, 0.1)"
-                      : "rgba(0, 0, 0, 0.1)"
-                  }`,
+                display: "flex",
+                justifyContent: "center",
+                mb: 4,
               }}
             >
-              <CardContent sx={{ p: 5 }}>
-                <Typography
-                  variant="h4"
+              <Image
+                src="/images/logo/klorad-logo.svg"
+                alt="Klorad"
+                width={130}
+                height={40}
+                priority
+                style={{
+                  filter: "brightness(0) invert(1)",
+                  display: "block",
+                  width: "130px",
+                  height: "auto",
+                  objectFit: "contain",
+                }}
+              />
+            </Box>
+            <Typography
+              variant="h4"
+              sx={(theme) => ({
+                fontWeight: 600,
+                mb: 3,
+                color: theme.palette.primary.main,
+              })}
+            >
+              Account Access Required
+            </Typography>
+
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ mb: 3, lineHeight: 1.8, textAlign: "left" }}
+            >
+              Hi {displayName},
+              <br />
+              <br />
+              Thank you for your interest in Klorad. We noticed that your account is not currently linked to any organization workspace.
+              <br />
+              <br />
+              Klorad is an enterprise platform designed for organizations that need to create, visualize, and share immersive 3D experiences at scale. Access is provided exclusively through organization workspaces to ensure the security, collaboration, and support that enterprise teams require.
+              <br />
+              <br />
+              To activate your account, please either:
+              <br />
+              <br />
+              • Ask your team to invite you if you already have an active organization, or
+              <br />
+              <br />
+              • Contact the Klorad team to request access or an enterprise quote. We&apos;ll work with you to set up the right solution for your organization&apos;s needs.
+            </Typography>
+
+            <Box
+              sx={{
+                mt: 4,
+                pt: 3,
+                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                textAlign: "left",
+              }}
+            >
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 600,
+                  color: "text.primary",
+                  mb: 0.5,
+                }}
+              >
+                Best regards,
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 500,
+                  color: "text.primary",
+                }}
+              >
+                The Klorad Team
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                alignItems: "center",
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  justifyContent: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <Button
+                  variant="contained"
+                  onClick={handleRequestQuote}
                   sx={(theme) => ({
-                    fontWeight: 600,
-                    mb: 3,
+                    borderRadius: `${theme.shape.borderRadius}px`,
+                    textTransform: "none",
+                    fontWeight: 500,
+                    fontSize: "0.875rem",
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? "#161B20"
+                        : theme.palette.background.paper,
                     color: theme.palette.primary.main,
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                    padding: "6px 16px",
+                    boxShadow: "none",
+                    "&:hover": {
+                      backgroundColor:
+                        theme.palette.mode === "dark"
+                          ? "#1a1f26"
+                          : alpha(theme.palette.primary.main, 0.05),
+                      borderColor: alpha(theme.palette.primary.main, 0.5),
+                    },
                   })}
                 >
-                  Hi {displayName},
-                </Typography>
-
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  sx={{ mb: 4, lineHeight: 1.8 }}
-                >
-                  It seems your account is not linked to any organisation, and
-                  you do not have any pending invitations.
-                  <br />
-                  <br />
-                  Klorad is an enterprise platform, and access is provided
-                  only through organisation workspaces.
-                  <br />
-                  <br />
-                  To activate your account, please contact our team or request
-                  an enterprise quote.
-                </Typography>
-
-                <Box
+                  Request a Quote
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleContactUs}
                   sx={{
-                    display: "flex",
-                    gap: 2,
-                    justifyContent: "center",
-                    flexWrap: "wrap",
+                    minHeight: "38px",
+                    px: 4,
+                    textTransform: "none",
+                    fontWeight: 500,
                   }}
                 >
-                  <Button
-                    variant="contained"
-                    onClick={handleRequestQuote}
-                    sx={{
-                      px: 4,
-                      py: 1.5,
-                      textTransform: "none",
-                      fontWeight: 500,
-                      borderRadius: 2,
-                    }}
-                  >
-                    Request a Quote
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={handleContactUs}
-                    sx={{
-                      px: 4,
-                      py: 1.5,
-                      textTransform: "none",
-                      fontWeight: 500,
-                      borderRadius: 2,
-                      borderColor: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? "rgba(255, 255, 255, 0.3)"
-                          : "rgba(0, 0, 0, 0.3)",
-                      "&:hover": {
-                        borderColor: (theme) => theme.palette.primary.main,
-                        backgroundColor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? "rgba(107, 156, 216, 0.1)"
-                            : "rgba(107, 156, 216, 0.05)",
-                      },
-                    }}
-                  >
-                    Contact Us
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
-        </PageContent>
-      </Page>
+                  Contact Us
+                </Button>
+              </Box>
+              <Link
+                component="button"
+                onClick={handleLogout}
+                sx={{
+                  mt: 1,
+                  color: "text.secondary",
+                  fontSize: "0.875rem",
+                  textDecoration: "none",
+                  cursor: "pointer",
+                  "&:hover": {
+                    color: "primary.main",
+                    textDecoration: "underline",
+                  },
+                }}
+              >
+                Logout
+              </Link>
+            </Box>
+        </Box>
+      </Box>
     </>
   );
 }
