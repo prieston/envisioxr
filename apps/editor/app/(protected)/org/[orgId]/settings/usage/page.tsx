@@ -305,7 +305,8 @@ const SettingsUsagePage = () => {
 
         <PageContent>
           {/* Current Plan Info */}
-          <PageCard sx={{ mb: 3 }}>
+          <Box sx={{ mb: 3 }}>
+            <PageCard>
             <Box
               sx={{
                 display: "flex",
@@ -348,7 +349,8 @@ const SettingsUsagePage = () => {
                 })}
               />
             </Box>
-          </PageCard>
+            </PageCard>
+          </Box>
 
           {/* Usage Metrics */}
           <Grid container spacing={3} sx={{ mb: 3, mt: 0 }}>
@@ -427,7 +429,8 @@ const SettingsUsagePage = () => {
 
           {/* Upgrade Prompt */}
           {plan.code === "free" && (
-            <PageCard sx={{ mt: 4 }}>
+            <Box sx={{ mt: 4 }}>
+              <PageCard>
               <Box
                 sx={{
                   display: "flex",
@@ -472,7 +475,8 @@ const SettingsUsagePage = () => {
                   Upgrade
                 </Button>
               </Box>
-            </PageCard>
+              </PageCard>
+            </Box>
           )}
         </PageContent>
       </Page>
