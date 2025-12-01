@@ -139,7 +139,7 @@ export default function UrbanInfrastructurePage() {
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Infrastructure Inspections</h3>
               <p className="max-w-[640px] text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Inspection teams document asset condition with spatial precision. They link findings to specific locations, track changes over time, and plan maintenance based on accurate, location-aware data.
+                Inspection teams record asset condition with spatial precision. They link findings to specific locations, track changes over time, and plan maintenance based on accurate, location-aware data.
               </p>
             </div>
           </div>
