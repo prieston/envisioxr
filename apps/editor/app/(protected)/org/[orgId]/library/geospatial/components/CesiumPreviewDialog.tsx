@@ -32,7 +32,7 @@ interface CesiumPreviewDialogProps {
   assetName: string;
   assetType?: string; // e.g., "IMAGERY", "3DTILES", etc.
   metadata?: Record<string, unknown> | null; // Model metadata (will extract transform from it)
-  onCapture: (screenshot: string) => void;
+  onCapture: (screenshot: string) => Promise<void>;
 }
 
 const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
@@ -49,8 +49,10 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
   const viewerRef = useRef<any>(null);
   const tilesetRef = useRef<any>(null);
   const isCapturingRef = useRef(false); // Track if capture is in progress to prevent cleanup
+  const isUploadingRef = useRef(false); // Track if upload is in progress to prevent cleanup
   const [loading, setLoading] = useState(true);
   const [capturing, setCapturing] = useState(false);
+  const [uploading, setUploading] = useState(false); // Track upload state after capture
   const [error, setError] = useState<string | null>(null);
   const [locationNotSet, setLocationNotSet] = useState(false);
   const [tilesetReady, setTilesetReady] = useState(false);
@@ -97,7 +99,8 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
     if (
       !viewerRef.current ||
       (viewerRef.current.isDestroyed && viewerRef.current.isDestroyed()) ||
-      isCapturingRef.current
+      isCapturingRef.current ||
+      isUploadingRef.current
     ) {
       // Silently ignore errors during cleanup or capture
       console.warn(
@@ -130,8 +133,8 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
   };
 
   const handleClose = () => {
-    // Prevent closing while capture is in progress
-    if (isCapturingRef.current) {
+    // Prevent closing while capture or upload is in progress
+    if (isCapturingRef.current || isUploadingRef.current) {
       return;
     }
     onClose();
@@ -142,23 +145,32 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
     if (!open) {
       const wasCapturing = isCapturingRef.current;
 
-      // If capture is in progress, cancel it and reset state
-      if (isCapturingRef.current) {
+      // If capture or upload is in progress, cancel it and reset state
+      const wasUploading = isUploadingRef.current;
+      if (isCapturingRef.current || isUploadingRef.current) {
         isCapturingRef.current = false;
+        isUploadingRef.current = false;
         setCapturing(false);
+        setUploading(false);
       }
 
       setLoading(true);
       setError(null);
       setLocationNotSet(false);
       setTilesetReady(false);
+      setUploading(false);
+      setCapturing(false);
 
-      // Wait longer if capture was in progress to ensure async operations complete
-      const delay = wasCapturing ? 1000 : 100;
+      // Wait longer if capture or upload was in progress to ensure async operations complete
+      const delay = wasCapturing || wasUploading ? 1000 : 100;
 
       // Wait a bit before destroying viewer to ensure any pending operations complete
       const cleanupTimeout = setTimeout(() => {
-        if (viewerRef.current && !isCapturingRef.current) {
+        if (
+          viewerRef.current &&
+          !isCapturingRef.current &&
+          !isUploadingRef.current
+        ) {
           try {
             viewerRef.current.destroy();
           } catch (err) {
@@ -212,8 +224,8 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
 
     // Cleanup function
     return () => {
-      // Don't cleanup if capture is in progress
-      if (isCapturingRef.current) {
+      // Don't cleanup if capture or upload is in progress
+      if (isCapturingRef.current || isUploadingRef.current) {
         return;
       }
 
@@ -293,12 +305,32 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
     try {
       const screenshot = await captureCesiumScreenshot(viewerRef.current);
       if (screenshot) {
-        onCapture(screenshot);
+        // Screenshot captured successfully, now upload it
         setCapturing(false);
         isCapturingRef.current = false;
-        // Close modal after capture is complete
-        // Safe to close now since isCapturingRef is false
-        onClose();
+        setUploading(true);
+        isUploadingRef.current = true;
+
+        try {
+          // Await the upload to complete before closing modal
+          await onCapture(screenshot);
+
+          // Upload completed successfully, now safe to close
+          setUploading(false);
+          isUploadingRef.current = false;
+          onClose();
+        } catch (uploadErr) {
+          // Upload failed, but screenshot was captured
+          console.error("Error uploading screenshot:", uploadErr);
+          setError(
+            uploadErr instanceof Error
+              ? uploadErr.message
+              : "Failed to upload screenshot"
+          );
+          setUploading(false);
+          isUploadingRef.current = false;
+          // Don't close modal on upload error - let user retry
+        }
       } else {
         throw new Error("Failed to capture screenshot");
       }
@@ -308,7 +340,9 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
         err instanceof Error ? err.message : "Failed to capture screenshot"
       );
       setCapturing(false);
+      setUploading(false);
       isCapturingRef.current = false;
+      isUploadingRef.current = false;
     }
   };
 
@@ -323,6 +357,8 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
           sx: {
             zIndex: 1599,
           },
+          onClick:
+            uploading || capturing ? (e) => e.stopPropagation() : undefined,
         },
       }}
       sx={{
@@ -346,7 +382,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
           onClick={handleClose}
           size="small"
           sx={modalCloseButtonStyles}
-          disabled={capturing}
+          disabled={capturing || uploading}
         >
           <CloseIcon />
         </IconButton>
@@ -552,7 +588,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
       >
         <Button
           onClick={handleClose}
-          disabled={capturing}
+          disabled={capturing || uploading}
           sx={(theme) => ({
             textTransform: "none",
             fontSize: "0.813rem",
@@ -575,13 +611,16 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
           onClick={handleCapture}
           disabled={
             capturing ||
+            uploading ||
             loading ||
             !!error ||
             !viewerRef.current ||
             !tilesetReady
           }
           variant="contained"
-          startIcon={<CameraAltIcon />}
+          startIcon={
+            uploading ? <CircularProgress size={16} /> : <CameraAltIcon />
+          }
           sx={(theme) => ({
             textTransform: "none",
             fontSize: "0.813rem",
@@ -599,7 +638,11 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
             },
           })}
         >
-          {capturing ? "Capturing..." : "Capture Screenshot"}
+          {capturing
+            ? "Capturing..."
+            : uploading
+              ? "Uploading..."
+              : "Capture Screenshot"}
         </Button>
       </DialogActions>
     </Dialog>
