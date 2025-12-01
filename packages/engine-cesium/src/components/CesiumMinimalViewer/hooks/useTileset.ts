@@ -70,21 +70,46 @@ export function useTileset({
 
     // Check if a tileset for this asset already exists in the scene
     // This prevents duplicate tilesets from being loaded (important for React StrictMode)
+    // Store scene reference since it's a getter - prevents calling it multiple times
+    const scene = viewer?.scene;
     if (
       tilesetRef.current &&
       viewer &&
-      viewer.scene &&
+      scene &&
       !(viewer.isDestroyed && viewer.isDestroyed())
     ) {
-      const isInScene = viewer.scene.primitives.contains(tilesetRef.current);
-      if (isInScene) {
-        return;
+      try {
+        const isInScene = scene.primitives.contains(tilesetRef.current);
+        if (isInScene) {
+          return;
+        }
+      } catch (err) {
+        console.error("[useTileset] Error checking if tileset is in scene:", {
+          error: err,
+          viewerExists: !!viewer,
+          hasScene: viewer?.scene ? "yes" : "no",
+          timestamp: new Date().toISOString(),
+        });
+        // Continue with loading
       }
     }
 
     // Also check if any tileset with this asset ID is already in the scene
     // This handles the case where tilesetRef might not be set yet
-    const existingTileset = findExistingTileset(viewer, cesiumAssetId);
+    let existingTileset = null;
+    try {
+      existingTileset = findExistingTileset(viewer, cesiumAssetId);
+    } catch (err) {
+      console.error("[useTileset] Error in findExistingTileset:", {
+        error: err,
+        viewerExists: !!viewer,
+        viewerDestroyed: viewer?.isDestroyed?.() ? "yes" : "no",
+        hasScene: viewer?.scene ? "yes" : "no",
+        timestamp: new Date().toISOString(),
+      });
+      // Continue without existing tileset
+    }
+
     if (existingTileset) {
       tilesetRef.current = existingTileset;
 
@@ -166,7 +191,21 @@ export function useTileset({
 
         // Check if a tileset with this assetId is already in the scene
         // This prevents duplicates when React StrictMode runs effects twice
-        const existingTileset = findExistingTileset(viewer, cesiumAssetId);
+        let existingTileset = null;
+        try {
+          existingTileset = findExistingTileset(viewer, cesiumAssetId);
+        } catch (err) {
+          console.error(
+            "[useTileset] Error in findExistingTileset (second call):",
+            {
+              error: err,
+              viewerExists: !!viewer,
+              viewerDestroyed: viewer?.isDestroyed?.() ? "yes" : "no",
+              hasScene: viewer?.scene ? "yes" : "no",
+              timestamp: new Date().toISOString(),
+            }
+          );
+        }
 
         // If a tileset with this assetId already exists, reuse it instead of adding the new one
         if (existingTileset) {
@@ -209,12 +248,10 @@ export function useTileset({
         tilesetRef.current = tileset;
 
         // Check if viewer and scene are valid before adding tileset
-        if (
-          viewer &&
-          viewer.scene &&
-          !(viewer.isDestroyed && viewer.isDestroyed())
-        ) {
-          viewer.scene.primitives.add(tileset);
+        // Store scene reference since it's a getter - prevents calling it multiple times
+        const scene = viewer?.scene;
+        if (viewer && scene && !(viewer.isDestroyed && viewer.isDestroyed())) {
+          scene.primitives.add(tileset);
         }
 
         // Set up error handlers using utility function
@@ -315,7 +352,16 @@ export function useTileset({
           viewer.scene &&
           !(viewer.isDestroyed && viewer.isDestroyed())
         ) {
-          viewer.scene.requestRender();
+          try {
+            viewer.scene.requestRender();
+          } catch (err) {
+            console.error("[useTileset] Error requesting render:", {
+              error: err,
+              viewerExists: !!viewer,
+              hasScene: viewer?.scene ? "yes" : "no",
+              timestamp: new Date().toISOString(),
+            });
+          }
         }
 
         setIsGeoreferenced(isGeoreferenced);
@@ -382,15 +428,25 @@ export function useTileset({
         cleanupErrorHandlers();
       }
 
-      if (tilesetRef.current && viewer?.scene) {
+      // Store scene reference to prevent race condition where viewer.scene becomes undefined
+      // between the check and the access
+      const scene = viewer?.scene;
+      // Also check primitives exists - it might be destroyed even if scene exists
+      if (tilesetRef.current && scene?.primitives) {
         try {
           // In location editing mode, don't remove tileset on cleanup
           // It should persist across re-renders
           if (!enableLocationEditing) {
-            viewer.scene.primitives.remove(tilesetRef.current);
+            // Use the stored scene reference instead of viewer.scene to prevent race condition
+            scene.primitives.remove(tilesetRef.current);
           }
         } catch (err) {
-          console.error("[useTileset] Error during cleanup:", err);
+          console.error("[useTileset] Error removing tileset from scene:", {
+            error: err,
+            viewerExists: !!viewer,
+            hasScene: scene ? "yes" : "no",
+            timestamp: new Date().toISOString(),
+          });
         }
 
         // Only clear ref if we actually removed it
