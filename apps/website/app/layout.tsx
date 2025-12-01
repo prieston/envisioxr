@@ -12,16 +12,16 @@ export const metadata: Metadata = {
     template: "%s | Klorad",
   },
   description:
-    "Klorad is the spatial operations platform developed by Prieston Technologies. Model, observe, simulate, and act on real-world infrastructure with unified spatial intelligence.",
+    "Klorad is the geospatial platform for operating real-world infrastructure. Unify terrain, structures, equipment, and live operational data into one platform.",
   keywords: [
-    "spatial operations",
-    "infrastructure modeling",
-    "digital twin",
-    "spatial intelligence",
+    "geospatial platform",
+    "infrastructure operations",
+    "3D visualization",
     "infrastructure management",
-    "spatial computing",
-    "real-world systems",
-    "infrastructure planning",
+    "ITS operations",
+    "urban infrastructure",
+    "cultural heritage",
+    "agriculture management",
   ],
   authors: [{ name: "Prieston Technologies" }],
   creator: "Prieston Technologies",
@@ -35,9 +35,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "/",
     siteName: "Klorad",
-    title: "Klorad - Spatial Operations Platform",
+    title: "Klorad - The Geospatial Platform for Operating Real-World Infrastructure",
     description:
-      "A platform for spatial operations across real-world infrastructure. Model, observe, simulate, and act with unified spatial intelligence.",
+      "Klorad unifies terrain, structures, equipment, and live operational data into one platform. See how your infrastructure behaves, analyze changes over time, and coordinate operations with confidence.",
     images: [
       {
         url: "/klorad-logo.png",
@@ -49,9 +49,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Klorad - Spatial Operations Platform",
+    title: "Klorad - The Geospatial Platform for Operating Real-World Infrastructure",
     description:
-      "A platform for spatial operations across real-world infrastructure. Model, observe, simulate, and act.",
+      "Klorad unifies terrain, structures, equipment, and live operational data into one platform.",
     images: ["/klorad-logo.png"],
   },
   robots: {
@@ -86,7 +86,7 @@ export default function RootLayout({
     "@type": "Organization",
     name: "Klorad",
     description:
-      "Spatial operations platform for modeling, observing, simulating, and acting on real-world infrastructure",
+      "Geospatial platform for operating real-world infrastructure. Visualize, analyze, and act on infrastructure assets with precision.",
     url: process.env.NEXT_PUBLIC_SITE_URL || "https://klorad.com",
     logo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://klorad.com"}/klorad-logo.png`,
     founder: {
