@@ -34,11 +34,9 @@ import {
   GlowingContainer,
   GlowingSpan,
 } from "@/app/components/Builder/AdminLayout.styles";
-import { useOrgId } from "@/app/hooks/useOrgId";
 import usePaginatedActivity from "@/app/hooks/usePaginatedActivity";
 
 const SettingsActivityPage = () => {
-  const orgId = useOrgId();
   const {
     activities,
     loadingActivity,
