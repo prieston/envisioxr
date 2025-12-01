@@ -17,7 +17,7 @@ export async function PATCH(request: NextRequest) {
   const userId = session.user.id;
 
   try {
-    const { assetId, name, description, metadata, thumbnail } =
+    const { assetId, name, description, metadata, thumbnail, thumbnailSize } =
       await request.json();
 
     if (!assetId) {
@@ -49,7 +49,16 @@ export async function PATCH(request: NextRequest) {
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
     if (metadata !== undefined) updateData.metadata = metadata;
-    if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
+    if (thumbnail !== undefined) {
+      updateData.thumbnail = thumbnail;
+      // If thumbnail is being set, also update thumbnailSize if provided
+      if (thumbnailSize !== undefined) {
+        updateData.thumbnailSize = thumbnailSize ? BigInt(thumbnailSize) : null;
+      } else if (thumbnail === null) {
+        // If thumbnail is being removed, also remove thumbnailSize
+        updateData.thumbnailSize = null;
+      }
+    }
 
     // Update the asset
     const updatedAsset = await prisma.asset.update({
@@ -76,10 +85,11 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    // Convert BigInt fileSize to number for JSON serialization
+    // Convert BigInt fileSize and thumbnailSize to number for JSON serialization
     const serializedAsset = {
       ...updatedAsset,
       fileSize: updatedAsset.fileSize ? Number(updatedAsset.fileSize) : null,
+      thumbnailSize: updatedAsset.thumbnailSize ? Number(updatedAsset.thumbnailSize) : null,
     };
     return NextResponse.json({ asset: serializedAsset });
   } catch (error) {

@@ -3,23 +3,16 @@
 import React, { useRef, useState, Suspense } from "react";
 import {
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   Box,
   Typography,
   IconButton,
+  Divider,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { Close, CameraAlt } from "@mui/icons-material";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
-import {
-  modalPaperStyles,
-  modalTitleStyles,
-  modalTitleTextStyles,
-  modalCloseButtonStyles,
-} from "../../styles/modalStyles";
 
 interface ModelPreviewDialogProps {
   open: boolean;
@@ -79,36 +72,66 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
       }}
       PaperProps={{
         sx: (theme) => ({
-          ...((typeof modalPaperStyles === "function"
-            ? modalPaperStyles(theme)
-            : modalPaperStyles) as Record<string, any>),
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? "#14171A !important"
+              : theme.palette.background.paper,
+          boxShadow: "none",
           position: "relative",
-          zIndex: 1601, // Higher than backdrop to ensure content is on top
+          zIndex: 1601,
+          "&.MuiPaper-root": {
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+          },
         }),
       }}
     >
-      <DialogTitle sx={modalTitleStyles}>
-        <Typography sx={modalTitleTextStyles}>
-          Retake Photo - {modelName}
-        </Typography>
-        <IconButton onClick={onClose} size="small" sx={modalCloseButtonStyles}>
-          <Close />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent
+      <Box
         sx={(theme) => ({
-          padding: "24px",
-          backgroundColor: theme.palette.background.default,
+          p: 3,
+          backgroundColor:
+            theme.palette.mode === "dark" ? "#14171A" : theme.palette.background.paper,
         })}
       >
+        {/* Header */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 3,
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Retake Photo - {modelName}
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={onClose}
+            sx={{
+              color: "text.secondary",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.05)",
+              },
+            }}
+      >
+            <Close fontSize="small" />
+          </IconButton>
+        </Box>
+
+        <Divider sx={{ mb: 3 }} />
+
+        {/* Content */}
+        <Box>
         <Typography
-          sx={(theme) => ({
-            fontSize: "0.813rem",
-            color: theme.palette.text.secondary,
+            sx={{
+              fontSize: "0.75rem",
+              color: "text.secondary",
             textAlign: "center",
             mb: 2,
-          })}
+            }}
         >
           Rotate the model to your desired angle, then click &quot;Capture
           Screenshot&quot;
@@ -152,58 +175,56 @@ const ModelPreviewDialog: React.FC<ModelPreviewDialogProps> = ({
             />
           </Canvas>
         </Box>
-      </DialogContent>
+        </Box>
 
-      <DialogActions
-        sx={(theme) => ({
-          padding: "16px 24px",
-          gap: 1,
-          backgroundColor: theme.palette.background.paper,
-          borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-        })}
-      >
+        {/* Actions */}
+        <Box sx={{ display: "flex", gap: 2, mt: 3, justifyContent: "flex-end" }}>
         <Button
+            variant="outlined"
           onClick={onClose}
           disabled={capturing}
           sx={(theme) => ({
+              borderRadius: `${theme.shape.borderRadius}px`,
             textTransform: "none",
-            fontSize: "0.813rem",
-            fontWeight: 500,
-            borderRadius: "4px",
-            color: theme.palette.text.secondary,
-            boxShadow: "none",
-            "&:hover": {
-              backgroundColor:
-                theme.palette.mode === "dark"
-                  ? "rgba(100, 116, 139, 0.12)"
-                  : "rgba(100, 116, 139, 0.08)",
-              boxShadow: "none",
-            },
+              fontSize: "0.75rem",
           })}
         >
           Cancel
         </Button>
         <Button
+            variant="contained"
           onClick={handleCapture}
           disabled={capturing}
-          variant="contained"
           startIcon={<CameraAlt />}
           sx={(theme) => ({
+              borderRadius: `${theme.shape.borderRadius}px`,
             textTransform: "none",
-            fontSize: "0.813rem",
-            fontWeight: 600,
-            borderRadius: "4px",
-            backgroundColor: theme.palette.primary.main,
-            boxShadow: "none",
-            "&:hover": {
-              backgroundColor: theme.palette.primary.dark,
+              fontWeight: 500,
+              fontSize: "0.75rem",
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "#161B20"
+                  : theme.palette.background.paper,
+              color: theme.palette.primary.main,
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
               boxShadow: "none",
+              "&:hover": {
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "#1a1f26"
+                    : alpha(theme.palette.primary.main, 0.05),
+                borderColor: alpha(theme.palette.primary.main, 0.5),
+                boxShadow: "none",
+              },
+              "&:disabled": {
+                opacity: 0.5,
             },
           })}
         >
           {capturing ? "Capturing..." : "Capture Screenshot"}
         </Button>
-      </DialogActions>
+        </Box>
+      </Box>
     </Dialog>
   );
 };

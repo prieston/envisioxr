@@ -4,8 +4,9 @@ import "react-toastify/dist/ReactToastify.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Klorad Admin Dashboard",
+  title: "Klorad | Admin Dashboard",
   description: "Admin dashboard for managing Klorad platform",
+  icons: { icon: "/klorad-favicon.png" },
 };
 
 export default function RootLayout({

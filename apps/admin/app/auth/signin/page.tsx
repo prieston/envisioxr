@@ -7,14 +7,22 @@ import { isGodUser } from "@/lib/config/godusers";
 import {
   Box,
   Button,
-  Card,
-  CardContent,
   Typography,
   TextField,
   Divider,
   CircularProgress,
+  alpha,
 } from "@mui/material";
-import { Google as GoogleIcon, GitHub as GitHubIcon } from "@mui/icons-material";
+import {
+  Google as GoogleIcon,
+  GitHub as GitHubIcon,
+} from "@mui/icons-material";
+import {
+  PageCard,
+  textFieldStyles,
+  SettingContainer,
+  SettingLabel,
+} from "@klorad/ui";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -106,89 +114,167 @@ export default function SignInPage() {
         boxSizing: "border-box",
       }}
     >
-      <Card sx={{ maxWidth: 400, width: "100%" }}>
-        <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center" fontWeight="bold">
-            Admin Dashboard
-          </Typography>
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-            Sign in to access the admin panel
-          </Typography>
-
-          {error && (
-            <Box
+      <Box sx={{ maxWidth: 400, width: "100%" }}>
+        <PageCard>
+          <Box sx={{ p: 4 }}>
+            <Typography
+              variant="h4"
+              component="h1"
+              gutterBottom
+              align="center"
+              sx={{ fontWeight: 600, fontSize: "1rem", mb: 1 }}
+            >
+              Admin Dashboard
+            </Typography>
+            <Typography
+              variant="body2"
               sx={{
-                p: 2,
-                mb: 2,
-                bgcolor: "error.light",
-                color: "error.contrastText",
-                borderRadius: 1,
+                fontSize: "0.75rem",
+                color: "text.secondary",
+                align: "center",
+                mb: 3,
               }}
             >
-              <Typography variant="body2">{error}</Typography>
-            </Box>
-          )}
+              Sign in to access the admin panel
+            </Typography>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<GoogleIcon />}
-              onClick={() => handleOAuthSignIn("google")}
-              disabled={loading}
-              sx={{ textTransform: "none" }}
-            >
-              Sign in with Google
-            </Button>
-
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<GitHubIcon />}
-              onClick={() => handleOAuthSignIn("github")}
-              disabled={loading}
-              sx={{ textTransform: "none" }}
-            >
-              Sign in with GitHub
-            </Button>
-
-            <Divider sx={{ my: 1 }}>OR</Divider>
-
-            <form onSubmit={handleCredentialsSignIn}>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <TextField
-                  label="Email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  fullWidth
-                  disabled={loading}
-                />
-                <TextField
-                  label="Password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  fullWidth
-                  disabled={loading}
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  disabled={loading}
-                  sx={{ textTransform: "none", mt: 1 }}
-                >
-                  {loading ? <CircularProgress size={24} /> : "Sign In"}
-                </Button>
+            {error && (
+              <Box
+                sx={{
+                  p: 2,
+                  mb: 2,
+                  bgcolor: alpha("#ef4444", 0.1),
+                  color: "#ef4444",
+                  borderRadius: 1,
+                  border: `1px solid ${alpha("#ef4444", 0.3)}`,
+                }}
+              >
+                <Typography variant="body2" sx={{ fontSize: "0.75rem" }}>
+                  {error}
+                </Typography>
               </Box>
-            </form>
+            )}
+
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<GoogleIcon />}
+                onClick={() => handleOAuthSignIn("google")}
+                disabled={loading}
+                sx={(theme) => ({
+                  textTransform: "none",
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                  borderColor: alpha(theme.palette.primary.main, 0.3),
+                  color: theme.palette.primary.main,
+                  "&:hover": {
+                    borderColor: alpha(theme.palette.primary.main, 0.5),
+                    backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                  },
+                })}
+              >
+                Sign in with Google
+              </Button>
+
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<GitHubIcon />}
+                onClick={() => handleOAuthSignIn("github")}
+                disabled={loading}
+                sx={(theme) => ({
+                  textTransform: "none",
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                  borderColor: alpha(theme.palette.primary.main, 0.3),
+                  color: theme.palette.primary.main,
+                  "&:hover": {
+                    borderColor: alpha(theme.palette.primary.main, 0.5),
+                    backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                  },
+                })}
+              >
+                Sign in with GitHub
+              </Button>
+
+              <Divider sx={{ my: 1 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontSize: "0.75rem", color: "text.secondary" }}
+                >
+                  OR
+                </Typography>
+              </Divider>
+
+              <form onSubmit={handleCredentialsSignIn}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                  <SettingContainer>
+                    <SettingLabel>Email</SettingLabel>
+                    <TextField
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      fullWidth
+                      disabled={loading}
+                      sx={textFieldStyles}
+                    />
+                  </SettingContainer>
+                  <SettingContainer>
+                    <SettingLabel>Password</SettingLabel>
+                    <TextField
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      fullWidth
+                      disabled={loading}
+                      sx={textFieldStyles}
+                    />
+                  </SettingContainer>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    disabled={loading}
+                    sx={(theme) => ({
+                      textTransform: "none",
+                      fontSize: "0.75rem",
+                      fontWeight: 500,
+                      mt: 1,
+                      backgroundColor:
+                        theme.palette.mode === "dark"
+                          ? "#161B20"
+                          : theme.palette.background.paper,
+                      color: theme.palette.primary.main,
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                      boxShadow: "none",
+                      "&:hover": {
+                        backgroundColor:
+                          theme.palette.mode === "dark"
+                            ? "#1a1f26"
+                            : alpha(theme.palette.primary.main, 0.05),
+                        borderColor: alpha(theme.palette.primary.main, 0.5),
+                      },
+                      "&.Mui-disabled": {
+                        backgroundColor: alpha(
+                          theme.palette.primary.main,
+                          0.05
+                        ),
+                        color: alpha(theme.palette.primary.main, 0.3),
+                        borderColor: alpha(theme.palette.primary.main, 0.1),
+                      },
+                    })}
+                  >
+                    {loading ? <CircularProgress size={20} /> : "Sign In"}
+                  </Button>
+                </Box>
+              </form>
+            </Box>
           </Box>
-        </CardContent>
-      </Card>
+        </PageCard>
+      </Box>
     </Box>
   );
 }
-

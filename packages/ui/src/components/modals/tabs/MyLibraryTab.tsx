@@ -18,6 +18,7 @@ export interface LibraryAsset {
   fileUrl: string;
   fileType: string;
   description?: string;
+  fileSize?: number | null;
   // Cesium Ion specific fields
   assetType?: "model" | "cesiumIonAsset";
   cesiumAssetId?: string;

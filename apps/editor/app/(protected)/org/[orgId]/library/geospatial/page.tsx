@@ -13,7 +13,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { alpha as muiAlpha } from "@mui/material/styles";
-import { SearchIcon, CloudUploadIcon, AddIcon } from "@klorad/ui";
+import { SearchIcon, AddIcon } from "@klorad/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Page,
@@ -51,10 +51,12 @@ import { useTilingStatusPolling } from "@/app/hooks/useTilingStatusPolling";
 import CesiumPreviewDialog from "./components/CesiumPreviewDialog";
 import AdjustTilesetLocationDialog from "./components/AdjustTilesetLocationDialog";
 import { useSceneStore } from "@klorad/core";
+import { useOrgId } from "@/app/hooks/useOrgId";
 
 const LibraryGeospatialPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const orgId = useOrgId();
   const {
     models: fetchedAssets,
     loadingModels,
@@ -101,9 +103,69 @@ const LibraryGeospatialPage = () => {
     if (searchParams.get("upload") === "true" && !uploadToIonDrawerOpen) {
       setUploadToIonDrawerOpen(true);
       // Remove the query param from URL
-      router.replace("/library/geospatial");
+      if (orgId) {
+        router.replace(`/org/${orgId}/library/geospatial`);
+      }
     }
-  }, [searchParams, uploadToIonDrawerOpen, router]);
+  }, [searchParams, uploadToIonDrawerOpen, router, orgId]);
+
+  // Helper function to format transform metadata
+  const formatTransformMetadata = (metadata: Record<string, any> | undefined): MetadataRow[] => {
+    if (!metadata) return [];
+
+    const entries: MetadataRow[] = [];
+    const transform = metadata.transform;
+
+    // Check if transform exists and has location data
+    if (transform && typeof transform === 'object' && transform !== null) {
+      // Handle both direct object and stringified JSON
+      let transformObj = transform;
+      if (typeof transform === 'string') {
+        try {
+          transformObj = JSON.parse(transform);
+        } catch (e) {
+          // If parsing fails, skip transform
+          transformObj = null;
+        }
+      }
+
+      if (transformObj && typeof transformObj === 'object') {
+        const lat = transformObj.latitude;
+        const lon = transformObj.longitude;
+
+        if (lat !== undefined && lon !== undefined) {
+          const latNum = typeof lat === 'string' ? parseFloat(lat) : lat;
+          const lonNum = typeof lon === 'string' ? parseFloat(lon) : lon;
+
+          if (!isNaN(latNum) && !isNaN(lonNum)) {
+            // Format coordinates nicely
+            const latDir = latNum >= 0 ? 'N' : 'S';
+            const lonDir = lonNum >= 0 ? 'E' : 'W';
+            const formattedLocation = `${Math.abs(latNum).toFixed(4)}°${latDir}, ${Math.abs(lonNum).toFixed(4)}°${lonDir}`;
+
+            entries.push({
+              label: "Transformation applied",
+              value: formattedLocation,
+            });
+          }
+        }
+      }
+    }
+
+    // Add all other metadata entries except transform
+    Object.entries(metadata).forEach(([label, value]) => {
+      if (label !== "transform") {
+        // Handle object values by stringifying them
+        if (value && typeof value === 'object' && value !== null) {
+          entries.push({ label, value: JSON.stringify(value, null, 2) });
+        } else {
+          entries.push({ label, value: String(value) });
+        }
+      }
+    });
+
+    return entries;
+  };
 
   // Memoize mapped assets to prevent unnecessary re-renders
   const mappedAssets = useMemo(() => {
@@ -117,10 +179,11 @@ const LibraryGeospatialPage = () => {
         fileType: asset.fileType,
         thumbnail: asset.thumbnail,
         description: asset.description,
-        metadata: asset.metadata as Record<string, string> | undefined,
+        metadata: asset.metadata as Record<string, any> | undefined,
         assetType: asset.assetType,
         cesiumAssetId: asset.cesiumAssetId,
         cesiumApiKey: asset.cesiumApiKey,
+        fileSize: asset.fileSize ? (typeof asset.fileSize === 'bigint' ? Number(asset.fileSize) : asset.fileSize) : null,
       }));
   }, [fetchedAssets]);
 
@@ -180,12 +243,7 @@ const LibraryGeospatialPage = () => {
     if (!isEditing) {
       const newName = updatedAsset.name || updatedAsset.originalFilename || "";
       const newDescription = updatedAsset.description || "";
-      const newMetadata: MetadataRow[] = updatedAsset.metadata
-        ? Object.entries(updatedAsset.metadata).map(([label, value]) => ({
-            label,
-            value,
-          }))
-        : [];
+      const newMetadata: MetadataRow[] = formatTransformMetadata(updatedAsset.metadata);
 
       // Only update if values actually changed
       if (editedName !== newName) {
@@ -228,12 +286,7 @@ const LibraryGeospatialPage = () => {
     setIsEditing(false);
     setEditedName(asset.name || asset.originalFilename || "");
     setEditedDescription(asset.description || "");
-    const metadataArray: MetadataRow[] = asset.metadata
-      ? Object.entries(asset.metadata).map(([label, value]) => ({
-          label,
-          value,
-        }))
-      : [];
+    const metadataArray: MetadataRow[] = formatTransformMetadata(asset.metadata);
     setEditedMetadata(metadataArray);
   };
 
@@ -248,9 +301,7 @@ const LibraryGeospatialPage = () => {
       setEditedName(selectedAsset.name || selectedAsset.originalFilename || "");
       setEditedDescription(selectedAsset.description || "");
       if (selectedAsset.metadata) {
-        const metadataArray: MetadataRow[] = Object.entries(
-          selectedAsset.metadata
-        ).map(([label, value]) => ({ label, value }));
+        const metadataArray: MetadataRow[] = formatTransformMetadata(selectedAsset.metadata);
         setEditedMetadata(metadataArray);
       }
     }
@@ -268,8 +319,14 @@ const LibraryGeospatialPage = () => {
           }
           return acc;
         },
-        {} as Record<string, string>
+        {} as Record<string, any>
       );
+
+      // Preserve original transform object if it exists
+      // The transform is filtered out for display but must be preserved when saving
+      if (selectedAsset.metadata?.transform) {
+        metadataObject.transform = selectedAsset.metadata.transform;
+      }
 
       await updateModelMetadata(selectedAsset.id, {
         name: editedName,
@@ -441,9 +498,10 @@ const LibraryGeospatialPage = () => {
       // Extract thumbnail URL from signed URL (remove query parameters)
       const thumbnailUrl = thumbSignedUrl.split("?")[0];
 
-      // Update asset metadata with thumbnail URL
+      // Update asset metadata with thumbnail URL and size
       await updateModelMetadata(selectedAsset.id, {
         thumbnail: thumbnailUrl,
+        thumbnailSize: blob.size,
       });
 
       showToast("Thumbnail updated successfully", "success");
@@ -579,35 +637,6 @@ const LibraryGeospatialPage = () => {
                 variant="contained"
                 onClick={() => setUploadToIonDrawerOpen(true)}
                 size="small"
-                startIcon={<CloudUploadIcon />}
-                sx={(theme) => ({
-                  borderRadius: `${theme.shape.borderRadius}px`,
-                  textTransform: "none",
-                  fontWeight: 500,
-                  fontSize: "0.75rem",
-                  backgroundColor:
-                    theme.palette.mode === "dark"
-                      ? "#161B20"
-                      : theme.palette.background.paper,
-                  color: theme.palette.primary.main,
-                  border: `1px solid ${muiAlpha(theme.palette.primary.main, 0.3)}`,
-                  padding: "6px 16px",
-                  boxShadow: "none",
-                  "&:hover": {
-                    backgroundColor:
-                      theme.palette.mode === "dark"
-                        ? "#1a1f26"
-                        : muiAlpha(theme.palette.primary.main, 0.05),
-                    borderColor: muiAlpha(theme.palette.primary.main, 0.5),
-                  },
-                })}
-              >
-                Upload to Ion
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => setAddIonAssetDrawerOpen(true)}
-                size="small"
                 startIcon={<AddIcon />}
                 sx={(theme) => ({
                   borderRadius: `${theme.shape.borderRadius}px`,
@@ -631,7 +660,7 @@ const LibraryGeospatialPage = () => {
                   },
                 })}
               >
-                Add Asset
+                Upload Geospatial Asset
               </Button>
             </Box>
           </Box>

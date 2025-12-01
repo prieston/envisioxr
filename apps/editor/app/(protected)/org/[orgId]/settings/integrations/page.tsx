@@ -10,17 +10,16 @@ import {
   alpha,
   IconButton,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Chip,
+  Menu,
+  MenuItem,
+  Divider,
 } from "@mui/material";
 import {
   Page,
@@ -28,8 +27,8 @@ import {
   PageDescription,
   PageContent,
   PageCard,
-  PageSection,
   showToast,
+  CloseIcon,
 } from "@klorad/ui";
 import {
   AnimatedBackground,
@@ -49,10 +48,10 @@ import { useOrgId } from "@/app/hooks/useOrgId";
 import useSWR from "swr";
 import {
   AddIcon,
-  DeleteIcon,
   SyncIcon,
   CheckCircleIcon,
   ErrorIcon,
+  MoreVertIcon,
 } from "@klorad/ui";
 import { AddIntegrationDrawer } from "./components/AddIntegrationDrawer";
 
@@ -66,6 +65,8 @@ const IntegrationsPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedIntegration, setSelectedIntegration] =
     useState<CesiumIonIntegration | null>(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuIntegrationId, setMenuIntegrationId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     label: "",
     readToken: "",
@@ -119,6 +120,26 @@ const IntegrationsPage = () => {
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
     setSelectedIntegration(null);
+  };
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, integrationId: string) => {
+    setMenuAnchorEl(event.currentTarget);
+    setMenuIntegrationId(integrationId);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+    setMenuIntegrationId(null);
+  };
+
+  const handleRemoveClick = () => {
+    if (menuIntegrationId) {
+      const integration = integrations.find((i) => i.id === menuIntegrationId);
+      if (integration) {
+        handleOpenDeleteDialog(integration);
+      }
+    }
+    handleMenuClose();
   };
 
   const handleCreateIntegration = async () => {
@@ -412,7 +433,9 @@ const IntegrationsPage = () => {
           )}
 
           <PageCard>
-            <PageSection title="Cesium Ion Integration" spacing="default">
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, fontSize: "1rem" }}>
+              Cesium Ion Integration
+            </Typography>
               {integrations.length === 0 ? (
                 <Box
                   sx={{
@@ -433,7 +456,7 @@ const IntegrationsPage = () => {
                 </Box>
               ) : (
                 <TableContainer
-                  component={Paper}
+                  component={Box}
                   sx={{
                     backgroundColor: "transparent",
                     boxShadow: "none",
@@ -494,7 +517,18 @@ const IntegrationsPage = () => {
                     </TableHead>
                     <TableBody>
                       {integrations.map((integration) => (
-                        <TableRow key={integration.id}>
+                        <TableRow
+                          key={integration.id}
+                          sx={{
+                            backgroundColor: "transparent",
+                            "&:hover": {
+                              backgroundColor: "transparent",
+                            },
+                            "& .MuiTableCell-root": {
+                              borderBottom: "none",
+                            },
+                          }}
+                        >
                           <TableCell
                             sx={{
                               fontSize: "0.75rem",
@@ -536,40 +570,104 @@ const IntegrationsPage = () => {
                               <Chip
                                 icon={
                                   integration.readTokenValid ? (
-                                    <CheckCircleIcon fontSize="small" />
+                                    <CheckCircleIcon
+                                      fontSize="small"
+                                      sx={{
+                                        color: (theme) => theme.palette.primary.main,
+                                      }}
+                                    />
                                   ) : (
-                                    <ErrorIcon fontSize="small" />
+                                    <ErrorIcon
+                                      fontSize="small"
+                                      sx={{
+                                        color: (theme) =>
+                                          theme.palette.mode === "dark"
+                                            ? "#ff5656"
+                                            : "#ef4444",
+                                      }}
+                                    />
                                   )
                                 }
                                 label={integration.readTokenValid ? "Read Valid" : "Read Invalid"}
                                 size="small"
-                                color={integration.readTokenValid ? "success" : "error"}
-                                sx={{
+                                sx={(theme) => ({
                                   fontSize: "0.688rem",
                                   height: 20,
+                                  backgroundColor: integration.readTokenValid
+                                    ? alpha(theme.palette.primary.main, 0.15)
+                                    : alpha(
+                                        theme.palette.mode === "dark" ? "#ff5656" : "#ef4444",
+                                        0.15
+                                      ),
+                                  color: integration.readTokenValid
+                                    ? theme.palette.primary.main
+                                    : theme.palette.mode === "dark"
+                                    ? "#ff5656"
+                                    : "#ef4444",
+                                  border: `1px solid ${
+                                    integration.readTokenValid
+                                      ? alpha(theme.palette.primary.main, 0.3)
+                                      : alpha(
+                                          theme.palette.mode === "dark" ? "#ff5656" : "#ef4444",
+                                          0.3
+                                        )
+                                  }`,
+                                  fontWeight: 500,
                                   "& .MuiChip-icon": {
                                     fontSize: "0.875rem",
                                   },
-                                }}
+                                })}
                               />
                               <Chip
                                 icon={
                                   integration.uploadTokenValid ? (
-                                    <CheckCircleIcon fontSize="small" />
+                                    <CheckCircleIcon
+                                      fontSize="small"
+                                      sx={{
+                                        color: (theme) => theme.palette.primary.main,
+                                      }}
+                                    />
                                   ) : (
-                                    <ErrorIcon fontSize="small" />
+                                    <ErrorIcon
+                                      fontSize="small"
+                                      sx={{
+                                        color: (theme) =>
+                                          theme.palette.mode === "dark"
+                                            ? "#ff5656"
+                                            : "#ef4444",
+                                      }}
+                                    />
                                   )
                                 }
                                 label={integration.uploadTokenValid ? "Upload Valid" : "Upload Invalid"}
                                 size="small"
-                                color={integration.uploadTokenValid ? "success" : "error"}
-                                sx={{
+                                sx={(theme) => ({
                                   fontSize: "0.688rem",
                                   height: 20,
+                                  backgroundColor: integration.uploadTokenValid
+                                    ? alpha(theme.palette.primary.main, 0.15)
+                                    : alpha(
+                                        theme.palette.mode === "dark" ? "#ff5656" : "#ef4444",
+                                        0.15
+                                      ),
+                                  color: integration.uploadTokenValid
+                                    ? theme.palette.primary.main
+                                    : theme.palette.mode === "dark"
+                                    ? "#ff5656"
+                                    : "#ef4444",
+                                  border: `1px solid ${
+                                    integration.uploadTokenValid
+                                      ? alpha(theme.palette.primary.main, 0.3)
+                                      : alpha(
+                                          theme.palette.mode === "dark" ? "#ff5656" : "#ef4444",
+                                          0.3
+                                        )
+                                  }`,
+                                  fontWeight: 500,
                                   "& .MuiChip-icon": {
                                     fontSize: "0.875rem",
                                   },
-                                }}
+                                })}
                               />
                             </Box>
                           </TableCell>
@@ -583,41 +681,58 @@ const IntegrationsPage = () => {
                           </TableCell>
                           {canEdit && (
                             <TableCell>
-                              <Box sx={{ display: "flex", gap: 1 }}>
-                                <IconButton
+                              <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                                <Button
                                   size="small"
                                   onClick={() => handleSync(integration)}
                                   disabled={syncing === integration.id || !integration.readTokenValid}
+                                  startIcon={
+                                    syncing === integration.id ? (
+                                      <CircularProgress size={16} />
+                                    ) : (
+                                      <SyncIcon fontSize="small" />
+                                    )
+                                  }
+                                  sx={(theme) => ({
+                                    borderRadius: `${theme.shape.borderRadius}px`,
+                                    textTransform: "none",
+                                    fontWeight: 500,
+                                    fontSize: "0.75rem",
+                                    backgroundColor:
+                                      theme.palette.mode === "dark"
+                                        ? "#161B20"
+                                        : theme.palette.background.paper,
+                                    color: theme.palette.primary.main,
+                                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                                    padding: "6px 16px",
+                                    boxShadow: "none",
+                                    "&:hover": {
+                                      backgroundColor:
+                                        theme.palette.mode === "dark"
+                                          ? "#1a1f26"
+                                          : alpha(theme.palette.primary.main, 0.05),
+                                      borderColor: alpha(theme.palette.primary.main, 0.5),
+                                    },
+                                    "&:disabled": {
+                                      opacity: 0.5,
+                                    },
+                                  })}
+                                >
+                                  Sync
+                                </Button>
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => handleMenuOpen(e, integration.id)}
                                   sx={{
-                                    color: "primary.main",
+                                    color: "text.secondary",
                                     "&:hover": {
                                       backgroundColor: (theme) =>
                                         alpha(theme.palette.primary.main, 0.1),
+                                      color: "primary.main",
                                     },
                                   }}
-                                  title="Sync with Cesium Ion"
                                 >
-                                  {syncing === integration.id ? (
-                                    <CircularProgress size={16} />
-                                  ) : (
-                                    <SyncIcon fontSize="small" />
-                                  )}
-                                </IconButton>
-                                <IconButton
-                                  size="small"
-                                  onClick={() =>
-                                    handleOpenDeleteDialog(integration)
-                                  }
-                                  sx={{
-                                    color: "error.main",
-                                    "&:hover": {
-                                      backgroundColor: (theme) =>
-                                        alpha(theme.palette.error.main, 0.1),
-                                    },
-                                  }}
-                                  title="Delete integration"
-                                >
-                                  <DeleteIcon fontSize="small" />
+                                  <MoreVertIcon fontSize="small" />
                                 </IconButton>
                               </Box>
                             </TableCell>
@@ -628,7 +743,6 @@ const IntegrationsPage = () => {
                   </Table>
                 </TableContainer>
               )}
-            </PageSection>
           </PageCard>
         </PageContent>
       </Page>
@@ -655,45 +769,163 @@ const IntegrationsPage = () => {
         onSave={handleCreateIntegration}
       />
 
+      {/* Actions Menu */}
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        PaperProps={{
+          sx: {
+            backgroundColor: (theme) =>
+              theme.palette.mode === "dark" ? "#161B20" : theme.palette.background.paper,
+            border: (theme) =>
+              `1px solid ${
+                theme.palette.mode === "dark"
+                  ? "rgba(255, 255, 255, 0.08)"
+                  : "rgba(0, 0, 0, 0.1)"
+              }`,
+            minWidth: 120,
+            mt: 0.5,
+          },
+        }}
+      >
+        <MenuItem
+          onClick={handleRemoveClick}
+          sx={{
+            fontSize: "0.75rem",
+            color: "error.main",
+            "&:hover": {
+              backgroundColor: (theme) => alpha(theme.palette.error.main, 0.1),
+            },
+          }}
+        >
+          Remove
+        </MenuItem>
+      </Menu>
+
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={handleCloseDeleteDialog}
         maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: (theme) => ({
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+            boxShadow: "none",
+            "&.MuiPaper-root": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "#14171A !important"
+                  : theme.palette.background.paper,
+            },
+          }),
+        }}
       >
-        <DialogTitle sx={{ fontSize: "0.875rem", fontWeight: 600 }}>
+        <Box
+          sx={(theme) => ({
+            p: 3,
+            backgroundColor:
+              theme.palette.mode === "dark" ? "#14171A" : theme.palette.background.paper,
+          })}
+        >
+          {/* Header */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 3,
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
           Delete Integration
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ fontSize: "0.75rem" }}>
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={handleCloseDeleteDialog}
+              sx={{
+                color: "text.secondary",
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.05)",
+                },
+              }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+
+          <Divider sx={{ mb: 3 }} />
+
+          {/* Content */}
+          <Box sx={{ mb: 3 }}>
+            <Typography sx={{ fontSize: "0.75rem", color: "text.primary" }}>
             Are you sure you want to delete the integration &quot;
             {selectedIntegration?.label}&quot;? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
+          </Box>
+
+          {/* Actions */}
+          <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
           <Button
+              variant="outlined"
             onClick={handleCloseDeleteDialog}
             disabled={saving}
-            size="small"
-            sx={{ textTransform: "none", fontSize: "0.75rem" }}
+              sx={(theme) => ({
+                borderRadius: `${theme.shape.borderRadius}px`,
+                textTransform: "none",
+              })}
           >
             Cancel
           </Button>
           <Button
             onClick={handleDeleteIntegration}
+              variant="contained"
             disabled={saving}
-            color="error"
-            variant="contained"
-            size="small"
-            sx={{
+              sx={(theme) => ({
+                borderRadius: `${theme.shape.borderRadius}px`,
               textTransform: "none",
-              fontSize: "0.75rem",
-              minWidth: 100,
-            }}
+                fontWeight: 500,
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "#161B20"
+                    : theme.palette.background.paper,
+                color: theme.palette.error.main,
+                border: `1px solid ${alpha(theme.palette.error.main, 0.3)}`,
+                "&:hover": {
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? "#1a1f26"
+                      : alpha(theme.palette.error.main, 0.05),
+                  borderColor: alpha(theme.palette.error.main, 0.5),
+                },
+                "&:disabled": {
+                  opacity: 0.5,
+                },
+              })}
           >
-            {saving ? <CircularProgress size={16} /> : "Delete"}
+              {saving ? (
+                <>
+                  <CircularProgress size={16} sx={{ mr: 1 }} />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
           </Button>
-        </DialogActions>
+          </Box>
+        </Box>
       </Dialog>
     </>
   );

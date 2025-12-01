@@ -94,8 +94,8 @@ export function useProjectThumbnailCapture({
       // Extract thumbnail URL from signed URL (remove query parameters)
       const thumbnailUrl = signedUrl.split("?")[0];
 
-      // Update project with thumbnail URL
-      await updateProjectThumbnail(projectId, thumbnailUrl);
+      // Update project with thumbnail URL and size
+      await updateProjectThumbnail(projectId, thumbnailUrl, blob.size);
 
       showToast("Thumbnail uploaded successfully", "success");
 

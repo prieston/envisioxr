@@ -3,9 +3,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import {
   getUserDefaultOrganization,
-  createPersonalOrganization,
+  getUserOrganizations,
+  getUserPendingInvitations,
 } from "@/lib/organizations";
-import { prisma } from "@/lib/prisma";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
@@ -14,36 +14,35 @@ export default async function HomePage() {
     redirect("/auth/signin");
   }
 
-  let organization = await getUserDefaultOrganization(session.user.id);
+  // Get all user's organizations
+  const members = await getUserOrganizations(session.user.id);
+  const organizations = members.map((m) => m.organization);
 
-  // If user doesn't have an organization, create a personal one
-  // This can happen for OAuth users or users created before personal orgs were added
-  if (!organization) {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-      });
+  // Check if user only has personal organizations
+  const hasOnlyPersonalOrgs =
+    organizations.length > 0 &&
+    organizations.every((org) => org.isPersonal);
 
-      if (user) {
-        organization = await createPersonalOrganization(
-          user.id,
-          user.name,
-          user.email
-        );
-      }
-    } catch (error) {
-      console.error(
-        "[HomePage] Failed to create personal organization:",
-        error
-      );
-      // Fall through to redirect to signin
-    }
+  // Check for pending invitations
+  let hasPendingInvites = false;
+  if (session.user.email) {
+    const pendingInvites = await getUserPendingInvitations(session.user.email);
+    hasPendingInvites = pendingInvites.length > 0;
   }
 
+  // If user has zero organizations OR only personal orgs AND no pending invites, redirect to blocking page
+  if ((organizations.length === 0 || hasOnlyPersonalOrgs) && !hasPendingInvites) {
+    redirect("/account-not-linked");
+  }
+
+  // Otherwise, get default organization (non-personal) and redirect
+  const organization = await getUserDefaultOrganization(session.user.id);
+
+  // If no organization found, this should not happen if we handled zero orgs above
+  // But as a safety check, redirect to blocking page instead of redirecting to signin
   if (!organization) {
-    redirect("/auth/signin");
+    redirect("/account-not-linked");
   }
 
   redirect(`/org/${organization.id}/dashboard`);
-  return null;
 }

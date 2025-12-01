@@ -226,8 +226,8 @@ const ProjectDetailPage = () => {
       // Extract thumbnail URL from signed URL (remove query parameters)
       const thumbnailUrl = signedUrl.split("?")[0];
 
-      // Update project with thumbnail URL
-      await updateProjectThumbnail(projectId, thumbnailUrl);
+      // Update project with thumbnail URL and size
+      await updateProjectThumbnail(projectId, thumbnailUrl, file.size);
 
       // Refresh project data
       mutate();

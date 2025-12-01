@@ -282,7 +282,7 @@ const SettingsGeneralPage = () => {
           </Box>
 
           <PageCard>
-            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, fontSize: "1rem" }}>
               {organization?.isPersonal ? "Workspace Settings" : "Organization Settings"}
             </Typography>
 

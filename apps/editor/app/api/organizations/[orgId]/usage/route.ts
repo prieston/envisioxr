@@ -88,27 +88,88 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
     // Calculate storage used (in bytes) - only count files stored in our S3 bucket
     // Exclude Cesium Ion assets as they are stored on Cesium's servers
-    const assets = await prisma.asset.findMany({
-      where: {
-        organizationId: orgId,
-        assetType: { not: "cesiumIonAsset" }, // Exclude Cesium Ion assets
-      },
-      select: {
-        fileSize: true,
-        assetType: true,
-      },
-    });
-
     let totalStorageBytes = 0;
-    assets.forEach((asset) => {
-      if (asset.fileSize) {
-        const size =
-          typeof asset.fileSize === "bigint"
-            ? Number(asset.fileSize)
-            : asset.fileSize;
-        totalStorageBytes += size;
+
+    try {
+      const assets = await prisma.asset.findMany({
+        where: {
+          organizationId: orgId,
+          assetType: { not: "cesiumIonAsset" }, // Exclude Cesium Ion assets
+        },
+        select: {
+          fileSize: true,
+          thumbnailSize: true,
+          assetType: true,
+        },
+      });
+
+      // Get project thumbnails
+      const projects = await prisma.project.findMany({
+        where: {
+          organizationId: orgId,
+        },
+        select: {
+          thumbnailSize: true,
+        },
+      });
+
+      // Sum asset file sizes
+      assets.forEach((asset) => {
+        if (asset.fileSize) {
+          const size =
+            typeof asset.fileSize === "bigint"
+              ? Number(asset.fileSize)
+              : asset.fileSize;
+          totalStorageBytes += size;
+        }
+        // Sum asset thumbnail sizes (if column exists)
+        if (asset.thumbnailSize) {
+          const thumbnailSize =
+            typeof asset.thumbnailSize === "bigint"
+              ? Number(asset.thumbnailSize)
+              : asset.thumbnailSize;
+          totalStorageBytes += thumbnailSize;
+        }
+      });
+
+      // Sum project thumbnail sizes (if column exists)
+      projects.forEach((project) => {
+        if (project.thumbnailSize) {
+          const thumbnailSize =
+            typeof project.thumbnailSize === "bigint"
+              ? Number(project.thumbnailSize)
+              : project.thumbnailSize;
+          totalStorageBytes += thumbnailSize;
+        }
+      });
+    } catch (error: any) {
+      // If thumbnailSize columns don't exist yet (migration not applied), fall back to old calculation
+      if (error?.code === "P2022" && error?.meta?.column?.includes("thumbnailSize")) {
+        console.warn("[Usage API] thumbnailSize columns not found, using fallback calculation");
+        const assets = await prisma.asset.findMany({
+          where: {
+            organizationId: orgId,
+            assetType: { not: "cesiumIonAsset" },
+          },
+          select: {
+            fileSize: true,
+            assetType: true,
+          },
+        });
+
+        assets.forEach((asset) => {
+          if (asset.fileSize) {
+            const size =
+              typeof asset.fileSize === "bigint"
+                ? Number(asset.fileSize)
+                : asset.fileSize;
+            totalStorageBytes += size;
+          }
+        });
+      } else {
+        throw error;
       }
-    });
+    }
 
     // Convert bytes to GB (decimal, 10^9) for our storage
     const storageUsedGb = totalStorageBytes / (1000 * 1000 * 1000);

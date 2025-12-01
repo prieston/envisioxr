@@ -15,7 +15,10 @@ export async function GET(_request: NextRequest) {
   try {
     const members = await getUserOrganizations(userId);
 
-    const organizations = members.map((member) => ({
+    // Filter out personal organizations from the list
+    const organizations = members
+      .filter((member) => !member.organization.isPersonal)
+      .map((member) => ({
       id: member.organization.id,
       name: member.organization.name,
       slug: member.organization.slug,

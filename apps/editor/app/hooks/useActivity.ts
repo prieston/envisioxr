@@ -14,13 +14,10 @@ const useActivity = (options?: UseActivityOptions) => {
 
   // Build the SWR key with query parameters - orgId is required
   const params = new URLSearchParams();
-  if (orgId) {
-    params.append("organizationId", orgId);
-  }
   if (options?.limit) {
     params.append("limit", String(options.limit));
   }
-  const key = orgId ? `/api/activity?${params.toString()}` : null;
+  const key = orgId ? `/api/organizations/${orgId}/activity?${params.toString()}` : null;
 
   const { data, error, isLoading, mutate } = useSWR<ActivitiesResponse>(
     key,

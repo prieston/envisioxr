@@ -13,26 +13,28 @@ import {
   TableRow,
   Chip,
   CircularProgress,
-  Card,
-  CardContent,
   Button,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  DialogContentText,
   TextField,
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
+  IconButton,
+  Divider,
+  alpha,
+  Menu,
 } from "@mui/material";
+import { MoreVert } from "@mui/icons-material";
 import { PageContainer } from "../../components/PageContainer";
 import {
   PageHeader,
   PageDescription,
   PageContent,
   MetricCard,
+  PageCard,
+  textFieldStyles,
+  SettingContainer,
+  SettingLabel,
 } from "@klorad/ui";
 import {
   PeopleIcon,
@@ -40,7 +42,7 @@ import {
   FolderIcon,
   StorageIcon,
   AddIcon,
-  DeleteIcon,
+  CloseIcon,
 } from "@klorad/ui";
 import MembersDialog from "./MembersDialog";
 import { showToast } from "@klorad/ui";
@@ -102,24 +104,35 @@ const formatStorage = (gb: number): string => {
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+    const error = await res
+      .json()
+      .catch(() => ({ error: `HTTP ${res.status}` }));
     throw new Error(error.error || `Failed to fetch: ${res.statusText}`);
   }
   return res.json();
 };
 
 export default function AdminDashboard() {
-  const { data: statsData, error: statsError, mutate: mutateStats } = useSWR<AdminStats>(
-    "/api/stats",
-    fetcher
-  );
+  const {
+    data: statsData,
+    error: statsError,
+    mutate: mutateStats,
+  } = useSWR<AdminStats>("/api/stats", fetcher);
   const { data: plansData } = useSWR<{ plans: Plan[] }>("/api/plans", fetcher);
 
   const [loading, setLoading] = useState(false);
   const [createOrgOpen, setCreateOrgOpen] = useState(false);
   const [deleteOrgOpen, setDeleteOrgOpen] = useState(false);
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [licenseDialogOpen, setLicenseDialogOpen] = useState(false);
-  const [orgToDelete, setOrgToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [orgToDelete, setOrgToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [orgToUpgrade, setOrgToUpgrade] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [orgToUpdate, setOrgToUpdate] = useState<{
     id: string;
     name: string;
@@ -127,7 +140,11 @@ export default function AdminDashboard() {
     subscriptionStatus: string | null;
   } | null>(null);
   const [membersDialogOpen, setMembersDialogOpen] = useState(false);
-  const [selectedOrg, setSelectedOrg] = useState<{ id: string; name: string; isPersonal: boolean } | null>(null);
+  const [selectedOrg, setSelectedOrg] = useState<{
+    id: string;
+    name: string;
+    isPersonal: boolean;
+  } | null>(null);
 
   // Create organization form state
   const [orgName, setOrgName] = useState("");
@@ -167,7 +184,9 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("Error creating organization:", error);
       showToast(
-        error instanceof Error ? error.message : "Failed to create organization",
+        error instanceof Error
+          ? error.message
+          : "Failed to create organization",
         "error"
       );
     } finally {
@@ -196,7 +215,9 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("Error deleting organization:", error);
       showToast(
-        error instanceof Error ? error.message : "Failed to delete organization",
+        error instanceof Error
+          ? error.message
+          : "Failed to delete organization",
         "error"
       );
     } finally {
@@ -204,24 +225,98 @@ export default function AdminDashboard() {
     }
   }, [orgToDelete, mutateStats]);
 
-  const handleOpenDeleteDialog = useCallback((org: { id: string; name: string }) => {
-    setOrgToDelete(org);
-    setDeleteOrgOpen(true);
+  const handleOpenDeleteDialog = useCallback(
+    (org: { id: string; name: string }) => {
+      setOrgToDelete(org);
+      setDeleteOrgOpen(true);
+      setMenuAnchor(null);
+    },
+    []
+  );
+
+  const [menuAnchor, setMenuAnchor] = useState<{
+    element: HTMLElement;
+    orgId: string;
+    orgName: string;
+  } | null>(null);
+
+  const handleMenuOpen = useCallback(
+    (
+      event: React.MouseEvent<HTMLElement>,
+      org: { id: string; name: string }
+    ) => {
+      setMenuAnchor({
+        element: event.currentTarget,
+        orgId: org.id,
+        orgName: org.name,
+      });
+    },
+    []
+  );
+
+  const handleMenuClose = useCallback(() => {
+    setMenuAnchor(null);
   }, []);
+
+  const handleUpgradeWorkspace = useCallback(async () => {
+    if (!orgToUpgrade) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `/api/organizations/${orgToUpgrade.id}/upgrade`,
+        {
+          method: "PATCH",
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to upgrade workspace");
+      }
+
+      showToast(
+        "Personal workspace upgraded to organization successfully!",
+        "success"
+      );
+      await mutateStats();
+      setUpgradeDialogOpen(false);
+      setOrgToUpgrade(null);
+    } catch (error) {
+      console.error("Error upgrading workspace:", error);
+      showToast(
+        error instanceof Error ? error.message : "Failed to upgrade workspace",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [orgToUpgrade, mutateStats]);
+
+  const handleOpenUpgradeDialog = useCallback(
+    (org: { id: string; name: string }) => {
+      setOrgToUpgrade(org);
+      setUpgradeDialogOpen(true);
+    },
+    []
+  );
 
   const handleUpdateLicense = useCallback(async () => {
     if (!orgToUpdate) return;
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/organizations/${orgToUpdate.id}/license`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          planCode: selectedPlanCode || undefined,
-          subscriptionStatus: selectedStatus || null,
-        }),
-      });
+      const response = await fetch(
+        `/api/organizations/${orgToUpdate.id}/license`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            planCode: selectedPlanCode || undefined,
+            subscriptionStatus: selectedStatus || null,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json();
@@ -245,17 +340,20 @@ export default function AdminDashboard() {
     }
   }, [orgToUpdate, selectedPlanCode, selectedStatus, mutateStats]);
 
-  const openLicenseDialog = useCallback((org: {
-    id: string;
-    name: string;
-    planCode: string;
-    subscriptionStatus: string | null;
-  }) => {
-    setOrgToUpdate(org);
-    setSelectedPlanCode(org.planCode);
-    setSelectedStatus(org.subscriptionStatus || "");
-    setLicenseDialogOpen(true);
-  }, []);
+  const openLicenseDialog = useCallback(
+    (org: {
+      id: string;
+      name: string;
+      planCode: string;
+      subscriptionStatus: string | null;
+    }) => {
+      setOrgToUpdate(org);
+      setSelectedPlanCode(org.planCode);
+      setSelectedStatus(org.subscriptionStatus || "");
+      setLicenseDialogOpen(true);
+    },
+    []
+  );
 
   if (statsError) {
     return (
@@ -267,7 +365,9 @@ export default function AdminDashboard() {
           minHeight="400px"
         >
           <Typography color="error">
-            {statsError instanceof Error ? statsError.message : "Failed to load statistics"}
+            {statsError instanceof Error
+              ? statsError.message
+              : "Failed to load statistics"}
           </Typography>
         </Box>
       </PageContainer>
@@ -290,7 +390,7 @@ export default function AdminDashboard() {
   }
 
   // Check if API returned an error
-  if ('error' in statsData) {
+  if ("error" in statsData) {
     return (
       <PageContainer>
         <Box
@@ -300,7 +400,9 @@ export default function AdminDashboard() {
           minHeight="400px"
         >
           <Typography color="error">
-            {typeof statsData.error === 'string' ? statsData.error : "Failed to load statistics"}
+            {typeof statsData.error === "string"
+              ? statsData.error
+              : "Failed to load statistics"}
           </Typography>
         </Box>
       </PageContainer>
@@ -352,17 +454,20 @@ export default function AdminDashboard() {
           {/* Organizations Section */}
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Card>
-                <CardContent>
+              <Box sx={{ mb: 2 }}>
+                <PageCard>
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      mb: 2,
+                      mb: 3,
                     }}
                   >
-                    <Typography variant="h6">
+                    <Typography
+                      variant="h6"
+                      sx={{ fontWeight: 600, fontSize: "1rem" }}
+                    >
                       Organizations ({statsData.organizations.all.length})
                     </Typography>
                     <Button
@@ -370,37 +475,179 @@ export default function AdminDashboard() {
                       startIcon={<AddIcon />}
                       onClick={() => setCreateOrgOpen(true)}
                       size="small"
-                      sx={{ textTransform: "none" }}
+                      sx={(theme) => ({
+                        borderRadius: `${theme.shape.borderRadius}px`,
+                        textTransform: "none",
+                        fontWeight: 500,
+                        fontSize: "0.75rem",
+                        backgroundColor:
+                          theme.palette.mode === "dark"
+                            ? "#161B20"
+                            : theme.palette.background.paper,
+                        color: theme.palette.primary.main,
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                        padding: "6px 16px",
+                        boxShadow: "none",
+                        "&:hover": {
+                          backgroundColor:
+                            theme.palette.mode === "dark"
+                              ? "#1a1f26"
+                              : alpha(theme.palette.primary.main, 0.05),
+                          borderColor: alpha(theme.palette.primary.main, 0.5),
+                        },
+                      })}
                     >
                       Create Organization
                     </Button>
                   </Box>
-                  <TableContainer sx={{ maxHeight: 600 }}>
+                  <TableContainer
+                    component={Box}
+                    sx={{
+                      backgroundColor: "transparent",
+                      boxShadow: "none",
+                      maxHeight: 600,
+                    }}
+                  >
                     <Table size="small" stickyHeader>
                       <TableHead>
-                        <TableRow>
-                          <TableCell>Name</TableCell>
-                          <TableCell>Slug</TableCell>
-                          <TableCell align="center">Type</TableCell>
-                          <TableCell align="center">Plan</TableCell>
-                          <TableCell align="center">Status</TableCell>
-                          <TableCell align="right">Members</TableCell>
-                          <TableCell align="right">Projects</TableCell>
-                          <TableCell align="right">Assets</TableCell>
-                          <TableCell>Created</TableCell>
-                          <TableCell align="right">Actions</TableCell>
+                        <TableRow sx={{ backgroundColor: "transparent" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Name
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Slug
+                          </TableCell>
+                          <TableCell
+                            align="center"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Type
+                          </TableCell>
+                          <TableCell
+                            align="center"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Plan
+                          </TableCell>
+                          <TableCell
+                            align="center"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Status
+                          </TableCell>
+                          <TableCell
+                            align="right"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Members
+                          </TableCell>
+                          <TableCell
+                            align="right"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Projects
+                          </TableCell>
+                          <TableCell
+                            align="right"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Assets
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Created
+                          </TableCell>
+                          <TableCell
+                            align="right"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Actions
+                          </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {statsData.organizations.all.map((org) => (
-                          <TableRow key={org.id} hover>
+                          <TableRow
+                            key={org.id}
+                            sx={{
+                              backgroundColor: "transparent",
+                              "&:hover": { backgroundColor: "transparent" },
+                            }}
+                          >
                             <TableCell>
-                              <Typography variant="body2" fontWeight="medium">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontSize: "0.75rem",
+                                  color: "text.primary",
+                                }}
+                              >
                                 {org.name}
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2" color="text.secondary">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontSize: "0.75rem",
+                                  color: "text.secondary",
+                                }}
+                              >
                                 {org.slug}
                               </Typography>
                             </TableCell>
@@ -409,15 +656,25 @@ export default function AdminDashboard() {
                                 <Chip
                                   label="Personal"
                                   size="small"
-                                  color="default"
-                                  sx={{ height: 20, fontSize: "0.7rem" }}
+                                  sx={{
+                                    height: 20,
+                                    fontSize: "0.7rem",
+                                    backgroundColor: alpha("#6B9CD8", 0.1),
+                                    color: "#6B9CD8",
+                                    border: `1px solid ${alpha("#6B9CD8", 0.3)}`,
+                                  }}
                                 />
                               ) : (
                                 <Chip
                                   label="Team"
                                   size="small"
-                                  color="primary"
-                                  sx={{ height: 20, fontSize: "0.7rem" }}
+                                  sx={{
+                                    height: 20,
+                                    fontSize: "0.7rem",
+                                    backgroundColor: alpha("#6B9CD8", 0.1),
+                                    color: "#6B9CD8",
+                                    border: `1px solid ${alpha("#6B9CD8", 0.3)}`,
+                                  }}
                                 />
                               )}
                             </TableCell>
@@ -425,8 +682,23 @@ export default function AdminDashboard() {
                               <Chip
                                 label={org.planCode}
                                 size="small"
-                                color={org.planCode === "free" ? "default" : "success"}
-                                sx={{ height: 20, fontSize: "0.7rem" }}
+                                sx={{
+                                  height: 20,
+                                  fontSize: "0.7rem",
+                                  backgroundColor:
+                                    org.planCode === "free"
+                                      ? alpha("#6B9CD8", 0.1)
+                                      : alpha("#22c55e", 0.1),
+                                  color:
+                                    org.planCode === "free"
+                                      ? "#6B9CD8"
+                                      : "#22c55e",
+                                  border: `1px solid ${
+                                    org.planCode === "free"
+                                      ? alpha("#6B9CD8", 0.3)
+                                      : alpha("#22c55e", 0.3)
+                                  }`,
+                                }}
                               />
                             </TableCell>
                             <TableCell align="center">
@@ -434,45 +706,185 @@ export default function AdminDashboard() {
                                 <Chip
                                   label={org.subscriptionStatus}
                                   size="small"
-                                  color={
-                                    org.subscriptionStatus === "active"
-                                      ? "success"
-                                      : org.subscriptionStatus === "canceled"
-                                      ? "error"
-                                      : "warning"
-                                  }
-                                  sx={{ height: 20, fontSize: "0.7rem" }}
+                                  sx={{
+                                    height: 20,
+                                    fontSize: "0.7rem",
+                                    backgroundColor:
+                                      org.subscriptionStatus === "active"
+                                        ? alpha("#22c55e", 0.1)
+                                        : org.subscriptionStatus === "canceled"
+                                          ? alpha("#ef4444", 0.1)
+                                          : alpha("#f59e0b", 0.1),
+                                    color:
+                                      org.subscriptionStatus === "active"
+                                        ? "#22c55e"
+                                        : org.subscriptionStatus === "canceled"
+                                          ? "#ef4444"
+                                          : "#f59e0b",
+                                    border: `1px solid ${
+                                      org.subscriptionStatus === "active"
+                                        ? alpha("#22c55e", 0.3)
+                                        : org.subscriptionStatus === "canceled"
+                                          ? alpha("#ef4444", 0.3)
+                                          : alpha("#f59e0b", 0.3)
+                                    }`,
+                                  }}
                                 />
                               ) : (
                                 <Chip
                                   label="N/A"
                                   size="small"
-                                  color="default"
-                                  sx={{ height: 20, fontSize: "0.7rem" }}
+                                  sx={{
+                                    height: 20,
+                                    fontSize: "0.7rem",
+                                    backgroundColor: alpha("#6B9CD8", 0.1),
+                                    color: "#6B9CD8",
+                                    border: `1px solid ${alpha("#6B9CD8", 0.3)}`,
+                                  }}
                                 />
                               )}
                             </TableCell>
-                            <TableCell align="right">{org.memberCount}</TableCell>
-                            <TableCell align="right">{org.projectCount}</TableCell>
-                            <TableCell align="right">{org.assetCount}</TableCell>
+                            <TableCell align="right">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontSize: "0.75rem",
+                                  color: "text.primary",
+                                }}
+                              >
+                                {org.memberCount}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontSize: "0.75rem",
+                                  color: "text.primary",
+                                }}
+                              >
+                                {org.projectCount}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontSize: "0.75rem",
+                                  color: "text.primary",
+                                }}
+                              >
+                                {org.assetCount}
+                              </Typography>
+                            </TableCell>
                             <TableCell>
-                              <Typography variant="body2" color="text.secondary">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontSize: "0.75rem",
+                                  color: "text.secondary",
+                                }}
+                              >
                                 {new Date(org.createdAt).toLocaleDateString()}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
-                              <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  gap: 1,
+                                  justifyContent: "flex-end",
+                                  flexWrap: "wrap",
+                                }}
+                              >
+                                {org.isPersonal && (
+                                  <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={() =>
+                                      handleOpenUpgradeDialog({
+                                        id: org.id,
+                                        name: org.name,
+                                      })
+                                    }
+                                    sx={(theme) => ({
+                                      textTransform: "none",
+                                      fontSize: "0.75rem",
+                                      fontWeight: 500,
+                                      backgroundColor:
+                                        theme.palette.mode === "dark"
+                                          ? "#161B20"
+                                          : theme.palette.background.paper,
+                                      color: theme.palette.primary.main,
+                                      border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                                      padding: "6px 16px",
+                                      boxShadow: "none",
+                                      "&:hover": {
+                                        backgroundColor:
+                                          theme.palette.mode === "dark"
+                                            ? "#1a1f26"
+                                            : alpha(
+                                                theme.palette.primary.main,
+                                                0.05
+                                              ),
+                                        borderColor: alpha(
+                                          theme.palette.primary.main,
+                                          0.5
+                                        ),
+                                      },
+                                    })}
+                                  >
+                                    Upgrade to Organization
+                                  </Button>
+                                )}
                                 <Button
                                   variant="outlined"
                                   size="small"
                                   startIcon={<PeopleIcon />}
                                   onClick={() => {
-                                    setSelectedOrg({ id: org.id, name: org.name, isPersonal: org.isPersonal });
+                                    setSelectedOrg({
+                                      id: org.id,
+                                      name: org.name,
+                                      isPersonal: org.isPersonal,
+                                    });
                                     setMembersDialogOpen(true);
                                   }}
                                   disabled={org.isPersonal}
-                                  sx={{ textTransform: "none" }}
-                                  title={org.isPersonal ? "Personal organizations cannot have multiple members" : "Manage members"}
+                                  sx={(theme) => ({
+                                    textTransform: "none",
+                                    fontSize: "0.75rem",
+                                    fontWeight: 500,
+                                    borderColor: alpha(
+                                      theme.palette.primary.main,
+                                      0.3
+                                    ),
+                                    color: theme.palette.primary.main,
+                                    "&:hover": {
+                                      borderColor: alpha(
+                                        theme.palette.primary.main,
+                                        0.5
+                                      ),
+                                      backgroundColor: alpha(
+                                        theme.palette.primary.main,
+                                        0.05
+                                      ),
+                                    },
+                                    "&.Mui-disabled": {
+                                      borderColor: alpha(
+                                        theme.palette.primary.main,
+                                        0.1
+                                      ),
+                                      color: alpha(
+                                        theme.palette.primary.main,
+                                        0.3
+                                      ),
+                                    },
+                                  })}
+                                  title={
+                                    org.isPersonal
+                                      ? "Personal organizations cannot have multiple members"
+                                      : "Manage members"
+                                  }
                                 >
                                   Members
                                 </Button>
@@ -484,25 +896,54 @@ export default function AdminDashboard() {
                                       id: org.id,
                                       name: org.name,
                                       planCode: org.planCode,
-                                      subscriptionStatus: org.subscriptionStatus,
+                                      subscriptionStatus:
+                                        org.subscriptionStatus,
                                     })
                                   }
-                                  sx={{ textTransform: "none", minWidth: 100 }}
+                                  sx={(theme) => ({
+                                    textTransform: "none",
+                                    fontSize: "0.75rem",
+                                    fontWeight: 500,
+                                    minWidth: 100,
+                                    borderColor: alpha(
+                                      theme.palette.primary.main,
+                                      0.3
+                                    ),
+                                    color: theme.palette.primary.main,
+                                    "&:hover": {
+                                      borderColor: alpha(
+                                        theme.palette.primary.main,
+                                        0.5
+                                      ),
+                                      backgroundColor: alpha(
+                                        theme.palette.primary.main,
+                                        0.05
+                                      ),
+                                    },
+                                  })}
                                 >
                                   License
                                 </Button>
-                                <Button
-                                  variant="outlined"
-                                  color="error"
+                                <IconButton
                                   size="small"
-                                  startIcon={<DeleteIcon />}
-                                  onClick={() =>
-                                    handleOpenDeleteDialog({ id: org.id, name: org.name })
+                                  onClick={(e) =>
+                                    handleMenuOpen(e, {
+                                      id: org.id,
+                                      name: org.name,
+                                    })
                                   }
-                                  sx={{ textTransform: "none" }}
+                                  sx={(theme) => ({
+                                    color: theme.palette.text.secondary,
+                                    padding: "4px",
+                                    "&:hover": {
+                                      backgroundColor:
+                                        "rgba(255, 255, 255, 0.08)",
+                                      color: theme.palette.text.primary,
+                                    },
+                                  })}
                                 >
-                                  Delete
-                                </Button>
+                                  <MoreVert fontSize="small" />
+                                </IconButton>
                               </Box>
                             </TableCell>
                           </TableRow>
@@ -510,40 +951,126 @@ export default function AdminDashboard() {
                       </TableBody>
                     </Table>
                   </TableContainer>
-                </CardContent>
-              </Card>
+                </PageCard>
+              </Box>
             </Grid>
 
             {/* Users Section */}
             <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
+              <Box sx={{ mb: 2 }}>
+                <PageCard>
+                  <Typography
+                    variant="h6"
+                    sx={{ mb: 3, fontWeight: 600, fontSize: "1rem" }}
+                  >
                     Users ({statsData.users.all.length})
                   </Typography>
-                  <TableContainer sx={{ maxHeight: 600 }}>
+                  <TableContainer
+                    component={Box}
+                    sx={{
+                      backgroundColor: "transparent",
+                      boxShadow: "none",
+                      maxHeight: 600,
+                    }}
+                  >
                     <Table size="small" stickyHeader>
                       <TableHead>
-                        <TableRow>
-                          <TableCell>Name</TableCell>
-                          <TableCell>Email</TableCell>
-                          <TableCell align="center">Verified</TableCell>
-                          <TableCell align="right">Organizations</TableCell>
-                          <TableCell align="right">Activities</TableCell>
+                        <TableRow sx={{ backgroundColor: "transparent" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Name
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Email
+                          </TableCell>
+                          <TableCell
+                            align="center"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Verified
+                          </TableCell>
+                          <TableCell
+                            align="right"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Organizations
+                          </TableCell>
+                          <TableCell
+                            align="right"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.primary",
+                              fontWeight: 600,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            Activities
+                          </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {statsData.users.all.map((user) => (
-                          <TableRow key={user.id} hover>
+                          <TableRow
+                            key={user.id}
+                            sx={{
+                              backgroundColor: "transparent",
+                              "&:hover": { backgroundColor: "transparent" },
+                            }}
+                          >
                             <TableCell>
-                              {user.name || (
-                                <Typography variant="body2" color="text.secondary">
+                              {user.name ? (
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    fontSize: "0.75rem",
+                                    color: "text.primary",
+                                  }}
+                                >
+                                  {user.name}
+                                </Typography>
+                              ) : (
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    fontSize: "0.75rem",
+                                    color: "text.secondary",
+                                  }}
+                                >
                                   No name
                                 </Typography>
                               )}
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2" fontWeight="medium">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontSize: "0.75rem",
+                                  color: "text.primary",
+                                }}
+                              >
                                 {user.email || "No email"}
                               </Typography>
                             </TableCell>
@@ -552,146 +1079,687 @@ export default function AdminDashboard() {
                                 <Chip
                                   label="Yes"
                                   size="small"
-                                  color="success"
-                                  sx={{ height: 20, fontSize: "0.7rem" }}
+                                  sx={{
+                                    height: 20,
+                                    fontSize: "0.7rem",
+                                    backgroundColor: alpha("#22c55e", 0.1),
+                                    color: "#22c55e",
+                                    border: `1px solid ${alpha("#22c55e", 0.3)}`,
+                                  }}
                                 />
                               ) : (
                                 <Chip
                                   label="No"
                                   size="small"
-                                  color="default"
-                                  sx={{ height: 20, fontSize: "0.7rem" }}
+                                  sx={{
+                                    height: 20,
+                                    fontSize: "0.7rem",
+                                    backgroundColor: alpha("#6B9CD8", 0.1),
+                                    color: "#6B9CD8",
+                                    border: `1px solid ${alpha("#6B9CD8", 0.3)}`,
+                                  }}
                                 />
                               )}
                             </TableCell>
-                            <TableCell align="right">{user.organizationCount}</TableCell>
-                            <TableCell align="right">{user.activityCount}</TableCell>
+                            <TableCell align="right">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontSize: "0.75rem",
+                                  color: "text.primary",
+                                }}
+                              >
+                                {user.organizationCount}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontSize: "0.75rem",
+                                  color: "text.primary",
+                                }}
+                              >
+                                {user.activityCount}
+                              </Typography>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
                   </TableContainer>
-                </CardContent>
-              </Card>
+                </PageCard>
+              </Box>
             </Grid>
           </Grid>
         </PageContent>
       </PageContainer>
 
       {/* Create Organization Dialog */}
-      <Dialog open={createOrgOpen} onClose={() => setCreateOrgOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Create Organization</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-            <TextField
-              label="Organization Name"
-              value={orgName}
-              onChange={(e) => setOrgName(e.target.value)}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Slug"
-              value={orgSlug}
-              onChange={(e) => setOrgSlug(e.target.value)}
-              fullWidth
-              required
-              helperText="Lowercase letters, numbers, hyphens, and underscores only"
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCreateOrgOpen(false)} disabled={saving} sx={{ textTransform: "none" }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleCreateOrganization}
-            variant="contained"
-            disabled={saving || !orgName.trim() || !orgSlug.trim()}
-            sx={{ textTransform: "none" }}
+      <Dialog
+        open={createOrgOpen}
+        onClose={() => setCreateOrgOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={(theme) => ({
+          "& .MuiDialog-paper": {
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+          },
+        })}
+        PaperProps={{
+          sx: (theme) => ({
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+            boxShadow: "none",
+            backgroundImage: "none",
+            "&.MuiPaper-root": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "#14171A !important"
+                  : theme.palette.background.paper,
+              boxShadow: "none",
+            },
+          }),
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          },
+        }}
+      >
+        <Box
+          sx={(theme) => ({
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A"
+                : theme.palette.background.paper,
+          })}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              p: 2,
+              pb: 1,
+            }}
           >
-            {saving ? "Creating..." : "Create"}
-          </Button>
-        </DialogActions>
+            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>
+              Create Organization
+            </Typography>
+            <IconButton
+              onClick={() => setCreateOrgOpen(false)}
+              size="small"
+              sx={{ color: "text.secondary" }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <Divider />
+          <Box sx={{ p: 2 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <SettingContainer>
+                <SettingLabel>Organization Name</SettingLabel>
+                <TextField
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  fullWidth
+                  required
+                  sx={textFieldStyles}
+                />
+              </SettingContainer>
+              <SettingContainer>
+                <SettingLabel>Slug</SettingLabel>
+                <TextField
+                  value={orgSlug}
+                  onChange={(e) => setOrgSlug(e.target.value)}
+                  fullWidth
+                  required
+                  helperText="Lowercase letters, numbers, hyphens, and underscores only"
+                  sx={textFieldStyles}
+                />
+              </SettingContainer>
+            </Box>
+          </Box>
+          <Divider />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 1,
+              p: 2,
+            }}
+          >
+            <Button
+              onClick={() => setCreateOrgOpen(false)}
+              disabled={saving}
+              variant="outlined"
+              sx={(theme) => ({
+                textTransform: "none",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                borderColor: alpha(theme.palette.primary.main, 0.3),
+                color: theme.palette.primary.main,
+                "&:hover": {
+                  borderColor: alpha(theme.palette.primary.main, 0.5),
+                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                },
+              })}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateOrganization}
+              variant="contained"
+              disabled={saving || !orgName.trim() || !orgSlug.trim()}
+              sx={(theme) => ({
+                textTransform: "none",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "#161B20"
+                    : theme.palette.background.paper,
+                color: theme.palette.primary.main,
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? "#1a1f26"
+                      : alpha(theme.palette.primary.main, 0.05),
+                  borderColor: alpha(theme.palette.primary.main, 0.5),
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                  color: alpha(theme.palette.primary.main, 0.3),
+                  borderColor: alpha(theme.palette.primary.main, 0.1),
+                },
+              })}
+            >
+              {saving ? "Creating..." : "Create"}
+            </Button>
+          </Box>
+        </Box>
       </Dialog>
 
       {/* Delete Organization Dialog */}
-      <Dialog open={deleteOrgOpen} onClose={() => setDeleteOrgOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Delete Organization</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete &quot;{orgToDelete?.name}&quot;? This action
-            cannot be undone and will permanently delete all associated data,
-            including projects, assets, members, and integrations.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteOrgOpen(false)} disabled={loading} sx={{ textTransform: "none" }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDeleteOrganization}
-            color="error"
-            variant="contained"
-            disabled={loading}
-            sx={{ textTransform: "none" }}
+      <Dialog
+        open={deleteOrgOpen}
+        onClose={() => setDeleteOrgOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={(theme) => ({
+          "& .MuiDialog-paper": {
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+          },
+        })}
+        PaperProps={{
+          sx: (theme) => ({
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+            boxShadow: "none",
+            backgroundImage: "none",
+            "&.MuiPaper-root": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "#14171A !important"
+                  : theme.palette.background.paper,
+              boxShadow: "none",
+            },
+          }),
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          },
+        }}
+      >
+        <Box
+          sx={(theme) => ({
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A"
+                : theme.palette.background.paper,
+          })}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              p: 2,
+              pb: 1,
+            }}
           >
-            {loading ? "Deleting..." : "Delete"}
-          </Button>
-        </DialogActions>
+            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>
+              Delete Organization
+            </Typography>
+            <IconButton
+              onClick={() => setDeleteOrgOpen(false)}
+              size="small"
+              sx={{ color: "text.secondary" }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <Divider />
+          <Box sx={{ p: 2 }}>
+            <Typography
+              variant="body2"
+              sx={{ fontSize: "0.75rem", color: "text.secondary" }}
+            >
+              Are you sure you want to delete &quot;{orgToDelete?.name}&quot;?
+              This action cannot be undone and will permanently delete all
+              associated data, including projects, assets, members, and
+              integrations.
+            </Typography>
+          </Box>
+          <Divider />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 1,
+              p: 2,
+            }}
+          >
+            <Button
+              onClick={() => setDeleteOrgOpen(false)}
+              disabled={loading}
+              variant="outlined"
+              sx={(theme) => ({
+                textTransform: "none",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                borderColor: alpha(theme.palette.primary.main, 0.3),
+                color: theme.palette.primary.main,
+                "&:hover": {
+                  borderColor: alpha(theme.palette.primary.main, 0.5),
+                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                },
+              })}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteOrganization}
+              variant="contained"
+              disabled={loading}
+              sx={(theme) => ({
+                textTransform: "none",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                backgroundColor: alpha(theme.palette.error.main, 0.1),
+                color: theme.palette.error.main,
+                border: `1px solid ${alpha(theme.palette.error.main, 0.3)}`,
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor: alpha(theme.palette.error.main, 0.15),
+                  borderColor: alpha(theme.palette.error.main, 0.5),
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: alpha(theme.palette.error.main, 0.05),
+                  color: alpha(theme.palette.error.main, 0.3),
+                  borderColor: alpha(theme.palette.error.main, 0.1),
+                },
+              })}
+            >
+              {loading ? "Deleting..." : "Delete"}
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
+
+      {/* Upgrade Workspace Dialog */}
+      <Dialog
+        open={upgradeDialogOpen}
+        onClose={() => setUpgradeDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={(theme) => ({
+          "& .MuiDialog-paper": {
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+          },
+        })}
+        PaperProps={{
+          sx: (theme) => ({
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+            boxShadow: "none",
+            backgroundImage: "none",
+            "&.MuiPaper-root": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "#14171A !important"
+                  : theme.palette.background.paper,
+              boxShadow: "none",
+            },
+          }),
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          },
+        }}
+      >
+        <Box
+          sx={(theme) => ({
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A"
+                : theme.palette.background.paper,
+          })}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              p: 2,
+              pb: 1,
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>
+              Upgrade Personal Workspace to Organization
+            </Typography>
+            <IconButton
+              onClick={() => setUpgradeDialogOpen(false)}
+              size="small"
+              sx={{ color: "text.secondary" }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <Divider />
+          <Box sx={{ p: 2 }}>
+            <Typography
+              variant="body2"
+              sx={{ fontSize: "0.75rem", color: "text.secondary", mb: 2 }}
+            >
+              Are you sure you want to upgrade &quot;{orgToUpgrade?.name}&quot;
+              from a personal workspace to a full organization?
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ fontSize: "0.75rem", color: "text.secondary", mb: 1 }}
+            >
+              This will:
+            </Typography>
+            <Box component="ul" sx={{ pl: 3, mb: 2 }}>
+              <Typography
+                component="li"
+                variant="body2"
+                sx={{ fontSize: "0.75rem", color: "text.secondary", mb: 0.5 }}
+              >
+                Enable multiple members to join the organization
+              </Typography>
+              <Typography
+                component="li"
+                variant="body2"
+                sx={{ fontSize: "0.75rem", color: "text.secondary", mb: 0.5 }}
+              >
+                Allow organization invitations
+              </Typography>
+              <Typography
+                component="li"
+                variant="body2"
+                sx={{ fontSize: "0.75rem", color: "text.secondary" }}
+              >
+                Preserve all existing projects, assets, and data
+              </Typography>
+            </Box>
+            <Typography
+              variant="body2"
+              sx={{ fontSize: "0.75rem", color: "text.secondary" }}
+            >
+              This action cannot be undone.
+            </Typography>
+          </Box>
+          <Divider />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 1,
+              p: 2,
+            }}
+          >
+            <Button
+              onClick={() => setUpgradeDialogOpen(false)}
+              disabled={loading}
+              variant="outlined"
+              sx={(theme) => ({
+                textTransform: "none",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                borderColor: alpha(theme.palette.primary.main, 0.3),
+                color: theme.palette.primary.main,
+                "&:hover": {
+                  borderColor: alpha(theme.palette.primary.main, 0.5),
+                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                },
+              })}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpgradeWorkspace}
+              variant="contained"
+              disabled={loading}
+              sx={(theme) => ({
+                textTransform: "none",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "#161B20"
+                    : theme.palette.background.paper,
+                color: theme.palette.primary.main,
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? "#1a1f26"
+                      : alpha(theme.palette.primary.main, 0.05),
+                  borderColor: alpha(theme.palette.primary.main, 0.5),
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                  color: alpha(theme.palette.primary.main, 0.3),
+                  borderColor: alpha(theme.palette.primary.main, 0.1),
+                },
+              })}
+            >
+              {loading ? "Upgrading..." : "Upgrade to Organization"}
+            </Button>
+          </Box>
+        </Box>
       </Dialog>
 
       {/* License Management Dialog */}
-      <Dialog open={licenseDialogOpen} onClose={() => setLicenseDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Manage License - {orgToUpdate?.name}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-            <FormControl fullWidth>
-              <InputLabel>Plan</InputLabel>
-              <Select
-                value={selectedPlanCode}
-                onChange={(e) => setSelectedPlanCode(e.target.value)}
-                label="Plan"
-              >
-                {plans.map((plan) => (
-                  <MenuItem key={plan.code} value={plan.code}>
-                    {plan.name} ({plan.code})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>Subscription Status</InputLabel>
-              <Select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                label="Subscription Status"
-              >
-                <MenuItem value="">None</MenuItem>
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="canceled">Canceled</MenuItem>
-                <MenuItem value="past_due">Past Due</MenuItem>
-                <MenuItem value="trialing">Trialing</MenuItem>
-                <MenuItem value="incomplete">Incomplete</MenuItem>
-                <MenuItem value="incomplete_expired">Incomplete Expired</MenuItem>
-                <MenuItem value="unpaid">Unpaid</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setLicenseDialogOpen(false)} disabled={loading} sx={{ textTransform: "none" }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleUpdateLicense}
-            variant="contained"
-            disabled={loading}
-            sx={{ textTransform: "none" }}
+      <Dialog
+        open={licenseDialogOpen}
+        onClose={() => setLicenseDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={(theme) => ({
+          "& .MuiDialog-paper": {
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+          },
+        })}
+        PaperProps={{
+          sx: (theme) => ({
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+            boxShadow: "none",
+            backgroundImage: "none",
+            "&.MuiPaper-root": {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "#14171A !important"
+                  : theme.palette.background.paper,
+              boxShadow: "none",
+            },
+          }),
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          },
+        }}
+      >
+        <Box
+          sx={(theme) => ({
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A"
+                : theme.palette.background.paper,
+          })}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              p: 2,
+              pb: 1,
+            }}
           >
-            {loading ? "Updating..." : "Update License"}
-          </Button>
-        </DialogActions>
+            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>
+              Manage License - {orgToUpdate?.name}
+            </Typography>
+            <IconButton
+              onClick={() => setLicenseDialogOpen(false)}
+              size="small"
+              sx={{ color: "text.secondary" }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <Divider />
+          <Box sx={{ p: 2 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <SettingContainer>
+                <SettingLabel>Plan</SettingLabel>
+                <FormControl fullWidth>
+                  <Select
+                    value={selectedPlanCode}
+                    onChange={(e) => setSelectedPlanCode(e.target.value)}
+                    sx={textFieldStyles}
+                  >
+                    {plans.map((plan) => (
+                      <MenuItem key={plan.code} value={plan.code}>
+                        {plan.name} ({plan.code})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </SettingContainer>
+              <SettingContainer>
+                <SettingLabel>Subscription Status</SettingLabel>
+                <FormControl fullWidth>
+                  <Select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    sx={textFieldStyles}
+                  >
+                    <MenuItem value="">None</MenuItem>
+                    <MenuItem value="active">Active</MenuItem>
+                    <MenuItem value="canceled">Canceled</MenuItem>
+                    <MenuItem value="past_due">Past Due</MenuItem>
+                    <MenuItem value="trialing">Trialing</MenuItem>
+                    <MenuItem value="incomplete">Incomplete</MenuItem>
+                    <MenuItem value="incomplete_expired">
+                      Incomplete Expired
+                    </MenuItem>
+                    <MenuItem value="unpaid">Unpaid</MenuItem>
+                  </Select>
+                </FormControl>
+              </SettingContainer>
+            </Box>
+          </Box>
+          <Divider />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 1,
+              p: 2,
+            }}
+          >
+            <Button
+              onClick={() => setLicenseDialogOpen(false)}
+              disabled={loading}
+              variant="outlined"
+              sx={(theme) => ({
+                textTransform: "none",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                borderColor: alpha(theme.palette.primary.main, 0.3),
+                color: theme.palette.primary.main,
+                "&:hover": {
+                  borderColor: alpha(theme.palette.primary.main, 0.5),
+                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                },
+              })}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateLicense}
+              variant="contained"
+              disabled={loading}
+              sx={(theme) => ({
+                textTransform: "none",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "#161B20"
+                    : theme.palette.background.paper,
+                color: theme.palette.primary.main,
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? "#1a1f26"
+                      : alpha(theme.palette.primary.main, 0.05),
+                  borderColor: alpha(theme.palette.primary.main, 0.5),
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                  color: alpha(theme.palette.primary.main, 0.3),
+                  borderColor: alpha(theme.palette.primary.main, 0.1),
+                },
+              })}
+            >
+              {loading ? "Updating..." : "Update License"}
+            </Button>
+          </Box>
+        </Box>
       </Dialog>
 
       {/* Members Management Dialog */}
@@ -708,7 +1776,51 @@ export default function AdminDashboard() {
           onUpdate={mutateStats}
         />
       )}
+
+      {/* Three-Dot Menu for Organizations */}
+      <Menu
+        anchorEl={menuAnchor?.element || null}
+        open={Boolean(menuAnchor)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        sx={{
+          "& .MuiPaper-root": {
+            backgroundColor: "#14171A",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "none",
+            borderRadius: "4px",
+            minWidth: "120px",
+          },
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            if (menuAnchor) {
+              handleOpenDeleteDialog({
+                id: menuAnchor.orgId,
+                name: menuAnchor.orgName,
+              });
+            }
+          }}
+          sx={{
+            fontSize: "0.75rem",
+            color: "error.main",
+            padding: "8px 16px",
+            "&:hover": {
+              backgroundColor: alpha("#ef4444", 0.1),
+            },
+          }}
+        >
+          Delete
+        </MenuItem>
+      </Menu>
     </>
   );
 }
-

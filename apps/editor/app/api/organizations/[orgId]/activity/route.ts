@@ -3,43 +3,40 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Session } from "next-auth";
-import { getUserOrganizationIds } from "@/lib/organizations";
+import { isUserMemberOfOrganization } from "@/lib/organizations";
 
-export async function GET(request: NextRequest) {
-  const session = (await getServerSession(authOptions)) as Session;
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: { orgId: string } }
+) {
+  const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const userId = session.user.id;
+  const { orgId } = await params;
 
   try {
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "10", 10);
-    const organizationId = searchParams.get("organizationId");
-    const projectId = searchParams.get("projectId");
-    const entityType = searchParams.get("entityType");
-    const entityId = searchParams.get("entityId");
-
-    // Require organizationId for security
-    if (!organizationId) {
+    // Verify user is a member of this organization
+    const isMember = await isUserMemberOfOrganization(userId, orgId);
+    if (!isMember) {
       return NextResponse.json(
-        { error: "organizationId is required" },
-        { status: 400 }
-      );
-    }
-
-    // Verify user is a member of the specified organization
-    const userOrgIds = await getUserOrganizationIds(session.user.id);
-    if (!userOrgIds.includes(organizationId)) {
-      return NextResponse.json(
-        { error: "User is not a member of the specified organization" },
+        { error: "User is not a member of this organization" },
         { status: 403 }
       );
     }
 
+    const { searchParams } = new URL(_request.url);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const skip = parseInt(searchParams.get("skip") || "0", 10);
+    const take = parseInt(searchParams.get("take") || limit.toString(), 10);
+    const projectId = searchParams.get("projectId");
+    const entityType = searchParams.get("entityType");
+    const entityId = searchParams.get("entityId");
+
     // Build where clause - filter by specific organization
     const whereClause: any = {
-      organizationId,
+      organizationId: orgId,
     };
 
     // Filter by project if provided
@@ -55,10 +52,16 @@ export async function GET(request: NextRequest) {
       whereClause.entityId = entityId;
     }
 
+    // Get total count for pagination
+    const total = await prisma.activity.count({
+      where: whereClause,
+    });
+
     const activities = await prisma.activity.findMany({
       where: whereClause,
       orderBy: { createdAt: "desc" },
-      take: limit,
+      skip: skip,
+      take: take,
       include: {
         actor: {
           select: {
@@ -77,7 +80,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ activities });
+    return NextResponse.json({ activities, total });
   } catch (error) {
     console.error("Error fetching activities:", error);
     return NextResponse.json(

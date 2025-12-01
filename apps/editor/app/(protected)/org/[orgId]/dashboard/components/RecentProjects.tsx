@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import { Box, Grid, Typography, Button, CircularProgress } from "@mui/material";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { PageCard, DashboardProjectCard, DashboardOptionsMenu } from "@klorad/ui";
 import { AddIcon } from "@klorad/ui";
 import { useOrgId } from "@/app/hooks/useOrgId";
@@ -57,14 +57,22 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({
             mb: 2,
           }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem" }}>
             Recent Projects
           </Typography>
           <Button
-            component={Link}
-            href={orgId ? `/org/${orgId}/projects` : "/projects"}
-            size="small"
-            sx={{ textTransform: "none" }}
+            onClick={() => router.push(orgId ? `/org/${orgId}/projects` : "/projects")}
+            sx={{
+              textTransform: "none",
+              fontSize: "0.75rem",
+              fontWeight: 500,
+              color: "#6B9CD8",
+              minWidth: "auto",
+              padding: "4px 8px",
+              "&:hover": {
+                backgroundColor: "rgba(107, 156, 216, 0.1)",
+              },
+            }}
           >
             View All
           </Button>

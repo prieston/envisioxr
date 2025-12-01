@@ -1,9 +1,29 @@
-import React from "react";
-import { Box, Typography, Button, IconButton, TextField, LinearProgress, Alert, Tooltip } from "@mui/material";
-import { Delete, Edit, Save, Close, AddCircleOutline, CameraAlt, Refresh, LocationOn } from "@mui/icons-material";
+import React, { useState } from "react";
+import { Box, Typography, Button, IconButton, TextField, LinearProgress, Alert, Tooltip, Menu, MenuItem } from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import { Delete, Edit, Save, Close, AddCircleOutline, CameraAlt, Refresh, LocationOn, MoreVert } from "@mui/icons-material";
 import { MetadataTable, type MetadataRow } from "../../../table";
 import type { LibraryAsset } from "../MyLibraryTab";
 import { textFieldStyles } from "../../../../styles/inputStyles";
+
+// Format file size from bytes to human-readable string
+const formatFileSize = (bytes: number | null | undefined): string => {
+  if (!bytes || bytes === 0) {
+    return "";
+  }
+
+  // Convert bytes to GB
+  const gb = bytes / (1024 * 1024 * 1024);
+
+  // If less than 0.01 GB (about 10 MB), show in MB
+  if (gb < 0.01) {
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(2)} MB`;
+  }
+
+  // Otherwise show in GB
+  return `${gb.toFixed(2)} GB`;
+};
 
 interface AssetDetailViewProps {
   asset: LibraryAsset;
@@ -46,6 +66,27 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
   canUpdate = true,
   showAddToScene = true,
 }) => {
+  // Menu state
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+
+  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchor(e.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
+
+  const handleEditClick = () => {
+    handleMenuClose();
+    onEditClick();
+  };
+
+  const handleRemoveClick = () => {
+    handleMenuClose();
+    onDeleteClick();
+  };
+
   // Check tiling status for Cesium Ion assets
   const metadata = asset.metadata as Record<string, any> | undefined;
   const tilingStatus = metadata?.tilingStatus as string | undefined;
@@ -140,7 +181,26 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
         })}
       >
         {/* Asset Info */}
-        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <Box sx={{ display: "flex", gap: 2, mb: 2, position: "relative" }}>
+          {/* Three-Dot Menu Button - Top Right */}
+          <IconButton
+            onClick={handleMenuOpen}
+            size="small"
+            sx={(theme) => ({
+              position: "absolute",
+              top: 0,
+              right: 0,
+              color: theme.palette.text.secondary,
+              padding: "4px",
+              zIndex: 1,
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                color: theme.palette.text.primary,
+              },
+            })}
+          >
+            <MoreVert fontSize="small" />
+          </IconButton>
           {/* Thumbnail */}
           <Box
             sx={(theme) => ({
@@ -275,7 +335,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
                   sx={{
                     fontSize: "1rem",
                     fontWeight: 600,
-                    color: "rgba(51, 65, 85, 0.95)",
+                    color: "text.primary",
                     mb: 0.5,
                   }}
                 >
@@ -283,10 +343,8 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
                 </Typography>
                 <Typography
                   sx={{
-                    fontSize: "0.813rem",
-                    color: asset.description
-                      ? "rgba(100, 116, 139, 0.9)"
-                      : "rgba(100, 116, 139, 0.5)",
+                    fontSize: "0.75rem",
+                    color: "text.secondary",
                     mb: 0.5,
                     lineHeight: 1.4,
                     fontStyle: asset.description ? "normal" : "italic",
@@ -298,10 +356,10 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
                   variant="caption"
                   sx={{
                     fontSize: "0.75rem",
-                    color: "rgba(100, 116, 139, 0.8)",
+                    color: "text.secondary",
                   }}
                 >
-                  {asset.fileType}
+                  {asset.fileType}{asset.fileSize ? ` • ${formatFileSize(asset.fileSize)}` : ""}
                 </Typography>
               </>
             )}
@@ -313,9 +371,9 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
           <Typography
             variant="subtitle2"
             sx={{
-              fontSize: "0.813rem",
+              fontSize: "1rem",
               fontWeight: 600,
-              color: "rgba(51, 65, 85, 0.95)",
+              color: "text.primary",
               mb: 1,
             }}
           >
@@ -328,6 +386,58 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
           />
         </Box>
       </Box>
+
+      {/* Three-Dot Menu */}
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        sx={{
+          "& .MuiPaper-root": {
+            backgroundColor: "#14171A",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "none",
+            borderRadius: "4px",
+            minWidth: "120px",
+          },
+        }}
+      >
+        <MenuItem
+          onClick={handleEditClick}
+          sx={{
+            fontSize: "0.75rem",
+            color: "text.primary",
+            padding: "8px 16px",
+            "&:hover": {
+              backgroundColor: "rgba(107, 156, 216, 0.12)",
+            },
+          }}
+        >
+          Edit
+        </MenuItem>
+        <MenuItem
+          onClick={handleRemoveClick}
+          sx={{
+            fontSize: "0.75rem",
+            color: "text.primary",
+            padding: "8px 16px",
+            "&:hover": {
+              backgroundColor: "rgba(239, 68, 68, 0.12)",
+              color: "#ef4444",
+            },
+          }}
+        >
+          Remove
+        </MenuItem>
+      </Menu>
 
       {/* Tiling Status Banner */}
       {isCesiumIonAsset && isTilingInProgress && (
@@ -486,87 +596,53 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({
 
         <Box sx={{ flex: 1 }} />
 
-        {!isEditing ? (
-          <IconButton
-            onClick={onEditClick}
-            size="small"
-            sx={(theme) => ({
-              color: theme.palette.text.secondary,
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "4px",
-              padding: "6px",
-              "&:hover": {
-                backgroundColor:
-                  theme.palette.mode === "dark"
-                    ? "rgba(107, 156, 216, 0.12)"
-                    : "rgba(95, 136, 199, 0.08)",
-                borderColor: theme.palette.primary.main,
-                color: theme.palette.primary.main,
-              },
-            })}
-          >
-            <Edit fontSize="small" />
-          </IconButton>
-        ) : (
+        {isEditing && (
           <>
-            <IconButton
+            <Button
+              variant="contained"
+              startIcon={<Save />}
               onClick={onSaveChanges}
               size="small"
               sx={(theme) => ({
-                color: theme.palette.primary.main,
-                border: `1px solid ${
+                borderRadius: `${theme.shape.borderRadius}px`,
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                backgroundColor:
                   theme.palette.mode === "dark"
-                    ? "rgba(107, 156, 216, 0.35)"
-                    : "rgba(95, 136, 199, 0.4)"
-                }`,
-                borderRadius: "4px",
-                padding: "6px",
+                    ? "#161B20"
+                    : theme.palette.background.paper,
+                color: theme.palette.primary.main,
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                padding: "6px 16px",
+                boxShadow: "none",
                 "&:hover": {
                   backgroundColor:
                     theme.palette.mode === "dark"
-                      ? "rgba(107, 156, 216, 0.14)"
-                      : "rgba(95, 136, 199, 0.1)",
-                  borderColor: theme.palette.primary.main,
+                      ? "#1a1f26"
+                      : alpha(theme.palette.primary.main, 0.05),
+                  borderColor: alpha(theme.palette.primary.main, 0.5),
                 },
               })}
             >
-              <Save fontSize="small" />
-            </IconButton>
-            <IconButton
+              Save
+            </Button>
+            <Button
+              variant="outlined"
               onClick={onCancelEdit}
               size="small"
               sx={(theme) => ({
-                color: theme.palette.text.secondary,
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                borderRadius: "4px",
-                padding: "6px",
-                "&:hover": {
-                  backgroundColor: "rgba(100, 116, 139, 0.1)",
-                  borderColor: theme.palette.text.secondary,
-                },
+                borderRadius: `${theme.shape.borderRadius}px`,
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                padding: "6px 16px",
               })}
             >
-              <Close fontSize="small" />
-            </IconButton>
+              Cancel
+            </Button>
           </>
         )}
-        <IconButton
-          onClick={onDeleteClick}
-          size="small"
-          sx={(theme) => ({
-            color: theme.palette.text.secondary,
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            borderRadius: "4px",
-            padding: "6px",
-            "&:hover": {
-              backgroundColor: "rgba(239, 68, 68, 0.1)",
-              borderColor: "#ef4444",
-              color: "#ef4444",
-            },
-          })}
-        >
-          <Delete fontSize="small" />
-        </IconButton>
       </Box>
     </>
   );
