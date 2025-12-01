@@ -21,7 +21,7 @@ const usePaginatedActivity = (options?: UsePaginatedActivityOptions) => {
   const skip = (page - 1) * pageSize;
   params.append("skip", String(skip));
   params.append("take", String(pageSize));
-  
+
   const key = orgId ? `/api/organizations/${orgId}/activity?${params.toString()}` : null;
 
   const { data, error, isLoading, mutate } = useSWR<ActivitiesResponse>(

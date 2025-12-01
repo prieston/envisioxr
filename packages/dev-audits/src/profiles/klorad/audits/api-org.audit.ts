@@ -17,7 +17,6 @@ const EXCLUDED_ENDPOINTS = [
   "webhooks/stripe/route.ts", // Stripe webhook - external, doesn't need org scoping
   "organizations/create-checkout/route.ts", // Creates new org - doesn't need orgId
   "organizations/invites/accept/route.ts", // Accepts invite - orgId in invite token
-  "activity/route.ts", // Has all required checks but audit pattern matching has issues
 ];
 
 function isExcludedEndpoint(filePath: string, apiDir: string): boolean {
