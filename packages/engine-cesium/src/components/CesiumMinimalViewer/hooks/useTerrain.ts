@@ -16,6 +16,20 @@ interface UseTerrainReturn {
  * Setup Cesium World Terrain for accurate height picking
  */
 async function setupTerrainProvider(viewer: any, Cesium: CesiumModule) {
+  // Check if viewer is valid and not destroyed
+  if (!viewer) {
+    throw new Error("Viewer not available");
+  }
+
+  if (viewer.isDestroyed && viewer.isDestroyed()) {
+    throw new Error("Viewer has been destroyed");
+  }
+
+  // Check if scene exists before accessing it
+  if (!viewer.scene) {
+    throw new Error("Viewer scene not available");
+  }
+
   try {
     viewer.terrainProvider = await Cesium.CesiumTerrainProvider.fromIonAssetId(
       1,
@@ -24,6 +38,11 @@ async function setupTerrainProvider(viewer: any, Cesium: CesiumModule) {
         requestWaterMask: true,
       }
     );
+
+    // Double-check scene is still valid before accessing globe
+    if (!viewer.scene || !viewer.scene.globe) {
+      throw new Error("Scene or globe not available");
+    }
 
     // Enable depth testing against terrain
     viewer.scene.globe.depthTestAgainstTerrain = true;
@@ -50,8 +69,24 @@ export function useTerrain({
       return;
     }
 
+    // Check if viewer is destroyed
+    if (viewer.isDestroyed && viewer.isDestroyed()) {
+      setIsReady(false);
+      return;
+    }
+
+    // Check if scene is available
+    if (!viewer.scene) {
+      setIsReady(false);
+      return;
+    }
+
     const setupTerrain = async () => {
       try {
+        // Double-check viewer is still valid before setup
+        if (!viewer || (viewer.isDestroyed && viewer.isDestroyed()) || !viewer.scene) {
+          return;
+        }
         await setupTerrainProvider(viewer, Cesium);
         setIsReady(true);
       } catch (err) {

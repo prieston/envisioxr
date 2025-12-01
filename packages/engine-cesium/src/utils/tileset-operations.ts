@@ -3,7 +3,7 @@
  * Handles transform application, serialization, and positioning
  */
 
-import { arrayToMatrix4, matrix4ToArray } from './tileset-transform';
+import { arrayToMatrix4, matrix4ToArray } from "./tileset-transform";
 
 /**
  * Extract transform from model metadata
@@ -13,26 +13,32 @@ import { arrayToMatrix4, matrix4ToArray } from './tileset-transform';
 export function extractTransformFromMetadata(
   metadata: Record<string, unknown> | undefined | null
 ): TilesetTransformData | undefined {
-  if (!metadata || typeof metadata !== 'object') {
+  if (!metadata || typeof metadata !== "object") {
     return undefined;
   }
 
-  if (!('transform' in metadata) || metadata.transform === null || metadata.transform === undefined) {
+  if (
+    !("transform" in metadata) ||
+    metadata.transform === null ||
+    metadata.transform === undefined
+  ) {
     return undefined;
   }
 
-  const transform = metadata.transform as {
-    matrix?: unknown;
-    longitude?: number;
-    latitude?: number;
-    height?: number;
-  } | undefined;
+  const transform = metadata.transform as
+    | {
+        matrix?: unknown;
+        longitude?: number;
+        latitude?: number;
+        height?: number;
+      }
+    | undefined;
 
-  if (!transform || typeof transform !== 'object') {
+  if (!transform || typeof transform !== "object") {
     return undefined;
   }
 
-  if (!('matrix' in transform) || !Array.isArray(transform.matrix)) {
+  if (!("matrix" in transform) || !Array.isArray(transform.matrix)) {
     return undefined;
   }
 
@@ -81,7 +87,6 @@ export function applyTransformToTileset(
   try {
     const matrix = arrayToMatrix4(Cesium, transform.matrix);
 
-
     tileset.modelMatrix = matrix;
 
     if (options?.requestRender && options?.viewer) {
@@ -90,7 +95,7 @@ export function applyTransformToTileset(
 
     return true;
   } catch (err) {
-    console.error('[TilesetOps] Failed to apply transform:', err);
+    console.error("[TilesetOps] Failed to apply transform:", err);
     return false;
   }
 }
@@ -135,7 +140,10 @@ export function extractTransformFromTileset(
       cartographic = Cesium.Cartographic.fromCartesian(translation);
     } catch (cartErr) {
       // If conversion fails, return matrix only without coordinates
-      console.warn('[TilesetOps] Could not convert translation to cartographic, returning matrix only:', cartErr);
+      console.warn(
+        "[TilesetOps] Could not convert translation to cartographic, returning matrix only:",
+        cartErr
+      );
       return {
         matrix,
       };
@@ -155,7 +163,7 @@ export function extractTransformFromTileset(
       height: cartographic.height,
     };
   } catch (err) {
-    console.error('[TilesetOps] Failed to extract transform:', err);
+    console.error("[TilesetOps] Failed to extract transform:", err);
     return null;
   }
 }
@@ -191,7 +199,11 @@ export function positionCameraForTileset(
   const pitch = options?.pitch ?? -45;
 
   const idealHeight = Math.max(height + offset, 50);
-  const destination = Cesium.Cartesian3.fromDegrees(longitude, latitude, idealHeight);
+  const destination = Cesium.Cartesian3.fromDegrees(
+    longitude,
+    latitude,
+    idealHeight
+  );
 
   const orientation = {
     heading: Cesium.Math.toRadians(0),
@@ -262,21 +274,21 @@ export async function loadTilesetWithTransform(
     );
   } catch (loadError: any) {
     // Check if this is a Gaussian splatting error
-    const errorMessage = loadError?.message || String(loadError) || '';
-    const errorStack = loadError?.stack || '';
+    const errorMessage = loadError?.message || String(loadError) || "";
+    const errorStack = loadError?.stack || "";
 
     if (
-      errorMessage.includes('KHR_spz_gaussian_splats_compression') ||
-      errorMessage.includes('Unsupported glTF Extension') ||
-      errorMessage.includes('gaussian_splats') ||
-      errorMessage.includes('gaussian_splatting') ||
-      errorStack.includes('KHR_spz_gaussian_splats_compression')
+      errorMessage.includes("KHR_spz_gaussian_splats_compression") ||
+      errorMessage.includes("Unsupported glTF Extension") ||
+      errorMessage.includes("gaussian_splats") ||
+      errorMessage.includes("gaussian_splatting") ||
+      errorStack.includes("KHR_spz_gaussian_splats_compression")
     ) {
       // Re-throw with a more user-friendly message
       throw new Error(
-        'This model uses Gaussian splatting with an unsupported extension. ' +
-        'Please re-upload the model to Cesium Ion to generate a compatible version ' +
-        'with the updated Gaussian splatting extensions.'
+        "This model uses Gaussian splatting with an unsupported extension. " +
+          "Please re-upload the model to Cesium Ion to generate a compatible version " +
+          "with the updated Gaussian splatting extensions."
       );
     }
     // Re-throw other errors as-is
@@ -287,7 +299,6 @@ export async function loadTilesetWithTransform(
   if (transformMatrix && transformMatrix.length === 16) {
     const matrix = arrayToMatrix4(Cesium, transformMatrix);
     tileset.modelMatrix = matrix;
-
   }
 
   return tileset;
@@ -332,9 +343,8 @@ export function reapplyTransformAfterReady(
         }, i * 100);
       }
     }
-
   } catch (err) {
-    console.error('[TilesetOps] Failed to re-apply transform:', err);
+    console.error("[TilesetOps] Failed to re-apply transform:", err);
   }
 }
 
@@ -367,6 +377,22 @@ export function extractTilesetGeoreferencing(
   // Also check bounding sphere center for georeferenced tilesets from Cesium Ion
   let transformFromTileset: TilesetTransformData | undefined = undefined;
   if (!transformFromMetadata && !initialTransform) {
+    // Check if tileset is valid before accessing its properties
+    if (!tileset) {
+      return {
+        computedTransform: undefined,
+        isGeoreferenced: false,
+      };
+    }
+
+    // Check if tileset is destroyed
+    if (tileset.isDestroyed && tileset.isDestroyed()) {
+      return {
+        computedTransform: undefined,
+        isGeoreferenced: false,
+      };
+    }
+
     try {
       // First try to extract from modelMatrix
       if (tileset.modelMatrix) {
@@ -384,41 +410,45 @@ export function extractTilesetGeoreferencing(
       // This handles tilesets georeferenced by Cesium Ion where the location
       // is embedded in the tileset's root transform (not in modelMatrix)
       if (!transformFromTileset || !transformFromTileset.longitude) {
-        const boundingSphere = tileset.boundingSphere;
-        if (boundingSphere && boundingSphere.center) {
+        // Check if tileset is still valid before accessing boundingSphere
+        // Accessing boundingSphere can trigger internal Cesium getters that may fail
+        if (tileset && !(tileset.isDestroyed && tileset.isDestroyed())) {
           try {
-            const centerMagnitude = Cesium.Cartesian3.magnitude(
-              boundingSphere.center
-            );
-            // Only check if center is not at origin (has meaningful location)
-            if (centerMagnitude > 1000) {
-              // At least 1km from origin
-              const cartographic = Cesium.Cartographic.fromCartesian(
+            const boundingSphere = tileset.boundingSphere;
+            if (boundingSphere && boundingSphere.center) {
+              const centerMagnitude = Cesium.Cartesian3.magnitude(
                 boundingSphere.center
               );
-              if (cartographic && cartographic.longitude !== undefined) {
-                const longitude = Cesium.Math.toDegrees(
-                  cartographic.longitude
+              // Only check if center is not at origin (has meaningful location)
+              if (centerMagnitude > 1000) {
+                // At least 1km from origin
+                const cartographic = Cesium.Cartographic.fromCartesian(
+                  boundingSphere.center
                 );
-                const latitude = Cesium.Math.toDegrees(cartographic.latitude);
-                const height = cartographic.height;
+                if (cartographic && cartographic.longitude !== undefined) {
+                  const longitude = Cesium.Math.toDegrees(
+                    cartographic.longitude
+                  );
+                  const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+                  const height = cartographic.height;
 
-                // Check if coordinates are valid (not at origin or invalid)
-                if (
-                  !isNaN(longitude) &&
-                  !isNaN(latitude) &&
-                  Math.abs(longitude) <= 180 &&
-                  Math.abs(latitude) <= 90 &&
-                  (Math.abs(longitude) > 0.001 || Math.abs(latitude) > 0.001)
-                ) {
-                  const matrix =
-                    tileset.modelMatrix || Cesium.Matrix4.IDENTITY;
-                  transformFromTileset = {
-                    longitude,
-                    latitude,
-                    height,
-                    matrix: matrix4ToArray(matrix),
-                  };
+                  // Check if coordinates are valid (not at origin or invalid)
+                  if (
+                    !isNaN(longitude) &&
+                    !isNaN(latitude) &&
+                    Math.abs(longitude) <= 180 &&
+                    Math.abs(latitude) <= 90 &&
+                    (Math.abs(longitude) > 0.001 || Math.abs(latitude) > 0.001)
+                  ) {
+                    const matrix =
+                      tileset.modelMatrix || Cesium.Matrix4.IDENTITY;
+                    transformFromTileset = {
+                      longitude,
+                      latitude,
+                      height,
+                      matrix: matrix4ToArray(matrix),
+                    };
+                  }
                 }
               }
             }
@@ -429,7 +459,7 @@ export function extractTilesetGeoreferencing(
       }
     } catch (err) {
       console.warn(
-        '[TilesetOps] Failed to extract transform from tileset:',
+        "[TilesetOps] Failed to extract transform from tileset:",
         err
       );
     }
@@ -482,4 +512,3 @@ export function findExistingTileset(
 
   return null;
 }
-

@@ -32,6 +32,16 @@ export async function captureCesiumScreenshot(
     throw new Error("Cesium viewer not ready");
   }
 
+  // Check if viewer is destroyed
+  if (viewer.isDestroyed && viewer.isDestroyed()) {
+    throw new Error("Cesium viewer has been destroyed");
+  }
+
+  // Check if scene exists before accessing it
+  if (!viewer.scene) {
+    throw new Error("Cesium viewer scene not available");
+  }
+
   const scene = viewer.scene;
   const canvas = scene.canvas;
   const context = scene.context;
@@ -50,6 +60,32 @@ export async function captureCesiumScreenshot(
 
     const renderListener = () => {
       try {
+        // Check if viewer/scene is still valid before proceeding
+        if (!viewer || !viewer.scene || !scene || !canvas || !context) {
+          if (scene && scene.postRender) {
+            try {
+              scene.postRender.removeEventListener(renderListener);
+            } catch (err) {
+              // Ignore errors if scene was destroyed
+            }
+          }
+          reject(new Error("Viewer or scene was destroyed during capture"));
+          return;
+        }
+
+        // Check if viewer is destroyed
+        if (viewer.isDestroyed && viewer.isDestroyed()) {
+          if (scene && scene.postRender) {
+            try {
+              scene.postRender.removeEventListener(renderListener);
+            } catch (err) {
+              // Ignore errors if scene was destroyed
+            }
+          }
+          reject(new Error("Viewer was destroyed during capture"));
+          return;
+        }
+
         // Remove listener immediately to avoid multiple calls
         scene.postRender.removeEventListener(renderListener);
 
@@ -104,7 +140,14 @@ export async function captureCesiumScreenshot(
           reject(new Error("Failed to create data URL"));
         }
       } catch (error) {
-        scene.postRender.removeEventListener(renderListener);
+        // Only try to remove listener if scene still exists
+        if (scene && scene.postRender) {
+          try {
+            scene.postRender.removeEventListener(renderListener);
+          } catch (err) {
+            // Ignore errors if scene was destroyed
+          }
+        }
         reject(error);
       }
     };
@@ -115,7 +158,14 @@ export async function captureCesiumScreenshot(
 
     // Timeout fallback
     setTimeout(() => {
-      scene.postRender.removeEventListener(renderListener);
+      // Only try to remove listener if scene still exists
+      if (scene && scene.postRender) {
+        try {
+          scene.postRender.removeEventListener(renderListener);
+        } catch (err) {
+          // Ignore errors if scene was destroyed
+        }
+      }
       reject(new Error("Screenshot capture timed out"));
     }, 5000);
   });

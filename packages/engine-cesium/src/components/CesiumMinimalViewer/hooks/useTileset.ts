@@ -70,7 +70,12 @@ export function useTileset({
 
     // Check if a tileset for this asset already exists in the scene
     // This prevents duplicate tilesets from being loaded (important for React StrictMode)
-    if (tilesetRef.current) {
+    if (
+      tilesetRef.current &&
+      viewer &&
+      viewer.scene &&
+      !(viewer.isDestroyed && viewer.isDestroyed())
+    ) {
       const isInScene = viewer.scene.primitives.contains(tilesetRef.current);
       if (isInScene) {
         return;
@@ -118,6 +123,20 @@ export function useTileset({
 
         // Setup console error interceptor
         cleanupConsoleInterceptor = setupConsoleErrorInterceptor((err) => {
+          // Check if viewer is still valid before reporting errors
+          if (
+            !viewer ||
+            (viewer.isDestroyed && viewer.isDestroyed()) ||
+            !viewer.scene
+          ) {
+            // Viewer is destroyed or scene is not available - ignore errors
+            console.warn(
+              "[useTileset] Error during cleanup (ignored):",
+              err.message
+            );
+            return;
+          }
+
           if (!gaussianSplatErrorShown.current) {
             gaussianSplatErrorShown.current = true;
             setError(err);
@@ -188,13 +207,35 @@ export function useTileset({
 
         // No existing tileset found, add the new one
         tilesetRef.current = tileset;
-        viewer.scene.primitives.add(tileset);
+
+        // Check if viewer and scene are valid before adding tileset
+        if (
+          viewer &&
+          viewer.scene &&
+          !(viewer.isDestroyed && viewer.isDestroyed())
+        ) {
+          viewer.scene.primitives.add(tileset);
+        }
 
         // Set up error handlers using utility function
         cleanupErrorHandlers = setupTilesetErrorHandlers(
           tileset,
           gaussianSplatErrorShown,
           (err) => {
+            // Check if viewer is still valid before reporting errors
+            if (
+              !viewer ||
+              (viewer.isDestroyed && viewer.isDestroyed()) ||
+              !viewer.scene
+            ) {
+              // Viewer is destroyed or scene is not available - ignore errors
+              console.warn(
+                "[useTileset] Error during cleanup (ignored):",
+                err.message
+              );
+              return;
+            }
+
             setError(err);
             setIsReady(false);
             if (onError) {
@@ -257,14 +298,25 @@ export function useTileset({
           // Force multiple renders
           for (let i = 0; i < 3; i++) {
             setTimeout(() => {
-              if (viewer && !viewer.isDestroyed()) {
+              if (
+                viewer &&
+                viewer.scene &&
+                !(viewer.isDestroyed && viewer.isDestroyed())
+              ) {
                 viewer.scene.requestRender();
               }
             }, i * 100);
           }
         }
 
-        viewer.scene.requestRender();
+        // Check if viewer and scene are valid before requesting render
+        if (
+          viewer &&
+          viewer.scene &&
+          !(viewer.isDestroyed && viewer.isDestroyed())
+        ) {
+          viewer.scene.requestRender();
+        }
 
         setIsGeoreferenced(isGeoreferenced);
 
@@ -292,6 +344,21 @@ export function useTileset({
         // Re-throw other errors
         const errorObj =
           loadError instanceof Error ? loadError : new Error(String(loadError));
+
+        // Check if viewer is still valid before reporting errors
+        if (
+          !viewer ||
+          (viewer.isDestroyed && viewer.isDestroyed()) ||
+          !viewer.scene
+        ) {
+          // Viewer is destroyed or scene is not available - ignore errors
+          console.warn(
+            "[useTileset] Error during cleanup (ignored):",
+            errorObj.message
+          );
+          return;
+        }
+
         setError(errorObj);
         setIsReady(false);
         if (onError) {

@@ -34,6 +34,11 @@ function setupClickHandler(
     matrix: number[]
   ) => void
 ): ClickHandlerData | null {
+  // Check if viewer and scene are valid
+  if (!viewer || (viewer.isDestroyed && viewer.isDestroyed()) || !viewer.scene) {
+    return null;
+  }
+
   const canvas = viewer.scene?.canvas;
   if (!canvas) return null;
 
@@ -42,16 +47,23 @@ function setupClickHandler(
   canvas.style.cursor = "crosshair";
 
   handler.setInputAction((click: any) => {
+    // Check if viewer and scene are still valid
+    if (!viewer || (viewer.isDestroyed && viewer.isDestroyed()) || !viewer.scene) {
+      return;
+    }
+
     // Use the same picking logic as the builder (3-step approach)
     const position = new Cesium.Cartesian2(click.position.x, click.position.y);
 
     let pickedPosition: any = null;
 
     // Step 1: Try to pick a 3D position (terrain, models, etc.)
-    pickedPosition = viewer.scene.pickPosition(position);
+    if (viewer.scene) {
+      pickedPosition = viewer.scene.pickPosition(position);
+    }
 
     // Step 2: If that fails, try to pick on the globe using ray
-    if (!Cesium.defined(pickedPosition)) {
+    if (!Cesium.defined(pickedPosition) && viewer.scene && viewer.scene.globe) {
       const ray = viewer.camera.getPickRay(position);
       if (ray) {
         pickedPosition = viewer.scene.globe.pick(ray, viewer.scene);
@@ -59,7 +71,7 @@ function setupClickHandler(
     }
 
     // Step 3: If still no position, try the ellipsoid directly (fallback)
-    if (!Cesium.defined(pickedPosition)) {
+    if (!Cesium.defined(pickedPosition) && viewer.scene && viewer.scene.globe) {
       pickedPosition = viewer.camera.pickEllipsoid(
         position,
         viewer.scene.globe.ellipsoid
@@ -87,19 +99,21 @@ function setupClickHandler(
         tilesetRef.current.modelMatrix = transformMatrix;
 
         // Request multiple renders to ensure proper update
-        viewer.scene.requestRender();
+        if (viewer && viewer.scene && !(viewer.isDestroyed && viewer.isDestroyed())) {
+          viewer.scene.requestRender();
+        }
         setTimeout(() => {
-          if (viewer && !viewer.isDestroyed()) {
+          if (viewer && viewer.scene && !(viewer.isDestroyed && viewer.isDestroyed())) {
             viewer.scene.requestRender();
           }
         }, 0);
         setTimeout(() => {
-          if (viewer && !viewer.isDestroyed()) {
+          if (viewer && viewer.scene && !(viewer.isDestroyed && viewer.isDestroyed())) {
             viewer.scene.requestRender();
           }
         }, 50);
         setTimeout(() => {
-          if (viewer && !viewer.isDestroyed()) {
+          if (viewer && viewer.scene && !(viewer.isDestroyed && viewer.isDestroyed())) {
             viewer.scene.requestRender();
           }
         }, 100);

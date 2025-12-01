@@ -34,9 +34,34 @@ export function configureScene(
   Cesium: CesiumModule,
   options: ConfigureSceneOptions = {}
 ) {
+  // Check if viewer and scene are valid
+  if (!viewer) {
+    console.warn("[configureScene] Viewer is null or undefined");
+    return;
+  }
+
+  // Check if viewer is destroyed
+  if (viewer.isDestroyed && viewer.isDestroyed()) {
+    console.warn("[configureScene] Viewer has been destroyed");
+    return;
+  }
+
+  // Check if scene exists
+  if (!viewer.scene) {
+    console.warn("[configureScene] Viewer scene is not available");
+    return;
+  }
+
   const { enableAtmosphere = false } = options;
 
-  viewer.scene.globe.enableLighting = false;
+  // Double-check scene is still valid before accessing properties
+  if (!viewer.scene || (viewer.isDestroyed && viewer.isDestroyed())) {
+    return;
+  }
+
+  if (viewer.scene.globe) {
+    viewer.scene.globe.enableLighting = false;
+  }
 
   // Remove sun and moon for clean preview
   if (viewer.scene.sun) {
@@ -64,7 +89,9 @@ export function configureScene(
   }
 
   // Disable fog for cleaner look
-  viewer.scene.fog.enabled = false;
+  if (viewer.scene.fog) {
+    viewer.scene.fog.enabled = false;
+  }
 
   // Set black background for clean preview (when atmosphere is disabled)
   if (!enableAtmosphere) {
@@ -74,4 +101,3 @@ export function configureScene(
     viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#000000");
   }
 }
-
