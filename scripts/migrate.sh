@@ -10,19 +10,22 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Check if .env file exists
-if [ ! -f "$ROOT_DIR/.env" ]; then
-  echo "Error: .env file not found in root directory"
-  exit 1
-fi
-
-# Load DATABASE_URL from .env file
-export $(grep -v '^#' "$ROOT_DIR/.env" | grep DATABASE_URL | xargs)
-
-# Check if DATABASE_URL is set
+# Check if DATABASE_URL is already set as environment variable (e.g., in Vercel)
 if [ -z "$DATABASE_URL" ]; then
-  echo "Error: DATABASE_URL not found in .env file"
-  exit 1
+  # If not set, try to load from .env file
+  if [ ! -f "$ROOT_DIR/.env" ]; then
+    echo "Error: .env file not found in root directory and DATABASE_URL environment variable is not set"
+    exit 1
+  fi
+  
+  # Load DATABASE_URL from .env file
+  export $(grep -v '^#' "$ROOT_DIR/.env" | grep DATABASE_URL | xargs)
+  
+  # Check if DATABASE_URL is set after loading from .env
+  if [ -z "$DATABASE_URL" ]; then
+    echo "Error: DATABASE_URL not found in .env file"
+    exit 1
+  fi
 fi
 
 # Get migration command (default to deploy)
