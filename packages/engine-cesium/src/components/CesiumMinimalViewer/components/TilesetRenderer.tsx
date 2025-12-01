@@ -189,8 +189,8 @@ export function TilesetRenderer({
 
     // Wait for bounding sphere to be calculated
     const waitTime = transformToApply ? 800 : 500;
-    setTimeout(() => {
-      zoomToTileset(tileset, transformToApply, !isGeoreferenced);
+    setTimeout(async () => {
+      await zoomToTileset(tileset, transformToApply, !isGeoreferenced);
     }, waitTime);
   }, [
     viewer,

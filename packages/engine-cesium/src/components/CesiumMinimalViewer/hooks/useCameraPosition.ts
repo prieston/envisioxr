@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { positionCameraBasic } from "../utils/camera-utils";
+import { waitForSceneReady } from "../../../utils/viewer-config";
 import type { CesiumModule, TilesetTransformData } from "../types";
 import { positionCameraForTileset } from "../../../utils/tileset-operations";
 import { arrayToMatrix4 } from "../../../utils/tileset-transform";
@@ -17,24 +18,38 @@ export function useCameraPosition({
   Cesium,
 }: UseCameraPositionOptions) {
   const positionCamera = useCallback(
-    (initialTransform?: number[]) => {
+    async (initialTransform?: number[]) => {
       if (!viewer || !Cesium) return;
-      positionCameraBasic(viewer, Cesium, initialTransform);
+      await positionCameraBasic(viewer, Cesium, initialTransform);
     },
     [viewer, Cesium]
   );
 
   const zoomToTileset = useCallback(
-    (
+    async (
       tileset: any,
       transformToApply: TilesetTransformData | undefined,
       isNonGeoreferenced: boolean
     ) => {
       if (!viewer || !Cesium) return;
 
+      // Wait for scene to be ready before accessing viewer properties
+      try {
+        await waitForSceneReady(viewer, 20, 50);
+      } catch (err) {
+        console.warn("[useCameraPosition] Scene not ready:", err);
+        return;
+      }
+
+      // Double-check viewer is still valid
+      if (!viewer || (viewer.isDestroyed && viewer.isDestroyed()) || !viewer.scene) {
+        return;
+      }
+
       try {
         const pitch = -0.5; // ~-28.6 degrees
 
+        // Access boundingSphere only after scene is ready
         const boundingSphere = tileset.boundingSphere;
 
         if (boundingSphere) {
@@ -64,23 +79,33 @@ export function useCameraPosition({
             }
 
             // Wait for bounding sphere to update after transform, then zoom to model
-            setTimeout(() => {
-              if (!viewer.isDestroyed() && tileset) {
-                // Use zoomTo to properly frame the model after transform is applied
-                viewer.zoomTo(
-                  tileset,
-                  new Cesium.HeadingPitchRange(0, pitch, 0)
-                );
+            setTimeout(async () => {
+              if (!viewer.isDestroyed() && tileset && viewer.scene) {
+                try {
+                  // Ensure scene is still ready before zooming
+                  await waitForSceneReady(viewer, 5, 50);
+                  // Use zoomTo to properly frame the model after transform is applied
+                  viewer.zoomTo(
+                    tileset,
+                    new Cesium.HeadingPitchRange(0, pitch, 0)
+                  );
+                } catch (err) {
+                  console.warn("[useCameraPosition] Scene not ready for zoom:", err);
+                }
               }
             }, 200);
           } else {
             // For georeferenced models, use zoomTo without setting rotation target
             // This allows left-click drag to pan the earth instead of rotating around model
-            viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0, pitch, 0));
+            if (viewer.scene) {
+              viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0, pitch, 0));
+            }
           }
         } else {
           // Fallback: use zoomTo if no bounding sphere
-          viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0, pitch, 0));
+          if (viewer.scene) {
+            viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0, pitch, 0));
+          }
         }
       } catch (err) {
         console.warn("[useCameraPosition] Error zooming to tileset:", err);
@@ -104,14 +129,16 @@ export function useCameraPosition({
               height: cartographic.height,
             };
           }
-          positionCameraForTileset(viewer, Cesium, transformWithCoords, {
+          await positionCameraForTileset(viewer, Cesium, transformWithCoords, {
             offset: 200,
             duration: 1.5,
             pitch: -45,
           });
         } else {
           // Last resort: try zoomTo without options
-          viewer.zoomTo(tileset);
+          if (viewer.scene) {
+            viewer.zoomTo(tileset);
+          }
         }
       }
     },
