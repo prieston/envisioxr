@@ -13,7 +13,17 @@ export function useCameraController({
   enableLocationEditing,
 }: UseCameraControllerOptions) {
   useEffect(() => {
-    if (!viewer || !viewer.scene || enableLocationEditing) return;
+    if (!viewer || enableLocationEditing) return;
+
+    // Check if viewer is destroyed
+    if (viewer.isDestroyed && viewer.isDestroyed()) {
+      return;
+    }
+
+    // Check if scene exists
+    if (!viewer.scene) {
+      return;
+    }
 
     const controller = viewer.scene.screenSpaceCameraController;
     if (!controller) return;

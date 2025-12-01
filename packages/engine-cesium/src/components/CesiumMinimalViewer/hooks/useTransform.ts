@@ -53,7 +53,11 @@ export function useTransform({
     );
 
     tileset.modelMatrix = matrix;
-    viewer.scene.requestRender();
+
+    // Check if viewer and scene are valid before requesting render
+    if (viewer && viewer.scene && !(viewer.isDestroyed && viewer.isDestroyed())) {
+      viewer.scene.requestRender();
+    }
 
     // Mark that we've applied the initial transform
     if (enableLocationEditing) {

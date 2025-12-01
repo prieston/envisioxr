@@ -58,7 +58,7 @@ export function useCameraPosition({
               Cesium.Transforms.eastNorthUpToFixedFrame(position);
 
             // Apply transform to tileset
-            if (tileset) {
+            if (tileset && viewer && viewer.scene && !(viewer.isDestroyed && viewer.isDestroyed())) {
               tileset.modelMatrix = transformMatrix;
               viewer.scene.requestRender();
             }

@@ -69,8 +69,13 @@ export function useCesiumViewer({
 
         viewerRef.current = viewer;
 
-        // Configure scene defaults
-        configureScene(viewer, Cesium as any, { enableAtmosphere });
+        // Configure scene defaults (wrap in try-catch to prevent errors from breaking initialization)
+        try {
+          configureScene(viewer, Cesium as any, { enableAtmosphere });
+        } catch (configErr) {
+          console.warn("[useCesiumViewer] Scene configuration error (non-critical):", configErr);
+          // Continue with initialization even if scene config fails
+        }
 
         // Notify viewer ready
         if (onViewerReady) {

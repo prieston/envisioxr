@@ -96,6 +96,15 @@ export function TilesetRenderer({
       return;
     }
 
+    // Check if viewer is destroyed or scene is not available
+    if (viewer.isDestroyed && viewer.isDestroyed()) {
+      return;
+    }
+
+    if (!viewer.scene) {
+      return;
+    }
+
     const prevState = visibilityStateRef.current;
     const shouldUpdate =
       prevState.isGeoreferenced !== isGeoreferenced ||
@@ -106,9 +115,14 @@ export function TilesetRenderer({
       return;
     }
 
+    // Double-check scene is still valid before accessing properties
+    if (!viewer.scene || (viewer.isDestroyed && viewer.isDestroyed())) {
+      return;
+    }
+
     if (isGeoreferenced) {
       // Show globe for georeferenced models (only if it's not already shown)
-      if (viewer.scene.globe.show !== true) {
+      if (viewer.scene.globe && viewer.scene.globe.show !== true) {
         viewer.scene.globe.show = true;
       }
       // Show skybox and atmosphere based on enableAtmosphere prop
@@ -127,7 +141,7 @@ export function TilesetRenderer({
     } else {
       // Hide globe, skybox, and atmosphere for non-georeferenced models
       // Only hide if not already hidden
-      if (viewer.scene.globe.show !== false) {
+      if (viewer.scene.globe && viewer.scene.globe.show !== false) {
         viewer.scene.globe.show = false;
       }
       if (viewer.scene.skyBox && viewer.scene.skyBox.show !== false) {
@@ -145,7 +159,9 @@ export function TilesetRenderer({
       ) {
         viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
       }
-      viewer.scene.globe.depthTestAgainstTerrain = false;
+      if (viewer.scene.globe) {
+        viewer.scene.globe.depthTestAgainstTerrain = false;
+      }
     }
 
     // Update tracked state

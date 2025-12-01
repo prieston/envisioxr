@@ -48,6 +48,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<any>(null);
   const tilesetRef = useRef<any>(null);
+  const isCapturingRef = useRef(false); // Track if capture is in progress to prevent cleanup
   const [loading, setLoading] = useState(true);
   const [capturing, setCapturing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +92,35 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
   };
 
   const handleError = (err: Error) => {
+    // Don't display errors if viewer is destroyed or being cleaned up
+    // These are expected during rapid open/close cycles
+    if (
+      !viewerRef.current ||
+      (viewerRef.current.isDestroyed && viewerRef.current.isDestroyed()) ||
+      isCapturingRef.current
+    ) {
+      // Silently ignore errors during cleanup or capture
+      console.warn(
+        "[CesiumPreviewDialog] Error during cleanup/capture (ignored):",
+        err.message
+      );
+      return;
+    }
+
+    // Only show errors if they're not related to scene access during cleanup
+    const errorMessage = err.message || String(err);
+    if (
+      errorMessage.includes("Cannot read properties of undefined") &&
+      errorMessage.includes("scene")
+    ) {
+      // This is likely a cleanup race condition - don't show to user
+      console.warn(
+        "[CesiumPreviewDialog] Scene access error during cleanup (ignored):",
+        errorMessage
+      );
+      return;
+    }
+
     setError(err.message);
     setLoading(false);
   };
@@ -99,61 +129,94 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
     setLocationNotSet(true);
   };
 
+  const handleClose = () => {
+    // Prevent closing while capture is in progress
+    if (isCapturingRef.current) {
+      return;
+    }
+    onClose();
+  };
+
   // Reset state when dialog closes and clean up any existing canvases
   useEffect(() => {
     if (!open) {
+      const wasCapturing = isCapturingRef.current;
+
+      // If capture is in progress, cancel it and reset state
+      if (isCapturingRef.current) {
+        isCapturingRef.current = false;
+        setCapturing(false);
+      }
+
       setLoading(true);
       setError(null);
       setLocationNotSet(false);
       setTilesetReady(false);
-      if (viewerRef.current) {
-        try {
-          viewerRef.current.destroy();
-        } catch (err) {
-          // Ignore cleanup errors
+
+      // Wait longer if capture was in progress to ensure async operations complete
+      const delay = wasCapturing ? 1000 : 100;
+
+      // Wait a bit before destroying viewer to ensure any pending operations complete
+      const cleanupTimeout = setTimeout(() => {
+        if (viewerRef.current && !isCapturingRef.current) {
+          try {
+            viewerRef.current.destroy();
+          } catch (err) {
+            // Ignore cleanup errors
+          }
+          viewerRef.current = null;
         }
-        viewerRef.current = null;
-      }
-      tilesetRef.current = null;
-      // Remove any existing Cesium viewers and elements from container
-      if (containerRef.current) {
-        const cesiumViewers =
-          containerRef.current.querySelectorAll(".cesium-viewer");
-        cesiumViewers.forEach((viewer) => {
-          if (viewer.parentNode) {
-            try {
-              viewer.remove();
-            } catch (err) {
-              // Ignore errors if node was already removed
+        tilesetRef.current = null;
+
+        // Remove any existing Cesium viewers and elements from container
+        if (containerRef.current) {
+          const cesiumViewers =
+            containerRef.current.querySelectorAll(".cesium-viewer");
+          cesiumViewers.forEach((viewer) => {
+            if (viewer.parentNode) {
+              try {
+                viewer.remove();
+              } catch (err) {
+                // Ignore errors if node was already removed
+              }
             }
-          }
-        });
-        const canvases = containerRef.current.querySelectorAll("canvas");
-        canvases.forEach((canvas) => {
-          if (canvas.parentNode) {
-            try {
-              canvas.remove();
-            } catch (err) {
-              // Ignore errors if node was already removed
+          });
+          const canvases = containerRef.current.querySelectorAll("canvas");
+          canvases.forEach((canvas) => {
+            if (canvas.parentNode) {
+              try {
+                canvas.remove();
+              } catch (err) {
+                // Ignore errors if node was already removed
+              }
             }
-          }
-        });
-        const cesiumWidgets =
-          containerRef.current.querySelectorAll(".cesium-widget");
-        cesiumWidgets.forEach((widget) => {
-          if (widget.parentNode) {
-            try {
-              widget.remove();
-            } catch (err) {
-              // Ignore errors if node was already removed
+          });
+          const cesiumWidgets =
+            containerRef.current.querySelectorAll(".cesium-widget");
+          cesiumWidgets.forEach((widget) => {
+            if (widget.parentNode) {
+              try {
+                widget.remove();
+              } catch (err) {
+                // Ignore errors if node was already removed
+              }
             }
-          }
-        });
-      }
+          });
+        }
+      }, delay);
+
+      return () => {
+        clearTimeout(cleanupTimeout);
+      };
     }
 
     // Cleanup function
     return () => {
+      // Don't cleanup if capture is in progress
+      if (isCapturingRef.current) {
+        return;
+      }
+
       if (viewerRef.current) {
         try {
           viewerRef.current.destroy();
@@ -205,14 +268,36 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
   }, [open]);
 
   const handleCapture = async () => {
-    if (!viewerRef.current) return;
+    // Double-check viewer is still valid before capturing
+    if (!viewerRef.current) {
+      setError("Viewer not ready. Please wait for the model to load.");
+      return;
+    }
 
+    // Check if viewer is destroyed
+    if (viewerRef.current.isDestroyed && viewerRef.current.isDestroyed()) {
+      setError("Viewer has been closed. Please reopen the dialog.");
+      return;
+    }
+
+    // Check if scene is available
+    if (!viewerRef.current.scene) {
+      setError("Scene not ready. Please wait for the model to load.");
+      return;
+    }
+
+    // Set capturing flag to prevent cleanup
+    isCapturingRef.current = true;
     setCapturing(true);
+
     try {
       const screenshot = await captureCesiumScreenshot(viewerRef.current);
       if (screenshot) {
         onCapture(screenshot);
         setCapturing(false);
+        isCapturingRef.current = false;
+        // Close modal after capture is complete
+        // Safe to close now since isCapturingRef is false
         onClose();
       } else {
         throw new Error("Failed to capture screenshot");
@@ -223,13 +308,14 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
         err instanceof Error ? err.message : "Failed to capture screenshot"
       );
       setCapturing(false);
+      isCapturingRef.current = false;
     }
   };
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       maxWidth="md"
       fullWidth
       slotProps={{
@@ -256,7 +342,12 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
         <Typography sx={modalTitleTextStyles}>
           Retake Photo - {assetName}
         </Typography>
-        <IconButton onClick={onClose} size="small" sx={modalCloseButtonStyles}>
+        <IconButton
+          onClick={handleClose}
+          size="small"
+          sx={modalCloseButtonStyles}
+          disabled={capturing}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -460,7 +551,7 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
         })}
       >
         <Button
-          onClick={onClose}
+          onClick={handleClose}
           disabled={capturing}
           sx={(theme) => ({
             textTransform: "none",
@@ -482,7 +573,13 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
         </Button>
         <Button
           onClick={handleCapture}
-          disabled={capturing || loading || !!error}
+          disabled={
+            capturing ||
+            loading ||
+            !!error ||
+            !viewerRef.current ||
+            !tilesetReady
+          }
           variant="contained"
           startIcon={<CameraAltIcon />}
           sx={(theme) => ({

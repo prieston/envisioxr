@@ -36,10 +36,27 @@ export function ImageryRenderer({
       return;
     }
 
+    // Check if viewer is destroyed
+    if (viewer.isDestroyed && viewer.isDestroyed()) {
+      return;
+    }
+
+    // Check if scene exists
+    if (!viewer.scene) {
+      return;
+    }
+
     const loadImagery = async () => {
       try {
+        // Double-check viewer and scene are still valid
+        if (!viewer || (viewer.isDestroyed && viewer.isDestroyed()) || !viewer.scene) {
+          return;
+        }
+
         // Ensure globe is visible for imagery
-        viewer.scene.globe.show = true;
+        if (viewer.scene.globe) {
+          viewer.scene.globe.show = true;
+        }
 
         let imageryProvider;
 
