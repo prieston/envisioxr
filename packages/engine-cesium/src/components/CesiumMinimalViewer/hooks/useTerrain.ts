@@ -86,25 +86,25 @@ export function useTerrain({
 
     const setupTerrain = async () => {
       try {
-        // Check if viewer is destroyed
-        if (viewer.isDestroyed && viewer.isDestroyed()) {
+    // Check if viewer is destroyed
+    if (viewer.isDestroyed && viewer.isDestroyed()) {
           if (!cancelled) {
-            setIsReady(false);
+      setIsReady(false);
             setError(new Error("Viewer has been destroyed"));
           }
-          return;
-        }
+      return;
+    }
 
         // Wait for scene to be ready (with timeout)
         try {
           await waitForSceneReady(viewer, 20, 50); // Wait up to 1 second (20 * 50ms)
         } catch (waitErr) {
           if (!cancelled) {
-            setIsReady(false);
+      setIsReady(false);
             setError(waitErr instanceof Error ? waitErr : new Error(String(waitErr)));
           }
-          return;
-        }
+      return;
+    }
 
         // Double-check viewer is still valid before setup
         if (cancelled || !viewer || (viewer.isDestroyed && viewer.isDestroyed()) || !viewer.scene) {
@@ -114,14 +114,14 @@ export function useTerrain({
         await setupTerrainProvider(viewer, Cesium);
 
         if (!cancelled) {
-          setIsReady(true);
+        setIsReady(true);
           setError(null);
         }
       } catch (err) {
         if (!cancelled) {
-          const errorObj = err instanceof Error ? err : new Error(String(err));
-          setError(errorObj);
-          setIsReady(false);
+        const errorObj = err instanceof Error ? err : new Error(String(err));
+        setError(errorObj);
+        setIsReady(false);
           // Continue without terrain if it fails - this is non-critical
         }
       }

@@ -80,31 +80,42 @@ export function useCameraPosition({
 
             // Wait for bounding sphere to update after transform, then zoom to model
             setTimeout(async () => {
-              if (!viewer.isDestroyed() && tileset && viewer.scene) {
-                try {
-                  // Ensure scene is still ready before zooming
-                  await waitForSceneReady(viewer, 5, 50);
-                  // Use zoomTo to properly frame the model after transform is applied
-                  viewer.zoomTo(
-                    tileset,
-                    new Cesium.HeadingPitchRange(0, pitch, 0)
-                  );
-                } catch (err) {
-                  console.warn("[useCameraPosition] Scene not ready for zoom:", err);
+              // Check if viewer is still valid before proceeding
+              if (!viewer || (viewer.isDestroyed && viewer.isDestroyed()) || !viewer.scene || !tileset) {
+                return;
+              }
+              try {
+                // Ensure scene is still ready before zooming
+                await waitForSceneReady(viewer, 5, 50);
+                // Double-check again after waiting (viewer might have been destroyed during wait)
+                if (!viewer || (viewer.isDestroyed && viewer.isDestroyed()) || !viewer.scene) {
+                  return;
                 }
+                // Use zoomTo to properly frame the model after transform is applied
+                viewer.zoomTo(
+                  tileset,
+                  new Cesium.HeadingPitchRange(0, pitch, 0)
+                );
+              } catch (err) {
+                // Silently ignore if viewer was destroyed (expected when closing dialog)
+                if (err instanceof Error && (err.message.includes("destroyed") || err.message.includes("scene"))) {
+                  return;
+                }
+                console.warn("[useCameraPosition] Scene not ready for zoom:", err);
+              }
               }
             }, 200);
           } else {
             // For georeferenced models, use zoomTo without setting rotation target
             // This allows left-click drag to pan the earth instead of rotating around model
             if (viewer.scene) {
-              viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0, pitch, 0));
+            viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0, pitch, 0));
             }
           }
         } else {
           // Fallback: use zoomTo if no bounding sphere
           if (viewer.scene) {
-            viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0, pitch, 0));
+          viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0, pitch, 0));
           }
         }
       } catch (err) {
@@ -137,7 +148,7 @@ export function useCameraPosition({
         } else {
           // Last resort: try zoomTo without options
           if (viewer.scene) {
-            viewer.zoomTo(tileset);
+          viewer.zoomTo(tileset);
           }
         }
       }
