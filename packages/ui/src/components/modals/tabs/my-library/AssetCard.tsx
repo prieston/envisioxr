@@ -1,5 +1,6 @@
 import React from "react";
-import { Card, CardContent, CardMedia, Typography, Chip, Box } from "@mui/material";
+import { Card, CardContent, Typography, Box } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { Public, ViewInAr } from "@mui/icons-material";
 import type { LibraryAsset } from "../MyLibraryTab";
 
@@ -16,100 +17,119 @@ export const AssetCard: React.FC<AssetCardProps> = ({
 }) => {
   return (
     <Card
+      className={`glass-card ${isSelected ? "selected" : ""}`}
       onClick={onClick}
-      sx={(theme) => ({
-        cursor: "pointer",
-        borderRadius: "4px",
-        boxShadow: "none",
-        border: isSelected
-          ? `2px solid ${theme.palette.primary.main}`
-          : "2px solid rgba(255, 255, 255, 0.08)",
-        transition: "all 0.2s ease",
-        backgroundColor: theme.palette.background.paper,
-        "&:hover": {
-          borderColor: isSelected
-            ? theme.palette.primary.main
-            : "rgba(107, 156, 216, 0.5)",
-        },
-      })}
+      sx={(theme) => {
+        return {
+          width: "100%",
+          height: 260,
+          position: "relative",
+          overflow: "hidden",
+          cursor: "pointer",
+          backgroundColor: "#161B20",
+          border: "1px solid rgba(255, 255, 255, 0.05)",
+          borderRadius: "4px",
+          boxShadow: "none",
+          display: "flex",
+          flexDirection: "column",
+          transition: "all 0.2s ease",
+          "&:hover": {
+            borderColor: alpha(theme.palette.primary.main, 0.5),
+            backgroundColor: alpha(theme.palette.primary.main, 0.04),
+          },
+          "&.selected": {
+            borderColor: theme.palette.primary.main,
+            backgroundColor: alpha(theme.palette.primary.main, 0.08),
+          },
+        };
+      }}
     >
-      {asset.thumbnailUrl || asset.thumbnail ? (
-        <CardMedia
-          component="img"
-          height="80"
-          image={asset.thumbnailUrl || asset.thumbnail}
-          alt={asset.name || asset.originalFilename}
-          sx={{
-            objectFit: "cover",
-            backgroundColor: "rgba(248, 250, 252, 0.8)",
-          }}
-        />
-      ) : (
-        <Box
-          sx={{
-            height: "80px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(248, 250, 252, 0.8)",
-          }}
-        >
-          {asset.assetType === "cesiumIonAsset" ? (
-            <Public
-              sx={{
-                fontSize: "2.5rem",
-                color: "var(--color-primary, #6B9CD8)",
-              }}
-            />
-          ) : (
-            <ViewInAr
-              sx={{
-                fontSize: "2.5rem",
-                color: "rgba(100, 116, 139, 0.4)",
-              }}
-            />
-          )}
-        </Box>
-      )}
-      <CardContent sx={{ padding: "8px !important" }}>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 0.5,
-            minHeight: "42px",
-          }}
-        >
-          <Typography
-            variant="caption"
-            fontWeight={600}
-            noWrap
+      {/* Thumbnail */}
+      <Box
+        sx={{
+          width: "100%",
+          height: "140px",
+          backgroundColor: "rgba(107, 156, 216, 0.1)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          overflow: "hidden",
+          flexShrink: 0,
+        }}
+      >
+        {asset.thumbnailUrl || asset.thumbnail ? (
+          <Box
+            component="img"
+            src={asset.thumbnailUrl || asset.thumbnail}
+            alt={asset.name || asset.originalFilename}
+            loading="lazy"
             sx={{
-              fontSize: "0.75rem",
-              color: "rgba(51, 65, 85, 0.95)",
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: 0,
             }}
-          >
-            {asset.name || asset.originalFilename}
-          </Typography>
-          {asset.assetType === "cesiumIonAsset" && (
-            <Chip
-              icon={<Public />}
-              label="Cesium Ion"
-              size="small"
-              sx={{
-                height: "18px",
-                fontSize: "0.625rem",
-                fontWeight: 500,
-                color: "var(--color-primary, #6B9CD8)",
-                backgroundColor: "rgba(107, 156, 216, 0.12)",
-                "& .MuiChip-icon": {
-                  fontSize: "0.75rem",
-                  color: "var(--color-primary, #6B9CD8)",
-                },
-              }}
-            />
-          )}
-        </Box>
+          />
+        ) : (
+          <>
+            {asset.assetType === "cesiumIonAsset" ? (
+              <Public
+                sx={{ fontSize: 48, color: "#6B9CD8", opacity: 0.5, zIndex: 0 }}
+              />
+            ) : (
+              <ViewInAr
+                sx={{ fontSize: 48, color: "#6B9CD8", opacity: 0.5, zIndex: 0 }}
+              />
+            )}
+          </>
+        )}
+      </Box>
+
+      {/* Content */}
+      <CardContent
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          p: 2,
+          pb: 1.5,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 600,
+            fontSize: "14px",
+            mb: 0.5,
+            color: "text.primary",
+            lineHeight: 1.3,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            wordBreak: "break-all",
+          }}
+        >
+          {asset.name || asset.originalFilename}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{
+            color: "rgba(255, 255, 255, 0.6)",
+            fontSize: "0.75rem",
+            mb: 1.5,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {asset.description || (asset.assetType === "cesiumIonAsset" ? "Cesium Ion Asset" : "3D Model")}
+        </Typography>
       </CardContent>
     </Card>
   );

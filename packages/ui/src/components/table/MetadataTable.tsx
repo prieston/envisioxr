@@ -8,7 +8,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   TextField,
   IconButton,
   Box,
@@ -78,67 +77,53 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         sx={{
           padding: 3,
           textAlign: "center",
-          color: "rgba(100, 116, 139, 0.6)",
+          color: "text.secondary",
         }}
       >
-        <Typography variant="body2">No metadata available</Typography>
+        <Typography variant="body2" sx={{ fontSize: "0.75rem" }}>
+          No metadata available
+        </Typography>
       </Box>
     );
   }
 
   return (
     <TableContainer
-      component={Paper}
-      sx={(_theme) => ({
-        boxShadow: "none",
+      component={Box}
+      sx={{
         backgroundColor: "transparent",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
-        borderRadius: "4px",
-        overflow: "hidden",
-      })}
+        boxShadow: "none",
+      }}
     >
       <Table size="small">
         <TableHead>
-          <TableRow
-            sx={(theme) => ({
-              backgroundColor:
-                theme.palette.mode === "dark"
-                  ? "rgba(248, 250, 252, 0.05)"
-                  : "rgba(248, 250, 252, 0.8)",
-            })}
-          >
+          <TableRow>
             <TableCell
-              sx={(theme) => ({
-                fontWeight: 600,
+              sx={{
                 fontSize: "0.75rem",
-                color: theme.palette.text.primary,
-                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-                padding: "12px 16px",
-              })}
+                fontWeight: 600,
+                color: "text.primary",
+              }}
             >
               Property
             </TableCell>
             <TableCell
-              sx={(theme) => ({
-                fontWeight: 600,
+              sx={{
                 fontSize: "0.75rem",
-                color: theme.palette.text.primary,
-                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-                padding: "12px 16px",
-              })}
+                fontWeight: 600,
+                color: "text.primary",
+              }}
             >
               Value
             </TableCell>
             {editable && (
               <TableCell
-                sx={(theme) => ({
-                  fontWeight: 600,
+                sx={{
                   fontSize: "0.75rem",
-                  color: theme.palette.text.primary,
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-                  padding: "12px 16px",
+                  fontWeight: 600,
+                  color: "text.primary",
                   width: "60px",
-                })}
+                }}
               >
                 Actions
               </TableCell>
@@ -149,23 +134,21 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
           {localData.map((row, index) => (
             <TableRow
               key={index}
-              sx={(theme) => ({
-                "&:last-child td": { borderBottom: 0 },
+              sx={{
+                backgroundColor: "transparent",
                 "&:hover": {
-                  backgroundColor:
-                    theme.palette.mode === "dark"
-                      ? "rgba(248, 250, 252, 0.03)"
-                      : "rgba(248, 250, 252, 0.5)",
+                  backgroundColor: "transparent",
                 },
-              })}
+                "& .MuiTableCell-root": {
+                  borderBottom: "none",
+                },
+              }}
             >
               <TableCell
-                sx={(theme) => ({
-                  fontSize: "0.813rem",
-                  color: theme.palette.text.secondary,
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-                  padding: "10px 16px",
-                })}
+                sx={{
+                  fontSize: "0.75rem",
+                  color: "text.secondary",
+                }}
               >
                 {editable ? (
                   <TextField
@@ -181,17 +164,16 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                     sx={textFieldStyles}
                   />
                 ) : (
-                  row.label
+                  <Typography sx={{ fontSize: "0.75rem" }}>
+                    {row.label}
+                  </Typography>
                 )}
               </TableCell>
               <TableCell
-                sx={(theme) => ({
-                  fontSize: "0.813rem",
-                  color: theme.palette.text.primary,
-                  fontWeight: 500,
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-                  padding: "10px 16px",
-                })}
+                sx={{
+                  fontSize: "0.75rem",
+                  color: "text.primary",
+                }}
               >
                 {editable ? (
                   <TextField
@@ -211,18 +193,15 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                     sx={textFieldStyles}
                   />
                 ) : (
-                  typeof row.value === "object" && row.value !== null
-                    ? JSON.stringify(row.value, null, 2)
-                    : String(row.value ?? "")
+                  <Typography sx={{ fontSize: "0.75rem" }}>
+                    {typeof row.value === "object" && row.value !== null
+                      ? JSON.stringify(row.value, null, 2)
+                      : String(row.value ?? "")}
+                  </Typography>
                 )}
               </TableCell>
               {editable && (
-                <TableCell
-                  sx={{
-                    borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-                    padding: "10px 16px",
-                  }}
-                >
+                <TableCell>
                   <IconButton
                     size="small"
                     onClick={() => handleDelete(index)}

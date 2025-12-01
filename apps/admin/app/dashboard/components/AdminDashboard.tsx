@@ -118,8 +118,10 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [createOrgOpen, setCreateOrgOpen] = useState(false);
   const [deleteOrgOpen, setDeleteOrgOpen] = useState(false);
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [licenseDialogOpen, setLicenseDialogOpen] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [orgToUpgrade, setOrgToUpgrade] = useState<{ id: string; name: string } | null>(null);
   const [orgToUpdate, setOrgToUpdate] = useState<{
     id: string;
     name: string;
@@ -207,6 +209,40 @@ export default function AdminDashboard() {
   const handleOpenDeleteDialog = useCallback((org: { id: string; name: string }) => {
     setOrgToDelete(org);
     setDeleteOrgOpen(true);
+  }, []);
+
+  const handleUpgradeWorkspace = useCallback(async () => {
+    if (!orgToUpgrade) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/organizations/${orgToUpgrade.id}/upgrade`, {
+        method: "PATCH",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to upgrade workspace");
+      }
+
+      showToast("Personal workspace upgraded to organization successfully!", "success");
+      await mutateStats();
+      setUpgradeDialogOpen(false);
+      setOrgToUpgrade(null);
+    } catch (error) {
+      console.error("Error upgrading workspace:", error);
+      showToast(
+        error instanceof Error ? error.message : "Failed to upgrade workspace",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [orgToUpgrade, mutateStats]);
+
+  const handleOpenUpgradeDialog = useCallback((org: { id: string; name: string }) => {
+    setOrgToUpgrade(org);
+    setUpgradeDialogOpen(true);
   }, []);
 
   const handleUpdateLicense = useCallback(async () => {
@@ -462,6 +498,19 @@ export default function AdminDashboard() {
                             </TableCell>
                             <TableCell align="right">
                               <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                                {org.isPersonal && (
+                                  <Button
+                                    variant="contained"
+                                    size="small"
+                                    color="success"
+                                    onClick={() =>
+                                      handleOpenUpgradeDialog({ id: org.id, name: org.name })
+                                    }
+                                    sx={{ textTransform: "none" }}
+                                  >
+                                    Upgrade to Organization
+                                  </Button>
+                                )}
                                 <Button
                                   variant="outlined"
                                   size="small"
@@ -637,6 +686,40 @@ export default function AdminDashboard() {
             sx={{ textTransform: "none" }}
           >
             {loading ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Upgrade Workspace Dialog */}
+      <Dialog open={upgradeDialogOpen} onClose={() => setUpgradeDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Upgrade Personal Workspace to Organization</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to upgrade &quot;{orgToUpgrade?.name}&quot; from a personal workspace to a full organization?
+            <br />
+            <br />
+            This will:
+            <ul>
+              <li>Enable multiple members to join the organization</li>
+              <li>Allow organization invitations</li>
+              <li>Preserve all existing projects, assets, and data</li>
+            </ul>
+            <br />
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setUpgradeDialogOpen(false)} disabled={loading} sx={{ textTransform: "none" }}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUpgradeWorkspace}
+            color="success"
+            variant="contained"
+            disabled={loading}
+            sx={{ textTransform: "none" }}
+          >
+            {loading ? "Upgrading..." : "Upgrade to Organization"}
           </Button>
         </DialogActions>
       </Dialog>

@@ -159,16 +159,43 @@ export async function hasUserRoleInOrganization(
 }
 
 /**
- * Get user's default organization (personal org, or first org they're a member of)
+ * Check if user has pending organization invitations
+ */
+export async function getUserPendingInvitations(userEmail: string) {
+  if (!userEmail) return [];
+
+  const pendingInvites = await prisma.organizationInvite.findMany({
+    where: {
+      email: userEmail.toLowerCase(),
+      expires: {
+        gt: new Date(), // Only non-expired invitations
+      },
+    },
+    include: {
+      organization: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  return pendingInvites;
+}
+
+/**
+ * Get user's default organization (excludes personal orgs, returns first real org)
  */
 export async function getUserDefaultOrganization(userId: string) {
-  // Try to get personal organization first
-  const personalOrg = await getUserPersonalOrganization(userId);
-  if (personalOrg) return personalOrg;
-
-  // Otherwise get first organization they're a member of
+  // Get first non-personal organization they're a member of
   const member = await prisma.organizationMember.findFirst({
-    where: { userId },
+    where: {
+      userId,
+      organization: {
+        isPersonal: false,
+      },
+    },
     include: { organization: true },
     orderBy: { createdAt: "asc" },
   });

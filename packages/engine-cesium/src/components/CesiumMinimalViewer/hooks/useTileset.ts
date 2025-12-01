@@ -340,7 +340,19 @@ export function useTileset({
                 viewer.scene &&
                 !(viewer.isDestroyed && viewer.isDestroyed())
               ) {
-                viewer.scene.requestRender();
+                try {
+                  viewer.scene.requestRender();
+                } catch (err) {
+                  console.error(
+                    "[useTileset] Error requesting render in setTimeout:",
+                    {
+                      error: err,
+                      viewerExists: !!viewer,
+                      hasScene: viewer?.scene ? "yes" : "no",
+                      timestamp: new Date().toISOString(),
+                    }
+                  );
+                }
               }
             }, i * 100);
           }

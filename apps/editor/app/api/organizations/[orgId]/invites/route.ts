@@ -1,6 +1,8 @@
 /**
  * POST /api/organizations/[orgId]/invites
  * Invite a user to join an organization
+ * DELETE /api/organizations/[orgId]/invites
+ * Cancel/revoke a pending invitation (owners and admins only)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -164,6 +166,93 @@ export async function POST(
     });
   } catch (error) {
     console.error("[Org Invite] Error:", error);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Internal Server Error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { orgId: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+  const { orgId } = params;
+
+  try {
+    const body = await request.json();
+    const { inviteId } = body;
+
+    if (!inviteId) {
+      return NextResponse.json(
+        { error: "Invite ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Verify organization exists and user is admin/owner
+    const organization = await prisma.organization.findUnique({
+      where: { id: orgId },
+      include: {
+        members: {
+          where: { userId },
+        },
+      },
+    });
+
+    if (!organization) {
+      return NextResponse.json(
+        { error: "Organization not found" },
+        { status: 404 }
+      );
+    }
+
+    const membership = organization.members[0];
+    if (!membership || (membership.role !== "owner" && membership.role !== "admin")) {
+      return NextResponse.json(
+        { error: "Only owners and admins can cancel invitations" },
+        { status: 403 }
+      );
+    }
+
+    // Find the invitation
+    const invite = await prisma.organizationInvite.findUnique({
+      where: { id: inviteId },
+    });
+
+    if (!invite) {
+      return NextResponse.json(
+        { error: "Invitation not found" },
+        { status: 404 }
+      );
+    }
+
+    if (invite.organizationId !== orgId) {
+      return NextResponse.json(
+        { error: "Invitation does not belong to this organization" },
+        { status: 400 }
+      );
+    }
+
+    // Delete the invitation
+    await prisma.organizationInvite.delete({
+      where: { id: inviteId },
+    });
+
+    return NextResponse.json({
+      message: "Invitation cancelled successfully",
+    });
+  } catch (error) {
+    console.error("[Org Invite] Error cancelling invitation:", error);
     return NextResponse.json(
       {
         error:

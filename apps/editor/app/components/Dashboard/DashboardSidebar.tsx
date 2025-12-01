@@ -26,7 +26,6 @@ import {
   SettingsIcon,
   ExpandMoreIcon,
   BusinessIcon,
-  CreditCardIcon,
   HelpOutlineIcon,
 } from "@klorad/ui";
 import { LeftPanelContainer } from "@klorad/ui";
@@ -85,11 +84,6 @@ const menuItems: MenuItem[] = [
       { label: "Usage", path: "/settings/usage" },
       { label: "Integrations", path: "/settings/integrations" },
     ],
-  },
-  {
-    label: "Billing & Plans",
-    icon: <CreditCardIcon />,
-    path: "/billing",
   },
   {
     label: "Support",

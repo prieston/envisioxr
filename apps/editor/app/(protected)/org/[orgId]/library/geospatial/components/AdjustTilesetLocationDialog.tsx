@@ -3,21 +3,14 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import {
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   Box,
   Typography,
   IconButton,
+  Divider,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { CloseIcon, LocationSearch } from "@klorad/ui";
-import {
-  modalPaperStyles,
-  modalTitleStyles,
-  modalTitleTextStyles,
-  modalCloseButtonStyles,
-} from "@klorad/ui";
 import {
   extractLocationFromTransform,
   extractHPRFromTransform,
@@ -332,191 +325,224 @@ const AdjustTilesetLocationDialog: React.FC<
       }}
       PaperProps={{
         sx: (theme) => ({
-          ...((typeof modalPaperStyles === "function"
-            ? modalPaperStyles(theme)
-            : modalPaperStyles) as Record<string, any>),
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? "#14171A !important"
+              : theme.palette.background.paper,
+          boxShadow: "none",
           position: "relative",
           zIndex: 1601,
+          "&.MuiPaper-root": {
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+          },
         }),
       }}
     >
-      <DialogTitle sx={modalTitleStyles}>
-        <Typography sx={modalTitleTextStyles}>
-          Adjust Tileset Location - {assetName}
-        </Typography>
-        <IconButton onClick={onClose} size="small" sx={modalCloseButtonStyles}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent
+      <Box
         sx={(theme) => ({
-          padding: "24px",
-          backgroundColor: theme.palette.background.default,
-          display: "flex",
-          gap: 3,
-          height: "calc(80vh - 200px)",
-          minHeight: "600px",
+          p: 3,
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? "#14171A"
+              : theme.palette.background.paper,
         })}
       >
-        {/* Left Column - Controls */}
+        {/* Header */}
         <Box
           sx={{
-            width: "380px",
-            flexShrink: 0,
             display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            overflowY: "auto",
-            pr: 2,
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 3,
           }}
         >
-          {georeferencingDetection.isGeoreferencedByDefault ? (
-            <GeoreferencingInfoAlert />
-          ) : (
-            <Typography
-              sx={(theme) => ({
-                fontSize: "0.813rem",
-                color: theme.palette.text.secondary,
-              })}
-            >
-              Click on the map to position the tileset. You can search for a
-              location below.
-            </Typography>
-          )}
-
-          <ClickPositionButton
-            clickModeEnabled={clickMode.clickModeEnabled}
-            disabled={georeferencingDetection.isGeoreferencedByDefault}
-            onToggle={clickMode.toggleClickMode}
-          />
-
-          {!georeferencingDetection.isGeoreferencedByDefault && (
-            <Box>
-              <LocationSearch
-                onAssetSelect={handleLocationSelect}
-                boxPadding={1}
-              />
-            </Box>
-          )}
-
-          <ManualAdjustmentsForm
-            longitude={manualInputs.manualLongitude}
-            latitude={manualInputs.manualLatitude}
-            height={manualInputs.manualHeight}
-            heading={manualInputs.manualHeading}
-            pitch={manualInputs.manualPitch}
-            roll={manualInputs.manualRoll}
-            onLongitudeChange={manualInputs.setManualLongitude}
-            onLatitudeChange={manualInputs.setManualLatitude}
-            onHeightChange={manualInputs.setManualHeight}
-            onHeadingChange={manualInputs.setManualHeading}
-            onPitchChange={manualInputs.setManualPitch}
-            onRollChange={manualInputs.setManualRoll}
-            onApply={manualInputs.applyManualChanges}
-            disabled={georeferencingDetection.isGeoreferencedByDefault}
-          />
-
-          {locationState.currentLocation && (
-            <CurrentLocationDisplay location={locationState.currentLocation} />
-          )}
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Adjust Tileset Location - {assetName}
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={onClose}
+            sx={{
+              color: "text.secondary",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.05)",
+              },
+            }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
         </Box>
 
-        {/* Right Column - Cesium Viewer */}
+        <Divider sx={{ mb: 3 }} />
+
+        {/* Content */}
         <Box
           sx={{
-            flex: 1,
-            position: "relative",
-            minWidth: 0,
+            display: "flex",
+            gap: 3,
+            height: "calc(80vh - 200px)",
+            minHeight: "600px",
           }}
         >
-          <CesiumViewerContainer
-            containerRef={containerRef}
-            open={open}
-            cesiumAssetId={cesiumAssetId}
-            cesiumApiKey={cesiumApiKey}
-            assetType={assetType}
-            initialTransform={stableInitialTransformRef.current}
-            loading={loading}
-            error={error}
-            viewerRef={viewerRef}
-            tilesetRef={tilesetRef}
-            onViewerReady={handleViewerReady}
-            onError={handleError}
-            onTilesetReady={handleTilesetReady}
-            clickModeEnabled={clickMode.clickModeEnabled}
-            onLocationClick={clickMode.handleLocationClick}
-            onResetZoom={handleResetZoom}
-          />
+          {/* Left Column - Controls */}
+          <Box
+            sx={{
+              width: "380px",
+              flexShrink: 0,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              overflowY: "auto",
+              pr: 2,
+            }}
+          >
+            {georeferencingDetection.isGeoreferencedByDefault ? (
+              <GeoreferencingInfoAlert />
+            ) : (
+              <Typography
+                sx={{
+                  fontSize: "0.75rem",
+                  color: "text.secondary",
+                }}
+              >
+                Click on the map to position the tileset. You can search for a
+                location below.
+              </Typography>
+            )}
 
-          {clickMode.showPositionConfirm && locationState.pendingLocation && (
-            <PositionConfirmationDialog
-              location={locationState.pendingLocation}
-              onConfirm={handleConfirmPosition}
-              onCancel={handleCancelPosition}
+            <ClickPositionButton
+              clickModeEnabled={clickMode.clickModeEnabled}
+              disabled={georeferencingDetection.isGeoreferencedByDefault}
+              onToggle={clickMode.toggleClickMode}
             />
-          )}
-        </Box>
-      </DialogContent>
 
-      <DialogActions
-        sx={(theme) => ({
-          padding: "16px 24px",
-          gap: 1,
-          backgroundColor: theme.palette.background.paper,
-          borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-        })}
-      >
-        <Button
-          onClick={onClose}
-          disabled={saving}
-          sx={(theme) => ({
-            textTransform: "none",
-            fontSize: "0.813rem",
-            fontWeight: 500,
-            borderRadius: "4px",
-            color: theme.palette.text.secondary,
-            boxShadow: "none",
-            "&:hover": {
+            {!georeferencingDetection.isGeoreferencedByDefault && (
+              <Box>
+                <LocationSearch
+                  onAssetSelect={handleLocationSelect}
+                  boxPadding={1}
+                />
+              </Box>
+            )}
+
+            <ManualAdjustmentsForm
+              longitude={manualInputs.manualLongitude}
+              latitude={manualInputs.manualLatitude}
+              height={manualInputs.manualHeight}
+              heading={manualInputs.manualHeading}
+              pitch={manualInputs.manualPitch}
+              roll={manualInputs.manualRoll}
+              onLongitudeChange={manualInputs.setManualLongitude}
+              onLatitudeChange={manualInputs.setManualLatitude}
+              onHeightChange={manualInputs.setManualHeight}
+              onHeadingChange={manualInputs.setManualHeading}
+              onPitchChange={manualInputs.setManualPitch}
+              onRollChange={manualInputs.setManualRoll}
+              onApply={manualInputs.applyManualChanges}
+              disabled={georeferencingDetection.isGeoreferencedByDefault}
+            />
+
+            {locationState.currentLocation && (
+              <CurrentLocationDisplay
+                location={locationState.currentLocation}
+              />
+            )}
+          </Box>
+
+          {/* Right Column - Cesium Viewer */}
+          <Box
+            sx={{
+              flex: 1,
+              position: "relative",
+              minWidth: 0,
+            }}
+          >
+            <CesiumViewerContainer
+              containerRef={containerRef}
+              open={open}
+              cesiumAssetId={cesiumAssetId}
+              cesiumApiKey={cesiumApiKey}
+              assetType={assetType}
+              initialTransform={stableInitialTransformRef.current}
+              loading={loading}
+              error={error}
+              viewerRef={viewerRef}
+              tilesetRef={tilesetRef}
+              onViewerReady={handleViewerReady}
+              onError={handleError}
+              onTilesetReady={handleTilesetReady}
+              clickModeEnabled={clickMode.clickModeEnabled}
+              onLocationClick={clickMode.handleLocationClick}
+              onResetZoom={handleResetZoom}
+            />
+
+            {clickMode.showPositionConfirm && locationState.pendingLocation && (
+              <PositionConfirmationDialog
+                location={locationState.pendingLocation}
+                onConfirm={handleConfirmPosition}
+                onCancel={handleCancelPosition}
+              />
+            )}
+          </Box>
+        </Box>
+
+        {/* Actions */}
+        <Box
+          sx={{ display: "flex", gap: 2, mt: 3, justifyContent: "flex-end" }}
+        >
+          <Button
+            variant="outlined"
+            onClick={onClose}
+            disabled={saving}
+            sx={(theme) => ({
+              borderRadius: `${theme.shape.borderRadius}px`,
+              textTransform: "none",
+              fontSize: "0.75rem",
+            })}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={
+              saving ||
+              loading ||
+              !locationState.currentTransform ||
+              georeferencingDetection.isGeoreferencedByDefault
+            }
+            sx={(theme) => ({
+              borderRadius: `${theme.shape.borderRadius}px`,
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.75rem",
               backgroundColor:
                 theme.palette.mode === "dark"
-                  ? "rgba(100, 116, 139, 0.12)"
-                  : "rgba(100, 116, 139, 0.08)",
+                  ? "#161B20"
+                  : theme.palette.background.paper,
+              color: theme.palette.primary.main,
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
               boxShadow: "none",
-            },
-          })}
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSave}
-          disabled={
-            saving ||
-            loading ||
-            !locationState.currentTransform ||
-            georeferencingDetection.isGeoreferencedByDefault
-          }
-          variant="contained"
-          sx={(theme) => ({
-            textTransform: "none",
-            fontSize: "0.813rem",
-            fontWeight: 600,
-            borderRadius: "4px",
-            backgroundColor: theme.palette.primary.main,
-            boxShadow: "none",
-            "&:hover": {
-              backgroundColor: theme.palette.primary.dark,
-              boxShadow: "none",
-            },
-            "&:disabled": {
-              backgroundColor: "rgba(100, 116, 139, 0.2)",
-              color: "rgba(100, 116, 139, 0.5)",
-            },
-          })}
-        >
-          {saving ? "Saving..." : "Save Location"}
-        </Button>
-      </DialogActions>
+              "&:hover": {
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "#1a1f26"
+                    : alpha(theme.palette.primary.main, 0.05),
+                borderColor: alpha(theme.palette.primary.main, 0.5),
+                boxShadow: "none",
+              },
+              "&:disabled": {
+                opacity: 0.5,
+              },
+            })}
+          >
+            {saving ? "Saving..." : "Save Location"}
+          </Button>
+        </Box>
+      </Box>
     </Dialog>
   );
 };

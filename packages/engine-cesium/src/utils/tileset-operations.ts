@@ -356,7 +356,16 @@ export function reapplyTransformAfterReady(
       for (let i = 0; i < 5; i++) {
         setTimeout(() => {
           if (options.viewer && !options.viewer.isDestroyed()) {
-            options.viewer.scene.requestRender();
+            try {
+              options.viewer.scene.requestRender();
+            } catch (err) {
+              console.error("[TilesetOps] Error requesting render in setTimeout:", {
+                error: err,
+                viewerExists: !!options.viewer,
+                hasScene: options.viewer?.scene ? "yes" : "no",
+                timestamp: new Date().toISOString(),
+              });
+            }
           }
         }, i * 100);
       }

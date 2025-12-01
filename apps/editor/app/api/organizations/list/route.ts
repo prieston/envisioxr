@@ -15,13 +15,16 @@ export async function GET(_request: NextRequest) {
   try {
     const members = await getUserOrganizations(userId);
 
-    const organizations = members.map((member) => ({
-      id: member.organization.id,
-      name: member.organization.name,
-      slug: member.organization.slug,
-      isPersonal: member.organization.isPersonal,
-      userRole: member.role,
-    }));
+    // Filter out personal organizations from the list
+    const organizations = members
+      .filter((member) => !member.organization.isPersonal)
+      .map((member) => ({
+        id: member.organization.id,
+        name: member.organization.name,
+        slug: member.organization.slug,
+        isPersonal: member.organization.isPersonal,
+        userRole: member.role,
+      }));
 
     return NextResponse.json({ organizations });
   } catch (error) {

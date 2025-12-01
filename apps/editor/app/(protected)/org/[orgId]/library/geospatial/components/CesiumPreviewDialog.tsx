@@ -4,23 +4,16 @@
 import React, { useRef, useState, useEffect } from "react";
 import {
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   Box,
   Typography,
   IconButton,
   CircularProgress,
+  Divider,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { CloseIcon, CameraAltIcon } from "@klorad/ui";
 import { FitScreen } from "@mui/icons-material";
-import {
-  modalPaperStyles,
-  modalTitleStyles,
-  modalTitleTextStyles,
-  modalCloseButtonStyles,
-} from "@klorad/ui";
 import { captureCesiumScreenshot } from "@/app/utils/screenshotCapture";
 import { CesiumMinimalViewer } from "@klorad/engine-cesium";
 
@@ -367,285 +360,309 @@ const CesiumPreviewDialog: React.FC<CesiumPreviewDialogProps> = ({
       }}
       PaperProps={{
         sx: (theme) => ({
-          ...((typeof modalPaperStyles === "function"
-            ? modalPaperStyles(theme)
-            : modalPaperStyles) as Record<string, any>),
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? "#14171A !important"
+              : theme.palette.background.paper,
+          boxShadow: "none",
           position: "relative",
           zIndex: 1601,
+          "&.MuiPaper-root": {
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "#14171A !important"
+                : theme.palette.background.paper,
+          },
         }),
       }}
     >
-      <DialogTitle sx={modalTitleStyles}>
-        <Typography sx={modalTitleTextStyles}>
-          Retake Photo - {assetName}
-        </Typography>
-        <IconButton
-          onClick={handleClose}
-          size="small"
-          sx={modalCloseButtonStyles}
-          disabled={capturing || uploading}
-        >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent
+      <Box
         sx={(theme) => ({
-          padding: "24px",
-          backgroundColor: theme.palette.background.default,
+          p: 3,
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? "#14171A"
+              : theme.palette.background.paper,
         })}
       >
-        <Typography
-          sx={(theme) => ({
-            fontSize: "0.813rem",
-            color: theme.palette.text.secondary,
-            textAlign: "center",
-            mb: 2,
-          })}
-        >
-          Rotate the model to your desired angle, then click &quot;Capture
-          Screenshot&quot;
-        </Typography>
-
+        {/* Header */}
         <Box
-          ref={containerRef}
-          sx={(theme) => ({
-            width: "100%",
-            height: "calc(80vh - 200px)", // Full width, dynamic height based on viewport
-            minHeight: "400px",
-            borderRadius: "4px",
-            overflow: "hidden",
-            backgroundColor: theme.palette.background.default,
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            position: "relative",
+          sx={{
             display: "flex",
-            flexDirection: "column",
-            // Hide all Cesium credits and attribution
-            "& .cesium-viewer-bottom": {
-              display: "none !important",
-            },
-            "& .cesium-credit-text": {
-              display: "none !important",
-            },
-            "& .cesium-credit-logoContainer": {
-              display: "none !important",
-            },
-            "& .cesium-credit-expand-link": {
-              display: "none !important",
-            },
-            "& .cesium-credit-logo": {
-              display: "none !important",
-            },
-            "& .cesium-widget-credits": {
-              display: "none !important",
-            },
-            // Ensure Cesium viewer fills container
-            "& .cesium-viewer": {
-              width: "100% !important",
-              height: "100% !important",
-              flex: "1 1 auto",
-              minHeight: 0,
-            },
-            "& .cesium-viewer-cesiumWidgetContainer": {
-              width: "100% !important",
-              height: "100% !important",
-            },
-            "& .cesium-widget": {
-              width: "100% !important",
-              height: "100% !important",
-            },
-            "& .cesium-widget canvas": {
-              width: "100% !important",
-              height: "100% !important",
-              display: "block",
-            },
-          })}
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 3,
+          }}
         >
-          {open && (
-            <CesiumMinimalViewer
-              key={`cesium-preview-${cesiumAssetId}`}
-              containerRef={containerRef}
-              cesiumAssetId={cesiumAssetId}
-              cesiumApiKey={cesiumApiKey}
-              assetType={assetType}
-              metadata={metadata}
-              onViewerReady={handleViewerReady}
-              onTilesetReady={handleTilesetReady}
-              onError={handleError}
-              onLocationNotSet={handleLocationNotSet}
-              enableLocationEditing={false}
-              enableAtmosphere={true}
-            />
-          )}
-
-          {/* Reset Zoom Button */}
-          {!loading && !error && tilesetReady && (
-            <IconButton
-              onClick={handleResetZoom}
-              sx={() => ({
-                position: "absolute",
-                top: 16,
-                right: 16,
-                zIndex: 20,
-                backgroundColor: "rgba(0, 0, 0, 0.7)",
-                color: "white",
-                "&:hover": {
-                  backgroundColor: "rgba(0, 0, 0, 0.9)",
-                },
-                width: 40,
-                height: 40,
-              })}
-              size="small"
-              title="Reset Zoom"
-            >
-              <FitScreen sx={{ fontSize: "1.25rem" }} />
-            </IconButton>
-          )}
-
-          {locationNotSet && (
-            <Box
-              sx={{
-                position: "absolute",
-                top: 16,
-                left: 16,
-                right: 16,
-                zIndex: 20,
-                backgroundColor: "rgba(0, 0, 0, 0.7)",
-                borderRadius: "4px",
-                padding: "8px 12px",
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <Typography
-                sx={{
-                  color: "warning.main",
-                  fontSize: "0.75rem",
-                  fontWeight: 500,
-                }}
-              >
-                ℹ️ Tileset location has not been set
-              </Typography>
-            </Box>
-          )}
-
-          {loading && (
-            <Box
-              sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                zIndex: 10,
-              }}
-            >
-              <CircularProgress />
-            </Box>
-          )}
-
-          {error && (
-            <Box
-              sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                zIndex: 10,
-                p: 2,
-              }}
-            >
-              <Typography
-                sx={{
-                  color: "error.main",
-                  textAlign: "center",
-                  fontSize: "0.875rem",
-                }}
-              >
-                {error}
-              </Typography>
-            </Box>
-          )}
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Retake Photo - {assetName}
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={handleClose}
+            disabled={capturing || uploading}
+            sx={{
+              color: "text.secondary",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.05)",
+              },
+            }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
         </Box>
-      </DialogContent>
 
-      <DialogActions
-        sx={(theme) => ({
-          padding: "16px 24px",
-          gap: 1,
-          backgroundColor: theme.palette.background.paper,
-          borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-        })}
-      >
-        <Button
-          onClick={handleClose}
-          disabled={capturing || uploading}
-          sx={(theme) => ({
-            textTransform: "none",
-            fontSize: "0.813rem",
-            fontWeight: 500,
-            borderRadius: "4px",
-            color: theme.palette.text.secondary,
-            boxShadow: "none",
-            "&:hover": {
+        <Divider sx={{ mb: 3 }} />
+
+        {/* Content */}
+        <Box>
+          <Typography
+            sx={{
+              fontSize: "0.75rem",
+              color: "text.secondary",
+              textAlign: "center",
+              mb: 2,
+            }}
+          >
+            Rotate the model to your desired angle, then click &quot;Capture
+            Screenshot&quot;
+          </Typography>
+
+          <Box
+            ref={containerRef}
+            sx={(theme) => ({
+              width: "100%",
+              height: "calc(80vh - 200px)", // Full width, dynamic height based on viewport
+              minHeight: "400px",
+              borderRadius: "4px",
+              overflow: "hidden",
+              backgroundColor: theme.palette.background.default,
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              // Hide all Cesium credits and attribution
+              "& .cesium-viewer-bottom": {
+                display: "none !important",
+              },
+              "& .cesium-credit-text": {
+                display: "none !important",
+              },
+              "& .cesium-credit-logoContainer": {
+                display: "none !important",
+              },
+              "& .cesium-credit-expand-link": {
+                display: "none !important",
+              },
+              "& .cesium-credit-logo": {
+                display: "none !important",
+              },
+              "& .cesium-widget-credits": {
+                display: "none !important",
+              },
+              // Ensure Cesium viewer fills container
+              "& .cesium-viewer": {
+                width: "100% !important",
+                height: "100% !important",
+                flex: "1 1 auto",
+                minHeight: 0,
+              },
+              "& .cesium-viewer-cesiumWidgetContainer": {
+                width: "100% !important",
+                height: "100% !important",
+              },
+              "& .cesium-widget": {
+                width: "100% !important",
+                height: "100% !important",
+              },
+              "& .cesium-widget canvas": {
+                width: "100% !important",
+                height: "100% !important",
+                display: "block",
+              },
+            })}
+          >
+            {open && (
+              <CesiumMinimalViewer
+                key={`cesium-preview-${cesiumAssetId}`}
+                containerRef={containerRef}
+                cesiumAssetId={cesiumAssetId}
+                cesiumApiKey={cesiumApiKey}
+                assetType={assetType}
+                metadata={metadata}
+                onViewerReady={handleViewerReady}
+                onTilesetReady={handleTilesetReady}
+                onError={handleError}
+                onLocationNotSet={handleLocationNotSet}
+                enableLocationEditing={false}
+                enableAtmosphere={true}
+              />
+            )}
+
+            {/* Reset Zoom Button */}
+            {!loading && !error && tilesetReady && (
+              <IconButton
+                onClick={handleResetZoom}
+                sx={() => ({
+                  position: "absolute",
+                  top: 16,
+                  right: 16,
+                  zIndex: 20,
+                  backgroundColor: "rgba(0, 0, 0, 0.7)",
+                  color: "white",
+                  "&:hover": {
+                    backgroundColor: "rgba(0, 0, 0, 0.9)",
+                  },
+                  width: 40,
+                  height: 40,
+                })}
+                size="small"
+                title="Reset Zoom"
+              >
+                <FitScreen sx={{ fontSize: "1.25rem" }} />
+              </IconButton>
+            )}
+
+            {locationNotSet && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 16,
+                  left: 16,
+                  right: 16,
+                  zIndex: 20,
+                  backgroundColor: "rgba(0, 0, 0, 0.7)",
+                  borderRadius: "4px",
+                  padding: "8px 12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: "warning.main",
+                    fontSize: "0.75rem",
+                    fontWeight: 500,
+                  }}
+                >
+                  ℹ️ Tileset location has not been set
+                </Typography>
+              </Box>
+            )}
+
+            {loading && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  zIndex: 10,
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            )}
+
+            {error && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  zIndex: 10,
+                  p: 2,
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: "error.main",
+                    textAlign: "center",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  {error}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
+
+        {/* Actions */}
+        <Box
+          sx={{ display: "flex", gap: 2, mt: 3, justifyContent: "flex-end" }}
+        >
+          <Button
+            variant="outlined"
+            onClick={handleClose}
+            disabled={capturing || uploading}
+            sx={(theme) => ({
+              borderRadius: `${theme.shape.borderRadius}px`,
+              textTransform: "none",
+              fontSize: "0.75rem",
+            })}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleCapture}
+            disabled={
+              capturing ||
+              uploading ||
+              loading ||
+              !!error ||
+              !viewerRef.current ||
+              !tilesetReady
+            }
+            startIcon={
+              uploading ? <CircularProgress size={16} /> : <CameraAltIcon />
+            }
+            sx={(theme) => ({
+              borderRadius: `${theme.shape.borderRadius}px`,
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.75rem",
               backgroundColor:
                 theme.palette.mode === "dark"
-                  ? "rgba(100, 116, 139, 0.12)"
-                  : "rgba(100, 116, 139, 0.08)",
+                  ? "#161B20"
+                  : theme.palette.background.paper,
+              color: theme.palette.primary.main,
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
               boxShadow: "none",
-            },
-          })}
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={handleCapture}
-          disabled={
-            capturing ||
-            uploading ||
-            loading ||
-            !!error ||
-            !viewerRef.current ||
-            !tilesetReady
-          }
-          variant="contained"
-          startIcon={
-            uploading ? <CircularProgress size={16} /> : <CameraAltIcon />
-          }
-          sx={(theme) => ({
-            textTransform: "none",
-            fontSize: "0.813rem",
-            fontWeight: 600,
-            borderRadius: "4px",
-            backgroundColor: theme.palette.primary.main,
-            boxShadow: "none",
-            "&:hover": {
-              backgroundColor: theme.palette.primary.dark,
-              boxShadow: "none",
-            },
-            "&:disabled": {
-              backgroundColor: "rgba(100, 116, 139, 0.2)",
-              color: "rgba(100, 116, 139, 0.5)",
-            },
-          })}
-        >
-          {capturing
-            ? "Capturing..."
-            : uploading
-              ? "Uploading..."
-              : "Capture Screenshot"}
-        </Button>
-      </DialogActions>
+              "&:hover": {
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "#1a1f26"
+                    : alpha(theme.palette.primary.main, 0.05),
+                borderColor: alpha(theme.palette.primary.main, 0.5),
+                boxShadow: "none",
+              },
+              "&:disabled": {
+                opacity: 0.5,
+              },
+            })}
+          >
+            {capturing
+              ? "Capturing..."
+              : uploading
+                ? "Uploading..."
+                : "Capture Screenshot"}
+          </Button>
+        </Box>
+      </Box>
     </Dialog>
   );
 };
