@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const userId = session.user.id;
 
   try {
     const { searchParams } = new URL(request.url);
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify user is a member of the specified organization
-    const userOrgIds = await getUserOrganizationIds(session.user.id);
+    const userOrgIds = await getUserOrganizationIds(userId);
     if (!userOrgIds.includes(organizationId)) {
       return NextResponse.json(
         { error: "User is not a member of the specified organization" },
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause - filter by specific organization
     const whereClause: any = {
-      organizationId,
+      organizationId: organizationId,
     };
 
     // Filter by project if provided
