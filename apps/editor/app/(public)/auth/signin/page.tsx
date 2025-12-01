@@ -33,22 +33,15 @@ const SignInContainer = styled(Box)(({ theme }) => ({
 const SignInCard = styled(Box)(({ theme }) => ({
   width: "100%",
   maxWidth: 480,
-  backgroundColor:
-    theme.palette.mode === "dark"
-      ? alpha("#14171A", 0.95)
-      : "rgba(255, 255, 255, 0.95)",
-  backdropFilter: "blur(24px) saturate(140%)",
-  WebkitBackdropFilter: "blur(24px) saturate(140%)",
-  borderRadius: "8px",
-  border: "1px solid rgba(255, 255, 255, 0.08)",
-  boxShadow:
-    theme.palette.mode === "dark"
-      ? "0 0 30px rgba(0, 0, 0, 0.4)"
-      : "0 0 30px rgba(95, 136, 199, 0.12)",
+  backgroundColor: "#161B20",
+  borderRadius: `${theme.shape.borderRadius}px`,
+  border: "1px solid rgba(255, 255, 255, 0.05)",
+  boxShadow: "none",
   padding: theme.spacing(6, 5),
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
+  color: theme.palette.text.primary,
   [theme.breakpoints.down("sm")]: {
     padding: theme.spacing(4, 3),
   },
@@ -92,15 +85,18 @@ const EmailPasswordForm = styled(Box)<{ component?: React.ElementType }>(({ them
 }));
 
 const SubmitButton = styled(Button)(({ theme }) => ({
-  backgroundColor: theme.palette.primary.main,
-  color: "#ffffff",
-  fontSize: "0.9375rem",
-  fontWeight: 500,
-  padding: theme.spacing(1.5, 3),
-  borderRadius: "4px",
+  borderRadius: `${theme.shape.borderRadius}px`,
   textTransform: "none",
+  fontWeight: 500,
+  fontSize: "0.875rem",
+  backgroundColor: "#161B20",
+  color: theme.palette.primary.main,
+  border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+  padding: "6px 16px",
+  boxShadow: "none",
   "&:hover": {
-    backgroundColor: theme.palette.primary.dark,
+    backgroundColor: "#1a1f26",
+    borderColor: alpha(theme.palette.primary.main, 0.5),
   },
 }));
 
@@ -219,6 +215,38 @@ export default function SignInPage() {
           </Alert>
         )}
 
+        <GoogleButton
+          fullWidth
+          startIcon={<GoogleIcon />}
+          onClick={() => {
+            // Check for pending invitation
+            const inviteToken =
+              typeof window !== "undefined"
+                ? sessionStorage.getItem("inviteToken")
+                : null;
+            const callbackUrl = inviteToken
+              ? `/orgs/invites/accept?token=${inviteToken}`
+              : "/";
+            signIn("google", { callbackUrl });
+          }}
+        >
+          Continue with Google
+        </GoogleButton>
+
+        <Box sx={{ display: "flex", alignItems: "center", width: "100%", my: 3 }}>
+          <Divider sx={{ flex: 1 }} />
+          <Typography
+            variant="body2"
+            sx={{
+              px: 2,
+              color: (theme) => alpha(theme.palette.text.secondary, 0.7),
+            }}
+          >
+            OR
+          </Typography>
+          <Divider sx={{ flex: 1 }} />
+        </Box>
+
         <EmailPasswordForm onSubmit={handleEmailPasswordSignIn} component="form">
           <TextField
             label="Email"
@@ -256,38 +284,6 @@ export default function SignInPage() {
             {loading ? "Signing in..." : "Sign in with Email"}
           </SubmitButton>
         </EmailPasswordForm>
-
-        <Box sx={{ display: "flex", alignItems: "center", width: "100%", my: 3 }}>
-          <Divider sx={{ flex: 1 }} />
-          <Typography
-            variant="body2"
-            sx={{
-              px: 2,
-              color: (theme) => alpha(theme.palette.text.secondary, 0.7),
-            }}
-          >
-            OR
-          </Typography>
-          <Divider sx={{ flex: 1 }} />
-        </Box>
-
-        <GoogleButton
-          fullWidth
-          startIcon={<GoogleIcon />}
-          onClick={() => {
-            // Check for pending invitation
-            const inviteToken =
-              typeof window !== "undefined"
-                ? sessionStorage.getItem("inviteToken")
-                : null;
-            const callbackUrl = inviteToken
-              ? `/orgs/invites/accept?token=${inviteToken}`
-              : "/";
-            signIn("google", { callbackUrl });
-          }}
-        >
-          Continue with Google
-        </GoogleButton>
 
         <Box sx={{ mt: 3, textAlign: "center", width: "100%" }}>
           <Typography variant="body2" sx={{ color: (theme) => theme.palette.text.secondary }}>

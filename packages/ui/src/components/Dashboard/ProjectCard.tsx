@@ -9,7 +9,6 @@ import {
 import { alpha } from "@mui/material/styles";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import FolderIcon from "@mui/icons-material/Folder";
-import PersonIcon from "@mui/icons-material/Person";
 import { formatTimeAgo } from "../../utils/dateUtils";
 
 export interface ProjectCardProps {
@@ -170,29 +169,14 @@ export default function ProjectCard({
         >
           {project.description || "No description provided"}
         </Typography>
-        {/* Owner and Last Modified */}
+        {/* Last Modified */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1.5,
             mt: "auto",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <PersonIcon
-              sx={{ fontSize: 16, color: "rgba(255, 255, 255, 0.4)" }}
-            />
-            <Typography
-              variant="caption"
-              sx={{
-                fontSize: "0.75rem",
-                color: "rgba(255, 255, 255, 0.5)",
-              }}
-            >
-              Theo
-            </Typography>
-          </Box>
           <Typography
             variant="caption"
             sx={{

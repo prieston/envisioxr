@@ -5,11 +5,7 @@ import {
   getUserDefaultOrganization,
   getUserOrganizations,
   getUserPendingInvitations,
-  // Keep createPersonalOrganization import for future reference
-  // createPersonalOrganization,
 } from "@/lib/organizations";
-import { prisma } from "@/lib/prisma";
-import NoOrganizationAccess from "@/app/components/NoOrganizationAccess";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
@@ -34,25 +30,19 @@ export default async function HomePage() {
     hasPendingInvites = pendingInvites.length > 0;
   }
 
-  // If user only has personal orgs AND no pending invites, show blocking screen
-  if (hasOnlyPersonalOrgs && !hasPendingInvites) {
-      const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-      select: { name: true },
-    });
-
-    const firstName = user?.name?.split(" ")[0] || null;
-    return <NoOrganizationAccess firstName={firstName} />;
+  // If user has zero organizations OR only personal orgs AND no pending invites, redirect to blocking page
+  if ((organizations.length === 0 || hasOnlyPersonalOrgs) && !hasPendingInvites) {
+    redirect("/account-not-linked");
   }
 
   // Otherwise, get default organization (non-personal) and redirect
   const organization = await getUserDefaultOrganization(session.user.id);
 
-  // If no organization found, redirect to signin
+  // If no organization found, this should not happen if we handled zero orgs above
+  // But as a safety check, redirect to blocking page instead of redirecting to signin
   if (!organization) {
-    redirect("/auth/signin");
+    redirect("/account-not-linked");
   }
 
   redirect(`/org/${organization.id}/dashboard`);
-  return null;
 }

@@ -247,11 +247,6 @@ export default function BuilderPage() {
   const [isSaving, setIsSaving] = useState(false);
   const setActiveWorld = useWorldStore((s) => s.setActiveWorld);
 
-  // Set page title
-  useEffect(() => {
-    document.title = "Klorad | Studio";
-  }, []);
-
   // Get scene data and actions from store
   const setObjects = useSceneStore((state) => state.setObjects);
   const setObservationPoints = useSceneStore(

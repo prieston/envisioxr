@@ -15,7 +15,7 @@ export const metadata = {
   icons: { icon: "/klorad-favicon.png" },
 };
 
-export default async function ProtectedLayout({
+export default async function AuthOnlyLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -74,3 +74,4 @@ export default async function ProtectedLayout({
     </html>
   );
 }
+
