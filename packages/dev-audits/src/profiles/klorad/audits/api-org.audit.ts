@@ -11,6 +11,7 @@ const EXCLUDED_ENDPOINTS = [
   "auth/",
   "admin/",
   "user/route.ts",
+  "user/pending-invites/route.ts", // User-scoped endpoint - returns invites for current user
   "organizations/list/route.ts",
   "support/route.ts", // Support email endpoint - doesn't need org scoping
   "plans/route.ts", // Public plans listing - doesn't need org scoping
@@ -189,7 +190,8 @@ export const apiOrgAudit: AuditDefinition = {
           const isResourceEndpoint =
             /\[.*Id\]/.test(relativePath) ||
             (/assetId|projectId/.test(functionBody) &&
-              /findUnique.*where.*id/.test(functionBody));
+              (/findUnique[\s\S]*?where[\s\S]*?id/.test(functionBody) ||
+               /findUnique.*where.*\{[\s\S]*?id/.test(functionBody)));
 
           const checksResourceOrg =
             isResourceEndpoint &&
@@ -207,7 +209,7 @@ export const apiOrgAudit: AuditDefinition = {
           // Otherwise, require explicit orgId check and filtering
           if (!hasOrgIdCheck && !isResourceEndpoint) {
             items.push({
-              message: `Endpoint ${methodType} missing organizationId requirement`,
+              message: `Endpoint ${methodType} missing organizationId requirement (${relativePath})`,
               file,
               line: methodStartLine,
               severity: "error",
@@ -217,7 +219,7 @@ export const apiOrgAudit: AuditDefinition = {
 
           if (!hasMembershipCheck && !isResourceEndpoint) {
             items.push({
-              message: `Endpoint ${methodType} missing organization membership verification`,
+              message: `Endpoint ${methodType} missing organization membership verification (${relativePath})`,
               file,
               line: methodStartLine,
               severity: "error",
@@ -227,7 +229,7 @@ export const apiOrgAudit: AuditDefinition = {
 
           if (!hasOrgFilter && !isResourceEndpoint && !checksResourceOrg) {
             items.push({
-              message: `Endpoint ${methodType} missing organization filtering in query`,
+              message: `Endpoint ${methodType} missing organization filtering in query (${relativePath})`,
               file,
               line: methodStartLine,
               severity: "error",
