@@ -46,10 +46,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Convert BigInt fileSize to number for JSON serialization
+    // Convert BigInt fileSize and thumbnailSize to number for JSON serialization
     const serializedAsset = {
       ...asset,
       fileSize: asset.fileSize ? Number(asset.fileSize) : null,
+      thumbnailSize: asset.thumbnailSize ? Number(asset.thumbnailSize) : null,
     };
     return NextResponse.json({ asset: serializedAsset });
   } catch (error) {
