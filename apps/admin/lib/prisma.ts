@@ -1,32 +1,36 @@
 import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+  prisma?: PrismaClient;
 };
 
-// Configure connection pool for serverless environments
-// In production (Vercel/serverless), limit connections to prevent exhaustion
+// TEMPORARY SETUP: Direct connection to Digital Ocean database
+// TODO: Migrate to Prisma Accelerate for proper connection pooling
+// When Accelerate is set up:
+// 1. Remove getDatabaseUrl() function entirely
+// 2. Remove datasources override from PrismaClient config
+// 3. Use clean singleton pattern (see plan Setup A)
 const getDatabaseUrl = () => {
   const url = process.env.DATABASE_URL;
   if (!url) return url;
 
-  // If URL already has connection_limit, use it
   if (url.includes("connection_limit")) {
     return url;
   }
 
-  // Add connection pool parameters for serverless
-  // connection_limit: max connections per Prisma Client instance
-  // pool_timeout: how long to wait for a connection
-  // connect_timeout: how long to wait when connecting to the database
   const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}connection_limit=5&pool_timeout=10&connect_timeout=10`;
+  // Be conservative – 1 connection per PrismaClient
+  // TEMPORARY: Until Accelerate is implemented
+  return `${url}${separator}connection_limit=1&pool_timeout=10&connect_timeout=10`;
 };
 
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    log:
+      process.env.NODE_ENV === "development"
+        ? ["query", "error", "warn"]
+        : ["error"],
     datasources: {
       db: {
         url: getDatabaseUrl(),
@@ -34,16 +38,8 @@ export const prisma =
     },
   });
 
-// Always set the singleton to reuse connections in serverless environments
-// This prevents connection pool exhaustion in production
-if (!globalForPrisma.prisma) {
+if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
 
-// In production, ensure we disconnect on process termination
-if (process.env.NODE_ENV === "production") {
-  process.on("beforeExit", async () => {
-    await prisma.$disconnect();
-  });
-}
-
+// No $disconnect() in serverless

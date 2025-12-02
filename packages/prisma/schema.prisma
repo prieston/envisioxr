@@ -3,8 +3,9 @@
 // Learn more: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // Accelerate endpoint (when using Accelerate) or direct DB URL
+  directUrl = env("DIRECT_URL")     // Direct DO Postgres URL for migrations (optional, used with Accelerate)
 }
 
 generator client {
