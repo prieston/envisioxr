@@ -91,8 +91,9 @@ export async function GET() {
     // Previous implementation fetched every asset row just to sum fileSize in JavaScript.
     // This was causing massive data transfer and connection hold times with large datasets.
     // Using SQL SUM() aggregates at the database level - much more efficient.
+    // Note: Column name is "fileSize" (camelCase) as defined in migration
     const storageResult = await prisma.$queryRaw<[{ sum: bigint | null }]>`
-      SELECT COALESCE(SUM(file_size), 0) as sum FROM "Asset"
+      SELECT COALESCE(SUM("fileSize"), 0) as sum FROM "Asset"
     `;
     const totalStorageBytes = Number(storageResult[0].sum || BigInt(0));
     const totalStorageGB = totalStorageBytes / (1024 * 1024 * 1024);
