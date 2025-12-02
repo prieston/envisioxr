@@ -379,7 +379,7 @@ const SettingsMembersPage = () => {
                 </Typography>
                 <Typography variant="body2" sx={{ mb: 2 }}>
                   Personal organizations are for individual use only. To
-                  collaborate with team members, get a quote.
+                  collaborate with team members, book a demo.
                 </Typography>
                 <Button
                   variant="contained"
@@ -408,7 +408,7 @@ const SettingsMembersPage = () => {
                     },
                   })}
                 >
-                  Get a Quote
+                  Book a demo
                 </Button>
               </Alert>
             </PageCard>
