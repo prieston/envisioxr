@@ -21,6 +21,15 @@ interface ProjectParams {
   };
 }
 
+// Helper function to serialize assets with BigInt fields
+function serializeAssets(assets: Array<{ fileSize?: bigint | null; thumbnailSize?: bigint | null; [key: string]: unknown }>) {
+  return assets.map((asset) => ({
+    ...asset,
+    fileSize: asset.fileSize ? Number(asset.fileSize) : null,
+    thumbnailSize: asset.thumbnailSize ? Number(asset.thumbnailSize) : null,
+  }));
+}
+
 export async function GET(request: NextRequest, { params }: ProjectParams) {
   const { projectId } = params;
 
@@ -93,10 +102,11 @@ export async function GET(request: NextRequest, { params }: ProjectParams) {
     });
 
     if (canView) {
-      // Convert BigInt thumbnailSize to number for JSON serialization
+      // Convert BigInt thumbnailSize and assets BigInt fields to number for JSON serialization
       const serializedProject = {
         ...project,
         thumbnailSize: project.thumbnailSize ? Number(project.thumbnailSize) : null,
+        assets: serializeAssets(project.assets),
       };
       return NextResponse.json({ project: serializedProject });
     }
@@ -113,7 +123,13 @@ export async function GET(request: NextRequest, { params }: ProjectParams) {
       if (!isMember) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
-      return NextResponse.json({ project });
+      // Convert BigInt thumbnailSize and assets BigInt fields to number for JSON serialization
+      const serializedProject = {
+        ...project,
+        thumbnailSize: project.thumbnailSize ? Number(project.thumbnailSize) : null,
+        assets: serializeAssets(project.assets),
+      };
+      return NextResponse.json({ project: serializedProject });
     }
 
     // Project is published but user doesn't have access (private project, not authenticated or not a member)

@@ -82,10 +82,11 @@ export async function PUT(
       },
     });
 
-    // Convert BigInt fileSize to number for JSON serialization
+    // Convert BigInt fileSize and thumbnailSize to number for JSON serialization
     const serializedAsset = {
       ...updatedAsset,
       fileSize: updatedAsset.fileSize ? Number(updatedAsset.fileSize) : null,
+      thumbnailSize: updatedAsset.thumbnailSize ? Number(updatedAsset.thumbnailSize) : null,
     };
 
     return NextResponse.json({

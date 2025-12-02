@@ -90,10 +90,11 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    // Convert BigInt fileSize to number for JSON serialization
+    // Convert BigInt fileSize and thumbnailSize to number for JSON serialization
     const serializedAssets = assets.map((asset) => ({
       ...asset,
       fileSize: asset.fileSize ? Number(asset.fileSize) : null,
+      thumbnailSize: asset.thumbnailSize ? Number(asset.thumbnailSize) : null,
     }));
 
     return NextResponse.json({ stockModels, assets: serializedAssets });
@@ -283,10 +284,11 @@ export async function POST(request: NextRequest) {
         metadata: { assetName: name, assetType: "cesiumIonAsset" },
       });
 
-      // Convert BigInt fileSize to number for JSON serialization
+      // Convert BigInt fileSize and thumbnailSize to number for JSON serialization
       const serializedAsset = {
         ...asset,
         fileSize: asset.fileSize ? Number(asset.fileSize) : null,
+        thumbnailSize: asset.thumbnailSize ? Number(asset.thumbnailSize) : null,
       };
       return NextResponse.json({ asset: serializedAsset });
     }
@@ -359,10 +361,11 @@ export async function POST(request: NextRequest) {
       metadata: { assetName: name || originalFilename, assetType: "model" },
     });
 
-    // Convert BigInt fileSize to number for JSON serialization
+    // Convert BigInt fileSize and thumbnailSize to number for JSON serialization
     const serializedAsset = {
       ...asset,
       fileSize: asset.fileSize ? Number(asset.fileSize) : null,
+      thumbnailSize: asset.thumbnailSize ? Number(asset.thumbnailSize) : null,
     };
     return NextResponse.json({ asset: serializedAsset });
   } catch (error) {
