@@ -41,7 +41,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Get user ID from database
+  // [ADMIN_PRISMA] Get user ID from database (must happen first for userId)
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
     select: { id: true },
@@ -77,9 +77,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 
-    const organization = await prisma.organization.findUnique({
-      where: { id: orgId },
-    });
+    // [ADMIN_PRISMA] Parallelize independent queries: organization lookup and existing user check
+    // These queries don't depend on each other, so they can run concurrently
+    const [organization, existingUser, inviter] = await Promise.all([
+      prisma.organization.findUnique({
+        where: { id: orgId },
+      }),
+      prisma.user.findUnique({
+        where: { email },
+        include: {
+          organizationMembers: {
+            where: { organizationId: orgId },
+          },
+        },
+      }),
+      // Get inviter info - can run in parallel since we already have userId
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true, email: true },
+      }),
+    ]);
 
     if (!organization) {
       return NextResponse.json(
@@ -96,28 +113,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Check if user with this email already exists and is a member
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-      include: {
-        organizationMembers: {
-          where: { organizationId: orgId },
-        },
-      },
-    });
-
     if (existingUser && existingUser.organizationMembers.length > 0) {
       return NextResponse.json(
         { error: "User is already a member of this organization" },
         { status: 400 }
       );
     }
-
-    // Get inviter info
-    const inviter = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { name: true, email: true },
-    });
 
     if (!inviter) {
       return NextResponse.json({ error: "Inviter not found" }, { status: 404 });

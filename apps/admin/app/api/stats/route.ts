@@ -16,7 +16,7 @@ export async function GET() {
   }
 
   try {
-    // Get all counts
+    // [ADMIN_PRISMA] Get all counts in parallel for efficiency
     const [
       totalUsers,
       totalOrganizations,
@@ -31,21 +31,23 @@ export async function GET() {
       prisma.activity.count(),
     ]);
 
-    // Get organization statistics
-    const personalOrgs = await prisma.organization.count({
-      where: { isPersonal: true },
-    });
+    // [ADMIN_PRISMA] Parallelize organization statistics queries
+    // These are independent and can run concurrently
+    const [personalOrgs, teamOrgs, orgsByPlan] = await Promise.all([
+      prisma.organization.count({
+        where: { isPersonal: true },
+      }),
+      prisma.organization.count({
+        where: { isPersonal: false },
+      }),
+      prisma.organization.groupBy({
+        by: ["planCode"],
+        _count: { planCode: true },
+      }),
+    ]);
 
-    const teamOrgs = await prisma.organization.count({
-      where: { isPersonal: false },
-    });
-
-    const orgsByPlan = await prisma.organization.groupBy({
-      by: ["planCode"],
-      _count: { planCode: true },
-    });
-
-    // Get all organizations with details
+    // [ADMIN_PRISMA] Get all organizations with details
+    // Using _count to avoid N+1 queries - counts are computed in a single query
     const allOrganizations = await prisma.organization.findMany({
       select: {
         id: true,
@@ -66,8 +68,9 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    // Get all users with details
+    // [ADMIN_PRISMA] Get all users with details
     // Note: User model doesn't have createdAt field, so we order by id instead
+    // Using _count to avoid N+1 queries
     const allUsers = await prisma.user.findMany({
       select: {
         id: true,
@@ -84,24 +87,14 @@ export async function GET() {
       orderBy: { id: "desc" },
     });
 
-    // Calculate total storage
-    const allAssets = await prisma.asset.findMany({
-      select: {
-        fileSize: true,
-      },
-    });
-
-    let totalStorageBytes = 0;
-    allAssets.forEach((asset) => {
-      if (asset.fileSize) {
-        const size =
-          typeof asset.fileSize === "bigint"
-            ? Number(asset.fileSize)
-            : asset.fileSize;
-        totalStorageBytes += size;
-      }
-    });
-
+    // [ADMIN_PRISMA] CRITICAL FIX: Use SQL aggregation instead of fetching all assets
+    // Previous implementation fetched every asset row just to sum fileSize in JavaScript.
+    // This was causing massive data transfer and connection hold times with large datasets.
+    // Using SQL SUM() aggregates at the database level - much more efficient.
+    const storageResult = await prisma.$queryRaw<[{ sum: bigint | null }]>`
+      SELECT COALESCE(SUM(file_size), 0) as sum FROM "Asset"
+    `;
+    const totalStorageBytes = Number(storageResult[0].sum || BigInt(0));
     const totalStorageGB = totalStorageBytes / (1024 * 1024 * 1024);
 
     return NextResponse.json({
@@ -156,4 +149,3 @@ export async function GET() {
     );
   }
 }
-

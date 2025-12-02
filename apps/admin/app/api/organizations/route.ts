@@ -19,6 +19,7 @@ export async function GET() {
   }
 
   try {
+    // [ADMIN_PRISMA] Using _count to avoid N+1 queries - counts computed in single query
     const organizations = await prisma.organization.findMany({
       include: {
         _count: {
