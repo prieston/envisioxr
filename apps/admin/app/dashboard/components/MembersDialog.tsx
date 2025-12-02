@@ -103,11 +103,10 @@ export default function MembersDialog({
   );
 
   // Fetch all users for the "Add Member" dropdown
-  const { data: statsData } = useSWR<{
-    users: {
-      all: Array<{ id: string; name: string | null; email: string | null }>;
-    };
-  }>(open && addMemberOpen ? "/api/stats" : null, fetcher);
+  // Using lightweight /api/users endpoint instead of /api/stats to avoid expensive queries
+  const { data: usersData } = useSWR<{
+    users: Array<{ id: string; name: string | null; email: string | null }>;
+  }>(open && addMemberOpen ? "/api/users" : null, fetcher);
 
 
   const handleAddMember = useCallback(async () => {
@@ -695,8 +694,8 @@ export default function MembersDialog({
                     onChange={(e) => setSelectedUserId(e.target.value)}
                     sx={textFieldStyles}
                   >
-                    {statsData?.users?.all
-                      .filter(
+                    {usersData?.users
+                      ?.filter(
                         (user) =>
                           !data?.members.some((m) => m.userId === user.id)
                       )

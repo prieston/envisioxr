@@ -25,6 +25,8 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   const { orgId } = await params;
 
   try {
+    // [ADMIN_PRISMA] Single query with includes to avoid N+1 patterns
+    // All related data (members, invites) fetched in one query with proper joins
     const organization = await prisma.organization.findUnique({
       where: { id: orgId },
       include: {
@@ -130,9 +132,25 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 
-    const organization = await prisma.organization.findUnique({
-      where: { id: orgId },
-    });
+    // [ADMIN_PRISMA] Parallelize independent validation queries
+    // Organization, user, and existing member checks can all run concurrently
+    // since they don't depend on each other's results
+    const [organization, user, existingMember] = await Promise.all([
+      prisma.organization.findUnique({
+        where: { id: orgId },
+      }),
+      prisma.user.findUnique({
+        where: { id: userId },
+      }),
+      prisma.organizationMember.findUnique({
+        where: {
+          organizationId_userId: {
+            organizationId: orgId,
+            userId,
+          },
+        },
+      }),
+    ]);
 
     if (!organization) {
       return NextResponse.json(
@@ -149,24 +167,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Check if user exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    // Check if already a member
-    const existingMember = await prisma.organizationMember.findUnique({
-      where: {
-        organizationId_userId: {
-          organizationId: orgId,
-          userId,
-        },
-      },
-    });
 
     if (existingMember) {
       // Update role if different
