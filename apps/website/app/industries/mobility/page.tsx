@@ -51,19 +51,19 @@ export default function MobilityPage() {
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Traffic Congestion</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Managing traffic flow across complex networks requires real-time visibility into how vehicles, signals, and infrastructure interact. Without unified data, operators can't anticipate bottlenecks or coordinate responses effectively.
+                Managing traffic flow across complex networks requires real-time visibility into how vehicles, signals, and infrastructure interact. Without unified data, operators can&apos;t anticipate bottlenecks or coordinate responses effectively.
               </p>
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Maintenance Coordination</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Scheduling maintenance windows while minimizing disruption requires understanding how work affects traffic patterns, emergency routes, and adjacent infrastructure. Current tools don't show these relationships clearly.
+                Scheduling maintenance windows while minimizing disruption requires understanding how work affects traffic patterns, emergency routes, and adjacent infrastructure. Current tools don&apos;t show these relationships clearly.
               </p>
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Signal Optimization</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Optimizing signal timing across corridors requires seeing how changes propagate through the network. Operators need to test scenarios before deployment, but existing systems don't provide this capability.
+                Optimizing signal timing across corridors requires seeing how changes propagate through the network. Operators need to test scenarios before deployment, but existing systems don&apos;t provide this capability.
               </p>
             </div>
             <div className="space-y-4">

@@ -51,13 +51,13 @@ export default function AgriculturePage() {
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Crop Monitoring at Scale</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Monitoring crop health and growth across large fields requires integrating drone imagery, satellite data, and ground observations. Without unified visibility, farmers can't identify issues early or optimize interventions.
+                Monitoring crop health and growth across large fields requires integrating drone imagery, satellite data, and ground observations. Without unified visibility, farmers can&apos;t identify issues early or optimize interventions.
               </p>
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Land Use Planning</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Planning crop rotations, field boundaries, and infrastructure placement requires understanding soil conditions, topography, and historical yields. Current tools don't integrate these data sources effectively.
+                Planning crop rotations, field boundaries, and infrastructure placement requires understanding soil conditions, topography, and historical yields. Current tools don&apos;t integrate these data sources effectively.
               </p>
             </div>
             <div className="space-y-4">
@@ -69,7 +69,7 @@ export default function AgriculturePage() {
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Compliance Tracking</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Tracking compliance with regulations, certifications, and best practices requires maintaining detailed records linked to specific field locations. Current systems don't provide this spatial context effectively.
+                Tracking compliance with regulations, certifications, and best practices requires maintaining detailed records linked to specific field locations. Current systems don&apos;t provide this spatial context effectively.
               </p>
             </div>
           </div>

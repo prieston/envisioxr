@@ -51,25 +51,25 @@ export default function CulturalHeritagePage() {
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Preservation vs. Access Balance</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Managing visitor access while protecting fragile structures requires understanding how foot traffic, humidity, and temperature interact. Without integrated monitoring, custodians can't make informed decisions about capacity limits or access restrictions.
+                Managing visitor access while protecting fragile structures requires understanding how foot traffic, humidity, and temperature interact. Without integrated monitoring, custodians can&apos;t make informed decisions about capacity limits or access restrictions.
               </p>
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Climate Impact Monitoring</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Tracking how environmental conditions affect preservation requires correlating sensor data with site conditions over time. Current systems don't show these relationships clearly, making it difficult to identify trends or plan interventions.
+                Tracking how environmental conditions affect preservation requires correlating sensor data with site conditions over time. Current systems don&apos;t show these relationships clearly, making it difficult to identify trends or plan interventions.
               </p>
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Visitor Management</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Optimizing visitor flow to prevent overcrowding while maximizing access requires real-time awareness of occupancy patterns. Without unified visibility, custodians can't coordinate entry, routing, or capacity management effectively.
+                Optimizing visitor flow to prevent overcrowding while maximizing access requires real-time awareness of occupancy patterns. Without unified visibility, custodians can&apos;t coordinate entry, routing, or capacity management effectively.
               </p>
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Documentation & Interpretation</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Creating accurate documentation and evidence-based interpretation requires maintaining precise 3D models and linking them to historical records, conservation reports, and research findings. Current tools don't integrate these data sources effectively.
+                Creating accurate documentation and evidence-based interpretation requires maintaining precise 3D models and linking them to historical records, conservation reports, and research findings. Current tools don&apos;t integrate these data sources effectively.
               </p>
             </div>
           </div>
@@ -153,10 +153,10 @@ export default function CulturalHeritagePage() {
             Research & Development
           </h2>
           <p className="max-w-[640px] text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-            Klorad is developed by Prieston Technologies, which has extensive experience in geospatial XR and digital heritage work. Projects like MERGIN' MODE and FIREFLY demonstrate our capability in creating immersive heritage experiences and high-end visualization systems.
+            Klorad is developed by Prieston Technologies, which has extensive experience in geospatial XR and digital heritage work. Projects like MERGIN&apos; MODE and FIREFLY demonstrate our capability in creating immersive heritage experiences and high-end visualization systems.
           </p>
           <p className="max-w-[640px] text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-            These research collaborations are part of Prieston Technologies' ecosystem of geospatial and XR work, showcasing our expertise in combining precise 3D modeling with interactive interpretation.
+            These research collaborations are part of Prieston Technologies&apos; ecosystem of geospatial and XR work, showcasing our expertise in combining precise 3D modeling with interactive interpretation.
           </p>
         </div>
       </section>

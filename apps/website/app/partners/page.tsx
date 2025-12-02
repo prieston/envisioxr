@@ -81,13 +81,13 @@ export default function PartnersPage() {
               Klorad is developed by Prieston Technologies, which maintains research collaborations and projects that demonstrate expertise across geospatial visualization, XR, and infrastructure operations.
             </p>
             <p className="max-w-[640px] text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-              Projects like MERGIN' MODE (cultural heritage XR), FIREFLY (inclusive XR visualization), and collaborations with institutions like IMET (mobility and transport research) are part of Prieston Technologies' ecosystem of geospatial and XR work.
+              Projects like MERGIN&apos; MODE (cultural heritage XR), FIREFLY (inclusive XR visualization), and collaborations with institutions like IMET (mobility and transport research) are part of Prieston Technologies&apos; ecosystem of geospatial and XR work.
             </p>
             <p className="max-w-[640px] text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-              These research collaborations showcase capabilities in high-end visualization, immersive experiences, and geospatial computation that inform Klorad's development. They demonstrate our commitment to advancing the state of the art in geospatial platforms and XR applications.
+              These research collaborations showcase capabilities in high-end visualization, immersive experiences, and geospatial computation that inform Klorad&apos;s development. They demonstrate our commitment to advancing the state of the art in geospatial platforms and XR applications.
             </p>
             <p className="max-w-[640px] text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-tertiary">
-              Note: MERGIN' MODE, FIREFLY, and IMET are research projects and collaborations by Prieston Technologies, not Klorad products or modules. They serve as credibility markers demonstrating our expertise in geospatial XR, heritage visualization, and mobility research.
+              Note: MERGIN&apos; MODE, FIREFLY, and IMET are research projects and collaborations by Prieston Technologies, not Klorad products or modules. They serve as credibility markers demonstrating our expertise in geospatial XR, heritage visualization, and mobility research.
             </p>
           </div>
         </div>

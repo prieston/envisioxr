@@ -57,19 +57,19 @@ export default function UrbanInfrastructurePage() {
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">As-Built Documentation</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Maintaining accurate records of what was actually built requires linking construction data, inspections, and design changes. Current systems don't integrate these sources effectively, making it difficult to track deviations and ensure compliance.
+                Maintaining accurate records of what was actually built requires linking construction data, inspections, and design changes. Current systems don&apos;t integrate these sources effectively, making it difficult to track deviations and ensure compliance.
               </p>
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Maintenance Planning</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Planning maintenance and upgrades requires understanding asset condition, usage patterns, and interdependencies. Without integrated data, operators can't optimize schedules or coordinate work effectively.
+                Planning maintenance and upgrades requires understanding asset condition, usage patterns, and interdependencies. Without integrated data, operators can&apos;t optimize schedules or coordinate work effectively.
               </p>
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-light text-text-primary">Compliance & Inspections</h3>
               <p className="text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-                Tracking compliance with regulations, codes, and standards requires maintaining detailed records linked to specific assets and locations. Current tools don't provide this spatial context effectively.
+                Tracking compliance with regulations, codes, and standards requires maintaining detailed records linked to specific assets and locations. Current tools don&apos;t provide this spatial context effectively.
               </p>
             </div>
           </div>
