@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
 const industries = [
@@ -12,11 +13,10 @@ const industries = [
 ] as const;
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const [industriesOpen, setIndustriesOpen] = useState(false);
-  const [resourcesOpen, setResourcesOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const industriesRef = useRef<HTMLDivElement>(null);
-  const resourcesRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLHeaderElement>(null);
 
   // Close dropdowns and mobile menu when clicking outside
@@ -35,13 +35,6 @@ export function SiteHeader() {
         setIndustriesOpen(false);
       }
       if (
-        resourcesOpen &&
-        resourcesRef.current &&
-        !resourcesRef.current.contains(target)
-      ) {
-        setResourcesOpen(false);
-      }
-      if (
         mobileMenuOpen &&
         headerRef.current &&
         !headerRef.current.contains(target)
@@ -50,13 +43,13 @@ export function SiteHeader() {
       }
     }
 
-    if (industriesOpen || resourcesOpen || mobileMenuOpen) {
+    if (industriesOpen || mobileMenuOpen) {
       document.addEventListener("click", handleClickOutside);
       return () => {
         document.removeEventListener("click", handleClickOutside);
       };
     }
-  }, [industriesOpen, resourcesOpen, mobileMenuOpen]);
+  }, [industriesOpen, mobileMenuOpen]);
 
   return (
     <header ref={headerRef} className="sticky top-0 z-50 border-b border-line-soft bg-base-bg-alt/90 backdrop-blur-lg backdrop-saturate-150">
@@ -103,7 +96,9 @@ export function SiteHeader() {
         <nav className="hidden md:flex items-center gap-6 text-sm text-text-secondary">
           <Link
             href="/platform"
-            className="text-text-secondary transition-colors duration-500 hover:text-text-primary"
+            className={`transition-colors duration-500 hover:text-text-primary ${
+              pathname === "/platform" ? "text-text-primary" : "text-text-secondary"
+            }`}
           >
             Platform
           </Link>
@@ -112,9 +107,10 @@ export function SiteHeader() {
               onClick={(e) => {
                 e.stopPropagation();
                 setIndustriesOpen(!industriesOpen);
-                setResourcesOpen(false);
               }}
-              className="flex items-center gap-1 text-text-secondary transition-colors duration-500 hover:text-text-primary"
+              className={`flex items-center gap-1 transition-colors duration-500 hover:text-text-primary ${
+                pathname?.startsWith("/industries") ? "text-text-primary" : "text-text-secondary"
+              }`}
             >
               Industries
               <span
@@ -149,50 +145,25 @@ export function SiteHeader() {
           </div>
           <Link
             href="/partners"
-            className="text-text-secondary transition-colors duration-500 hover:text-text-primary"
+            className={`transition-colors duration-500 hover:text-text-primary ${
+              pathname === "/partners" ? "text-text-primary" : "text-text-secondary"
+            }`}
           >
             Partners
           </Link>
-          <div ref={resourcesRef} className="relative">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setResourcesOpen(!resourcesOpen);
-                setIndustriesOpen(false);
-              }}
-              className="flex items-center gap-1 text-text-secondary transition-colors duration-500 hover:text-text-primary"
-            >
-              Resources
-              <span
-                className={`inline-block transition-transform duration-200 ${
-                  resourcesOpen ? "rotate-180" : ""
-                }`}
-              >
-                ↓
-              </span>
-            </button>
-            {resourcesOpen && (
-              <div className="absolute left-0 top-full w-48 pt-2 z-[100]">
-                <div className="rounded border border-line-soft bg-base-bg-alt p-4 shadow-lg">
-                  <div className="flex flex-col gap-1">
-                    <Link
-                      href="/journal"
-                      onClick={() => {
-                        // Close dropdown after a small delay to allow navigation
-                        setTimeout(() => setResourcesOpen(false), 100);
-                      }}
-                      className="rounded px-3 py-2 text-sm text-text-secondary transition-all duration-200 hover:bg-line-soft hover:text-text-primary"
-                    >
-                      Journal
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <Link
+            href="/samples"
+            className={`transition-colors duration-500 hover:text-text-primary ${
+              pathname === "/samples" ? "text-text-primary" : "text-text-secondary"
+            }`}
+          >
+            Showcase
+          </Link>
           <Link
             href="/contact"
-            className="text-text-secondary transition-colors duration-500 hover:text-text-primary"
+            className={`transition-colors duration-500 hover:text-text-primary ${
+              pathname === "/contact" ? "text-text-primary" : "text-text-secondary"
+            }`}
           >
             Contact
           </Link>
@@ -216,7 +187,9 @@ export function SiteHeader() {
               <Link
                 href="/platform"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block rounded px-3 py-2 text-sm text-text-secondary transition-all duration-300 hover:bg-line-soft hover:text-text-primary ${
+                className={`block rounded px-3 py-2 text-sm transition-all duration-300 hover:bg-line-soft hover:text-text-primary ${
+                  pathname === "/platform" ? "text-text-primary" : "text-text-secondary"
+                } ${
                   mobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
                 }`}
                 style={{ transitionDelay: mobileMenuOpen ? "0.1s" : "0s" }}
@@ -230,9 +203,10 @@ export function SiteHeader() {
                 <button
                   onClick={() => {
                     setIndustriesOpen(!industriesOpen);
-                    setResourcesOpen(false);
                   }}
-                  className="flex w-full items-center justify-between rounded px-3 py-2 text-sm text-text-secondary transition-all duration-200 hover:bg-line-soft hover:text-text-primary"
+                  className={`flex w-full items-center justify-between rounded px-3 py-2 text-sm transition-all duration-200 hover:bg-line-soft hover:text-text-primary ${
+                    pathname?.startsWith("/industries") ? "text-text-primary" : "text-text-secondary"
+                  }`}
                 >
                   Industries
                   <span
@@ -265,7 +239,9 @@ export function SiteHeader() {
               <Link
                 href="/partners"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block rounded px-3 py-2 text-sm text-text-secondary transition-all duration-300 hover:bg-line-soft hover:text-text-primary ${
+                className={`block rounded px-3 py-2 text-sm transition-all duration-300 hover:bg-line-soft hover:text-text-primary ${
+                  pathname === "/partners" ? "text-text-primary" : "text-text-secondary"
+                } ${
                   mobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
                 }`}
                 style={{ transitionDelay: mobileMenuOpen ? "0.2s" : "0s" }}
@@ -273,45 +249,25 @@ export function SiteHeader() {
                 Partners
               </Link>
 
-              <div className={`space-y-2 transition-all duration-300 ${
-                mobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
-              }`} style={{ transitionDelay: mobileMenuOpen ? "0.25s" : "0s" }}>
-                <button
-                  onClick={() => {
-                    setResourcesOpen(!resourcesOpen);
-                    setIndustriesOpen(false);
-                  }}
-                  className="flex w-full items-center justify-between rounded px-3 py-2 text-sm text-text-secondary transition-all duration-200 hover:bg-line-soft hover:text-text-primary"
-                >
-                  Resources
-                  <span
-                    className={`inline-block transition-transform duration-200 ${
-                      resourcesOpen ? "rotate-180" : ""
-                    }`}
-                  >
-                    ↓
-                  </span>
-                </button>
-                {resourcesOpen && (
-                  <div className="pl-4 space-y-2 border-l border-line-soft">
-                    <Link
-                      href="/journal"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setResourcesOpen(false);
-                      }}
-                      className="block rounded px-3 py-2 text-sm text-text-secondary transition-all duration-200 hover:bg-line-soft hover:text-text-primary"
-                    >
-                      Journal
-                    </Link>
-                  </div>
-                )}
-              </div>
+              <Link
+                href="/samples"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block rounded px-3 py-2 text-sm transition-all duration-300 hover:bg-line-soft hover:text-text-primary ${
+                  pathname === "/samples" ? "text-text-primary" : "text-text-secondary"
+                } ${
+                  mobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
+                }`}
+                style={{ transitionDelay: mobileMenuOpen ? "0.25s" : "0s" }}
+              >
+                Showcase
+              </Link>
 
               <Link
                 href="/contact"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block rounded px-3 py-2 text-sm text-text-secondary transition-all duration-300 hover:bg-line-soft hover:text-text-primary ${
+                className={`block rounded px-3 py-2 text-sm transition-all duration-300 hover:bg-line-soft hover:text-text-primary ${
+                  pathname === "/contact" ? "text-text-primary" : "text-text-secondary"
+                } ${
                   mobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
                 }`}
                 style={{ transitionDelay: mobileMenuOpen ? "0.3s" : "0s" }}

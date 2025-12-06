@@ -17,7 +17,7 @@ export const journalPosts: JournalPost[] = [
 
 A spatial environment is not enough on its own. The question is not only how a site looks, but how its signaling logic, constraints, and dependencies move when conditions shift. Without an explicit representation of these relationships, decision-making defaults to approximation and institutional memory.
 
-Klorad structures environments as situational lattices: connected networks of assets, signals, and operational states. Instead of presenting a static model, the platform reveals how constraints propagate across a system, and what becomes possible — or impossible — when a change is introduced.
+Klorad structures environments as situational lattices: connected networks of assets, signals, and operational states. Instead of presenting a static model, the platform reveals how constraints propagate across a system, and what becomes possible - or impossible - when a change is introduced.
 
 This approach allows operators to reason about interventions before they occur. It becomes clear which actions are reversible, which are load-bearing, and which require coordination across agencies or field teams. The environment itself provides guidance, rather than interpretation being delegated to individual judgment.
 
@@ -44,4 +44,3 @@ Clarity in operational environments does not come from more data, but from under
 export function getJournalPost(slug: string) {
   return journalPosts.find((post) => post.slug === slug) ?? null;
 }
-

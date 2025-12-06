@@ -27,7 +27,7 @@ export default function HomePage() {
   return (
     <div className="space-y-0">
       {/* Hero Section */}
-      <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden mt-[-6rem] pb-28 md:mt-[-8rem]">
+      <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden mt-[-6rem] pb-32 md:mt-[-8rem]">
         <AmbientField />
         <div className="relative mx-auto max-w-container px-6 pt-28 md:px-8 md:pt-32">
           <div className="space-y-8">

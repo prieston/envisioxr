@@ -19,20 +19,21 @@ export function ValueHookSection() {
       { threshold: 0.1 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    const currentRef = sectionRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, []);
 
   return (
-    <section ref={sectionRef} className="border-t border-line-soft/55 pt-28 pb-28 md:pt-32 md:pb-32">
-      <div className="mx-auto max-w-container px-6 md:px-8">
+    <section ref={sectionRef} className="relative left-1/2 w-screen -translate-x-1/2 bg-[#090D12] pt-28 pb-28 md:pt-32 md:pb-32">
+      <div className="relative mx-auto max-w-container px-6 md:px-8">
         <h2 className="mb-16 text-3xl font-light tracking-[0.04em] text-text-primary md:text-[36px] md:leading-[1.15]">
           See everything. Understand anything. Act instantly.
         </h2>

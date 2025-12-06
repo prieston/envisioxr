@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { GeometricHint } from "@/components/geometric-hint";
 
 export const metadata: Metadata = {
   title: "Agriculture & Land Management | Klorad",
@@ -19,30 +20,36 @@ export default function AgriculturePage() {
   return (
     <article className="space-y-0">
       {/* Hero Section */}
-      <section className="space-y-8 pt-20 pb-16 md:pt-32 md:pb-24">
-        <div className="space-y-6">
-          <h1 className="max-w-3xl text-4xl font-light text-text-primary md:text-[48px] md:leading-[1.05]">
-            Agriculture & Land Management
-          </h1>
-          <p className="max-w-[640px] text-xl font-light text-text-secondary">
-            Monitor crops, manage land, and optimize operations with unified geospatial intelligence.
-          </p>
-          <p className="max-w-[640px] text-[17px] font-light leading-[1.6] tracking-[0.01em] text-text-secondary">
-            Agriculture operations require precise monitoring of crops, soil conditions, and resource use across large areas. Klorad unifies drone imagery, sensor data, and field observations into one platform, enabling data-driven decisions that optimize yields and resource efficiency.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <Link
-            href="/contact"
-            className="inline-flex items-center justify-center rounded-[4px] bg-[#158CA3] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#126E83]"
-          >
-            SCHEDULE DEMO
-          </Link>
+      <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden mt-[-6rem] pb-28 md:mt-[-8rem]">
+        <GeometricHint variant="radial-vignette" />
+        <div className="relative mx-auto max-w-container px-6 pt-28 md:px-8 md:pt-32">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <h1 className="max-w-3xl text-4xl font-light text-text-primary md:text-[54px] md:leading-[1.05]">
+                Agriculture & Land Management
+              </h1>
+              <p className="max-w-[640px] text-xl font-light text-text-secondary">
+                Monitor crops, manage land, and optimize operations with unified geospatial intelligence.
+              </p>
+              <p className="max-w-[640px] text-[17px] font-light leading-[1.55] text-text-secondary tracking-[0.01em]">
+                Agriculture operations require precise monitoring of crops, soil conditions, and resource use across large areas. Klorad unifies drone imagery, sensor data, and field observations into one platform, enabling data-driven decisions that optimize yields and resource efficiency.
+              </p>
+            </div>
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center rounded-[4px] bg-[#158CA3] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#126E83]"
+              >
+                SCHEDULE DEMO
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Pain Points Section */}
-      <section className="border-t border-line-soft pt-16 pb-16 md:pt-24 md:pb-24">
+      <section className="relative left-1/2 w-screen -translate-x-1/2 bg-[#090D12] pt-36 pb-32 md:pt-44 md:pb-36">
+        <div className="relative mx-auto max-w-container px-6 md:px-8">
         <div className="space-y-12">
           <h2 className="text-3xl font-light tracking-[0.04em] text-text-primary md:text-[36px] md:leading-[1.15]">
             The challenges you face
@@ -77,7 +84,8 @@ export default function AgriculturePage() {
       </section>
 
       {/* How Klorad Solves It */}
-      <section className="border-t border-line-soft pt-16 pb-16 md:pt-24 md:pb-24">
+      <section className="pt-36 pb-32 md:pt-44 md:pb-36">
+        <div className="mx-auto max-w-container px-6 md:px-8">
         <div className="space-y-12">
           <h2 className="text-3xl font-light tracking-[0.04em] text-text-primary md:text-[36px] md:leading-[1.15]">
             How Klorad addresses Agriculture & Land Management needs
@@ -112,7 +120,8 @@ export default function AgriculturePage() {
       </section>
 
       {/* Use Cases Section */}
-      <section className="border-t border-line-soft pt-16 pb-16 md:pt-24 md:pb-24">
+      <section className="relative left-1/2 w-screen -translate-x-1/2 bg-[#090D12] pt-36 pb-32 md:pt-44 md:pb-36">
+        <div className="relative mx-auto max-w-container px-6 md:px-8">
         <div className="space-y-12">
           <h2 className="text-3xl font-light tracking-[0.04em] text-text-primary md:text-[36px] md:leading-[1.15]">
             Real-world applications
@@ -147,7 +156,8 @@ export default function AgriculturePage() {
       </section>
 
       {/* Final CTA */}
-      <section className="border-t border-line-soft py-16 md:py-20">
+      <section className="pt-36 pb-32 md:pt-44 md:pb-40">
+        <div className="mx-auto max-w-container px-6 md:px-8">
         <div className="space-y-6">
           <h2 className="text-3xl font-light tracking-[0.04em] text-text-primary md:text-[36px] md:leading-[1.15]">
             Ready to optimize your agricultural operations?
