@@ -34,9 +34,9 @@ export default function UrbanInfrastructurePage() {
         <div className="flex flex-col gap-4 sm:flex-row">
           <Link
             href="/contact"
-            className="inline-flex items-center justify-center border border-line-strong px-8 py-3.5 text-sm uppercase tracking-[0.3em] text-text-primary transition-colors duration-700 hover:border-text-secondary"
+            className="inline-flex items-center justify-center rounded-[4px] bg-[#158CA3] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#126E83]"
           >
-            Schedule Demo
+            SCHEDULE DEMO
           </Link>
         </div>
       </section>
@@ -157,9 +157,9 @@ export default function UrbanInfrastructurePage() {
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center border border-line-strong px-8 py-3.5 text-sm uppercase tracking-[0.3em] text-text-primary transition-colors duration-700 hover:border-text-secondary"
+            className="inline-flex items-center rounded-[4px] bg-[#158CA3] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#126E83]"
           >
-            Schedule Demo
+            SCHEDULE DEMO
           </Link>
         </div>
       </section>

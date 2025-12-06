@@ -6,3 +6,4 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
   return <ThemeModeProvider>{children}</ThemeModeProvider>;
 }
 
+
