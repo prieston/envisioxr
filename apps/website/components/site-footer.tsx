@@ -7,7 +7,9 @@ export function SiteFooter() {
         <div className="grid gap-12 md:grid-cols-4">
           {/* Product */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium uppercase tracking-[0.2em] text-text-tertiary">Product</h3>
+            <h3 className="text-sm font-medium uppercase tracking-[0.2em] text-text-tertiary">
+              Product
+            </h3>
             <nav className="flex flex-col gap-2">
               <Link
                 href="/platform"
@@ -20,7 +22,9 @@ export function SiteFooter() {
 
           {/* Industries */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium uppercase tracking-[0.2em] text-text-tertiary">Industries</h3>
+            <h3 className="text-sm font-medium uppercase tracking-[0.2em] text-text-tertiary">
+              Industries
+            </h3>
             <nav className="flex flex-col gap-2">
               <Link
                 href="/industries/mobility"
@@ -51,7 +55,9 @@ export function SiteFooter() {
 
           {/* Company */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium uppercase tracking-[0.2em] text-text-tertiary">Company</h3>
+            <h3 className="text-sm font-medium uppercase tracking-[0.2em] text-text-tertiary">
+              Company
+            </h3>
             <nav className="flex flex-col gap-2">
               <Link
                 href="/partners"
@@ -67,7 +73,9 @@ export function SiteFooter() {
 
           {/* Resources */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium uppercase tracking-[0.2em] text-text-tertiary">Resources</h3>
+            <h3 className="text-sm font-medium uppercase tracking-[0.2em] text-text-tertiary">
+              Resources
+            </h3>
             <nav className="flex flex-col gap-2">
               <Link
                 href="/journal"
@@ -96,7 +104,7 @@ export function SiteFooter() {
             </Link>
           </div>
           <div className="flex flex-col gap-2 md:flex-row md:gap-6">
-            <span>Athens — Thessaloniki — Remote</span>
+            <span>Athens - Thessaloniki - Remote</span>
           </div>
         </div>
       </div>

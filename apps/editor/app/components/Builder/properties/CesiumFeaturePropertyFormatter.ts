@@ -27,7 +27,7 @@ export function formatKey(key: string): string {
  */
 export function formatValue(value: unknown): string {
   if (value === undefined || value === null) {
-    return "—";
+    return "-";
   }
   if (typeof value === "object") {
     return JSON.stringify(value, null, 2);
@@ -40,4 +40,3 @@ export function formatValue(value: unknown): string {
   }
   return String(value);
 }
-
