@@ -17,7 +17,7 @@ export function SiteHeader() {
   const [industriesOpen, setIndustriesOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const industriesRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLHeaderElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   // Close dropdowns and mobile menu when clicking outside
   useEffect(() => {
