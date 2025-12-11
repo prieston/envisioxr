@@ -159,6 +159,7 @@ export interface SceneState {
   setModelPosition: (id: string, newPosition: Vector3) => void;
   setModelRotation: (id: string, newRotation: Vector3) => void;
   setModelScale: (id: string, newScale: Vector3) => void;
+  reorderObjects: (startIndex: number, endIndex: number) => void;
   setObservationPoints: (newPoints: ObservationPoint[]) => void;
   addObservationPoint: () => void;
   selectObservation: (id: number | null) => void;
@@ -167,6 +168,7 @@ export interface SceneState {
     updates: Partial<ObservationPoint>
   ) => void;
   deleteObservationPoint: (id: number) => void;
+  reorderObservationPoints: (startIndex: number, endIndex: number) => void;
   setCapturingPOV: (value: boolean) => void;
   startPreview: () => void;
   exitPreview: () => void;
