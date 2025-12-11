@@ -9,6 +9,15 @@ export type SampleWorld = {
   category?: string;
 };
 
+// Helper function to normalize URLs (convert relative to absolute)
+const normalizeUrl = (url: string): string => {
+  if (url.startsWith("/")) {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+    return `${baseUrl}${url}`;
+  }
+  return url;
+};
+
 // This function now fetches from the database
 export async function getSampleWorlds(): Promise<SampleWorld[]> {
   try {
@@ -22,7 +31,7 @@ export async function getSampleWorlds(): Promise<SampleWorld[]> {
 
     return worlds.map((world) => ({
       id: world.id,
-      url: world.url,
+      url: normalizeUrl(world.url),
       imageThumbnail: world.thumbnailUrl || "/images/samples/default.jpg",
       title: world.title,
       description: world.description || undefined,
@@ -53,7 +62,7 @@ export async function getSampleWorld(id: string) {
 
     return {
       id: world.id,
-      url: world.url,
+      url: normalizeUrl(world.url),
       imageThumbnail: world.thumbnailUrl || "/images/samples/default.jpg",
       title: world.title,
       description: world.description || undefined,

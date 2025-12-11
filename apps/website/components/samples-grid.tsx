@@ -101,9 +101,13 @@ export function SamplesGrid({ worlds }: SamplesGridProps) {
                   href={world.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col overflow-hidden rounded-[4px] border border-line-soft bg-base-bg transition-all duration-500 hover:border-white/[0.06] hover:bg-white/[0.02]"
+                  className="group relative flex flex-col overflow-hidden rounded-[4px] border border-line-soft bg-base-bg transition-all duration-500 hover:border-white/[0.06]"
                 >
-                  {CardContent(world)}
+                  {/* Premium gradient overlay on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#4C7FFF]/[0.08] via-[#4C7FFF]/[0.03] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  <div className="relative z-10">
+                    {CardContent(world)}
+                  </div>
                 </Link>
               );
             }

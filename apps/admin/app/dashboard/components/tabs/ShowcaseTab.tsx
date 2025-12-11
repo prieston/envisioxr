@@ -36,6 +36,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SearchIcon from "@mui/icons-material/Search";
 import useSWR from "swr";
+import Image from "next/image";
 
 interface ShowcaseTag {
   id: string;
@@ -72,6 +73,12 @@ const fetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch data");
   return res.json();
+};
+
+// Helper function to construct published URL from project ID
+const getPublishedUrl = (projectId: string): string => {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+  return `${baseUrl}/publish/${projectId}`;
 };
 
 export function ShowcaseTab() {
@@ -151,10 +158,12 @@ export function ShowcaseTab() {
     }
 
     setSelectedProjectId(project.id);
+    // Construct full URL using NEXT_PUBLIC_APP_URL
+    const fullUrl = getPublishedUrl(project.id);
     setWorldForm({
       title: project.title,
       description: project.description || "",
-      url: project.publishedUrl || "",
+      url: fullUrl,
       thumbnailUrl: project.thumbnail || "",
       priority: 0,
       isPublished: project.isPublished,
@@ -318,9 +327,9 @@ export function ShowcaseTab() {
               </Button>
             </Box>
             <TableContainer>
-              <Table size="small">
+              <Table size="small" sx={{ "& .MuiTableCell-root": { borderColor: "rgba(255, 255, 255, 0.08)" } }}>
                 <TableHead>
-                  <TableRow>
+                  <TableRow sx={{ "& .MuiTableCell-head": { fontWeight: 600, color: "text.primary", backgroundColor: "rgba(255, 255, 255, 0.02)" } }}>
                     <TableCell>Title</TableCell>
                     <TableCell>Tags</TableCell>
                     <TableCell align="center">Status</TableCell>
@@ -330,15 +339,31 @@ export function ShowcaseTab() {
                 </TableHead>
                 <TableBody>
                   {worldsData.worlds.map((world) => (
-                    <TableRow key={world.id}>
+                    <TableRow
+                      key={world.id}
+                      sx={{
+                        "&:hover": {
+                          backgroundColor: "rgba(255, 255, 255, 0.02)",
+                          transition: "background-color 0.2s ease",
+                        },
+                        transition: "background-color 0.2s ease",
+                      }}
+                    >
                       <TableCell>
-                        <Typography variant="body2" fontWeight={500}>
+                        <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
                           {world.title}
                         </Typography>
                         <Typography
                           variant="caption"
-                          color="text.secondary"
-                          noWrap
+                          sx={{
+                            color: "text.secondary",
+                            fontSize: "0.7rem",
+                            display: "block",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            maxWidth: "300px",
+                          }}
                         >
                           {world.url}
                         </Typography>
@@ -351,16 +376,23 @@ export function ShowcaseTab() {
                               label={tag.label}
                               size="small"
                               sx={{
-                                height: 20,
+                                height: 22,
                                 fontSize: "0.7rem",
+                                fontWeight: 500,
                                 backgroundColor: tag.color
-                                  ? alpha(tag.color, 0.1)
-                                  : undefined,
-                                color: tag.color || undefined,
+                                  ? alpha(tag.color, 0.15)
+                                  : alpha("#6b9cd8", 0.1),
+                                color: tag.color || "#6b9cd8",
                                 borderColor: tag.color
-                                  ? alpha(tag.color, 0.3)
-                                  : undefined,
-                                border: tag.color ? "1px solid" : undefined,
+                                  ? alpha(tag.color, 0.4)
+                                  : alpha("#6b9cd8", 0.3),
+                                border: "1px solid",
+                                "&:hover": {
+                                  backgroundColor: tag.color
+                                    ? alpha(tag.color, 0.2)
+                                    : alpha("#6b9cd8", 0.15),
+                                },
+                                transition: "background-color 0.2s ease",
                               }}
                             />
                           ))}
@@ -370,23 +402,52 @@ export function ShowcaseTab() {
                         <Chip
                           label={world.isPublished ? "Published" : "Draft"}
                           size="small"
-                          color={world.isPublished ? "success" : "default"}
-                          variant="outlined"
-                          sx={{ height: 20, fontSize: "0.7rem" }}
+                          sx={{
+                            height: 22,
+                            fontSize: "0.7rem",
+                            fontWeight: 500,
+                            backgroundColor: world.isPublished
+                              ? alpha("#22c55e", 0.15)
+                              : alpha("rgba(255, 255, 255, 0.1)", 0.1),
+                            color: world.isPublished ? "#22c55e" : "text.secondary",
+                            borderColor: world.isPublished
+                              ? alpha("#22c55e", 0.4)
+                              : "rgba(255, 255, 255, 0.08)",
+                            border: "1px solid",
+                          }}
                         />
                       </TableCell>
-                      <TableCell align="center">{world.priority}</TableCell>
+                      <TableCell align="center">
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {world.priority}
+                        </Typography>
+                      </TableCell>
                       <TableCell align="right">
                         <IconButton
                           size="small"
                           onClick={() => handleOpenWorldDialog(world)}
+                          sx={{
+                            color: "text.secondary",
+                            "&:hover": {
+                              color: "primary.main",
+                              backgroundColor: alpha("#6b9cd8", 0.1),
+                            },
+                            transition: "all 0.2s ease",
+                          }}
                         >
                           <EditIcon fontSize="small" />
                         </IconButton>
                         <IconButton
                           size="small"
                           onClick={() => handleDeleteWorld(world.id)}
-                          color="error"
+                          sx={{
+                            color: "text.secondary",
+                            "&:hover": {
+                              color: "error.main",
+                              backgroundColor: alpha("#ef4444", 0.1),
+                            },
+                            transition: "all 0.2s ease",
+                          }}
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
@@ -420,24 +481,52 @@ export function ShowcaseTab() {
                 Add Tag
               </Button>
             </Box>
-            <Box display="flex" flexWrap="wrap" gap={1}>
-              {tagsData.tags.map((tag) => (
-                <Chip
-                  key={tag.id}
-                  label={tag.label}
-                  onDelete={() => handleDeleteTag(tag.id)}
-                  sx={{
-                    backgroundColor: tag.color
-                      ? alpha(tag.color, 0.1)
-                      : undefined,
-                    color: tag.color || undefined,
-                    border: tag.color
-                      ? `1px solid ${alpha(tag.color, 0.3)}`
-                      : undefined,
-                  }}
-                />
-              ))}
-            </Box>
+            {tagsData.tags.length === 0 ? (
+              <Box
+                sx={{
+                  py: 3,
+                  textAlign: "center",
+                  color: "text.secondary",
+                }}
+              >
+                <Typography variant="body2">No tags yet. Create one to get started.</Typography>
+              </Box>
+            ) : (
+              <Box display="flex" flexWrap="wrap" gap={1}>
+                {tagsData.tags.map((tag) => (
+                  <Chip
+                    key={tag.id}
+                    label={tag.label}
+                    onDelete={() => handleDeleteTag(tag.id)}
+                    sx={{
+                      height: 28,
+                      fontSize: "0.75rem",
+                      fontWeight: 500,
+                      backgroundColor: tag.color
+                        ? alpha(tag.color, 0.15)
+                        : alpha("#6b9cd8", 0.1),
+                      color: tag.color || "#6b9cd8",
+                      borderColor: tag.color
+                        ? alpha(tag.color, 0.4)
+                        : alpha("#6b9cd8", 0.3),
+                      border: "1px solid",
+                      "&:hover": {
+                        backgroundColor: tag.color
+                          ? alpha(tag.color, 0.2)
+                          : alpha("#6b9cd8", 0.15),
+                      },
+                      "& .MuiChip-deleteIcon": {
+                        color: tag.color || "#6b9cd8",
+                        "&:hover": {
+                          color: tag.color || "#5f88c7",
+                        },
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  />
+                ))}
+              </Box>
+            )}
           </PageCard>
         </Grid>
       </Grid>
@@ -448,18 +537,37 @@ export function ShowcaseTab() {
         onClose={() => setWorldDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: "rgba(17, 19, 23, 0.95)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            borderRadius: "8px",
+          },
+        }}
       >
-        <Box p={3} bgcolor="background.paper">
+        <Box p={3}>
           <Box
             display="flex"
             justifyContent="space-between"
             alignItems="center"
             mb={3}
+            pb={2}
+            sx={{ borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}
           >
-            <Typography variant="h6">
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
               {editingWorld ? "Edit World" : "Add Showcase World"}
             </Typography>
-            <IconButton onClick={() => setWorldDialogOpen(false)}>
+            <IconButton
+              onClick={() => setWorldDialogOpen(false)}
+              sx={{
+                color: "text.secondary",
+                "&:hover": {
+                  color: "text.primary",
+                  backgroundColor: "rgba(255, 255, 255, 0.05)",
+                },
+              }}
+            >
               <CloseIcon />
             </IconButton>
           </Box>
@@ -490,15 +598,38 @@ export function ShowcaseTab() {
                   />
                 )}
                 renderOption={(props, option) => (
-                  <Box component="li" {...props}>
+                  <Box
+                    component="li"
+                    {...props}
+                    sx={{
+                      "&:hover": {
+                        backgroundColor: "rgba(255, 255, 255, 0.05)",
+                      },
+                      py: 1.5,
+                    }}
+                  >
                     <Box>
-                      <Typography variant="body2" fontWeight={500}>
+                      <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
                         {option.title}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         {option.organization.name}
                         {option.description && ` • ${option.description.substring(0, 50)}${option.description.length > 50 ? "..." : ""}`}
                       </Typography>
+                      {option.isPublished && (
+                        <Chip
+                          label="Published"
+                          size="small"
+                          sx={{
+                            mt: 0.5,
+                            height: 18,
+                            fontSize: "0.65rem",
+                            backgroundColor: alpha("#22c55e", 0.15),
+                            color: "#22c55e",
+                            border: `1px solid ${alpha("#22c55e", 0.4)}`,
+                          }}
+                        />
+                      )}
                     </Box>
                   </Box>
                 )}
@@ -514,6 +645,13 @@ export function ShowcaseTab() {
               }
               fullWidth
               required
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: "rgba(255, 255, 255, 0.12)",
+                  },
+                },
+              }}
             />
             <TextField
               label="Description"
@@ -523,7 +661,14 @@ export function ShowcaseTab() {
               }
               fullWidth
               multiline
-              rows={2}
+              rows={3}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: "rgba(255, 255, 255, 0.12)",
+                  },
+                },
+              }}
             />
             <TextField
               label="URL (Project Link)"
@@ -533,6 +678,14 @@ export function ShowcaseTab() {
               }
               fullWidth
               required
+              helperText={
+                selectedProjectId
+                  ? "URL is auto-generated from selected project"
+                  : "Enter full URL or select a project to auto-generate"
+              }
+              InputProps={{
+                readOnly: !!selectedProjectId,
+              }}
             />
             <TextField
               label="Thumbnail URL"
@@ -541,7 +694,42 @@ export function ShowcaseTab() {
                 setWorldForm({ ...worldForm, thumbnailUrl: e.target.value })
               }
               fullWidth
+              helperText="URL to the thumbnail image for this showcase world"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: "rgba(255, 255, 255, 0.12)",
+                  },
+                },
+              }}
             />
+            {worldForm.thumbnailUrl && (
+              <Box
+                sx={{
+                  width: "100%",
+                  maxWidth: 200,
+                  height: 120,
+                  borderRadius: "4px",
+                  overflow: "hidden",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  backgroundColor: "rgba(255, 255, 255, 0.02)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                }}
+              >
+                <Image
+                  src={worldForm.thumbnailUrl}
+                  alt="Thumbnail preview"
+                  fill
+                  style={{
+                    objectFit: "cover",
+                  }}
+                  unoptimized
+                />
+              </Box>
+            )}
             <Box display="flex" gap={2}>
               <TextField
                 label="Priority (Sort Order)"
@@ -599,14 +787,40 @@ export function ShowcaseTab() {
                 ))}
               </Select>
             </FormControl>
-            <Box display="flex" justifyContent="flex-end" gap={1} mt={2}>
-              <Button onClick={() => setWorldDialogOpen(false)}>Cancel</Button>
+            <Box
+              display="flex"
+              justifyContent="flex-end"
+              gap={1}
+              mt={3}
+              pt={2}
+              sx={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)" }}
+            >
+              <Button
+                onClick={() => setWorldDialogOpen(false)}
+                sx={{
+                  color: "text.secondary",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                  },
+                }}
+              >
+                Cancel
+              </Button>
               <Button
                 variant="contained"
                 onClick={handleSaveWorld}
                 disabled={saving}
+                sx={{
+                  backgroundColor: "#6b9cd8",
+                  "&:hover": {
+                    backgroundColor: "#5f88c7",
+                  },
+                  "&:disabled": {
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  },
+                }}
               >
-                Save
+                {saving ? "Saving..." : "Save"}
               </Button>
             </Box>
           </Box>
@@ -619,11 +833,40 @@ export function ShowcaseTab() {
         onClose={() => setTagDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: "rgba(17, 19, 23, 0.95)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            borderRadius: "8px",
+          },
+        }}
       >
-        <Box p={3} bgcolor="background.paper">
-          <Typography variant="h6" mb={3}>
-            Add New Tag
-          </Typography>
+        <Box p={3}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={3}
+            pb={2}
+            sx={{ borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Add New Tag
+            </Typography>
+            <IconButton
+              onClick={() => setTagDialogOpen(false)}
+              sx={{
+                color: "text.secondary",
+                "&:hover": {
+                  color: "text.primary",
+                  backgroundColor: "rgba(255, 255, 255, 0.05)",
+                },
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
           <Box display="flex" flexDirection="column" gap={3}>
             <TextField
               label="Label"
@@ -633,6 +876,13 @@ export function ShowcaseTab() {
               }
               fullWidth
               required
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: "rgba(255, 255, 255, 0.12)",
+                  },
+                },
+              }}
             />
             <TextField
               label="Color (Hex)"
@@ -641,16 +891,61 @@ export function ShowcaseTab() {
                 setTagForm({ ...tagForm, color: e.target.value })
               }
               fullWidth
-              placeholder="#FF5733"
+              placeholder="#6b9cd8"
+              helperText="Optional hex color code (e.g., #6b9cd8). Leave empty for default."
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: "rgba(255, 255, 255, 0.12)",
+                  },
+                },
+              }}
             />
-            <Box display="flex" justifyContent="flex-end" gap={1}>
-              <Button onClick={() => setTagDialogOpen(false)}>Cancel</Button>
+            {tagForm.color && (
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "4px",
+                  backgroundColor: tagForm.color,
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                }}
+              />
+            )}
+            <Box
+              display="flex"
+              justifyContent="flex-end"
+              gap={1}
+              mt={2}
+              pt={2}
+              sx={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)" }}
+            >
+              <Button
+                onClick={() => setTagDialogOpen(false)}
+                sx={{
+                  color: "text.secondary",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                  },
+                }}
+              >
+                Cancel
+              </Button>
               <Button
                 variant="contained"
                 onClick={handleSaveTag}
                 disabled={saving}
+                sx={{
+                  backgroundColor: "#6b9cd8",
+                  "&:hover": {
+                    backgroundColor: "#5f88c7",
+                  },
+                  "&:disabled": {
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  },
+                }}
               >
-                Create
+                {saving ? "Creating..." : "Create"}
               </Button>
             </Box>
           </Box>
