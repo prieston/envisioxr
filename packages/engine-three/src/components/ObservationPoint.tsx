@@ -4,7 +4,17 @@ import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { useSceneStore } from "@klorad/core";
 
-const ObservationPoint = ({
+interface ObservationPointProps {
+  id: string | number;
+  position?: [number, number, number] | null;
+  target?: [number, number, number] | null;
+  selected?: boolean;
+  onSelect: ((id: any) => void) | null;
+  previewMode?: boolean;
+  renderObservationPoints?: boolean;
+}
+
+const ObservationPoint: React.FC<ObservationPointProps> = ({
   id,
   position,
   target,
@@ -19,7 +29,7 @@ const ObservationPoint = ({
       ? previewModeProp
       : useSceneStore((state) => state.previewMode);
 
-  const arrowRef = useRef(null);
+  const arrowRef = useRef<THREE.ArrowHelper>(null);
 
   useEffect(() => {
     if (!position || !target || !arrowRef.current) return;
@@ -54,9 +64,9 @@ const ObservationPoint = ({
           )
         }
         ref={arrowRef}
-        onClick={(e) => {
+        onClick={(e: any) => {
           e.stopPropagation();
-          onSelect(id);
+          if (onSelect) onSelect(id);
         }}
       />
     </>

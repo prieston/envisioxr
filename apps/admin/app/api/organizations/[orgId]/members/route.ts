@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isGodUser } from "@/lib/config/godusers";
@@ -13,7 +12,7 @@ interface RouteParams {
  * GET: Get all members of an organization (admin only)
  */
 export async function GET(_request: NextRequest, { params }: RouteParams) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -105,7 +104,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
  * POST: Add a member directly to an organization (admin only)
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -214,7 +213,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
  * DELETE: Remove a member from an organization (admin only)
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

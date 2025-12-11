@@ -1,8 +1,7 @@
 import "@/global.css";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { SessionProviderWrapper } from "@/app/components/SessionProviderWrapper";
 import { ClientProviders } from "./providers";
 
@@ -15,7 +14,7 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function PublicLayout({ children }) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   return (
     <html lang="en" className="dark">

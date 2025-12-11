@@ -1,9 +1,7 @@
 import "@/global.css";
-import "react-toastify/dist/ReactToastify.css";
 import { redirect } from "next/navigation";
-import { ToastContainer } from "react-toastify";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import ToastProvider from "@/app/components/ToastProvider";
+import { auth } from "@/auth";
 import { SessionProviderWrapper } from "@/app/components/SessionProviderWrapper";
 import { ClientProviders } from "./providers";
 
@@ -20,7 +18,7 @@ export default async function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if (!session) {
     redirect("/auth/signin");
@@ -60,15 +58,7 @@ export default async function ProtectedLayout({
       <body>
         <SessionProviderWrapper session={session}>
           <ClientProviders>{children}</ClientProviders>
-          <ToastContainer
-            position="bottom-right"
-            autoClose={3000}
-            theme="dark"
-            hideProgressBar={false}
-            closeOnClick
-            pauseOnHover
-            draggable
-          />
+          <ToastProvider />
         </SessionProviderWrapper>
       </body>
     </html>

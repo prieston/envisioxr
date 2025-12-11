@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { isUserMemberOfOrganization } from "@/lib/organizations";
 import { ClientProviders } from "../../providers";
 
@@ -11,9 +10,9 @@ export default async function OrgLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { orgId: string };
+  params: Promise<{ orgId: string }>;
 }) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if (!session?.user?.id) {
     redirect("/auth/signin");

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { decryptToken } from "@/lib/cesium/encryption";
 import { isUserMemberOfOrganization } from "@/lib/organizations";
@@ -96,7 +95,7 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line no-console
 
     // Check authentication
-    const session = (await getServerSession(authOptions)) as Session;
+    const session = (await auth()) as Session;
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -391,7 +390,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     // Check authentication
-    const session = (await getServerSession(authOptions)) as Session;
+    const session = (await auth()) as Session;
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

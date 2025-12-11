@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { NextRequest } from "next/server";
 import { Session } from "next-auth";
 import { isUserMemberOfOrganization, canUserViewPublishedProject } from "@/lib/organizations";
@@ -16,9 +15,9 @@ interface UserSession extends Session {
 }
 
 interface ProjectParams {
-  params: {
+  params: Promise<{
     projectId: string;
-  };
+  }>;
 }
 
 // Helper function to serialize assets with BigInt fields
@@ -30,13 +29,14 @@ function serializeAssets(assets: Array<{ fileSize?: bigint | null; thumbnailSize
   }));
 }
 
-export async function GET(request: NextRequest, { params }: ProjectParams) {
+export async function GET(request: NextRequest, props: ProjectParams) {
+  const params = await props.params;
   const { projectId } = params;
 
   // Try to get the session, but if it fails, that's fine.
   let session: UserSession | null = null;
   try {
-    session = (await getServerSession(authOptions)) as UserSession;
+    session = (await auth()) as UserSession;
   } catch (error) {
     // If fetching the session fails, we simply treat it as no session.
     session = null;
@@ -147,9 +147,10 @@ export async function GET(request: NextRequest, { params }: ProjectParams) {
   }
 }
 
-export async function POST(request: NextRequest, { params }: ProjectParams) {
+export async function POST(request: NextRequest, props: ProjectParams) {
+  const params = await props.params;
   const { projectId } = params;
-  const session = (await getServerSession(authOptions)) as UserSession;
+  const session = (await auth()) as UserSession;
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -207,9 +208,10 @@ export async function POST(request: NextRequest, { params }: ProjectParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: ProjectParams) {
+export async function DELETE(request: NextRequest, props: ProjectParams) {
+  const params = await props.params;
   const { projectId } = params;
-  const session = (await getServerSession(authOptions)) as UserSession;
+  const session = (await auth()) as UserSession;
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -243,9 +245,10 @@ export async function DELETE(request: NextRequest, { params }: ProjectParams) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: ProjectParams) {
+export async function PUT(request: NextRequest, props: ProjectParams) {
+  const params = await props.params;
   const { projectId } = params;
-  const session = (await getServerSession(authOptions)) as UserSession;
+  const session = (await auth()) as UserSession;
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -301,9 +304,10 @@ export async function PUT(request: NextRequest, { params }: ProjectParams) {
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: ProjectParams) {
+export async function PATCH(request: NextRequest, props: ProjectParams) {
+  const params = await props.params;
   const { projectId } = params;
-  const session = (await getServerSession(authOptions)) as UserSession;
+  const session = (await auth()) as UserSession;
   if (!session || !session.user || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

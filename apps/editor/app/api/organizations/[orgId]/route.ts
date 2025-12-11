@@ -1,20 +1,19 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { auth } from "@/auth";
 import { Session } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isUserMemberOfOrganization, hasUserRoleInOrganization } from "@/lib/organizations";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     orgId: string;
-  };
+  }>;
 }
 
 // GET: Get organization by ID
 export async function GET(_request: NextRequest, { params }: RouteParams) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -71,7 +70,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
 // PATCH: Update organization
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
-  const session = (await getServerSession(authOptions)) as Session;
+  const session = (await auth()) as Session;
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -179,7 +178,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
 // DELETE: Delete organization (admin only)
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

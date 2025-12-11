@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 interface UseModelMaterialsProps {
-  modelRef: React.RefObject<THREE.Object3D>;
+  modelRef: React.RefObject<THREE.Object3D | null>;
   selected: boolean;
   previewMode: boolean;
 }

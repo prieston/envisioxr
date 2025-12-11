@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import {
   isUserMemberOfOrganization,
@@ -16,7 +15,7 @@ import {
 } from "@/lib/cesium/token-validation";
 
 interface RouteParams {
-  params: { orgId: string };
+  params: Promise<{ orgId: string }>;
 }
 
 /**
@@ -27,7 +26,7 @@ export async function GET(
   _request: NextRequest,
   { params }: RouteParams
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -79,7 +78,7 @@ export async function GET(
  * Validates tokens and encrypts them before storage
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

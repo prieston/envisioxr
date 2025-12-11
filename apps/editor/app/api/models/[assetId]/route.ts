@@ -1,24 +1,23 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
 import { isUserMemberOfOrganization } from "@/lib/organizations";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     assetId: string;
-  };
+  }>;
 };
 
 export async function GET(request: NextRequest, context: RouteContext) {
-  const session = (await getServerSession(authOptions)) as Session;
+  const session = (await auth()) as Session;
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { assetId } = context.params;
+  const { assetId } = (await context.params);
   if (!assetId) {
     return NextResponse.json(
       { error: "Asset ID is required" },

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isGodUser } from "@/lib/config/godusers";
 
@@ -10,7 +9,7 @@ import { isGodUser } from "@/lib/config/godusers";
  * Use /api/stats for full statistics.
  */
 export async function GET() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

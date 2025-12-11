@@ -22,23 +22,26 @@ const defaultToastOptions: ToastOptions = {
     padding: "16px",
     minHeight: "64px",
   },
-  progressStyle: {
-    height: "3px",
-  },
+  // progressStyle is deprecated/removed in v10+
+  // We handle styling via className or custom components if needed, or rely on CSS
 };
 
 const typeSpecificStyles = {
   success: {
-    borderColor: "rgba(99, 157, 116, 0.4)",
+    borderColor: "rgba(34, 197, 94, 0.4)", // Matches CustomToast success color
+    "--toastify-color-progress-success": "rgba(34, 197, 94, 1)",
   },
   error: {
-    borderColor: "rgba(185, 131, 131, 0.4)",
+    borderColor: "rgba(255, 86, 86, 0.4)", // Matches CustomToast error color
+    "--toastify-color-progress-error": "rgba(255, 86, 86, 1)",
   },
   warning: {
-    borderColor: "rgba(179, 149, 99, 0.4)",
+    borderColor: "rgba(245, 158, 11, 0.4)", // Matches CustomToast warning color
+    "--toastify-color-progress-warning": "rgba(245, 158, 11, 1)",
   },
   info: {
-    borderColor: "rgba(130, 151, 175, 0.4)",
+    borderColor: "rgba(107, 156, 216, 0.4)", // Matches CustomToast info color
+    "--toastify-color-progress-info": "rgba(107, 156, 216, 1)",
   },
 };
 
@@ -73,12 +76,9 @@ export const showToast = (
       ...defaultToastOptions.style,
       ...typeSpecificStyles[type],
       ...(options?.style || {}),
-    },
-    progressStyle: {
-      ...defaultToastOptions.progressStyle,
-      ...progressBarStyles[type],
-      ...(options?.progressStyle || {}),
-    },
+    } as React.CSSProperties, // Cast to CSSProperties to allow CSS variables
+    // Manually merge style props for progress bar into style if supported,
+    // or ignore since progressStyle is removed.
   };
 
   toast[type](<CustomToast message={message} type={type} />, mergedOptions);
