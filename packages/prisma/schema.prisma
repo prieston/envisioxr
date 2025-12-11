@@ -349,37 +349,37 @@ enum CesiumAssetStatus {
 // Dynamic Showcase System
 
 model ShowcaseWorld {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
+  id           String  @id @default(cuid())
+  title        String
+  description  String?
   thumbnailUrl String?
-  url         String   // URL to the published project or iframe source
+  url          String // URL to the published project or iframe source
 
   // Optional link to an internal Project
-  projectId   String?  @unique
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId String?  @unique
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
-  isPublished Boolean  @default(false)
-  priority    Int      @default(0) // For sorting (higher shows first)
+  isPublished Boolean @default(false)
+  priority    Int     @default(0) // For sorting (higher shows first)
 
   // One-to-Many relation: A world has one tag
-  tagId       String?
-  tag         ShowcaseTag? @relation(fields: [tagId], references: [id], onDelete: SetNull)
+  tagId String?
+  tag   ShowcaseTag? @relation(fields: [tagId], references: [id], onDelete: SetNull)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([isPublished, priority])
 }
 
 model ShowcaseTag {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  label       String
-  color       String?  // Optional hex color for the tag
+  id    String  @id @default(cuid())
+  slug  String  @unique
+  label String
+  color String? // Optional hex color for the tag
 
-  worlds      ShowcaseWorld[]
+  worlds ShowcaseWorld[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
