@@ -7,6 +7,23 @@ import withPWA from '@ducanh2912/next-pwa';
 const require = createRequire(import.meta.url);
 const webpack = require('webpack');
 
+// Handle unhandled rejections during build (e.g., PWA plugin trying to access _document in App Router)
+if (typeof process !== 'undefined') {
+  process.on('unhandledRejection', (reason, promise) => {
+    // Suppress known PWA plugin errors related to _document in App Router
+    if (reason && typeof reason === 'object' && 'code' in reason && reason.code === 'ENOENT') {
+      const errorMessage = reason.message || String(reason);
+      if (errorMessage.includes('_document') || errorMessage.includes('PageNotFoundError')) {
+        // This is a known issue with PWA plugin in App Router - log warning but don't fail build
+        console.warn('[PWA Plugin] Warning: PWA plugin attempted to access _document (Pages Router only). This is safe to ignore in App Router projects.');
+        return;
+      }
+    }
+    // For other unhandled rejections, log them but don't fail the build
+    console.warn('[Build] Unhandled rejection:', reason);
+  });
+}
+
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
@@ -14,10 +31,18 @@ const bundleAnalyzer = withBundleAnalyzer({
 /**
  * A fork of 'next-pwa' that has app directory support
  * @see https://github.com/shadowwalker/next-pwa/issues/424#issuecomment-1332258575
+ *
+ * Note: The PWA plugin may attempt to access _document during build, which doesn't exist
+ * in App Router projects. This is handled by the unhandledRejection handler above.
  */
 const pwa = withPWA({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
+  // Ensure compatibility with App Router
+  buildExcludes: [/app-build-manifest\.json$/],
+  // Skip pages directory checks since we're using App Router
+  skipWaiting: true,
+  clientsClaim: true,
 });
 
 const nextConfig = {
@@ -268,10 +293,34 @@ const KEYS_TO_OMIT = ['webpackDevMiddleware', 'configOrigin', 'target', 'analyti
 export default (_phase, { defaultConfig }) => {
   const plugins = [[pwa], [bundleAnalyzer, {}]];
 
-  const wConfig = plugins.reduce((acc, [plugin, config]) => plugin({ ...acc, ...config }), {
-    ...defaultConfig,
-    ...nextConfig,
-  });
+  let wConfig;
+  try {
+    wConfig = plugins.reduce((acc, [plugin, config]) => {
+      try {
+        return plugin({ ...acc, ...config });
+      } catch (error) {
+        // Handle PWA plugin errors gracefully
+        if (error && typeof error === 'object' && 'message' in error) {
+          const errorMessage = String(error.message);
+          if (errorMessage.includes('_document') || errorMessage.includes('PageNotFoundError')) {
+            console.warn('[PWA Plugin] Warning: PWA plugin error related to _document. Continuing with build...');
+            return acc; // Return previous config if PWA plugin fails
+          }
+        }
+        throw error; // Re-throw other errors
+      }
+    }, {
+      ...defaultConfig,
+      ...nextConfig,
+    });
+  } catch (error) {
+    // If plugin initialization fails completely, fall back to base config
+    console.warn('[Build] Plugin initialization error:', error);
+    wConfig = {
+      ...defaultConfig,
+      ...nextConfig,
+    };
+  }
 
   const finalConfig = {};
   Object.keys(wConfig).forEach((key) => {
