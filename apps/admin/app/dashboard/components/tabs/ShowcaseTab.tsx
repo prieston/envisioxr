@@ -54,7 +54,7 @@ interface ShowcaseWorld {
   isPublished: boolean;
   priority: number;
   projectId: string | null;
-  tags: ShowcaseTag[];
+  tag: ShowcaseTag | null;
 }
 
 interface Project {
@@ -112,7 +112,7 @@ export function ShowcaseTab() {
     thumbnailUrl: "",
     priority: 0,
     isPublished: false,
-    tagIds: [] as string[],
+    tagId: null as string | null,
   });
 
   // Tag Form State
@@ -167,7 +167,7 @@ export function ShowcaseTab() {
       thumbnailUrl: project.thumbnail || "",
       priority: 0,
       isPublished: project.isPublished,
-      tagIds: [],
+      tagId: null,
     });
     setSearchQuery("");
     setSearchResults([]);
@@ -184,20 +184,20 @@ export function ShowcaseTab() {
         thumbnailUrl: world.thumbnailUrl || "",
         priority: world.priority,
         isPublished: world.isPublished,
-        tagIds: world.tags.map((t) => t.id),
+        tagId: world.tag?.id || null,
       });
     } else {
       setEditingWorld(null);
       setSelectedProjectId(null);
-      setWorldForm({
-        title: "",
-        description: "",
-        url: "",
-        thumbnailUrl: "",
-        priority: 0,
-        isPublished: false,
-        tagIds: [],
-      });
+    setWorldForm({
+      title: "",
+      description: "",
+      url: "",
+      thumbnailUrl: "",
+      priority: 0,
+      isPublished: false,
+      tagId: null,
+    });
     }
     setSearchQuery("");
     setSearchResults([]);
@@ -369,34 +369,35 @@ export function ShowcaseTab() {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Box display="flex" gap={0.5} flexWrap="wrap">
-                          {world.tags.map((tag) => (
-                            <Chip
-                              key={tag.id}
-                              label={tag.label}
-                              size="small"
-                              sx={{
-                                height: 22,
-                                fontSize: "0.7rem",
-                                fontWeight: 500,
-                                backgroundColor: tag.color
-                                  ? alpha(tag.color, 0.15)
-                                  : alpha("#6b9cd8", 0.1),
-                                color: tag.color || "#6b9cd8",
-                                borderColor: tag.color
-                                  ? alpha(tag.color, 0.4)
-                                  : alpha("#6b9cd8", 0.3),
-                                border: "1px solid",
-                                "&:hover": {
-                                  backgroundColor: tag.color
-                                    ? alpha(tag.color, 0.2)
-                                    : alpha("#6b9cd8", 0.15),
-                                },
-                                transition: "background-color 0.2s ease",
-                              }}
-                            />
-                          ))}
-                        </Box>
+                        {world.tag ? (
+                          <Chip
+                            label={world.tag.label}
+                            size="small"
+                            sx={{
+                              height: 22,
+                              fontSize: "0.7rem",
+                              fontWeight: 500,
+                              backgroundColor: world.tag.color
+                                ? alpha(world.tag.color, 0.15)
+                                : alpha("#6b9cd8", 0.1),
+                              color: world.tag.color || "#6b9cd8",
+                              borderColor: world.tag.color
+                                ? alpha(world.tag.color, 0.4)
+                                : alpha("#6b9cd8", 0.3),
+                              border: "1px solid",
+                              "&:hover": {
+                                backgroundColor: world.tag.color
+                                  ? alpha(world.tag.color, 0.2)
+                                  : alpha("#6b9cd8", 0.15),
+                              },
+                              transition: "background-color 0.2s ease",
+                            }}
+                          />
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">
+                            No tag
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell align="center">
                         <Chip
@@ -759,27 +760,26 @@ export function ShowcaseTab() {
               />
             </Box>
             <FormControl fullWidth>
-              <InputLabel>Tags</InputLabel>
+              <InputLabel>Tag</InputLabel>
               <Select
-                multiple
-                value={worldForm.tagIds}
-                label="Tags"
+                value={worldForm.tagId || ""}
+                label="Tag"
                 onChange={(e) => {
                   const value = e.target.value;
                   setWorldForm({
                     ...worldForm,
-                    tagIds: typeof value === "string" ? value.split(",") : value,
+                    tagId: value || null,
                   });
                 }}
-                renderValue={(selected) => (
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                    {selected.map((value) => {
-                      const tag = tagsData.tags.find((t) => t.id === value);
-                      return <Chip key={value} label={tag?.label || value} size="small" />;
-                    })}
-                  </Box>
-                )}
+                renderValue={(selected) => {
+                  if (!selected) return <em>None</em>;
+                  const tag = tagsData.tags.find((t) => t.id === selected);
+                  return tag?.label || selected;
+                }}
               >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
                 {tagsData.tags.map((tag) => (
                   <MenuItem key={tag.id} value={tag.id}>
                     {tag.label}
