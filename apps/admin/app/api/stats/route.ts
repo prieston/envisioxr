@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isGodUser } from "@/lib/config/godusers";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
 
   if (!session?.user?.email) {
@@ -14,7 +14,109 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const section = searchParams.get("section") || "overview";
+
   try {
+    if (section === "organizations") {
+      // [ADMIN_PRISMA] Parallelize organization statistics queries
+      const [personalOrgs, teamOrgs, allOrganizations] = await Promise.all([
+        prisma.organization.count({
+          where: { isPersonal: true },
+        }),
+        prisma.organization.count({
+          where: { isPersonal: false },
+        }),
+        prisma.organization.findMany({
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            isPersonal: true,
+            planCode: true,
+            subscriptionStatus: true,
+            createdAt: true,
+            _count: {
+              select: {
+                members: true,
+                projects: true,
+                assets: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        }),
+      ]);
+
+      // Calculate byPlan stats from the fetched organizations
+      const orgsByPlanMap = new Map<string, number>();
+      allOrganizations.forEach((org) => {
+        const count = orgsByPlanMap.get(org.planCode) || 0;
+        orgsByPlanMap.set(org.planCode, count + 1);
+      });
+      const byPlan = Array.from(orgsByPlanMap.entries()).map(([planCode, count]) => ({
+        planCode,
+        count,
+      }));
+
+      return NextResponse.json({
+        organizations: {
+          total: personalOrgs + teamOrgs,
+          personal: personalOrgs,
+          team: teamOrgs,
+          byPlan,
+          all: allOrganizations.map((org) => ({
+            id: org.id,
+            name: org.name,
+            slug: org.slug,
+            isPersonal: org.isPersonal,
+            planCode: org.planCode,
+            subscriptionStatus: org.subscriptionStatus,
+            memberCount: org._count.members,
+            projectCount: org._count.projects,
+            assetCount: org._count.assets,
+            createdAt: org.createdAt,
+          })),
+        },
+      });
+    }
+
+    if (section === "users") {
+      const totalUsers = await prisma.user.count();
+
+      // [ADMIN_PRISMA] Get all users with details
+      const allUsers = await prisma.user.findMany({
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          emailVerified: true,
+          _count: {
+            select: {
+              organizationMembers: true,
+              activities: true,
+            },
+          },
+        },
+        orderBy: { id: "desc" },
+      });
+
+      return NextResponse.json({
+        users: {
+          total: totalUsers,
+          all: allUsers.map((user) => ({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            emailVerified: user.emailVerified,
+            organizationCount: user._count.organizationMembers,
+            activityCount: user._count.activities,
+          })),
+        },
+      });
+    }
+
+    // Default: Overview (section === "overview")
     // [ADMIN_PRISMA] Get all counts in parallel for efficiency
     const [
       totalUsers,
@@ -30,67 +132,7 @@ export async function GET() {
       prisma.activity.count(),
     ]);
 
-    // [ADMIN_PRISMA] Parallelize organization statistics queries
-    // These are independent and can run concurrently
-    const [personalOrgs, teamOrgs, orgsByPlan] = await Promise.all([
-      prisma.organization.count({
-        where: { isPersonal: true },
-      }),
-      prisma.organization.count({
-        where: { isPersonal: false },
-      }),
-      prisma.organization.groupBy({
-        by: ["planCode"],
-        _count: { planCode: true },
-      }),
-    ]);
-
-    // [ADMIN_PRISMA] Get all organizations with details
-    // Using _count to avoid N+1 queries - counts are computed in a single query
-    const allOrganizations = await prisma.organization.findMany({
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        isPersonal: true,
-        planCode: true,
-        subscriptionStatus: true,
-        createdAt: true,
-        _count: {
-          select: {
-            members: true,
-            projects: true,
-            assets: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    // [ADMIN_PRISMA] Get all users with details
-    // Note: User model doesn't have createdAt field, so we order by id instead
-    // Using _count to avoid N+1 queries
-    const allUsers = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        emailVerified: true,
-        _count: {
-          select: {
-            organizationMembers: true,
-            activities: true,
-          },
-        },
-      },
-      orderBy: { id: "desc" },
-    });
-
     // [ADMIN_PRISMA] CRITICAL FIX: Use SQL aggregation instead of fetching all assets
-    // Previous implementation fetched every asset row just to sum fileSize in JavaScript.
-    // This was causing massive data transfer and connection hold times with large datasets.
-    // Using SQL SUM() aggregates at the database level - much more efficient.
-    // Note: Column name is "fileSize" (camelCase) as defined in migration
     const storageResult = await prisma.$queryRaw<[{ sum: bigint | null }]>`
       SELECT COALESCE(SUM("fileSize"), 0) as sum FROM "Asset"
     `;
@@ -105,38 +147,6 @@ export async function GET() {
         totalAssets,
         totalActivities,
         totalStorageGB,
-      },
-      organizations: {
-        total: totalOrganizations,
-        personal: personalOrgs,
-        team: teamOrgs,
-        byPlan: orgsByPlan.map((item) => ({
-          planCode: item.planCode,
-          count: item._count.planCode,
-        })),
-        all: allOrganizations.map((org) => ({
-          id: org.id,
-          name: org.name,
-          slug: org.slug,
-          isPersonal: org.isPersonal,
-          planCode: org.planCode,
-          subscriptionStatus: org.subscriptionStatus,
-          memberCount: org._count.members,
-          projectCount: org._count.projects,
-          assetCount: org._count.assets,
-          createdAt: org.createdAt,
-        })),
-      },
-      users: {
-        total: totalUsers,
-        all: allUsers.map((user) => ({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          emailVerified: user.emailVerified,
-          organizationCount: user._count.organizationMembers,
-          activityCount: user._count.activities,
-        })),
       },
     });
   } catch (error) {

@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { title, description, url, thumbnailUrl, isPublished, priority, tagIds } = body;
+    const { title, description, url, thumbnailUrl, isPublished, priority, tagIds, projectId } = body;
 
     const world = await prisma.showcaseWorld.create({
       data: {
@@ -47,6 +47,7 @@ export async function POST(request: Request) {
         thumbnailUrl,
         isPublished: isPublished ?? false,
         priority: priority ?? 0,
+        projectId: projectId || undefined,
         tags: tagIds
           ? {
               connect: tagIds.map((id: string) => ({ id })),
@@ -77,7 +78,7 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json();
-    const { id, title, description, url, thumbnailUrl, isPublished, priority, tagIds } = body;
+    const { id, title, description, url, thumbnailUrl, isPublished, priority, tagIds, projectId } = body;
 
     if (!id) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
@@ -92,6 +93,7 @@ export async function PUT(request: Request) {
         thumbnailUrl,
         isPublished,
         priority,
+        projectId: projectId !== undefined ? (projectId || null) : undefined,
         tags: tagIds
           ? {
               set: tagIds.map((tagId: string) => ({ id: tagId })),

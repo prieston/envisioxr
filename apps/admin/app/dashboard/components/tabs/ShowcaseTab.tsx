@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -24,18 +24,17 @@ import {
   InputLabel,
   FormControl,
   Grid,
+  Autocomplete,
 } from "@mui/material";
 import {
   PageCard,
   AddIcon,
   CloseIcon,
-  SettingContainer,
-  SettingLabel,
-  textFieldStyles,
   showToast,
 } from "@klorad/ui";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import SearchIcon from "@mui/icons-material/Search";
 import useSWR from "swr";
 
 interface ShowcaseTag {
@@ -53,7 +52,20 @@ interface ShowcaseWorld {
   url: string;
   isPublished: boolean;
   priority: number;
+  projectId: string | null;
   tags: ShowcaseTag[];
+}
+
+interface Project {
+  id: string;
+  title: string;
+  description: string | null;
+  thumbnail: string | null;
+  publishedUrl: string | null;
+  isPublished: boolean;
+  organization: {
+    name: string;
+  };
 }
 
 const fetcher = async (url: string) => {
@@ -78,8 +90,14 @@ export function ShowcaseTab() {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Project[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+
   // World Form State
   const [editingWorld, setEditingWorld] = useState<ShowcaseWorld | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [worldForm, setWorldForm] = useState({
     title: "",
     description: "",
@@ -97,9 +115,59 @@ export function ShowcaseTab() {
     color: "",
   });
 
+  // Search for projects
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const searchProjects = async () => {
+      setSearchLoading(true);
+      try {
+        const res = await fetch(`/api/projects?search=${encodeURIComponent(searchQuery)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSearchResults(data.projects || []);
+        }
+      } catch (error) {
+        console.error("Failed to search projects:", error);
+      } finally {
+        setSearchLoading(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(() => {
+      searchProjects();
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
+
+  const handleProjectSelect = (project: Project | null) => {
+    if (!project) {
+      setSelectedProjectId(null);
+      return;
+    }
+
+    setSelectedProjectId(project.id);
+    setWorldForm({
+      title: project.title,
+      description: project.description || "",
+      url: project.publishedUrl || "",
+      thumbnailUrl: project.thumbnail || "",
+      priority: 0,
+      isPublished: project.isPublished,
+      tagIds: [],
+    });
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+
   const handleOpenWorldDialog = (world?: ShowcaseWorld) => {
     if (world) {
       setEditingWorld(world);
+      setSelectedProjectId(world.projectId || null);
       setWorldForm({
         title: world.title,
         description: world.description || "",
@@ -111,6 +179,7 @@ export function ShowcaseTab() {
       });
     } else {
       setEditingWorld(null);
+      setSelectedProjectId(null);
       setWorldForm({
         title: "",
         description: "",
@@ -121,6 +190,8 @@ export function ShowcaseTab() {
         tagIds: [],
       });
     }
+    setSearchQuery("");
+    setSearchResults([]);
     setWorldDialogOpen(true);
   };
 
@@ -131,6 +202,7 @@ export function ShowcaseTab() {
       const body = {
         ...worldForm,
         id: editingWorld?.id,
+        projectId: selectedProjectId,
       };
 
       const res = await fetch("/api/showcase/worlds", {
@@ -392,6 +464,48 @@ export function ShowcaseTab() {
             </IconButton>
           </Box>
           <Box display="flex" flexDirection="column" gap={3}>
+            {!editingWorld && (
+              <Autocomplete
+                options={searchResults}
+                loading={searchLoading}
+                getOptionLabel={(option) => option.title}
+                inputValue={searchQuery}
+                onInputChange={(_, newValue) => setSearchQuery(newValue)}
+                onChange={(_, newValue) => handleProjectSelect(newValue)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Search for a project"
+                    placeholder="Type to search projects..."
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />,
+                      endAdornment: (
+                        <>
+                          {searchLoading ? <CircularProgress size={20} /> : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+                renderOption={(props, option) => (
+                  <Box component="li" {...props}>
+                    <Box>
+                      <Typography variant="body2" fontWeight={500}>
+                        {option.title}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {option.organization.name}
+                        {option.description && ` • ${option.description.substring(0, 50)}${option.description.length > 50 ? "..." : ""}`}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+                noOptionsText={searchQuery ? "No projects found" : "Start typing to search"}
+                sx={{ mb: 1 }}
+              />
+            )}
             <TextField
               label="Title"
               value={worldForm.title}

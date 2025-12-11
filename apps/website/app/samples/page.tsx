@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { GeometricHint } from "@/components/geometric-hint";
 import { SamplesGrid } from "@/components/samples-grid";
-import { sampleWorlds } from "@/lib/samples";
+import { getSampleWorlds } from "@/lib/samples";
 
 export const metadata: Metadata = {
   title: "Showcase | Klorad",
@@ -18,7 +18,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SamplesPage() {
+export default async function SamplesPage() {
+  const sampleWorlds = await getSampleWorlds();
+
   return (
     <article className="space-y-0">
       {/* Hero Section */}
