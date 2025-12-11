@@ -20,6 +20,7 @@ interface BottomPanelControlsProps {
   addObservationPoint: () => void;
   selectObservation: (id: string | number | null) => void;
   deleteObservationPoint: (id: string | number) => void;
+  reorderObservationPoints?: (startIndex: number, endIndex: number) => void;
   previewMode: boolean;
   previewIndex: number;
   setPreviewIndex: (index: number) => void;
@@ -42,6 +43,7 @@ export const BottomPanelControls: React.FC<BottomPanelControlsProps> = ({
   addObservationPoint,
   selectObservation,
   deleteObservationPoint,
+  reorderObservationPoints,
   previewMode,
   previewIndex,
   setPreviewIndex,
@@ -86,6 +88,7 @@ export const BottomPanelControls: React.FC<BottomPanelControlsProps> = ({
           addObservationPoint={addObservationPoint}
           selectObservation={selectObservation}
           deleteObservationPoint={deleteObservationPoint}
+          reorderObservationPoints={reorderObservationPoints}
           previewMode={previewMode}
           previewIndex={previewIndex}
           setPreviewIndex={setPreviewIndex}

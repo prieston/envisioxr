@@ -15,7 +15,8 @@ export const createThreeJSBottomPanelConfig = (
   previewMode: boolean,
   previewIndex: number,
   setPreviewIndex: (index: number) => void,
-  setPreviewMode: (mode: boolean) => void
+  setPreviewMode: (mode: boolean) => void,
+  reorderObservationPoints?: (startIndex: number, endIndex: number) => void
 ): PanelConfiguration => {
   // Calculate current index for canNext/canPrev
   const currentIndex =
@@ -53,6 +54,7 @@ export const createThreeJSBottomPanelConfig = (
               addObservationPoint,
               selectObservation,
               deleteObservationPoint,
+              reorderObservationPoints,
               previewMode,
               previewIndex,
               setPreviewIndex,
@@ -80,7 +82,8 @@ export const createCesiumBottomPanelConfig = (
   previewMode: boolean,
   previewIndex: number,
   setPreviewIndex: (index: number) => void,
-  setPreviewMode: (mode: boolean) => void
+  setPreviewMode: (mode: boolean) => void,
+  reorderObservationPoints?: (startIndex: number, endIndex: number) => void
 ): PanelConfiguration => {
   // Calculate current index for canNext/canPrev
   const currentIndex =
@@ -118,6 +121,7 @@ export const createCesiumBottomPanelConfig = (
               addObservationPoint,
               selectObservation,
               deleteObservationPoint,
+              reorderObservationPoints,
               previewMode,
               previewIndex,
               setPreviewIndex,

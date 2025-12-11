@@ -13,11 +13,27 @@ import {
   IconButton,
 } from "@mui/material";
 import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  horizontalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   ObservationSection,
   ObservationListItem,
   AddButton,
 } from "./ObservationPointsList.styles";
-import { Add, MoreVert } from "@mui/icons-material";
+import { Add, MoreVert, DragIndicator } from "@mui/icons-material";
 
 export type ObservationPoint = {
   id: string | number;
@@ -32,11 +48,117 @@ export interface ObservationPointsListProps {
   addObservationPoint?: () => void;
   selectObservation?: (id: string | number | null) => void;
   deleteObservationPoint?: (id: string | number) => void;
+  reorderObservationPoints?: (startIndex: number, endIndex: number) => void;
   previewMode?: boolean;
   previewIndex?: number;
   setPreviewIndex?: (index: number) => void;
   setPreviewMode?: (mode: boolean) => void;
 }
+
+
+interface SortableItemProps {
+  point: ObservationPoint;
+  index: number;
+  selected: boolean;
+  onClick: () => void;
+  onMenuOpen: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  disabled?: boolean;
+}
+
+const SortableItem: React.FC<SortableItemProps> = ({
+  point,
+  index,
+  selected,
+  onClick,
+  onMenuOpen,
+  disabled = false,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: point.id, disabled });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Don't trigger onClick if we're dragging
+    if (isDragging) {
+      e.preventDefault();
+      return;
+    }
+    onClick();
+  };
+
+  return (
+    <ObservationListItem
+      ref={setNodeRef}
+      style={style}
+      selected={selected}
+      onClick={handleClick}
+      sx={{
+        cursor: disabled ? "default" : isDragging ? "grabbing" : "pointer",
+        boxShadow: isDragging
+          ? "0 8px 32px rgba(95, 136, 199, 0.24), 0 2px 8px rgba(0, 0, 0, 0.16)"
+          : undefined,
+      }}
+    >
+      {!disabled && (
+        <IconButton
+          {...attributes}
+          {...listeners}
+          size="small"
+          sx={{
+            color: "rgba(100, 116, 139, 0.6)",
+            cursor: "grab",
+            padding: "4px",
+            marginRight: "4px",
+            "&:active": {
+              cursor: "grabbing",
+            },
+            "&:hover": {
+              color: "var(--color-primary, #6B9CD8)",
+              backgroundColor: "rgba(95, 136, 199, 0.08)",
+            },
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <DragIndicator sx={{ fontSize: "1rem" }} />
+        </IconButton>
+      )}
+      <ListItemText
+        primary={point.title || `Point ${index + 1}`}
+        primaryTypographyProps={{
+          noWrap: true,
+          sx: { color: "inherit" },
+        }}
+      />
+      <IconButton
+        onClick={onMenuOpen}
+        size="small"
+        sx={{
+          color: "rgba(100, 116, 139, 0.85)",
+          borderRadius: 4,
+          transition: "color 0.15s ease, background-color 0.15s ease",
+          "&:hover": {
+            backgroundColor: "rgba(95, 136, 199, 0.08)",
+            color: "var(--color-primary, #6B9CD8)",
+          },
+        }}
+      >
+        <MoreVert />
+      </IconButton>
+    </ObservationListItem>
+  );
+};
 
 const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
   observationPoints,
@@ -44,6 +166,7 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
   addObservationPoint,
   selectObservation,
   deleteObservationPoint,
+  reorderObservationPoints,
   previewMode,
   setPreviewIndex,
 }) => {
@@ -52,6 +175,17 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
   const [selectedItemForDelete, setSelectedItemForDelete] = useState<
     string | number | null
   >(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleClick = (point: ObservationPoint, index: number) => {
     // Toggle selection: deselect if clicking the same observation
@@ -87,39 +221,26 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
     setSelectedItemForDelete(null);
   };
 
-  // Memoize observation points list to prevent unnecessary re-renders
-  const memoizedObservationPoints = useMemo(() => {
-    return observationPoints?.map((point, index) => (
-      <ObservationListItem
-        key={point.id}
-        selected={selectedObservation?.id === point.id}
-        onClick={() => handleClick(point, index)}
-      >
-        <ListItemText
-          primary={point.title || `Point ${index + 1}`}
-          primaryTypographyProps={{
-            noWrap: true,
-            sx: { color: "inherit" }, // Inherit color from parent
-          }}
-        />
-        <IconButton
-          onClick={(e) => handleMenuOpen(e, point.id)}
-          size="small"
-          sx={{
-            color: "rgba(100, 116, 139, 0.85)",
-            borderRadius: 4,
-            transition: "color 0.15s ease, background-color 0.15s ease",
-            "&:hover": {
-              backgroundColor: "rgba(95, 136, 199, 0.08)",
-              color: "var(--color-primary, #6B9CD8)",
-            },
-          }}
-        >
-          <MoreVert />
-        </IconButton>
-      </ObservationListItem>
-    ));
-  }, [observationPoints, selectedObservation?.id, handleClick, handleMenuOpen]);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || !reorderObservationPoints || !observationPoints) return;
+
+    const oldIndex = observationPoints.findIndex((p) => p.id === active.id);
+    const newIndex = observationPoints.findIndex((p) => p.id === over.id);
+
+    if (oldIndex !== newIndex) {
+      reorderObservationPoints(oldIndex, newIndex);
+    }
+  };
+
+  // Get IDs for sortable context
+  const itemIds = useMemo(
+    () => observationPoints?.map((p) => p.id) || [],
+    [observationPoints]
+  );
+
+  const isDragDisabled = previewMode || false;
 
   return (
     <ObservationSection previewMode={previewMode || false}>
@@ -137,8 +258,29 @@ const ObservationPointsList: React.FC<ObservationPointsListProps> = ({
         </Typography>
       </AddButton>
 
-      {/* List items */}
-      {memoizedObservationPoints}
+      {/* List items with drag-and-drop */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={itemIds}
+          strategy={horizontalListSortingStrategy}
+        >
+          {observationPoints?.map((point, index) => (
+            <SortableItem
+              key={point.id}
+              point={point}
+              index={index}
+              selected={selectedObservation?.id === point.id}
+              onClick={() => handleClick(point, index)}
+              onMenuOpen={(e) => handleMenuOpen(e, point.id)}
+              disabled={isDragDisabled}
+            />
+          ))}
+        </SortableContext>
+      </DndContext>
 
       <Menu
         anchorEl={menuAnchor}
