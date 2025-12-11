@@ -119,14 +119,17 @@ export const apiOrgAudit: AuditDefinition = {
           // Skip utility endpoints
           if (isUtilityEndpoint(file, methodType)) {
             // Utility endpoints should still require authentication
-            const hasAuth =
-              /getServerSession/.test(functionBody) &&
-              (/Unauthorized.*401/.test(functionBody) ||
-                /401/.test(functionBody) ||
-                /session\?\.user/.test(functionBody) ||
-                /!session/.test(functionBody));
+            // Check for auth function call (getServerSession for NextAuth v4 or auth() for NextAuth v5)
+            const hasAuthCall = /getServerSession|await\s+auth\(\)|auth\(\)/.test(functionBody);
+            // Check for authentication validation patterns
+            const hasAuthCheck =
+              /Unauthorized.*401/.test(functionBody) ||
+              /401/.test(functionBody) ||
+              /session\?\.user/.test(functionBody) ||
+              /!session/.test(functionBody) ||
+              /session.*user.*id/.test(functionBody);
 
-            if (!hasAuth) {
+            if (!hasAuthCall || !hasAuthCheck) {
               items.push({
                 message: `Utility endpoint ${methodType} should require authentication`,
                 file,
@@ -138,14 +141,18 @@ export const apiOrgAudit: AuditDefinition = {
             continue;
           }
 
-          // Check for authentication
-          const hasAuth =
-            /getServerSession/.test(functionBody) &&
-            (/Unauthorized.*401/.test(functionBody) ||
-              /401/.test(functionBody) ||
-              /session\?\.user/.test(functionBody) ||
-              /!session/.test(functionBody) ||
-              /session.*user.*id/.test(functionBody));
+          // Check for authentication - support both getServerSession (NextAuth v4) and auth() (NextAuth v5)
+          // Check for auth function call
+          const hasAuthCall = /getServerSession|await\s+auth\(\)|auth\(\)/.test(functionBody);
+          // Check for authentication validation patterns
+          const hasAuthCheck =
+            /Unauthorized.*401/.test(functionBody) ||
+            /401/.test(functionBody) ||
+            /session\?\.user/.test(functionBody) ||
+            /!session/.test(functionBody) ||
+            /session.*user.*id/.test(functionBody);
+
+          const hasAuth = hasAuthCall && hasAuthCheck;
 
           if (!hasAuth) {
             items.push({

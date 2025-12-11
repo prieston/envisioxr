@@ -18,8 +18,8 @@ const ObservationVisibilityArea: React.FC<ObservationVisibilityAreaProps> = ({
   showVisibleArea,
 }) => {
   const { scene } = useThree();
-  const visibilityAreaRef = useRef<THREE.Mesh>();
-  const materialRef = useRef<THREE.MeshBasicMaterial>();
+  const visibilityAreaRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null);
 
   useEffect(() => {
     if (!showVisibleArea) {

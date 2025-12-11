@@ -19,6 +19,7 @@ const BottomPanel: React.FC = () => {
     addObservationPoint: state.addObservationPoint,
     selectObservation: state.selectObservation,
     deleteObservationPoint: state.deleteObservationPoint,
+    reorderObservationPoints: state.reorderObservationPoints,
     nextObservation: state.nextObservation,
     prevObservation: state.prevObservation,
     previewMode: state.previewMode,
@@ -46,7 +47,8 @@ const BottomPanel: React.FC = () => {
       sceneState.previewIndex,
       sceneState.setPreviewIndex,
       sceneState.setPreviewMode,
-      { engine }
+      { engine },
+      sceneState.reorderObservationPoints
     );
   }, [
     engine,
@@ -59,6 +61,7 @@ const BottomPanel: React.FC = () => {
     sceneState.addObservationPoint,
     sceneState.selectObservation,
     sceneState.deleteObservationPoint,
+    sceneState.reorderObservationPoints,
     sceneState.nextObservation,
     sceneState.prevObservation,
     sceneState.previewMode,

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import {
   isUserMemberOfOrganization,
@@ -8,7 +7,7 @@ import {
 } from "@/lib/organizations";
 
 interface RouteParams {
-  params: { orgId: string; integrationId: string };
+  params: Promise<{ orgId: string; integrationId: string }>;
 }
 
 /**
@@ -18,7 +17,7 @@ export async function DELETE(
   _request: NextRequest,
   { params }: RouteParams
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

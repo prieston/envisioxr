@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 export function useCesiumStyling(
   viewer: any,
-  containerRef: React.RefObject<HTMLDivElement>,
+  containerRef: React.RefObject<HTMLDivElement | null>,
   isLoading: boolean
 ) {
   useEffect(() => {

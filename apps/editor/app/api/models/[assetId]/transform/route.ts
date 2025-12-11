@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
 import { isUserMemberOfOrganization } from "@/lib/organizations";
@@ -10,12 +9,10 @@ import { isUserMemberOfOrganization } from "@/lib/organizations";
  * Update the transform for a Cesium Ion asset in our database.
  * The transform is applied client-side when loading tilesets.
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { assetId: string } }
-) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ assetId: string }> }) {
+  const params = await props.params;
   try {
-    const session = (await getServerSession(authOptions)) as Session | null;
+    const session = (await auth()) as Session | null;
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

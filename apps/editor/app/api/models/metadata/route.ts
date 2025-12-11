@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Session } from "next-auth";
@@ -9,7 +8,7 @@ import { logActivity } from "@/lib/activity";
 
 // PATCH: Update asset (name, description, metadata, thumbnail)
 export async function PATCH(request: NextRequest) {
-  const session = (await getServerSession(authOptions)) as Session;
+  const session = (await auth()) as Session;
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

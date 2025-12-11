@@ -77,7 +77,8 @@ export const getBottomPanelConfig = (
   previewIndex: number,
   setPreviewIndex: (index: number) => void,
   setPreviewMode: (mode: boolean) => void,
-  worldStoreState?: any
+  worldStoreState?: any,
+  reorderObservationPoints?: (startIndex: number, endIndex: number) => void
 ): PanelConfiguration => {
   const engine = getEngine(worldStoreState);
 
@@ -98,7 +99,8 @@ export const getBottomPanelConfig = (
         previewMode,
         previewIndex,
         setPreviewIndex,
-        setPreviewMode
+        setPreviewMode,
+        reorderObservationPoints
       );
     case "cesium":
       return createCesiumBottomPanelConfig(
@@ -116,7 +118,8 @@ export const getBottomPanelConfig = (
         previewMode,
         previewIndex,
         setPreviewIndex,
-        setPreviewMode
+        setPreviewMode,
+        reorderObservationPoints
       );
     default:
       return createThreeJSBottomPanelConfig(
@@ -134,7 +137,8 @@ export const getBottomPanelConfig = (
         previewMode,
         previewIndex,
         setPreviewIndex,
-        setPreviewMode
+        setPreviewMode,
+        reorderObservationPoints
       ); // Default to ThreeJS
   }
 };

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { hasUserRoleInOrganization } from "@/lib/organizations";
 import { prisma } from "@/lib/prisma";
 import { serverEnv } from "@/lib/env/server";
@@ -11,14 +10,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
 });
 
 interface RouteParams {
-  params: { orgId: string };
+  params: Promise<{ orgId: string }>;
 }
 
 /**
  * POST: Create Stripe checkout session for plan upgrade
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

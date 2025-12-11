@@ -9,14 +9,31 @@ import {
   Button,
   Menu,
   MenuItem,
+  IconButton,
 } from "@mui/material";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   StyledList,
   ObjectListItem,
   StyledListItemText,
   StyledIconButton,
 } from "./SceneObjectsList.styles";
-import { MoreVert } from "@mui/icons-material";
+import { MoreVert, DragIndicator } from "@mui/icons-material";
 
 export interface SceneObjectItem {
   id: string;
@@ -29,19 +46,126 @@ export interface SceneObjectsListProps {
   selectedId?: string | null;
   onSelect?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onReorder?: (startIndex: number, endIndex: number) => void;
+  disabled?: boolean;
 }
+
+interface SortableObjectItemProps {
+  object: SceneObjectItem;
+  selected: boolean;
+  onClick: () => void;
+  onMenuOpen: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  disabled?: boolean;
+}
+
+const SortableObjectItem: React.FC<SortableObjectItemProps> = ({
+  object,
+  selected,
+  onClick,
+  onMenuOpen,
+  disabled = false,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: object.id, disabled });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Don't trigger onClick if we're dragging
+    if (isDragging) {
+      e.preventDefault();
+      return;
+    }
+    onClick();
+  };
+
+  return (
+    <ObjectListItem
+      ref={setNodeRef}
+      style={style}
+      className="glass-card"
+      selected={selected}
+      onClick={handleClick}
+      sx={{
+        cursor: disabled ? "default" : isDragging ? "grabbing" : "pointer",
+        boxShadow: isDragging
+          ? "0 8px 32px rgba(95, 136, 199, 0.24), 0 2px 8px rgba(0, 0, 0, 0.16)"
+          : undefined,
+      }}
+    >
+      {!disabled && (
+        <IconButton
+          {...attributes}
+          {...listeners}
+          size="small"
+          sx={{
+            color: "rgba(100, 116, 139, 0.6)",
+            cursor: "grab",
+            padding: "4px",
+            marginRight: "8px",
+            "&:active": {
+              cursor: "grabbing",
+            },
+            "&:hover": {
+              color: "var(--color-primary, #6B9CD8)",
+              backgroundColor: "rgba(95, 136, 199, 0.08)",
+            },
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <DragIndicator sx={{ fontSize: "1rem" }} />
+        </IconButton>
+      )}
+      <StyledListItemText
+        className="glass-card-content"
+        primary={object.name || "Untitled Object"}
+        secondary={`Type: ${object.type}`}
+      />
+      <StyledIconButton
+        onClick={onMenuOpen}
+        size="small"
+      >
+        <MoreVert />
+      </StyledIconButton>
+    </ObjectListItem>
+  );
+};
 
 const SceneObjectsList: React.FC<SceneObjectsListProps> = ({
   items = [],
   selectedId,
   onSelect,
   onDelete,
+  onReorder,
+  disabled = false,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItemForDelete, setSelectedItemForDelete] = useState<
     string | null
   >(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleMenuOpen = (
     e: React.MouseEvent<HTMLButtonElement>,
@@ -65,35 +189,50 @@ const SceneObjectsList: React.FC<SceneObjectsListProps> = ({
     setSelectedItemForDelete(null);
   };
 
-  // Memoize items list to prevent unnecessary re-renders
-  const memoizedItems = useMemo(() => {
-    return items.map((object) => (
-      <ObjectListItem
-        key={object.id}
-        className="glass-card"
-        selected={selectedId === object.id}
-        onClick={() => onSelect?.(object.id)}
-      >
-        <StyledListItemText
-          className="glass-card-content"
-          primary={object.name || "Untitled Object"}
-          secondary={`Type: ${object.type}`}
-        />
-        <StyledIconButton
-          onClick={(e) => handleMenuOpen(e, object.id)}
-          size="small"
-        >
-          <MoreVert />
-        </StyledIconButton>
-      </ObjectListItem>
-    ));
-  }, [items, selectedId, onSelect, handleMenuOpen]);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || !onReorder || !items) return;
+
+    const oldIndex = items.findIndex((item) => item.id === active.id);
+    const newIndex = items.findIndex((item) => item.id === over.id);
+
+    if (oldIndex !== newIndex) {
+      onReorder(oldIndex, newIndex);
+    }
+  };
+
+  // Get IDs for sortable context
+  const itemIds = useMemo(
+    () => items.map((item) => item.id),
+    [items]
+  );
 
   return (
     <Box sx={{ width: "100%" }}>
-      <StyledList>
-        {memoizedItems}
-      </StyledList>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={itemIds}
+          strategy={verticalListSortingStrategy}
+        >
+          <StyledList>
+            {items.map((object) => (
+              <SortableObjectItem
+                key={object.id}
+                object={object}
+                selected={selectedId === object.id}
+                onClick={() => onSelect?.(object.id)}
+                onMenuOpen={(e) => handleMenuOpen(e, object.id)}
+                disabled={disabled}
+              />
+            ))}
+          </StyledList>
+        </SortableContext>
+      </DndContext>
 
       <Menu
         anchorEl={menuAnchor}

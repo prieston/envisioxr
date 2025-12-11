@@ -8,16 +8,13 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { OrganizationRole } from "@prisma/client";
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { orgId: string } }
-) {
-  const session = await getServerSession(authOptions);
+export async function GET(_request: NextRequest, props: { params: Promise<{ orgId: string }> }) {
+  const params = await props.params;
+  const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -125,11 +122,9 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { orgId: string } }
-) {
-  const session = await getServerSession(authOptions);
+export async function PATCH(request: NextRequest, props: { params: Promise<{ orgId: string }> }) {
+  const params = await props.params;
+  const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -268,11 +263,9 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { orgId: string } }
-) {
-  const session = await getServerSession(authOptions);
+export async function DELETE(request: NextRequest, props: { params: Promise<{ orgId: string }> }) {
+  const params = await props.params;
+  const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

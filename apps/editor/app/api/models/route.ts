@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import {
   S3Client,
   PutObjectCommand,
@@ -42,7 +41,7 @@ const stockModels: StockModel[] = [
 
 // GET: List both stock models and user's uploaded assets.
 export async function GET(request: NextRequest) {
-  const session = (await getServerSession(authOptions)) as Session;
+  const session = (await auth()) as Session;
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -115,7 +114,7 @@ export async function GET(request: NextRequest) {
  * This endpoint is authenticated but does not require organizationId as it's a utility endpoint.
  */
 export async function PATCH(request: NextRequest) {
-  const session = (await getServerSession(authOptions)) as Session;
+  const session = (await auth()) as Session;
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -154,7 +153,7 @@ export async function PATCH(request: NextRequest) {
 
 // POST: Create a new Asset record once the file has been uploaded.
 export async function POST(request: NextRequest) {
-  const session = (await getServerSession(authOptions)) as Session;
+  const session = (await auth()) as Session;
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -379,7 +378,7 @@ export async function POST(request: NextRequest) {
 
 // DELETE: Remove an asset from DigitalOcean Spaces and the database.
 export async function DELETE(request: NextRequest) {
-  const session = (await getServerSession(authOptions)) as Session;
+  const session = (await auth()) as Session;
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

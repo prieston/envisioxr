@@ -1,12 +1,11 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import NoOrganizationAccess from "@/app/components/NoOrganizationAccess";
 
 export const dynamic = "force-dynamic";
 
 export default async function AccountNotLinkedPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if (!session?.user?.id) {
     return null; // Layout will handle redirect

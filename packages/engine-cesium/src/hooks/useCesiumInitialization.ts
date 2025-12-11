@@ -24,7 +24,7 @@ export interface UseCesiumInitializationResult {
   cesium: any;
   isLoading: boolean;
   error: string | null;
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function useCesiumInitialization(): UseCesiumInitializationResult {

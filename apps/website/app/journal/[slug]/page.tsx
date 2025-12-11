@@ -3,16 +3,15 @@ import { notFound } from "next/navigation";
 import { getJournalPost, journalPosts } from "@/lib/journalPosts";
 
 type JournalEntryPageProps = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 export async function generateStaticParams() {
   return journalPosts.map((post) => ({ slug: post.slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: JournalEntryPageProps): Promise<Metadata> {
+export async function generateMetadata(props: JournalEntryPageProps): Promise<Metadata> {
+  const params = await props.params;
   const post = getJournalPost(params.slug);
 
   if (!post) {
@@ -44,7 +43,8 @@ export async function generateMetadata({
   };
 }
 
-export default async function JournalEntryPage({ params }: JournalEntryPageProps) {
+export default async function JournalEntryPage(props: JournalEntryPageProps) {
+  const params = await props.params;
   const post = getJournalPost(params.slug);
 
   if (!post) {

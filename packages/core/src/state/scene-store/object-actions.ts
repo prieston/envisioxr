@@ -110,6 +110,18 @@ export function createObjectActions(set: any, _get: any) {
         ),
       })),
 
+    reorderObjects: (startIndex: number, endIndex: number) =>
+      set((state: any) => {
+        const newObjects = [...state.objects];
+        const [removed] = newObjects.splice(startIndex, 1);
+        newObjects.splice(endIndex, 0, removed);
+
+        return {
+          objects: newObjects,
+          selectedObject: newObjects.find((obj: Model) => obj.id === state.selectedObject?.id) || state.selectedObject,
+        };
+      }),
+
   };
 }
 

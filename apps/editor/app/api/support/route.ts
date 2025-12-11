@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { sendEmail } from "@/lib/email/resendClient";
 import { emailConfig } from "@/lib/env/server";
 import { SupportRequestEmail } from "@/lib/email/templates";
@@ -9,7 +8,7 @@ import { SupportRequestEmail } from "@/lib/email/templates";
  * POST: Send support request email
  */
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/auth";
 import { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { getUserOrganizationIds } from "@/lib/organizations";
 
 // GET /api/models/types - Get available asset types for filtering
 export async function GET(request: NextRequest) {
-  const session = (await getServerSession(authOptions)) as Session;
+  const session = (await auth()) as Session;
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

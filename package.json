@@ -47,11 +47,10 @@
     "prisma:generate": "pnpm --filter @klorad/prisma generate",
     "prisma:migrate:dev": "./scripts/migrate.sh dev",
     "prisma:migrate:deploy": "./scripts/migrate.sh deploy",
-    "prisma:migrate:resolve": "(pnpm --filter @klorad/prisma exec prisma migrate resolve --rolled-back 20241117010033_add_activity_table || true) && (pnpm --filter @klorad/prisma exec prisma migrate resolve --rolled-back 20251119124722_add_cesium_ion_integrations || true)",
-    "vercel:build:editor": "pnpm prisma:generate && pnpm prisma:migrate:resolve && pnpm --filter @klorad/prisma prisma migrate deploy && pnpm clean && pnpm build:packages && cd apps/editor && pnpm build",
+    "vercel:build:editor": "pnpm prisma:generate && pnpm --filter @klorad/prisma prisma migrate deploy && pnpm clean && pnpm build:packages && cd apps/editor && pnpm build",
     "check:tarball": "pnpm -r --filter ./packages... exec bash -lc 'pnpm pack --pack-destination /tmp && tar -tf /tmp/*.tgz | (grep -E \"(^package/dist/|^package/package.json$)\" && ! grep -E \"package/src/\")'",
     "vercel:build:website": "pnpm build:website",
-    "vercel:build:admin": "pnpm prisma:generate && pnpm prisma:migrate:resolve && pnpm --filter @klorad/prisma prisma migrate deploy && pnpm clean && pnpm build:packages && cd apps/admin && pnpm build",
+    "vercel:build:admin": "pnpm prisma:generate && pnpm --filter @klorad/prisma prisma migrate deploy && pnpm clean && pnpm build:packages && cd apps/admin && pnpm build",
     "postinstall": "pnpm prisma:generate",
     "prepare": "husky || true"
   },
@@ -62,25 +61,25 @@
   "pnpm": {
     "overrides": {
       "@cesium/engine": "^22.0.0",
-      "next": "^14.2.18",
-      "react": "^18.3.1",
-      "react-dom": "^18.3.1",
+      "next": "^15.1.9",
+      "react": "^19.2.1",
+      "react-dom": "^19.2.1",
       "typescript": "^5.9.0"
     }
   },
   "dependencies": {
     "@klorad/ion-sdk": "workspace:^",
-    "@types/react": "^18.3.20",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "concurrently": "^9.1.2",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
-    "next": "^14.2.18",
+    "next": "^15.1.9",
     "prettier": "^3.2.5",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "typescript": "^5.9.0"
   },
   "packageManager": "pnpm@9.12.3",

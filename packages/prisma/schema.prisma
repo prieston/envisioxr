@@ -160,6 +160,9 @@ model Project {
   assets       Asset[]
   // Activities related to this project
   activities   Activity[]
+
+  // Showcase Relation
+  showcaseWorld ShowcaseWorld?
 }
 
 enum Engine {
@@ -277,6 +280,8 @@ enum ActivityEntityType {
   USER
   CESIUM_INTEGRATION
   CESIUM_ASSET
+  SHOWCASE_WORLD
+  SHOWCASE_TAG
 }
 
 enum ActivityActionType {
@@ -339,4 +344,40 @@ enum CesiumAssetStatus {
   active
   deleted
   unknown
+}
+
+// Dynamic Showcase System
+
+model ShowcaseWorld {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  thumbnailUrl String?
+  url         String   // URL to the published project or iframe source
+
+  // Optional link to an internal Project
+  projectId   String?  @unique
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  isPublished Boolean  @default(false)
+  priority    Int      @default(0) // For sorting (higher shows first)
+
+  tags        ShowcaseTag[] @relation("WorldTags")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, priority])
+}
+
+model ShowcaseTag {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  label       String
+  color       String?  // Optional hex color for the tag
+
+  worlds      ShowcaseWorld[] @relation("WorldTags")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

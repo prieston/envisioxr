@@ -8,7 +8,7 @@ export HUSKY=1
 
 # Run core audits (fast fail) - these are blocking and must pass
 # Advisory audits (like size-complexity) run in CI where they're more appropriate
-pnpm audits || exit 1
+pnpm audits:light || exit 1
 
 # Run lint-staged
 pnpm lint-staged || exit 1

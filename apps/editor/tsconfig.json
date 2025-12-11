@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
     "allowImportingTsExtensions": true,
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,            // ✅ Allow JavaScript files
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true, // ✅ Allow JavaScript files
     "skipLibCheck": true,
     "strict": false,
     "noEmit": true,
@@ -13,11 +17,19 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@prisma": ["../packages/prisma"],
+      "@/*": [
+        "./*"
+      ],
+      "@prisma": [
+        "../packages/prisma"
+      ],
       "@klorad/core": [
         "../packages/core/dist/index.d.ts",
         "../packages/core/dist/index.js"
@@ -67,6 +79,7 @@
         "../packages/ion-sdk/dist/*.js"
       ]
     },
+    "target": "ES2017"
   },
   "include": [
     "next-env.d.ts",
@@ -75,8 +88,10 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx",
-    "**/*.js",          // ✅ Include JS files
-    "**/*.jsx"          // ✅ Include JSX files
+    "**/*.js", // ✅ Include JS files
+    "**/*.jsx" // ✅ Include JSX files
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

@@ -104,6 +104,29 @@ export function createObservationActions(set: any) {
           selectedObservation: prevPoint || state.selectedObservation,
         };
       }),
+
+    reorderObservationPoints: (startIndex: number, endIndex: number) =>
+      set((state: any) => {
+        const newPoints = [...state.observationPoints];
+        const [removed] = newPoints.splice(startIndex, 1);
+        newPoints.splice(endIndex, 0, removed);
+
+        // Update previewIndex if needed
+        let newPreviewIndex = state.previewIndex;
+        if (state.previewIndex === startIndex) {
+          newPreviewIndex = endIndex;
+        } else if (startIndex < state.previewIndex && endIndex >= state.previewIndex) {
+          newPreviewIndex = state.previewIndex - 1;
+        } else if (startIndex > state.previewIndex && endIndex <= state.previewIndex) {
+          newPreviewIndex = state.previewIndex + 1;
+        }
+
+        return {
+          observationPoints: newPoints,
+          previewIndex: newPreviewIndex,
+          selectedObservation: newPoints.find((p: ObservationPoint) => p.id === state.selectedObservation?.id) || state.selectedObservation,
+        };
+      }),
   };
 }
 

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React from "react";
 import { Box, Typography, Chip, alpha } from "@mui/material";
 import {

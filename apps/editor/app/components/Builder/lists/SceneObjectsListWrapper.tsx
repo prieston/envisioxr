@@ -20,6 +20,8 @@ const SceneObjectsListWrapper: React.FC = () => {
     selectObject: state.selectObject,
     removeObject: state.removeObject,
     deselectObject: state.deselectObject,
+    reorderObjects: state.reorderObjects,
+    previewMode: state.previewMode,
     // For selectedObject, exclude weatherData to prevent re-renders
     selectedObject: state.selectedObject
       ? (() => {
@@ -48,6 +50,10 @@ const SceneObjectsListWrapper: React.FC = () => {
     sceneState.removeObject(id);
   };
 
+  const handleReorder = (startIndex: number, endIndex: number) => {
+    sceneState.reorderObjects(startIndex, endIndex);
+  };
+
   // Transform objects to the format expected by UI component
   const items = sceneState.objects.map((obj) => ({
     id: obj.id,
@@ -61,6 +67,8 @@ const SceneObjectsListWrapper: React.FC = () => {
       selectedId={sceneState.selectedObject?.id || null}
       onSelect={handleSelect}
       onDelete={handleDelete}
+      onReorder={handleReorder}
+      disabled={sceneState.previewMode}
     />
   );
 };
