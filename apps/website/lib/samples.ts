@@ -24,7 +24,7 @@ export async function getSampleWorlds(): Promise<SampleWorld[]> {
     const worlds = await prisma.showcaseWorld.findMany({
       where: { isPublished: true },
       include: {
-        tags: true,
+        tag: true,
       },
       orderBy: { priority: "desc" },
     });
@@ -35,7 +35,7 @@ export async function getSampleWorlds(): Promise<SampleWorld[]> {
       imageThumbnail: world.thumbnailUrl || "/images/samples/default.jpg",
       title: world.title,
       description: world.description || undefined,
-      category: world.tags.length > 0 ? world.tags[0].label : "Uncategorized",
+      category: world.tag?.label || "Uncategorized",
     }));
   } catch (error) {
     console.error("Error fetching showcase worlds:", error);
@@ -54,7 +54,7 @@ export async function getSampleWorld(id: string) {
     const world = await prisma.showcaseWorld.findUnique({
       where: { id },
       include: {
-        tags: true,
+        tag: true,
       },
     });
 
@@ -66,7 +66,7 @@ export async function getSampleWorld(id: string) {
       imageThumbnail: world.thumbnailUrl || "/images/samples/default.jpg",
       title: world.title,
       description: world.description || undefined,
-      category: world.tags.length > 0 ? world.tags[0].label : "Uncategorized",
+      category: world.tag?.label || "Uncategorized",
     };
   } catch (error) {
     console.error("Error fetching showcase world:", error);
