@@ -1,7 +1,9 @@
 import withBundleAnalyzer from '@next/bundle-analyzer';
 import { createRequire } from 'module';
+import path from 'path';
 const require = createRequire(import.meta.url);
 const webpack = require('webpack');
+const CopyPlugin = require('copy-webpack-plugin');
 
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -37,6 +39,36 @@ const nextConfig = {
         DEBUG_SENSORS: JSON.stringify(false), // Website doesn't use Cesium sensors
       })
     );
+
+    // Copy Prisma query engine binaries for serverless functions
+    if (isServer) {
+      // Find the Prisma client path in node_modules
+      const prismaClientPath = path.join(
+        process.cwd(),
+        'node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma/client'
+      );
+
+      // Copy binaries to .next/server/.prisma/client so Prisma can find them in serverless functions
+      const outputPath = config.output.path || path.join(process.cwd(), '.next/server');
+      const prismaOutputPath = path.join(outputPath, '.prisma', 'client');
+
+      config.plugins.push(
+        new CopyPlugin({
+          patterns: [
+            {
+              from: path.join(prismaClientPath, 'libquery_engine-rhel-openssl-3.0.x.so.node'),
+              to: prismaOutputPath,
+              noErrorOnMissing: true,
+            },
+            {
+              from: path.join(prismaClientPath, 'query_engine-rhel-openssl-3.0.x.node'),
+              to: prismaOutputPath,
+              noErrorOnMissing: true,
+            },
+          ],
+        })
+      );
+    }
 
     // Strip console.* in production
     if (!isServer && process.env.NODE_ENV === 'production') {
